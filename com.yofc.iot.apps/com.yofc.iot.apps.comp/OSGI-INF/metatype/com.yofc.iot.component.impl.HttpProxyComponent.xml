@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="OSGI-INF/l10n/com.yofc.iot.component.impl.HttpProxyComponentCfg">
+  <OCD id="com.yofc.iot.component.impl.HttpProxyComponent" name="%name" description="%description">
+    <AD id="ip" type="String" name="%ip" description="%ipDesc" default="localhost"/>
+    <AD id="port" type="Integer" name="%port" description="%portDesc" default="80"/>
+    <AD id="context" type="String" required="false" name="%context" description="%contextDesc" default=""/>
+    <AD id="routeUrl" type="String" name="%routeUrl" description="%routeUrlDesc" default="/*"/>
+  </OCD>
+  <Designate factoryPid="com.yofc.iot.component.impl.HttpProxyComponent">
+    <Object ocdref="com.yofc.iot.component.impl.HttpProxyComponent"/>
+  </Designate>
+</metatype:MetaData>

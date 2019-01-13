@@ -1,0 +1,46 @@
+package com.yofc.vertx.osgi;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vertx.core.Verticle;
+import io.vertx.core.Vertx;
+
+/**
+ * A component consuming all verticles exposed in the service registry and deploying them.
+ */
+@Component(immediate = true)
+public class VertxVerticleHost {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VertxVerticleHost.class);
+    @Reference
+    private Vertx vertx;
+
+    ConcurrentHashMap<Verticle, String> deploymentIds = new ConcurrentHashMap<>();
+
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unbindVerticle")
+    public void bindVerticle(Verticle verticle) {
+        LOGGER.info("Deploying verticle {}", verticle);
+        this.vertx.deployVerticle(verticle, ar -> {
+            if (ar.succeeded()) {
+                deploymentIds.put(verticle, ar.result());
+            } else {
+                LOGGER.error("Cannot deploy {}" + verticle, ar.cause());
+            }
+        });
+    }
+
+    public void unbindVerticle(Verticle verticle) {
+        String id = deploymentIds.get(verticle);
+        LOGGER.info("Undeploying verticle ({} {})", verticle, id);
+        if (id != null) {
+            this.vertx.undeploy(id);
+        }
+    }
+}

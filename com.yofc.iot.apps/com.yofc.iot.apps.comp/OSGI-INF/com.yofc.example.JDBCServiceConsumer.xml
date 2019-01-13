@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.example.JDBCServiceConsumer" immediate="true" activate="start">
+  <service>
+    <provide interface="com.yofc.iot.component.api.DataService"/>
+  </service>
+  <reference name="client" interface="io.vertx.ext.jdbc.JDBCClient" target="(type=h2)" field="client"/>
+  <implementation class="com.yofc.example.JDBCServiceConsumer"/>
+</scr:component>

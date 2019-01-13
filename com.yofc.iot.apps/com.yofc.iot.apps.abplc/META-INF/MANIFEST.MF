@@ -1,0 +1,52 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-abplc
+Bnd-LastModified: 1547385983022
+Build-Jdk: 1.8.0_192
+Built-By: heyoulin
+Bundle-ActivationPolicy: lazy
+Bundle-Description: YOFC Applications for AB PLC
+Bundle-ManifestVersion: 2
+Bundle-Name: YOFC-Applications::ABPLC
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-SymbolicName: com.yofc.iot.yofc-iot-apps-abplc;singleton:=true
+Bundle-Version: 0.0.1.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Embed-Directory: lib
+Embed-StripGroup: true
+Embed-StripVersion: false
+Export-Package: 
+ etherip;version="0.0.1";uses:="etherip.data,etherip.protocol,etherip.ty
+ pes,org.slf4j",
+ etherip.types;version="0.0.1";uses:="etherip.protocol",
+ etherip.util;version="0.0.1",
+ etherip.driver;version="0.0.1";uses:="etherip.types,org.eclipse.kura.ch
+ annel,org.eclipse.kura.channel.listener,org.eclipse.kura.configuration,
+ org.eclipse.kura.driver",
+ etherip.driver.request;version="0.0.1";uses:="etherip.types,org.eclipse
+ .kura.channel",
+ etherip.protocol;version="0.0.1";uses:="etherip.data,etherip.types,org.
+ slf4j",
+ etherip.scan;version="0.0.1",
+ etherip.data;version="0.0.1";uses:="etherip.types"
+Import-Package: 
+ etherip;version="[0.0,1)",
+ etherip.data;version="[0.0,1)",
+ etherip.driver.request;version="[0.0,1)",
+ etherip.protocol;version="[0.0,1)",
+ etherip.types;version="[0.0,1)",
+ etherip.util;version="[0.0,1)",
+ org.eclipse.kura;version="[1.5,2)",
+ org.eclipse.kura.channel;version="[1.1,2)",
+ org.eclipse.kura.channel.listener;version="[1.0,2)",
+ org.eclipse.kura.configuration;version="[1.1,2)",
+ org.eclipse.kura.core.configuration.metatype;version="[1.0,2)",
+ org.eclipse.kura.driver;version="[1.0,1.1)",
+ org.eclipse.kura.type;version="[1.1,2)",
+ org.eclipse.kura.util.collection;version="[1.0,2)",
+ org.slf4j;version="[1.7,2)"
+Provide-Capability: osgi.service;objectClass:List<String>="org.eclipse.k
+ ura.configuration.ConfigurableComponent,org.eclipse.kura.driver.Driver"
+Require-Capability: osgi.extender;filter:="(&(osgi.extender=osgi.compone
+ nt)(version>=1.3.0)(!(version>=2.0.0)))"
+Service-Component: OSGI-INF/etherip.driver.ABPlcDriver.xml
+Tool: Bnd-4.1.0.201810181252

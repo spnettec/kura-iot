@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.HttpRestComponent" configuration-policy="require" enabled="true" immediate="true" activate="active" deactivate="deactivate" modified="updated">
+  <property name="kura.ui.service.hide" type="Boolean" value="true"/>
+  <service>
+    <provide interface="org.eclipse.kura.wire.WireComponent"/>
+    <provide interface="org.eclipse.kura.wire.WireEmitter"/>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+    <provide interface="org.osgi.service.wireadmin.Producer"/>
+  </service>
+  <reference name="eventBus" interface="io.vertx.core.eventbus.EventBus" field="eventBus"/>
+  <reference name="router" interface="io.vertx.ext.web.Router" field="router"/>
+  <reference name="wireHelperService" policy="static" interface="org.eclipse.kura.wire.WireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>
+  <implementation class="com.yofc.iot.component.impl.HttpRestComponent"/>
+</scr:component>

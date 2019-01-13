@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.vertx.osgi.ProxyRouteImpl" activate="activate" deactivate="deactivate">
+  <service scope="prototype">
+    <provide interface="com.yofc.vertx.osgi.api.ProxyRoute"/>
+  </service>
+  <reference name="router" interface="io.vertx.ext.web.Router" field="router"/>
+  <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>
+  <implementation class="com.yofc.vertx.osgi.ProxyRouteImpl"/>
+</scr:component>

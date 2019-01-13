@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.example.VertxWebClientVerticle" immediate="true" activate="active" deactivate="unregisterJDBCClientService">
+  <service>
+    <provide interface="io.vertx.core.Verticle"/>
+  </service>
+  <implementation class="com.yofc.example.VertxWebClientVerticle"/>
+</scr:component>
