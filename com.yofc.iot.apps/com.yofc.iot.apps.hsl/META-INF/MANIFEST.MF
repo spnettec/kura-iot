@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-hsl
-Bnd-LastModified: 1547385984478
+Bnd-LastModified: 1547387647225
 Build-Jdk: 1.8.0_192
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -15,63 +15,63 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Export-Package: 
- HslCommunication;version="0.0.1";uses:="HslCommunication.Language",
+ HslCommunication;uses:="HslCommunication.Language";version="0.0.1",
  HslCommunication.Core.Types;version="0.0.1",
- HslCommunication.Core.Net;version="0.0.1";uses:="HslCommunication.Core.
- Types",
+ HslCommunication.Core.Net;uses:="HslCommunication.Core.Types";version="
+ 0.0.1",
  HslCommunication.Core.Net.StateOne;version="0.0.1",
- HslCommunication.Core.Net.NetworkBase;version="0.0.1";uses:="HslCommuni
- cation.Core.IMessage,HslCommunication.Core.Net,HslCommunication.Core.Ne
- t.StateOne,HslCommunication.Core.Transfer,HslCommunication.Core.Types,H
- slCommunication.LogNet.Core",
+ HslCommunication.Core.Net.NetworkBase;uses:="HslCommunication.Core.IMes
+ sage,HslCommunication.Core.Net,HslCommunication.Core.Net.StateOne,HslCo
+ mmunication.Core.Transfer,HslCommunication.Core.Types,HslCommunication.
+ LogNet.Core";version="0.0.1",
  HslCommunication.Core.Security;version="0.0.1",
- HslCommunication.Core.Transfer;version="0.0.1";uses:="HslCommunication.
- Core.Types",
+ HslCommunication.Core.Transfer;uses:="HslCommunication.Core.Types";vers
+ ion="0.0.1",
  HslCommunication.Core.Address;version="0.0.1",
  HslCommunication.Core.IMessage;version="0.0.1",
- HslCommunication.Profinet.Siemens;version="0.0.1";uses:="HslCommunicati
- on.Core.IMessage,HslCommunication.Core.Net.NetworkBase,HslCommunication
- .Core.Transfer,HslCommunication.Core.Types",
- HslCommunication.Profinet.Melsec;version="0.0.1";uses:="HslCommunicatio
- n.Core.IMessage,HslCommunication.Core.Net.NetworkBase,HslCommunication.
- Core.Transfer,HslCommunication.Core.Types",
- HslCommunication.Profinet.Omron;version="0.0.1";uses:="HslCommunication
- .Core.IMessage,HslCommunication.Core.Net.NetworkBase,HslCommunication.C
- ore.Transfer,HslCommunication.Core.Types",
+ HslCommunication.Profinet.Siemens;uses:="HslCommunication.Core.IMessage
+ ,HslCommunication.Core.Net.NetworkBase,HslCommunication.Core.Transfer,H
+ slCommunication.Core.Types";version="0.0.1",
+ HslCommunication.Profinet.Melsec;uses:="HslCommunication.Core.IMessage,
+ HslCommunication.Core.Net.NetworkBase,HslCommunication.Core.Transfer,Hs
+ lCommunication.Core.Types";version="0.0.1",
+ HslCommunication.Profinet.Omron;uses:="HslCommunication.Core.IMessage,H
+ slCommunication.Core.Net.NetworkBase,HslCommunication.Core.Transfer,Hsl
+ Communication.Core.Types";version="0.0.1",
  HslCommunication.Language;version="0.0.1",
  HslCommunication.LogNet.Core;version="0.0.1",
- HslCommunication.Enthernet.SimplifyNet;version="0.0.1";uses:="HslCommun
- ication.Core.IMessage,HslCommunication.Core.Net,HslCommunication.Core.N
- et.NetworkBase,HslCommunication.Core.Transfer,HslCommunication.Core.Typ
- es",
- HslCommunication.Enthernet.ComplexNet;version="0.0.1";uses:="HslCommuni
- cation.Core.Net,HslCommunication.Core.Net.NetworkBase,HslCommunication.
- Core.Net.StateOne,HslCommunication.Core.Types",
- HslCommunication.Enthernet.PushNet;version="0.0.1";uses:="HslCommunicat
- ion.Core.Net.NetworkBase,HslCommunication.Core.Net.StateOne,HslCommunic
- ation.Core.Types",
+ HslCommunication.Enthernet.SimplifyNet;uses:="HslCommunication.Core.IMe
+ ssage,HslCommunication.Core.Net,HslCommunication.Core.Net.NetworkBase,H
+ slCommunication.Core.Transfer,HslCommunication.Core.Types";version="0.0
+ .1",
+ HslCommunication.Enthernet.ComplexNet;uses:="HslCommunication.Core.Net,
+ HslCommunication.Core.Net.NetworkBase,HslCommunication.Core.Net.StateOn
+ e,HslCommunication.Core.Types";version="0.0.1",
+ HslCommunication.Enthernet.PushNet;uses:="HslCommunication.Core.Net.Net
+ workBase,HslCommunication.Core.Net.StateOne,HslCommunication.Core.Types
+ ";version="0.0.1",
  HslCommunication.Enthernet.FileNet;version="0.0.1",
  HslCommunication.BasicFramework;version="0.0.1",
- HslCommunication.ModBus;version="0.0.1";uses:="HslCommunication.Core.Ad
- dress,HslCommunication.Core.IMessage,HslCommunication.Core.Net.NetworkB
- ase,HslCommunication.Core.Transfer,HslCommunication.Core.Types"
+ HslCommunication.ModBus;uses:="HslCommunication.Core.Address,HslCommuni
+ cation.Core.IMessage,HslCommunication.Core.Net.NetworkBase,HslCommunica
+ tion.Core.Transfer,HslCommunication.Core.Types";version="0.0.1"
 Import-Package: 
- HslCommunication;version="[0.0,1)",
- HslCommunication.BasicFramework;version="[0.0,1)",
- HslCommunication.Core.Address;version="[0.0,1)",
- HslCommunication.Core.IMessage;version="[0.0,1)",
- HslCommunication.Core.Net;version="[0.0,1)",
- HslCommunication.Core.Net.NetworkBase;version="[0.0,1)",
- HslCommunication.Core.Net.StateOne;version="[0.0,1)",
- HslCommunication.Core.Security;version="[0.0,1)",
- HslCommunication.Core.Transfer;version="[0.0,1)",
- HslCommunication.Core.Types;version="[0.0,1)",
- HslCommunication.Enthernet.ComplexNet;version="[0.0,1)",
- HslCommunication.Enthernet.PushNet;version="[0.0,1)",
- HslCommunication.Enthernet.SimplifyNet;version="[0.0,1)",
- HslCommunication.Language;version="[0.0,1)",
- HslCommunication.LogNet.Core;version="[0.0,1)",
- HslCommunication.ModBus;version="[0.0,1)",
- HslCommunication.Profinet.Melsec;version="[0.0,1)",
- HslCommunication.Profinet.Siemens;version="[0.0,1)"
+ HslCommunication,
+ HslCommunication.BasicFramework,
+ HslCommunication.Core.Address,
+ HslCommunication.Core.IMessage,
+ HslCommunication.Core.Net,
+ HslCommunication.Core.Net.NetworkBase,
+ HslCommunication.Core.Net.StateOne,
+ HslCommunication.Core.Security,
+ HslCommunication.Core.Transfer,
+ HslCommunication.Core.Types,
+ HslCommunication.Enthernet.ComplexNet,
+ HslCommunication.Enthernet.PushNet,
+ HslCommunication.Enthernet.SimplifyNet,
+ HslCommunication.Language,
+ HslCommunication.LogNet.Core,
+ HslCommunication.ModBus,
+ HslCommunication.Profinet.Melsec,
+ HslCommunication.Profinet.Siemens
 Tool: Bnd-4.1.0.201810181252
