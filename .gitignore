@@ -8,3 +8,9 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+com.yofc.iot.api/com.yofc.iot.api.comp/META-INF/MANIFEST.MF
+com.yofc.iot.api/com.yofc.iot.api.log4j/META-INF/MANIFEST.MF
+com.yofc.iot.apps/com.yofc.iot.apps.abplc/META-INF/MANIFEST.MF
+com.yofc.iot.apps/com.yofc.iot.apps.comp/META-INF/MANIFEST.MF
+com.yofc.iot.apps/com.yofc.iot.apps.hsl/META-INF/MANIFEST.MF
+com.yofc.iot.repack/com.yofc.iot.repack.vertx/META-INF/MANIFEST.MF

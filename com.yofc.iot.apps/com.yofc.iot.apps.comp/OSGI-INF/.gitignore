@@ -1,0 +1,10 @@
+/metatype/
+/com.yofc.example.ExampleConfigurableComponent.xml
+/com.yofc.example.JDBCServiceConsumer.xml
+/com.yofc.example.RestService.xml
+/com.yofc.example.VertxHttpClientVerticle.xml
+/com.yofc.example.VertxWebClientVerticle.xml
+/com.yofc.iot.component.impl.H2JDBCClientProvider.xml
+/com.yofc.iot.component.impl.HttpProxyComponent.xml
+/com.yofc.iot.component.impl.HttpRestComponent.xml
+/com.yofc.iot.component.impl.ValueChangeComponent.xml
