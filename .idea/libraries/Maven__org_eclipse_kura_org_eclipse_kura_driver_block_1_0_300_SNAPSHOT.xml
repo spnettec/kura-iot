@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.eclipse.kura:org.eclipse.kura.driver.block:1.0.300-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.driver.block/1.0.300-SNAPSHOT/org.eclipse.kura.driver.block-1.0.300-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.driver.block/1.0.300-SNAPSHOT/org.eclipse.kura.driver.block-1.0.300-SNAPSHOT-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.driver.block/1.0.300-SNAPSHOT/org.eclipse.kura.driver.block-1.0.300-SNAPSHOT-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.eclipse.kura:org.eclipse.kura.util:1.1.100-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.util/1.1.100-SNAPSHOT/org.eclipse.kura.util-1.1.100-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.util/1.1.100-SNAPSHOT/org.eclipse.kura.util-1.1.100-SNAPSHOT-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.util/1.1.100-SNAPSHOT/org.eclipse.kura.util-1.1.100-SNAPSHOT-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

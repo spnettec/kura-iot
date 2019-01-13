@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="com.yofc.iot.repack.vertx" />
+        <module name="yofc-iot-api-log4j" />
+        <module name="yofc-iot-api-vertx" />
+        <module name="yofc-iot-apps-abplc" />
+        <module name="yofc-iot-apps-comp" />
+        <module name="yofc-iot-apps-hsl" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="com.yofc.iop.repack" target="1.5" />
+      <module name="com.yofc.iot.repack.vertx" target="1.5" />
+      <module name="yofc-iot" target="1.5" />
+      <module name="yofc-iot-api" target="1.5" />
+      <module name="yofc-iot-api-log4j" target="1.8" />
+      <module name="yofc-iot-api-vertx" target="1.5" />
+      <module name="yofc-iot-apps" target="1.5" />
+      <module name="yofc-iot-apps-abplc" target="1.5" />
+      <module name="yofc-iot-apps-comp" target="1.5" />
+      <module name="yofc-iot-apps-hsl" target="1.5" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

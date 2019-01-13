@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iop.repack.iml" filepath="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iop.repack.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.vertx/com.yofc.iot.repack.vertx.iml" filepath="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.vertx/com.yofc.iot.repack.vertx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/yofc-iot.iml" filepath="$PROJECT_DIR$/yofc-iot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/yofc-iot-api.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/yofc-iot-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j/yofc-iot-api-log4j.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j/yofc-iot-api-log4j.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp/yofc-iot-api-vertx.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp/yofc-iot-api-vertx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/yofc-iot-apps.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/yofc-iot-apps.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/yofc-iot-apps-abplc.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/yofc-iot-apps-abplc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/yofc-iot-apps-comp.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/yofc-iot-apps-comp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/yofc-iot-apps-hsl.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/yofc-iot-apps-hsl.iml" />
+    </modules>
+  </component>
+</project>
