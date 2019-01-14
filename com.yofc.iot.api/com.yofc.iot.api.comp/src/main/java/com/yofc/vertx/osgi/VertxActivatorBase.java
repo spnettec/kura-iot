@@ -24,7 +24,7 @@ import io.vertx.ext.web.handler.CorsHandler;
 @Component(immediate = true, service = { VertxActivatorBase.class })
 public class VertxActivatorBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VertxActivatorBase.class);
+    private static final Logger logger = LoggerFactory.getLogger(VertxActivatorBase.class);
     private ServiceRegistration<Vertx> vertxRegistration;
     private ServiceRegistration<io.vertx.reactivex.core.Vertx> rxVertxRegistration;
     private ServiceRegistration<EventBus> ebRegistration;
@@ -39,7 +39,7 @@ public class VertxActivatorBase {
         this.vertx = Vertx.vertx();
 
         vertxRegistration = context.registerService(Vertx.class, this.vertx, null);
-        LOGGER.info("Vert.x service registered");
+        logger.info("Vert.x service registered");
         io.vertx.reactivex.core.Vertx rxVertx = new io.vertx.reactivex.core.Vertx(this.vertx);
         rxVertxRegistration = context.registerService(io.vertx.reactivex.core.Vertx.class, rxVertx, null);
         ebRegistration = context.registerService(EventBus.class, vertx.eventBus(), null);
@@ -49,7 +49,7 @@ public class VertxActivatorBase {
                         .allowedMethod(HttpMethod.DELETE).allowedMethod(HttpMethod.PUT)
                         .allowedMethod(HttpMethod.OPTIONS).allowedHeader("Content-Type")));
         rtRegistration = context.registerService(Router.class, router, null);
-        LOGGER.info("Vert.x Event Bus service registered");
+        logger.info("Vert.x Event Bus service registered");
     }
 
     @Deactivate

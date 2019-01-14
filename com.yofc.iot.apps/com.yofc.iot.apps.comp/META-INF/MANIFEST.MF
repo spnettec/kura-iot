@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1547387648606
+Bnd-LastModified: 1547490120561
 Build-Jdk: 1.8.0_192
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,10 +16,11 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.iot.component.api;uses:="io.vertx.core";version
- ="0.0.1"
+Export-Package: com.yofc.iot.component.api;version="0.0.1";uses:="io.ver
+ tx.core"
 Import-Package: 
  com.yofc.vertx.osgi.api;version="[0.0,1)",
+ groovy.lang;version="[2.5,3)",
  io.reactivex;version="[2.2,3)",
  io.reactivex.disposables;version="[2.2,3)",
  io.reactivex.functions;version="[2.2,3)",
@@ -31,10 +32,12 @@ Import-Package:
  io.vertx.ext.jdbc;version="[3.6,4)",
  io.vertx.ext.sql;version="[3.6,4)",
  io.vertx.ext.web;version="[3.6,4)",
+ io.vertx.ext.web.handler;version="[3.6,4)",
  io.vertx.reactivex.core;version="[3.6,4)",
  io.vertx.reactivex.core.buffer;version="[3.6,4)",
  io.vertx.reactivex.core.http;version="[3.6,4)",
  javax.ws.rs;version="[2.0,3)",
+ org.eclipse.kura.asset;version="[1.0,2)",
  org.eclipse.kura.configuration;version="[1.1,2)",
  org.eclipse.kura.type;version="[1.1,2)",
  org.eclipse.kura.wire;version="[2.0,3)",
@@ -74,14 +77,17 @@ Require-Capability:
  tive:=active,
  osgi.service;filter:="(objectClass=io.vertx.ext.web.Router)";effective:
  =active,
+ osgi.service;filter:="(objectClass=org.eclipse.kura.asset.AssetService)
+ ";effective:=active,
  osgi.service;filter:="(objectClass=org.eclipse.kura.wire.WireHelperServ
  ice)";effective:=active
 Service-Component: OSGI-INF/com.yofc.example.ExampleConfigurableComponen
  t.xml,OSGI-INF/com.yofc.example.JDBCServiceConsumer.xml,OSGI-INF/com.yo
  fc.example.RestService.xml,OSGI-INF/com.yofc.example.VertxHttpClientVer
  ticle.xml,OSGI-INF/com.yofc.example.VertxWebClientVerticle.xml,OSGI-INF
- /com.yofc.iot.component.impl.H2JDBCClientProvider.xml,OSGI-INF/com.yofc
- .iot.component.impl.HttpProxyComponent.xml,OSGI-INF/com.yofc.iot.compon
- ent.impl.HttpRestComponent.xml,OSGI-INF/com.yofc.iot.component.impl.Val
- ueChangeComponent.xml
+ /com.yofc.iot.component.impl.GroovyScriptFilter.xml,OSGI-INF/com.yofc.i
+ ot.component.impl.H2JDBCClientProvider.xml,OSGI-INF/com.yofc.iot.compon
+ ent.impl.HttpProxyComponent.xml,OSGI-INF/com.yofc.iot.component.impl.Ht
+ tpRestComponent.xml,OSGI-INF/com.yofc.iot.component.impl.ValueChangeCom
+ ponent.xml
 Tool: Bnd-4.1.0.201810181252

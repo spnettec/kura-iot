@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.GroovyScriptFilter" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
+  <property name="kura.ui.service.hide" type="Boolean" value="true"/>
+  <property name="service.pid" type="String" value="com.yofc.iot.component.impl.GroovyScriptFilter"/>
+  <service>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+    <provide interface="org.eclipse.kura.wire.WireComponent"/>
+    <provide interface="org.eclipse.kura.wire.WireEmitter"/>
+    <provide interface="org.eclipse.kura.wire.WireReceiver"/>
+    <provide interface="org.osgi.service.wireadmin.Producer"/>
+    <provide interface="org.osgi.service.wireadmin.Consumer"/>
+  </service>
+  <reference name="wireHelperService" policy="dynamic" interface="org.eclipse.kura.wire.WireHelperService" bind="bindWireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>
+  <implementation class="com.yofc.iot.component.impl.GroovyScriptFilter"/>
+</scr:component>

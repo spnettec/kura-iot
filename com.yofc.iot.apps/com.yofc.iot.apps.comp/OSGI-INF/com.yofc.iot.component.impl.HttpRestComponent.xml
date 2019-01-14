@@ -7,6 +7,7 @@
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
     <provide interface="org.osgi.service.wireadmin.Producer"/>
   </service>
+  <reference name="assetService" interface="org.eclipse.kura.asset.AssetService" field="assetService"/>
   <reference name="eventBus" interface="io.vertx.core.eventbus.EventBus" field="eventBus"/>
   <reference name="router" interface="io.vertx.ext.web.Router" field="router"/>
   <reference name="wireHelperService" policy="static" interface="org.eclipse.kura.wire.WireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>

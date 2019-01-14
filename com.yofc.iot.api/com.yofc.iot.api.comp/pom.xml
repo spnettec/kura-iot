@@ -5,7 +5,7 @@
     <artifactId>yofc-iot-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>yofc-iot-api-vertx</artifactId>
+  <artifactId>yofc-iot-api-comp</artifactId>
   <packaging>bundle</packaging>
     <properties>
         <vertx.version>3.6.2</vertx.version>
@@ -49,6 +49,12 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
             <version>${vertx.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

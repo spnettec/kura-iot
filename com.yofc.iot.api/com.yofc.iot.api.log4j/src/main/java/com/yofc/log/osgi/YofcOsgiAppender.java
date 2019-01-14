@@ -44,7 +44,7 @@ public class YofcOsgiAppender extends AbstractAppender {
 
     @Override
     public void append(LogEvent arg0) {
-
+        this.getLayout().toByteArray(arg0);
     }
 
     @Override

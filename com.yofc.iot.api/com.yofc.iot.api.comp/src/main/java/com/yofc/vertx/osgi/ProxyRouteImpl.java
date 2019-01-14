@@ -283,7 +283,8 @@ public class ProxyRouteImpl implements ProxyRoute {
 
     private void doProxyRequestFailure(RoutingContext failureroutingContext) {
         logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
-        failureroutingContext.response().end(failureroutingContext.failure().getMessage());
+        failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
+                : failureroutingContext.failure().getMessage());
     }
 
     public String getTargetHost() {
