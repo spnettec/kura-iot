@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.com.yofc.iot.repack.vertx
-Bnd-LastModified: 1547444559853
+Bnd-LastModified: 1547830418722
 Build-Jdk: 1.8.0_192
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy

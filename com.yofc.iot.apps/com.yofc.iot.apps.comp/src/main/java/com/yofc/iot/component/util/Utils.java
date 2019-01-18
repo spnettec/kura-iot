@@ -61,6 +61,13 @@ public class Utils {
         }
     }
 
+    public static WireRecord objectToWireRecord(String tag, Object obj) {
+        final Map<String, TypedValue<?>> resultProperties = new HashMap<>();
+        final TypedValue<?> resultValue = TypedValues.newTypedValue(obj);
+        resultProperties.put(tag, resultValue);
+        return new WireRecord(resultProperties);
+    }
+
     public static WireRecord bufferToWireRecord(String tag, Buffer buffer) {
         final Map<String, TypedValue<?>> resultProperties = new HashMap<>();
         final TypedValue<String> resultValue = TypedValues.newStringValue(buffer.toString("UTF-8"));

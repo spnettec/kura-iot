@@ -42,12 +42,13 @@ import org.slf4j.LoggerFactory;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.client.WebClient;
 
 @Designate(factory = true, ocd = GroovyScriptFilterCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
         ConfigurableComponent.class, WireComponent.class, WireEmitter.class, WireReceiver.class, Producer.class,
-        Consumer.class }, property = { "kura.ui.service.hide:Boolean=true",
-                "service.pid=com.yofc.iot.component.impl.GroovyScriptFilter" })
+        Consumer.class }, property = { "kura.ui.service.hide:Boolean=true" })
 public class GroovyScriptFilter implements WireEmitter, WireReceiver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(GroovyScriptFilter.class);
@@ -57,7 +58,9 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     private String scriptSource;
     @Reference(bind = "bindWireHelperService", unbind = "unbindWireHelperService")
     private volatile WireHelperService wireHelperService;
-
+    @Reference
+    private Vertx vertx;
+    private WebClient webClient;
     private WireSupport wireSupport;
 
     public void bindWireHelperService(final WireHelperService wireHelperService) {
@@ -79,7 +82,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
         logger.info("Activating Script Filter...");
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
-
+        webClient = WebClient.create(vertx);
         updated(properties);
 
         logger.info("ActivatingScript Filter... Done");
@@ -88,6 +91,10 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @Deactivate
     public void deactivate() {
         logger.info("Deactivating Script Filter...");
+        if (webClient != null) {
+            webClient.close();
+            webClient = null;
+        }
         logger.info("Deactivating Script Filter... Done");
     }
 
@@ -101,7 +108,10 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             logger.warn("Script source is null");
             return;
         }
-
+        if (webClient != null) {
+            webClient.close();
+            webClient = WebClient.create(vertx);
+        }
         logger.info("Updating Script Filter... Done");
     }
 
@@ -115,8 +125,10 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
         try {
             Binding binding = new Binding();
+            GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
             binding.setVariable("input", wireEnvelope);
+            binding.setVariable("webClient", webClient);
             List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
             for (WireRecord record : wireEnvelope.getRecords()) {
                 Map<String, TypedValue<?>> mapCopy = record.getProperties().entrySet().stream()
@@ -124,8 +136,6 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
                 outputEnvelopeWrapper.add(new WireRecord(mapCopy));
             }
             binding.setVariable("output", outputEnvelopeWrapper);
-
-            GroovyShell shell = new GroovyShell(binding);
             shell.evaluate(this.scriptSource);
             if (outputEnvelopeWrapper.isEmpty())
                 return;

@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1547453245621
+Bnd-LastModified: 1547830415481
 Build-Jdk: 1.8.0_192
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,9 +16,9 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.vertx.osgi.api;version="0.0.1";uses:="io.vertx.
- core.buffer,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.auth,io.
- vertx.ext.web,io.vertx.ext.web.handler,io.vertx.ext.web.handler.impl"
+Export-Package: com.yofc.vertx.osgi.api;uses:="io.vertx.core.buffer,io.v
+ ertx.core.http,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.web,io
+ .vertx.ext.web.handler,io.vertx.ext.web.handler.impl";version="0.0.1"
 Import-Package: 
  io.netty.handler.codec.http;version="[4.1,5)",
  io.netty.util;version="[4.1,5)",

@@ -26,10 +26,12 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.util.Utils;
 import com.yofc.vertx.osgi.api.BasicAuth;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -37,6 +39,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.AuthHandler;
 
 /**
@@ -54,6 +57,9 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     private static final String SCRIPT_PROPERTY_KEY = "script";
     private String scriptSource;
 
+    @Reference
+    private Vertx vertx;
+    private WebClient webClient;
     @Reference
     private EventBus eventBus;
     @Reference
@@ -74,21 +80,26 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @SuppressWarnings("unchecked")
     @Activate
     public void active(final ComponentContext ctx, final Map<String, Object> properties) {
-        dumpProperties(properties);
+        update(properties);
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
+        webClient = WebClient.create(vertx);
     }
 
     @Modified
     protected void updated(final Map<String, Object> properties) {
-        dumpProperties(properties);
+        update(properties);
+        if (webClient != null) {
+            webClient.close();
+            webClient = WebClient.create(vertx);
+        }
     }
 
-    private void dumpProperties(final Map<String, Object> properties) {
+    private void update(final Map<String, Object> properties) {
         String routeString = (String) properties.get("route");
         String usersString = (String) properties.get("users");
         usersString = usersString == null ? "" : usersString;
-        destroy();
+        destroyRoute();
         route = router.route(routeString);
         if (!usersString.equals("")) {
             JsonArray users = parseUsers((String) properties.get("users"));
@@ -101,19 +112,23 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         if (scriptSource == null) {
             logger.warn("Script source is null");
         }
-
     }
 
     @Deactivate
     public void deactivate(final ComponentContext ctx) {
-        destroy();
+        destroyRoute();
+        if (webClient != null) {
+            webClient.close();
+            webClient = null;
+        }
     }
 
-    private void destroy() {
+    private void destroyRoute() {
         if (route != null) {
             route.remove();
             route = null;
         }
+
     }
 
     @Override
@@ -130,24 +145,31 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         HttpServerResponse response = routingContext.response();
         response.putHeader("content-type", "application/json");
         if (scriptSource == null) {
-            response.end("no response exceuted");
+            response.end("No response exceuted");
             return;
         }
-        Binding binding = new Binding();
         try {
+            Binding binding = new Binding();
+            GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
             binding.setVariable("wireSupport", wireSupport);
             binding.setVariable("routingContext", routingContext);
             binding.setVariable("assetService", assetService);
-            GroovyShell shell = new GroovyShell(binding);
+            binding.setVariable("webClient", webClient);
+            String outputName = "output";
+            binding.setVariable(outputName, null);
             shell.evaluate(this.scriptSource);
+            Object output = binding.getVariable(outputName);
+            if (output != null) {
+                wireSupport.emit(Utils.getWireRecords(Utils.objectToWireRecord(outputName, output)));
+            }
         } catch (Exception e) {
             logger.warn("Failed to execute script", e);
             if (!response.ended())
                 response.end(e.toString());
         } finally {
             if (!response.ended())
-                response.end("ok");
+                response.end("No return information");
         }
     }
 
