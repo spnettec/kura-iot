@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1547830416092
+Bnd-LastModified: 1547840867337
 Build-Jdk: 1.8.0_192
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy

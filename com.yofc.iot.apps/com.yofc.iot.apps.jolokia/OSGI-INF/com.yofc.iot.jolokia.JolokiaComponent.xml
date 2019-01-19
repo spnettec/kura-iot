@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.jolokia.JolokiaComponent" configuration-policy="require" immediate="true" activate="activate" deactivate="deactivate" modified="modified">
+  <property name="user" type="String" value="jolokia"/>
+  <property name="enabled" type="Boolean" value="true"/>
+  <service>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+  </service>
+  <reference name="cryptoService" interface="org.eclipse.kura.crypto.CryptoService" field="cryptoService"/>
+  <reference name="httpService" interface="org.osgi.service.http.HttpService" field="httpService"/>
+  <implementation class="com.yofc.iot.jolokia.JolokiaComponent"/>
+</scr:component>

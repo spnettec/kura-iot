@@ -5,7 +5,9 @@
     <artifactId>com.yofc.iop.repack</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>com.yofc.iot.repack.vertx</artifactId>
+  <artifactId>yofc-iot-repack-vertx</artifactId>
+  <name>YOFC-Applications::Repack Vertx</name>
+    <description>YOFC Applications for Repack Vertx</description>
   <packaging>bundle</packaging>
     <properties>
         <vertx.version>3.6.2</vertx.version>
@@ -340,7 +342,17 @@
                     </instructions>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>de.dentrassi.maven</groupId>
+                <artifactId>osgi-dp</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
-Automatic-Module-Name: com.yofc.iot.com.yofc.iot.repack.vertx
-Bnd-LastModified: 1547830418722
+Automatic-Module-Name: com.yofc.iot.yofc-iot-repack-vertx
+Bnd-LastModified: 1547840869807
 Build-Jdk: 1.8.0_192
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -14,12 +14,11 @@ Bundle-ClassPath: .,lib/vertx-core-3.6.2.jar,lib/vertx-web-3.6.2.jar,lib
  bus-bridge-3.6.2.jar,lib/c3p0-0.9.5.2.jar,lib/mchange-commons-java-0.2.
  15.jar,lib/vertx-sql-common-3.6.2.jar,lib/HikariCP-3.2.0.jar,lib/weld-o
  sgi-bundle-3.0.5.Final.jar
-Bundle-Description: YOFC IOT
+Bundle-Description: YOFC Applications for Repack Vertx
 Bundle-ManifestVersion: 2
-Bundle-Name: com.yofc.iot.repack.vertx
+Bundle-Name: YOFC-Applications::Repack Vertx
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-SymbolicName: com.yofc.iot.com.yofc.iot.repack.vertx;singleton:=t
- rue
+Bundle-SymbolicName: com.yofc.iot.yofc-iot-repack-vertx;singleton:=true
 Bundle-Version: 0.0.1.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin
 Embed-Dependency: *;scope=compile|runtime

@@ -26,7 +26,6 @@ public class VertxActivatorBase {
 
     private static final Logger logger = LoggerFactory.getLogger(VertxActivatorBase.class);
     private ServiceRegistration<Vertx> vertxRegistration;
-    private ServiceRegistration<io.vertx.reactivex.core.Vertx> rxVertxRegistration;
     private ServiceRegistration<EventBus> ebRegistration;
     private ServiceRegistration<Router> rtRegistration;
 
@@ -40,8 +39,6 @@ public class VertxActivatorBase {
 
         vertxRegistration = context.registerService(Vertx.class, this.vertx, null);
         logger.info("Vert.x service registered");
-        io.vertx.reactivex.core.Vertx rxVertx = new io.vertx.reactivex.core.Vertx(this.vertx);
-        rxVertxRegistration = context.registerService(io.vertx.reactivex.core.Vertx.class, rxVertx, null);
         ebRegistration = context.registerService(EventBus.class, vertx.eventBus(), null);
         Router router = Router.router(vertx);
         routes.add(router.route()
@@ -54,10 +51,6 @@ public class VertxActivatorBase {
 
     @Deactivate
     public void stop(BundleContext context) {
-        if (rxVertxRegistration != null) {
-            rxVertxRegistration.unregister();
-            rxVertxRegistration = null;
-        }
         if (vertxRegistration != null) {
             vertxRegistration.unregister();
             vertxRegistration = null;

@@ -6,6 +6,8 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>yofc-iot-api-comp</artifactId>
+  <name>YOFC-Applications::Component API</name>
+    <description>YOFC Applications for Component API</description>
   <packaging>bundle</packaging>
     <properties>
         <vertx.version>3.6.2</vertx.version>
@@ -72,13 +74,27 @@
                         <_exportcontents>
                              com.yofc.vertx.osgi.api.*;-noimport:=true
                         </_exportcontents>
+                        <Include-Resource>
+                            OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
+                            {maven-resources}
+                        </Include-Resource>
                         <Import-Package>
                          *
                         </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>de.dentrassi.maven</groupId>
+                <artifactId>osgi-dp</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

@@ -133,17 +133,6 @@
                     </supportedProjectTypes>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>de.dentrassi.maven</groupId>
-                <artifactId>osgi-dp</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <!-- 
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>

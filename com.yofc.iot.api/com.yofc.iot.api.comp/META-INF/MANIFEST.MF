@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1547830415481
-Build-Jdk: 1.8.0_192
+Bnd-LastModified: 1547884927678
+Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
-Bundle-Description: YOFC IOT
+Bundle-Description: YOFC Applications for Component API
 Bundle-ManifestVersion: 2
-Bundle-Name: yofc-iot-api-comp
+Bundle-Name: YOFC-Applications::Component API
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-SymbolicName: com.yofc.iot.yofc-iot-api-comp;singleton:=true
 Bundle-Version: 0.0.1.SNAPSHOT
@@ -33,7 +33,6 @@ Import-Package:
  io.vertx.ext.web.handler;version="[3.6,4)",
  io.vertx.ext.web.handler.impl,
  io.vertx.ext.web.impl,
- io.vertx.reactivex.core;version="[3.6,4)",
  org.apache.commons.lang3;version="[3.4,4)",
  org.eclipse.kura.configuration;version="[1.1,2)",
  org.osgi.framework;version="[1.9,2)",
