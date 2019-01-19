@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.example.RestService" immediate="true" activate="start" deactivate="deactivate">
-  <service>
-    <provide interface="com.yofc.example.RestService"/>
-  </service>
-  <implementation class="com.yofc.example.RestService"/>
-</scr:component>
