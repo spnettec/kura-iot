@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1547884927678
+Bnd-LastModified: 1548481967013
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,9 +16,11 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.vertx.osgi.api;uses:="io.vertx.core.buffer,io.v
- ertx.core.http,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.web,io
- .vertx.ext.web.handler,io.vertx.ext.web.handler.impl";version="0.0.1"
+Export-Package: com.yofc.vertx.osgi.api;version="0.0.1";uses:="io.vertx.
+ core.buffer,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.auth,io.
+ vertx.ext.web,io.vertx.ext.web.handler,io.vertx.ext.web.handler.impl,or
+ g.eclipse.kura,org.eclipse.kura.asset,org.eclipse.kura.type,org.eclipse
+ .kura.wire"
 Import-Package: 
  io.netty.handler.codec.http;version="[4.1,5)",
  io.netty.util;version="[4.1,5)",
@@ -34,7 +36,12 @@ Import-Package:
  io.vertx.ext.web.handler.impl,
  io.vertx.ext.web.impl,
  org.apache.commons.lang3;version="[3.4,4)",
+ org.eclipse.kura;version="[1.5,2)",
+ org.eclipse.kura.asset;version="[1.0,2)",
+ org.eclipse.kura.channel;version="[1.1,2)",
  org.eclipse.kura.configuration;version="[1.1,2)",
+ org.eclipse.kura.type;version="[1.1,2)",
+ org.eclipse.kura.wire;version="[2.0,3)",
  org.osgi.framework;version="[1.9,2)",
  org.slf4j;version="[1.7,2)"
 Provide-Capability: 
@@ -52,7 +59,9 @@ Require-Capability:
  osgi.service;filter:="(objectClass=io.vertx.core.Vertx)";effective:=act
  ive,
  osgi.service;filter:="(objectClass=io.vertx.ext.web.Router)";effective:
- =active
+ =active,
+ osgi.service;filter:="(objectClass=org.eclipse.kura.asset.AssetService)
+ ";effective:=active
 Service-Component: OSGI-INF/com.yofc.vertx.osgi.ProxyRouteImpl.xml,OSGI-
  INF/com.yofc.vertx.osgi.VertxActivator.xml,OSGI-INF/com.yofc.vertx.osgi
  .VertxActivatorBase.xml,OSGI-INF/com.yofc.vertx.osgi.VertxVerticleHost.

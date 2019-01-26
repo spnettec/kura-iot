@@ -3,7 +3,6 @@ package com.yofc.iot.component.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
@@ -30,7 +29,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yofc.iot.component.util.Utils;
+import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(factory = true, ocd = ValueChangeComponentCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
@@ -56,7 +55,7 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void activate(final ComponentContext componentContext, final Map<String, Object> properties) {
+    public void activate(final ComponentContext componentContext, final ValueChangeComponentCfg properties) {
         logger.info("Activating Script Filter...");
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
@@ -72,24 +71,16 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
     }
 
     @Modified
-    public synchronized void modified(final Map<String, Object> properties) {
+    public synchronized void modified(final ValueChangeComponentCfg properties) {
         updated(properties);
     }
 
-    public synchronized void updated(final Map<String, Object> properties) {
+    public synchronized void updated(final ValueChangeComponentCfg properties) {
         tagNames = new ArrayList<>();
 
-        final Object v = properties.get("tags");
-        if (v instanceof String[]) {
-            tagNames.addAll(Arrays.asList((String[]) v));
-        } else if (v instanceof String) {
-            final String vs = (String) v;
-            if (!vs.trim().equals("")) {
-                final String[] reqs = vs.split("\\s*,\\s*");
-                tagNames.addAll(Arrays.asList(reqs));
-            }
-        }
-        isOr = "or".equals(properties.get("type"));
+        final String[] v = properties.tags();
+        tagNames.addAll(Arrays.asList((String[]) v));
+        isOr = "or".equals(properties.type());
         changedTagNames = new ArrayList<>();
     }
 

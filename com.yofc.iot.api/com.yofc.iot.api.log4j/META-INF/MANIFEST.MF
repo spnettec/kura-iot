@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-log4j
-Bnd-LastModified: 1547880897584
-Build-Jdk: 1.8.0_192
+Bnd-LastModified: 1548301961564
+Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
 Bundle-Description: YOFC Applications for log4j

@@ -17,19 +17,22 @@ import etherip.types.CNService;
  *
  * @author Kay Kasemir
  */
-public class MRChipWriteProtocol extends MessageRouterProtocol
-{
+public class MRChipWriteProtocol extends MessageRouterProtocol {
+
     /**
      * Initialize
      *
      * @param tag
-     *            Name of tag to write
+     *                  Name of tag to write
      * @param value
-     *            {@link CIPData} to write
+     *                  {@link CIPData} to write
      */
-    public MRChipWriteProtocol(final String tag, final CIPData value)
-    {
-        super(CNService.CIP_WriteData, Symbol(tag),
-                new CIPWriteDataProtocol(value));
+    public MRChipWriteProtocol(final String tag, final CIPData value) {
+        super(CNService.CIP_WriteData, Symbol(tag), new CIPWriteDataProtocol(value));
+    }
+
+    public MRChipWriteProtocol(final String tag, final short writeCount, final int start, final int dataOffset,
+            final CIPData value, CNService serviceid) {
+        super(serviceid, Symbol(tag), new CIPWriteDataProtocol(value, writeCount, start, dataOffset));
     }
 }

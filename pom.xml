@@ -15,7 +15,18 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <repositories>
+        <repository>
+            <id>repo.eclipse.org-releases</id>
+            <name>Eclipse Kura Repository - Releases</name>
+            <url>https://repo.eclipse.org/content/repositories/kura-releases/</url>
+        </repository>
+        <repository>
+            <id>repo.eclipse.org-snapshots</id>
+            <name>Eclipse Kura Repository - Snapshots</name>
+            <url>https://repo.eclipse.org/content/repositories/kura-snapshots/</url>
+        </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -34,6 +45,18 @@
                 <groupId>org.eclipse.kura</groupId>
                 <artifactId>org.eclipse.kura.util</artifactId>
                 <version>1.1.100-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kura</groupId>
+                <artifactId>org.eclipse.kura.driver.block</artifactId>
+                <version>1.0.300-SNAPSHOT</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.kura</groupId>
+                <artifactId>org.eclipse.kura.core.configuration</artifactId>
+                <version>2.0.200-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
 

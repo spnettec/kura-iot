@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1547840867337
-Build-Jdk: 1.8.0_192
+Bnd-LastModified: 1548440261955
+Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
 Bundle-Description: YOFC Applications for Components
@@ -16,8 +16,6 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.iot.component.api;uses:="io.vertx.core";version
- ="0.0.1"
 Import-Package: 
  com.yofc.vertx.osgi.api;version="[0.0,1)",
  groovy.lang;version="[2.5,3)",

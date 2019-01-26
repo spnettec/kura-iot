@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.HttpRestComponent" configuration-policy="require" enabled="true" immediate="true" activate="active" deactivate="deactivate" modified="updated">
+  <property name="route" type="String" value="/demo/*"/>
   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
+  <property name="script" type="String" value="def aa=1"/>
+  <property name="users" type="String" value="admin=111,guest=222"/>
   <service>
     <provide interface="org.eclipse.kura.wire.WireComponent"/>
     <provide interface="org.eclipse.kura.wire.WireEmitter"/>

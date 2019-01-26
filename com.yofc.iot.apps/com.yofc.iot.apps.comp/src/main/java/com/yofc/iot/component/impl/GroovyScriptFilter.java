@@ -53,8 +53,6 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
     private static final Logger logger = LoggerFactory.getLogger(GroovyScriptFilter.class);
 
-    private static final String SCRIPT_PROPERTY_KEY = "script";
-
     private String scriptSource;
     @Reference(bind = "bindWireHelperService", unbind = "unbindWireHelperService")
     private volatile WireHelperService wireHelperService;
@@ -77,8 +75,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void activate(final ComponentContext componentContext, final Map<String, Object> properties)
-            throws IOException {
+    public void activate(final ComponentContext componentContext, GroovyScriptFilterCfg properties) throws IOException {
         logger.info("Activating Script Filter...");
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
@@ -99,10 +96,10 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     }
 
     @Modified
-    public synchronized void updated(final Map<String, Object> properties) {
+    public synchronized void updated(final GroovyScriptFilterCfg properties) {
         logger.info("Updating Script Filter...");
 
-        scriptSource = (String) properties.get(SCRIPT_PROPERTY_KEY);
+        scriptSource = properties.script();
 
         if (scriptSource == null) {
             logger.warn("Script source is null");

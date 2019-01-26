@@ -3,7 +3,6 @@ package com.yofc.iot.component.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
@@ -26,8 +25,9 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yofc.iot.component.util.Utils;
+import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.BasicAuth;
+import com.yofc.vertx.osgi.api.Utils;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -41,6 +41,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.web.handler.BodyHandler;
 
 /**
  *
@@ -54,7 +55,6 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRestComponent.class);
 
-    private static final String SCRIPT_PROPERTY_KEY = "script";
     private String scriptSource;
 
     @Reference
@@ -70,6 +70,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
     private volatile WireHelperService wireHelperService;
     private WireSupport wireSupport;
+    private AssetHelp assetHelp;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -79,15 +80,16 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void active(final ComponentContext ctx, final Map<String, Object> properties) {
+    public void active(final ComponentContext ctx, final HttpRestComponentCfg properties) {
         update(properties);
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
         webClient = WebClient.create(vertx);
+        assetHelp = new AssetHelp(assetService);
     }
 
     @Modified
-    protected void updated(final Map<String, Object> properties) {
+    protected void updated(final HttpRestComponentCfg properties) {
         update(properties);
         if (webClient != null) {
             webClient.close();
@@ -95,19 +97,19 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         }
     }
 
-    private void update(final Map<String, Object> properties) {
-        String routeString = (String) properties.get("route");
-        String usersString = (String) properties.get("users");
+    private void update(final HttpRestComponentCfg properties) {
+        String routeString = properties.route();
+        String usersString = properties.users();
         usersString = usersString == null ? "" : usersString;
         destroyRoute();
         route = router.route(routeString);
         if (!usersString.equals("")) {
-            JsonArray users = parseUsers((String) properties.get("users"));
+            JsonArray users = parseUsers(usersString);
             AuthHandler basicAuthHandler = BasicAuth.create(users);
             route.handler(basicAuthHandler);
         }
-        route.handler(this::handleResult);
-        scriptSource = (String) properties.get(SCRIPT_PROPERTY_KEY);
+        route.handler(BodyHandler.create()).handler(this::handleResult);
+        scriptSource = properties.script();
 
         if (scriptSource == null) {
             logger.warn("Script source is null");
@@ -143,7 +145,6 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private void handleResult(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
-        response.putHeader("content-type", "application/json");
         if (scriptSource == null) {
             response.end("No response exceuted");
             return;
@@ -154,9 +155,9 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             binding.setVariable("logger", logger);
             binding.setVariable("wireSupport", wireSupport);
             binding.setVariable("routingContext", routingContext);
-            binding.setVariable("assetService", assetService);
+            binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("webClient", webClient);
-            String outputName = "output";
+            String outputName = "result";
             binding.setVariable(outputName, null);
             shell.evaluate(this.scriptSource);
             Object output = binding.getVariable(outputName);

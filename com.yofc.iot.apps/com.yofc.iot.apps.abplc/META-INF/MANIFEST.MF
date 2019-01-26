@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-abplc
-Bnd-LastModified: 1547840864586
-Build-Jdk: 1.8.0_192
+Bnd-LastModified: 1548301953868
+Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
 Bundle-Description: YOFC Applications for AB PLC

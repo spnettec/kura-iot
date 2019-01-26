@@ -10,7 +10,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
-import com.yofc.iot.component.util.Utils;
+import com.yofc.vertx.osgi.api.Utils;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -27,10 +27,11 @@ public class H2JDBCClientProvider {
 
     @Activate
     public void registerH2JDBCClientService(BundleContext context) throws Exception {
-        client = Utils.executeWithTCCLSwitch(() -> JDBCClient.createShared(vertx,
-                new JsonObject().put("provider_class", "io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider")
-                        .put("jdbcUrl", "jdbc:h2:mem:test").put("driverClassName", "org.h2.Driver")
-                        .put("maximumPoolSize", 30)));
+        client = Utils.executeWithTCCLSwitch(H2JDBCClientProvider.class.getClassLoader(),
+                () -> JDBCClient.createShared(vertx,
+                        new JsonObject().put("provider_class", "io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider")
+                                .put("jdbcUrl", "jdbc:h2:mem:test").put("driverClassName", "org.h2.Driver")
+                                .put("maximumPoolSize", 30)));
         Dictionary<String, Object> properties = new Hashtable<>();
         properties.put("type", "h2");
         registration = context.registerService(JDBCClient.class, client, properties);

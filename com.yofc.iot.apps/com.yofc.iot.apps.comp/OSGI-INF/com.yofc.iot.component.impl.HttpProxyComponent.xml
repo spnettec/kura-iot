@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.HttpProxyComponent" configuration-policy="require" enabled="true" immediate="true" activate="active" deactivate="deactivate" modified="updated">
   <property name="output.cardinality.maximum" type="Integer" value="2"/>
+  <property name="routeUrl" type="String" value="/*"/>
+  <property name="port" type="Integer" value="80"/>
   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
   <property name="input.cardinality.maximum" type="Integer" value="0"/>
+  <property name="ip" type="String" value="localhost"/>
+  <property name="context" type="String" value=""/>
   <property name="input.cardinality.minimum" type="Integer" value="0"/>
   <property name="output.cardinality.minimum" type="Integer" value="2"/>
   <property name="input.cardinality.default" type="Integer" value="0"/>

@@ -1,7 +1,6 @@
 package com.yofc.iot.component.impl;
 
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
@@ -24,11 +23,9 @@ import org.osgi.service.component.annotations.ReferenceScope;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.yofc.iot.component.util.Utils;
 import com.yofc.vertx.osgi.api.ProxyRoute;
+import com.yofc.vertx.osgi.api.Utils;
 
 import io.vertx.ext.web.Router;
 
@@ -59,7 +56,6 @@ import io.vertx.ext.web.Router;
                 "input.cardinality.default:Integer=0" })
 public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpProxyComponent.class);
     @Reference
     private Router router;
     @Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
@@ -79,7 +75,7 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void active(final ComponentContext ctx, final Map<String, Object> properties) {
+    public void active(final ComponentContext ctx, HttpProxyComponentCfg properties) {
         proxyRoute = proxyRouteRef.getService();
         dumpProperties(properties);
         this.wireSupport = (MultiportWireSupport) this.wireHelperService.newWireSupport(this,
@@ -90,15 +86,15 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     }
 
     @Modified
-    protected void updated(final Map<String, Object> properties) {
+    protected void updated(final HttpProxyComponentCfg properties) {
         dumpProperties(properties);
     }
 
-    private void dumpProperties(final Map<String, Object> properties) {
-        String ip = (String) properties.get("ip");
-        int port = (int) properties.get("port");
-        String routeContext = (String) properties.get("routeUrl");
-        String proxyContext = (String) properties.get("context");
+    private void dumpProperties(final HttpProxyComponentCfg properties) {
+        String ip = properties.ip();
+        int port = properties.port();
+        String routeContext = properties.routeUrl();
+        String proxyContext = properties.context();
 
         proxyRoute.configure(routeContext, proxyContext, -1, false, ip, port, 2000L);
         proxyRoute.addPreListener((context, proxyReq, buffer) -> {

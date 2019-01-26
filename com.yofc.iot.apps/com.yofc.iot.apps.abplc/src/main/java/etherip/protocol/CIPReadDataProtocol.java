@@ -21,12 +21,14 @@ public class CIPReadDataProtocol extends ProtocolAdapter {
 
     private CIPData data;
     private final short count;
+    private final int startBytes;
 
     /**
      * Create a read protocol message that requests a single element
      */
     public CIPReadDataProtocol() {
         this.count = 1;
+        this.startBytes = 0;
     }
 
     /**
@@ -34,18 +36,24 @@ public class CIPReadDataProtocol extends ProtocolAdapter {
      *
      * @param count
      */
-    public CIPReadDataProtocol(final short count) {
+
+    public CIPReadDataProtocol(final int start, final short count) {
         this.count = count;
+        this.startBytes = start;
     }
 
     @Override
     public int getRequestSize() {
+        if (this.startBytes > 0)
+            return 6;
         return 2;
     }
 
     @Override
     public void encode(final ByteBuffer buf, final StringBuilder log) {
         buf.putShort(this.count); // elements
+        if (this.startBytes > 0)
+            buf.putInt(this.startBytes);
         if (log != null) {
             log.append("USINT elements          : ").append(this.count).append("\n");
         }

@@ -50,7 +50,16 @@ public final class CIPData {
         STRUCT_STRING(0x0FCE, 0);
 
         private final short code;
-        private final int element_size;
+
+        public short getCode() {
+            return code;
+        }
+
+        private final int elementSize;
+
+        public int getElementSize() {
+            return elementSize;
+        }
 
         private static final Map<Short, Type> reverse;
 
@@ -69,9 +78,9 @@ public final class CIPData {
 
         }
 
-        private Type(final int code, final int element_size) {
+        private Type(final int code, final int elementSize) {
             this.code = (short) code;
-            this.element_size = element_size;
+            this.elementSize = elementSize;
         }
 
         @Override
@@ -89,15 +98,19 @@ public final class CIPData {
     /** Raw data, not including type code or element count */
     private final ByteBuffer data;
 
+    public ByteBuffer getData() {
+        return data;
+    }
+
     /**
      * Initialize empty CIP data
      *
      * @param type
-     *            Data {@link Type}
+     *                     Data {@link Type}
      * @param elements
-     *            Number of elements
+     *                     Number of elements
      * @throws Exception
-     *             when type is not handled
+     *                       when type is not handled
      */
     public CIPData(final Type type, final int elements) throws Exception {
         switch (type) {
@@ -107,7 +120,7 @@ public final class CIPData {
         case DINT:
         case BITS:
         case REAL:
-            this.data = ByteBuffer.allocate(type.element_size * elements);
+            this.data = ByteBuffer.allocate(type.elementSize * elements);
             this.data.order(Connection.BYTE_ORDER);
             this.type = type;
             this.elements = (short) elements;
@@ -125,7 +138,7 @@ public final class CIPData {
         case DINT:
         case BITS:
         case REAL:
-            this.data = ByteBuffer.allocate(type.element_size * 1);
+            this.data = ByteBuffer.allocate(type.elementSize * 1);
             this.data.order(Connection.BYTE_ORDER);
             this.type = type;
             this.elements = (short) 1;
@@ -154,11 +167,11 @@ public final class CIPData {
      * Initialize
      *
      * @param type
-     *            Data type
+     *                 Data type
      * @param data
-     *            Bytes that contain the raw CIP data
+     *                 Bytes that contain the raw CIP data
      * @throws Exception
-     *             when data is invalid
+     *                       when data is invalid
      */
     public CIPData(final Type type, final byte[] data) throws Exception {
         this.type = type;
@@ -177,7 +190,7 @@ public final class CIPData {
         case DINT:
         case BITS:
         case REAL:
-            return (short) (this.data.capacity() / this.type.element_size);
+            return (short) (this.data.capacity() / this.type.elementSize);
         case STRUCT: {
             return 1; // We do not know without byte packing details but at least 1.
         }
@@ -207,25 +220,25 @@ public final class CIPData {
      * Read CIP data as number
      *
      * @param index
-     *            Element index 0, 1, ...
+     *                  Element index 0, 1, ...
      * @return Numeric value of requested element
      * @throws Exception
-     *             on error, if data is not numeric
+     *                                       on error, if data is not numeric
      * @throws IndexOutOfBoundsException
-     *             if index is invalid
+     *                                       if index is invalid
      */
     public final synchronized Number getNumber(final int index) throws Exception, IndexOutOfBoundsException {
         switch (this.type) {
         case BOOL:
         case SINT:
-            return Byte.valueOf(this.data.get(this.type.element_size * index));
+            return Byte.valueOf(this.data.get(this.type.elementSize * index));
         case INT:
-            return Short.valueOf(this.data.getShort(this.type.element_size * index));
+            return Short.valueOf(this.data.getShort(this.type.elementSize * index));
         case DINT:
         case BITS:
-            return Integer.valueOf(this.data.getInt(this.type.element_size * index));
+            return Integer.valueOf(this.data.getInt(this.type.elementSize * index));
         case REAL:
-            return Float.valueOf(this.data.getFloat(this.type.element_size * index));
+            return Float.valueOf(this.data.getFloat(this.type.elementSize * index));
         default:
             throw new Exception("Cannot retrieve Number from " + this.type);
         }
@@ -250,8 +263,8 @@ public final class CIPData {
                 chars[i] = this.data.get(6 + i);
             }
             final short code = this.data.getShort(0);
-            final Type el_type = Type.forCode(code);
-            if (el_type == Type.STRUCT_STRING)
+            final Type elType = Type.forCode(code);
+            if (elType == Type.STRUCT_STRING)
                 return new String(chars);
             else
                 return chars;
@@ -266,7 +279,7 @@ public final class CIPData {
      *
      * @return {@link String}
      * @throws Exception
-     *             if data does not contain a string
+     *                       if data does not contain a string
      */
     public final synchronized String getString() throws Exception {
         if (this.type != Type.STRUCT) {
@@ -289,30 +302,30 @@ public final class CIPData {
      * Set CIP data
      *
      * @param index
-     *            Element index 0, 1, ...
+     *                  Element index 0, 1, ...
      * @param value
-     *            Numeric value to write to that element
+     *                  Numeric value to write to that element
      * @throws Exception
-     *             on invalid data type
+     *                                       on invalid data type
      * @throws IndexOutOfBoundsException
-     *             if index is invalid
+     *                                       if index is invalid
      */
     public final synchronized void set(final int index, final Number value)
             throws Exception, IndexOutOfBoundsException {
         switch (this.type) {
         case BOOL:
         case SINT:
-            this.data.put(this.type.element_size * index, value.byteValue());
+            this.data.put(this.type.elementSize * index, value.byteValue());
             break;
         case INT:
-            this.data.putShort(this.type.element_size * index, value.shortValue());
+            this.data.putShort(this.type.elementSize * index, value.shortValue());
             break;
         case DINT:
         case BITS:
-            this.data.putInt(this.type.element_size * index, value.intValue());
+            this.data.putInt(this.type.elementSize * index, value.intValue());
             break;
         case REAL:
-            this.data.putFloat(this.type.element_size * index, value.floatValue());
+            this.data.putFloat(this.type.elementSize * index, value.floatValue());
             break;
         default:
             throw new Exception("Cannot set type " + this.type + " to a number");
@@ -323,9 +336,9 @@ public final class CIPData {
      * Write CIP data as string
      *
      * @param text
-     *            {@link String}
+     *                 {@link String}
      * @throws Exception
-     *             if data does not contain a string
+     *                       if data does not contain a string
      */
     public final synchronized void setString(final String text) throws Exception {
         if (this.type != Type.STRUCT) {
@@ -349,43 +362,46 @@ public final class CIPData {
     }
 
     /** @return size if bytes of the encoded data */
-    public final int getEncodedSize() {
-        // Type, Elements, raw data
-        return 2 + 2 + this.data.capacity();
-    }
-
+    /*
+     * public final int getEncodedSize() {
+     * // Type, Elements, raw data
+     * return 2 + 2 + this.data.capacity();
+     * }
+     */
     /**
      * Encode CIP data bytes into buffer
      *
      * @param buf
-     *            {@link ByteBuffer} where data should be placed
+     *                {@link ByteBuffer} where data should be placed
      * @throws Exception
-     *             on error
+     *                       on error
      */
-    public final synchronized void encode(final ByteBuffer buf) throws Exception {
-        buf.putShort(this.type.code);
-        // STRUCT already contains structure detail, elements etc.
-        // For other types, add the element count
-        if (this.type == Type.STRUCT) {
-            this.data.clear();
-            final short struct_detail = this.data.getShort();
-            if (struct_detail != Type.STRUCT_STRING.code) {
-                throw new Exception("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
-            }
-            // The data buffer contains the string as _read_:
-            // STRUCT, STRUCT_STRING, length, chars.
-            // It needs to be written as
-            // STRUCT, STRUCT_STRING, _elements_, length, chars.
-            buf.putShort(struct_detail);
-            buf.putShort(this.elements);
-            // Copy length, chars from data into buf
-            buf.put(this.data);
-        } else {
-            buf.putShort(this.elements);
-            buf.put(this.data.array());
-        }
-    }
 
+    /*
+     * public final synchronized void encode(final ByteBuffer buf) throws Exception {
+     * buf.putShort(this.type.code);
+     * // STRUCT already contains structure detail, elements etc.
+     * // For other types, add the element count
+     * if (this.type == Type.STRUCT) {
+     * this.data.clear();
+     * final short struct_detail = this.data.getShort();
+     * if (struct_detail != Type.STRUCT_STRING.code) {
+     * throw new Exception("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
+     * }
+     * // The data buffer contains the string as _read_:
+     * // STRUCT, STRUCT_STRING, length, chars.
+     * // It needs to be written as
+     * // STRUCT, STRUCT_STRING, _elements_, length, chars.
+     * buf.putShort(struct_detail);
+     * buf.putShort(this.elements);
+     * // Copy length, chars from data into buf
+     * buf.put(this.data);
+     * } else {
+     * buf.putShort(this.elements);
+     * buf.put(this.data.array());
+     * }
+     * }
+     */
     /** @return String representation for debugging */
     @Override
     public final synchronized String toString() {

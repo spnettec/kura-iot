@@ -1,4 +1,4 @@
-package com.yofc.iot.component.util;
+package com.yofc.vertx.osgi.api;
 
 import java.util.ArrayList;
 import java.util.HashMap;

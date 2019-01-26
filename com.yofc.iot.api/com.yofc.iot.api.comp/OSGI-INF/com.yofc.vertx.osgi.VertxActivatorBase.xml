@@ -3,5 +3,6 @@
   <service>
     <provide interface="com.yofc.vertx.osgi.VertxActivatorBase"/>
   </service>
+  <reference name="assetService" interface="org.eclipse.kura.asset.AssetService" field="assetService"/>
   <implementation class="com.yofc.vertx.osgi.VertxActivatorBase"/>
 </scr:component>

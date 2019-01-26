@@ -32,15 +32,21 @@ public class MessageRouterProtocol extends ProtocolAdapter {
 
     private boolean partialTransfert = false;
 
+    private int payLoad;
+
+    public int getPayLoad() {
+        return payLoad;
+    }
+
     /**
      * Initialize
      *
      * @param service
-     *            Service for request
+     *                    Service for request
      * @param path
-     *            Path for request
+     *                    Path for request
      * @param body
-     *            Protocol embedded in the message request/response
+     *                    Protocol embedded in the message request/response
      */
     public MessageRouterProtocol(final CNService service, final CNPath path, final Protocol body) {
         this.service = service;
@@ -125,7 +131,8 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         if (expected_reply != null && expected_reply != reply) {
             throw new Exception("Expected " + expected_reply + ", got " + reply);
         }
-
+        int bodySize = available - 4 - 2 * ext_status_size;
+        this.payLoad = bodySize - 2;
         this.body.decode(buf, available - 4 - 2 * ext_status_size, log);
     }
 

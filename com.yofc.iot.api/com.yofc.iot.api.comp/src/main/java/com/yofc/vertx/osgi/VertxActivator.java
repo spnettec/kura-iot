@@ -1,7 +1,5 @@
 package com.yofc.vertx.osgi;
 
-import java.util.Map;
-
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -33,21 +31,19 @@ public class VertxActivator implements ConfigurableComponent {
     private volatile HttpServer server;
 
     @Activate
-    public void start(BundleContext context, Map<String, Object> properties) {
-        if (!Boolean.TRUE.equals(properties.get("enabled"))) {
+    public void start(BundleContext context, Config properties) {
+        if (!properties.enabled()) {
             stop(context);
             return;
         }
         server = vertx.createHttpServer();
-        Object portStr = properties.get("port");
-        portStr = portStr == null ? 8088 : portStr;
+        int port = properties.port();
 
-        Integer port = Integer.parseInt(String.valueOf(portStr));
         server.requestHandler(router).listen(port);
     }
 
     @Modified
-    public void update(BundleContext context, Map<String, Object> properties) {
+    public void update(BundleContext context, Config properties) {
         LOGGER.info("Modified");
         start(context, properties);
     }
