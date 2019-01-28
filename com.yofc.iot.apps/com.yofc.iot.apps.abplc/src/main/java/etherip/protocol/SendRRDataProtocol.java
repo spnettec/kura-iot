@@ -14,7 +14,6 @@ import java.nio.ByteBuffer;
  *
  * @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class SendRRDataProtocol extends ProtocolAdapter {
 
     /** Byte size of encapsulation header */
@@ -26,7 +25,7 @@ public class SendRRDataProtocol extends ProtocolAdapter {
      * Initialize
      *
      * @param body
-     *            Protocol to place in body of RRData
+     *                 Protocol to place in body of RRData
      */
     public SendRRDataProtocol(final Protocol body) {
         this.body = body;
@@ -117,6 +116,7 @@ public class SendRRDataProtocol extends ProtocolAdapter {
             return "Connected PDU";
         case (short) 0x00B2:
             return "Unconnected Message";
+        default:
         }
         return "<unknown>";
     }

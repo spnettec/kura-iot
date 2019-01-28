@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1548481967013
+Bnd-LastModified: 1548665064484
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -17,10 +17,10 @@ Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
 Export-Package: com.yofc.vertx.osgi.api;version="0.0.1";uses:="io.vertx.
- core.buffer,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.auth,io.
- vertx.ext.web,io.vertx.ext.web.handler,io.vertx.ext.web.handler.impl,or
- g.eclipse.kura,org.eclipse.kura.asset,org.eclipse.kura.type,org.eclipse
- .kura.wire"
+ core,io.vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.http,io.
+ vertx.core.json,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.han
+ dler,io.vertx.ext.web.handler.impl,org.eclipse.kura,org.eclipse.kura.as
+ set,org.eclipse.kura.type,org.eclipse.kura.wire"
 Import-Package: 
  io.netty.handler.codec.http;version="[4.1,5)",
  io.netty.util;version="[4.1,5)",
@@ -31,9 +31,11 @@ Import-Package:
  io.vertx.core.http;version="[3.6,4)",
  io.vertx.core.json;version="[3.6,4)",
  io.vertx.ext.auth;version="[3.6,4)",
+ io.vertx.ext.bridge;version="[3.6,4)",
  io.vertx.ext.web;version="[3.6,4)",
  io.vertx.ext.web.handler;version="[3.6,4)",
  io.vertx.ext.web.handler.impl,
+ io.vertx.ext.web.handler.sockjs;version="[3.6,4)",
  io.vertx.ext.web.impl,
  org.apache.commons.lang3;version="[3.4,4)",
  org.eclipse.kura;version="[1.5,2)",

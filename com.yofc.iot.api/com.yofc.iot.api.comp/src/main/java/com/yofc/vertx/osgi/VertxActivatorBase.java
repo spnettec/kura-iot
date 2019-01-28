@@ -21,12 +21,16 @@ import com.yofc.vertx.osgi.api.AssetHelp;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 
 /**
  * A bundle activator registering the Vert.x instance and the event bus as OSGi service.
@@ -52,16 +56,34 @@ public class VertxActivatorBase {
         logger.info("Vert.x service registered");
         ebRegistration = context.registerService(EventBus.class, vertx.eventBus(), null);
         Router router = Router.router(vertx);
+        Set<String> allowedHeaders = new HashSet<>();
+        allowedHeaders.add("x-requested-with");
+        allowedHeaders.add("Access-Control-Allow-Origin");
+        allowedHeaders.add("origin");
+        allowedHeaders.add("Content-Type");
+        allowedHeaders.add("accept");
+        allowedHeaders.add("X-PINGARUNER");
+
+        Set<HttpMethod> allowedMethods = new HashSet<>();
+        allowedMethods.add(HttpMethod.GET);
+        allowedMethods.add(HttpMethod.POST);
+        allowedMethods.add(HttpMethod.OPTIONS);
         routes.add(router.route()
-                .handler(CorsHandler.create("*").allowedMethod(HttpMethod.GET).allowedMethod(HttpMethod.POST)
-                        .allowedMethod(HttpMethod.DELETE).allowedMethod(HttpMethod.PUT)
-                        .allowedMethod(HttpMethod.OPTIONS).allowedHeader("Content-Type")));
+                .handler(CorsHandler.create("*").allowedHeaders(allowedHeaders).allowedMethods(allowedMethods)));
         routes.add(
                 router.route("/static/*").handler(StaticHandler.create("webroot", this.getClass().getClassLoader())));
         AssetHelp assetHelp = new AssetHelp(assetService);
         routes.add(router.post("/api/:method").handler(BodyHandler.create()).handler(ctx -> {
             String method = ctx.request().getParam("method");
-            JsonObject body = ctx.getBodyAsJson();
+            JsonObject body = null;
+            try {
+                body = ctx.getBodyAsJson();
+            } catch (Exception e) {
+                ctx.response().putHeader("content-type", "text/html; charset=utf-8");
+                ctx.response().setStatusCode(400).setStatusMessage("parameter error").end();
+                e.printStackTrace();
+                return;
+            }
             String assetPid = body.getString("assetPid");
             switch (method) {
             case "readTags":
@@ -79,7 +101,22 @@ public class VertxActivatorBase {
                 break;
             case "writeTags":
                 try {
-                    assetHelp.writeTags(assetPid, body.getJsonObject("tagNames"));
+                    final JsonObject tagsObj = new JsonObject();
+                    Object tags = body.getValue("tagNames");
+                    if (tags instanceof JsonArray) {
+                        JsonArray jarray = (JsonArray) tags;
+                        jarray.stream().forEach(obj -> {
+                            JsonObject jo = (JsonObject) obj;
+                            tagsObj.getMap().putAll(jo.getMap());
+                        });
+                        assetHelp.writeTags(assetPid, tagsObj);
+                    } else if (tags instanceof JsonObject)
+                        assetHelp.writeTags(assetPid, (JsonObject) tags);
+                    else {
+                        ctx.response().putHeader("content-type", "text/html; charset=utf-8");
+                        ctx.response().setStatusCode(400).setStatusMessage("parameter error").end();
+                        return;
+                    }
                     ctx.response().end();
                 } catch (KuraException e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
@@ -92,6 +129,15 @@ public class VertxActivatorBase {
                 ctx.response().setStatusCode(405).setStatusMessage("method not suported").end();
             }
         }));
+
+        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+        BridgeOptions options = new BridgeOptions();
+        options.addOutboundPermitted(new PermittedOptions().setAddress("tagData"));
+        options.addInboundPermitted(new PermittedOptions().setAddress("tagData"));
+        sockJSHandler.bridge(options);
+
+        routes.add(router.route("/bridge/*").handler(sockJSHandler));
+
         rtRegistration = context.registerService(Router.class, router, null);
         logger.info("Vert.x Event Bus service registered");
     }

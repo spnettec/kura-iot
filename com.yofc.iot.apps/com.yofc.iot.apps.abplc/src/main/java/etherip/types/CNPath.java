@@ -18,17 +18,15 @@ import etherip.protocol.Protocol;
  *
  * @author Kay Kasemir, László Pataki
  */
-@SuppressWarnings("nls")
-abstract public class CNPath implements Protocol
-{
+public abstract class CNPath implements Protocol {
+
     // Objects, see Spec 10 p. 1, 13, 25
     /**
      * Create path to Identity object
      *
      * @return {@link CNClassPath}
      */
-    public static CNClassPath Identity()
-    {
+    public static CNClassPath Identity() {
         return new CNClassPath(0x01, "Identity");
     }
 
@@ -37,13 +35,11 @@ abstract public class CNPath implements Protocol
      *
      * @return {@link CNClassPath}
      */
-    public static CNClassPath MessageRouter()
-    {
+    public static CNClassPath MessageRouter() {
         return new CNClassPath(0x02, "MessageRouter");
     }
 
-    public static CNClassPath ConnectionObject()
-    {
+    public static CNClassPath ConnectionObject() {
         return new CNClassPath(0x05, "ConnectionObject");
     }
 
@@ -52,39 +48,33 @@ abstract public class CNPath implements Protocol
      *
      * @return {@link CNPath}
      */
-    public static CNPath ConnectionManager()
-    {
+    public static CNPath ConnectionManager() {
         return new CNClassPath(0x06, "ConnectionManager");
     }
 
-    public static CNClassPath Port()
-    {
+    public static CNClassPath Port() {
         return new CNClassPath(0xf4, "Port");
     }
 
-    public static CNClassPath TcpIpInterface()
-    {
+    public static CNClassPath TcpIpInterface() {
         return new CNClassPath(0xf5, "TCP/IP Interface");
     }
 
-    public static CNClassPath EthernetLink()
-    {
+    public static CNClassPath EthernetLink() {
         return new CNClassPath(0xf6, "Ethernet Link");
     }
 
     /*
      * Logix5000 Data Access Class to read symbol names and types
      */
-    public static CNClassPath SymbolList()
-    {
+    public static CNClassPath SymbolList() {
         return new CNClassPath(0x6B, "Symbol List").instance(0);
     }
-    
+
     /*
      * Logix5000 Data Access Class to read template attributes
      */
-    public static CNClassPath TemplateAttributes()
-    {
+    public static CNClassPath TemplateAttributes() {
         return new CNClassPath(0x6C, "Template attributes");
     }
 
@@ -92,11 +82,10 @@ abstract public class CNPath implements Protocol
      * Create symbol path
      *
      * @param name
-     *            Name of the tag to put into symbol path
+     *                 Name of the tag to put into symbol path
      * @return {@link CNPath}
      */
-    public static CNSymbolPath Symbol(final String path)
-    {
+    public static CNSymbolPath Symbol(final String path) {
         return new CNSymbolPath(path);
     }
 }

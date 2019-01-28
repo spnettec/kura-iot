@@ -14,9 +14,7 @@ package etherip.types;
  *
  * @author Kay Kasemir, László Pataki
  */
-@SuppressWarnings("nls")
-public enum CNService
-{
+public enum CNService {
     Get_Attribute_All(0x01),
     Get_Attributes_List(0x03), // Logix5000 Data Access
     Get_Attribute_Single(0x0E), // Spec 6 p. 43
@@ -41,22 +39,18 @@ public enum CNService
 
     final private byte code;
 
-    private CNService(final int code)
-    {
+    private CNService(final int code) {
         this.code = (byte) code;
     }
 
     /**
      * @param code
-     *            Service code
+     *                 Service code
      * @return Matching {@link CNService} or <code>null</code>
      */
-    public static CNService forCode(final int code)
-    {
-        for (final CNService service : values())
-        {
-            if ((byte) code == service.code)
-            {
+    public static CNService forCode(final int code) {
+        for (final CNService service : values()) {
+            if ((byte) code == service.code) {
                 return service;
             }
         }
@@ -64,14 +58,12 @@ public enum CNService
     }
 
     /** @return Code (ID) of service as used in protocol */
-    public byte getCode()
-    {
+    public byte getCode() {
         return this.code;
     }
 
     /** @return <code>true</code> if this is a 'reply' to a request */
-    public boolean isReply()
-    {
+    public boolean isReply() {
         return (this.code & 0x80) == 0x80;
     }
 
@@ -80,23 +72,19 @@ public enum CNService
      *
      * @return {@link CNService} for the reply, or <code>null</code> if there is no known reply
      */
-    public CNService getReply()
-    {
-        if (this == CM_Unconnected_Send)
-        {
+    public CNService getReply() {
+        if (this == CM_Unconnected_Send) {
             return null;
         }
         // Is this already a 'reply'?
-        if ((this.code & 0x80) == 0x80)
-        {
+        if ((this.code & 0x80) == 0x80) {
             return null;
         }
         return forCode(this.code | 0x80);
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return String.format("%s (0x%02X)", this.name(), this.code);
     }
 }

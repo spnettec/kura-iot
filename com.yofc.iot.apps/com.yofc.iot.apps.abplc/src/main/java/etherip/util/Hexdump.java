@@ -14,40 +14,38 @@ import java.nio.ByteBuffer;
  * <p>
  * The <code>to...</code> routines return a String in Hex, Ascii or combined hexdump format.
  * <p>
- * The plain <code>hex</code>, <code>ascii</code>, <code>hexdump</code> routines append the hex, ascii or combined info to a buffer.
+ * The plain <code>hex</code>, <code>ascii</code>, <code>hexdump</code> routines append the hex, ascii or combined info
+ * to a buffer.
  * <p>
- * The {@link ByteBuffer} will be dumped from its current position to its limit. The position and limit will not be modified.
+ * The {@link ByteBuffer} will be dumped from its current position to its limit. The position and limit will not be
+ * modified.
  *
  * @author Kay Kasemir
  */
-@SuppressWarnings("nls")
-public class Hexdump
-{
+public class Hexdump {
+
+    private Hexdump() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static final int ELEMENTS_PER_LINE = 16;
 
-    public static String toHex(final ByteBuffer buffer)
-    {
+    public static String toHex(final ByteBuffer buffer) {
         final StringBuilder out = new StringBuilder();
         hex(buffer, out);
         return out.toString();
     }
 
-    public static void hex(final ByteBuffer buffer, final StringBuilder out)
-    {
+    public static void hex(final ByteBuffer buffer, final StringBuilder out) {
         final int start = buffer.position();
         final int end = buffer.limit();
-        for (int pos = 0; pos < end; pos += ELEMENTS_PER_LINE)
-        {
+        for (int pos = 0; pos < end; pos += ELEMENTS_PER_LINE) {
             out.append(String.format("%04X - ", pos));
-            for (int i = 0; i < ELEMENTS_PER_LINE; ++i)
-            {
+            for (int i = 0; i < ELEMENTS_PER_LINE; ++i) {
                 final int idx = start + pos + i;
-                if (idx >= end)
-                {
+                if (idx >= end) {
                     out.append("   ");
-                }
-                else
-                {
+                } else {
                     final byte b = buffer.get(idx);
                     out.append(String.format("%02X ", b));
                 }
@@ -57,34 +55,26 @@ public class Hexdump
         buffer.rewind();
     }
 
-    public static String toAscii(final byte... bytes)
-    {
+    public static String toAscii(final byte... bytes) {
         return toAscii(ByteBuffer.wrap(bytes)); // byte order does not matter, only byte-wise access
     }
 
-    public static String toAscii(final ByteBuffer buffer)
-    {
+    public static String toAscii(final ByteBuffer buffer) {
         final StringBuilder out = new StringBuilder();
         ascii(buffer, out);
         return out.toString();
     }
 
-    public static void ascii(final ByteBuffer buffer, final StringBuilder out)
-    {
+    public static void ascii(final ByteBuffer buffer, final StringBuilder out) {
         final int start = buffer.position();
         final int end = buffer.limit();
-        for (int pos = 0; pos < end; pos += ELEMENTS_PER_LINE)
-        {
+        for (int pos = 0; pos < end; pos += ELEMENTS_PER_LINE) {
             out.append(String.format("%04X - ", pos));
-            for (int i = 0; i < ELEMENTS_PER_LINE; ++i)
-            {
+            for (int i = 0; i < ELEMENTS_PER_LINE; ++i) {
                 final int idx = start + pos + i;
-                if (idx >= end)
-                {
+                if (idx >= end) {
                     out.append(" ");
-                }
-                else
-                {
+                } else {
                     out.append(escapeChars(buffer.get(idx)));
                 }
             }
@@ -93,48 +83,36 @@ public class Hexdump
         buffer.rewind();
     }
 
-    public static String toHexdump(final byte... bytes)
-    {
+    public static String toHexdump(final byte... bytes) {
         return toHexdump(ByteBuffer.wrap(bytes)); // byte order does not matter, only byte-wise access
     }
 
-    public static String toHexdump(final ByteBuffer buffer)
-    {
+    public static String toHexdump(final ByteBuffer buffer) {
         final StringBuilder out = new StringBuilder();
         hexdump(buffer, out);
         return out.toString();
     }
 
-    public static void hexdump(final ByteBuffer buffer, final StringBuilder out)
-    {
+    public static void hexdump(final ByteBuffer buffer, final StringBuilder out) {
         final int start = buffer.position();
         final int end = buffer.limit();
-        for (int pos = 0; pos < end; pos += ELEMENTS_PER_LINE)
-        {
+        for (int pos = 0; pos < end; pos += ELEMENTS_PER_LINE) {
             out.append(String.format("%04X - ", pos));
-            for (int i = 0; i < ELEMENTS_PER_LINE; ++i)
-            {
+            for (int i = 0; i < ELEMENTS_PER_LINE; ++i) {
                 final int idx = start + pos + i;
-                if (idx >= end)
-                {
+                if (idx >= end) {
                     out.append("   ");
-                }
-                else
-                {
+                } else {
                     final byte b = buffer.get(idx);
                     out.append(String.format("%02X ", b));
                 }
             }
             out.append("- ");
-            for (int i = 0; i < ELEMENTS_PER_LINE; ++i)
-            {
+            for (int i = 0; i < ELEMENTS_PER_LINE; ++i) {
                 final int idx = start + pos + i;
-                if (idx >= end)
-                {
+                if (idx >= end) {
                     out.append(" ");
-                }
-                else
-                {
+                } else {
                     out.append(escapeChars(buffer.get(idx)));
                 }
             }
@@ -145,28 +123,22 @@ public class Hexdump
 
     /**
      * @param bytes
-     *            Any bytes
+     *                  Any bytes
      * @return Printable string where any non-ASCII chars are replaced by '.'
      */
-    public static String escapeChars(final byte... bytes)
-    {
+    public static String escapeChars(final byte... bytes) {
         final StringBuilder buf = new StringBuilder();
-        for (final byte b : bytes)
-        {
-            if (b >= 32 && b < 127)
-            {
+        for (final byte b : bytes) {
+            if (b >= 32 && b < 127) {
                 buf.append(Character.toChars(b));
-            }
-            else
-            {
+            } else {
                 buf.append('.');
             }
         }
         return buf.toString();
     }
 
-    public static String toCompactHexdump(final ByteBuffer buffer)
-    {
+    public static String toCompactHexdump(final ByteBuffer buffer) {
         String string = toHexdump(buffer);
         string = string.replaceAll(" +", " ");
         string = string.replaceAll("\r", "");

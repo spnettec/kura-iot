@@ -25,7 +25,6 @@ import java.util.List;
  * 
  * @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class CNSymbolPath extends CNPath {
 
     /**

@@ -13,9 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
+import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
@@ -40,6 +39,8 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.vertx.osgi.api.AssetHelp;
+
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import io.vertx.core.Vertx;
@@ -60,6 +61,9 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     private Vertx vertx;
     private WebClient webClient;
     private WireSupport wireSupport;
+    @Reference
+    private AssetService assetService;
+    private AssetHelp assetHelp;
 
     public void bindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == null) {
@@ -80,6 +84,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
         webClient = WebClient.create(vertx);
+        assetHelp = new AssetHelp(assetService);
         updated(properties);
 
         logger.info("ActivatingScript Filter... Done");
@@ -126,10 +131,11 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             binding.setVariable("logger", logger);
             binding.setVariable("input", wireEnvelope);
             binding.setVariable("webClient", webClient);
+            binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("vertx", vertx);
             List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
             for (WireRecord record : wireEnvelope.getRecords()) {
-                Map<String, TypedValue<?>> mapCopy = record.getProperties().entrySet().stream()
-                        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+                Map<String, TypedValue<?>> mapCopy = record.getProperties();
                 outputEnvelopeWrapper.add(new WireRecord(mapCopy));
             }
             binding.setVariable("output", outputEnvelopeWrapper);

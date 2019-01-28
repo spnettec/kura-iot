@@ -14,7 +14,6 @@ import java.nio.ByteBuffer;
  *
  * @author Kay Kasemir
  */
-@SuppressWarnings("nls")
 public class GetShortAttributeProtocol extends ProtocolAdapter {
 
     private short value;

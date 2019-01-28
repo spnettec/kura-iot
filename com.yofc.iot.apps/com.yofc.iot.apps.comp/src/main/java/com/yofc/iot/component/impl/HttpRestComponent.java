@@ -156,6 +156,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             binding.setVariable("wireSupport", wireSupport);
             binding.setVariable("routingContext", routingContext);
             binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("vertx", vertx);
             binding.setVariable("webClient", webClient);
             String outputName = "result";
             binding.setVariable(outputName, null);

@@ -23,7 +23,7 @@ import io.vertx.ext.web.Router;
 @Component(immediate = true, configurationPolicy = ConfigurationPolicy.REQUIRE)
 public class VertxActivator implements ConfigurableComponent {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VertxActivator.class);
+    private static final Logger logger = LoggerFactory.getLogger(VertxActivator.class);
     @Reference
     private Vertx vertx;
     @Reference
@@ -44,7 +44,7 @@ public class VertxActivator implements ConfigurableComponent {
 
     @Modified
     public void update(BundleContext context, Config properties) {
-        LOGGER.info("Modified");
+        logger.info("Modified");
         start(context, properties);
     }
 
