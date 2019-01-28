@@ -8,9 +8,13 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.yofc.vertx.osgi.VertxActivator.Config;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -56,4 +60,15 @@ public class VertxActivator implements ConfigurableComponent {
         }
 
     }
+
+    @ObjectClassDefinition(id = "com.yofc.vertx.osgi.VertxActivator", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.vertx.osgi.Config")
+    @interface Config {
+
+        @AttributeDefinition(name = "%port", description = "%portdesc")
+        int port() default 8088;
+
+        @AttributeDefinition(name = "%enabled", description = "%enabledDesc")
+        boolean enabled() default false;
+    }
+
 }

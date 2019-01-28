@@ -5,13 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
+import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireRecord;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 
 public class Utils {
 
@@ -103,4 +108,13 @@ public class Utils {
         return names;
     }
 
+    public static JsonObject toJson(WireEnvelope wireEnvelope) {
+        Stream<Map<String, Object>> properties = wireEnvelope.getRecords().stream()
+                .map(record -> record.getProperties().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValue())));
+        Map<String, Object> merged = properties.map(Map::entrySet).flatMap(Set::stream)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return new JsonObject(merged);
+
+    }
 }

@@ -54,11 +54,23 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+        <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.wireadmin</artifactId>
+            <version>1.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.4</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.56</version>
+        </dependency>
+        
     </dependencies>
 
     <build>
@@ -72,14 +84,14 @@
                         <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <_exportcontents>
-                             com.yofc.vertx.osgi.api.*;-noimport:=true
+                             com.yofc.vertx.osgi.api.*,com.alibaba.fastjson;-noimport:=true
                         </_exportcontents>
                         <Include-Resource>
                             OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
                             {maven-resources}
                         </Include-Resource>
                         <Import-Package>
-                         *
+                         !org.joda.time.*,!okhttp3,!org.glassfish.*,!org.springframework.*,!retrofit2,!springfox.*,!sun.reflect.annotation,*
                         </Import-Package>
                     </instructions>
                 </configuration>
