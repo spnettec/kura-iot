@@ -19,12 +19,15 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.impl.HttpRestComponent.HttpRestComponentCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.BasicAuth;
 import com.yofc.vertx.osgi.api.Utils;
@@ -200,4 +203,19 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         }
         return new JsonArray(objs);
     }
+
+    @ObjectClassDefinition(id = "com.yofc.iot.component.impl.HttpRestComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.HttpRestComponentCfg")
+    @interface HttpRestComponentCfg {
+
+        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = true)
+        String script() default "def aa=1";
+
+        @AttributeDefinition(name = "%route", description = "%routeDesc", required = true)
+        String route() default "/demo/*";
+
+        @AttributeDefinition(name = "%users", cardinality = 0, description = "%usersDesc", required = false)
+        String users() default "admin=111,guest=222";
+
+    }
+
 }

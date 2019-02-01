@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-abplc
-Bnd-LastModified: 1548301953868
+Bnd-LastModified: 1548991699801
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -15,26 +15,26 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Export-Package: 
- etherip;uses:="etherip.data,etherip.protocol,etherip.types,org.slf4j";v
- ersion="0.0.1",
- etherip.types;uses:="etherip.protocol";version="0.0.1",
+ etherip;version="0.0.1";uses:="etherip.data,etherip.protocol,etherip.ty
+ pes,org.slf4j",
+ etherip.types;version="0.0.1";uses:="etherip.protocol",
  etherip.util;version="0.0.1",
- etherip.driver;uses:="etherip.types,org.eclipse.kura.channel,org.eclips
- e.kura.channel.listener,org.eclipse.kura.configuration,org.eclipse.kura
- .driver";version="0.0.1",
- etherip.driver.request;uses:="etherip.types,org.eclipse.kura.channel";v
- ersion="0.0.1",
- etherip.protocol;uses:="etherip.data,etherip.types,org.slf4j";version="
- 0.0.1",
+ etherip.driver;version="0.0.1";uses:="etherip.types,org.eclipse.kura.ch
+ annel,org.eclipse.kura.channel.listener,org.eclipse.kura.configuration,
+ org.eclipse.kura.driver",
+ etherip.driver.request;version="0.0.1";uses:="etherip.types,org.eclipse
+ .kura.channel",
+ etherip.protocol;version="0.0.1";uses:="etherip.data,etherip.types,org.
+ slf4j",
  etherip.scan;version="0.0.1",
- etherip.data;uses:="etherip.types";version="0.0.1"
+ etherip.data;version="0.0.1";uses:="etherip.types"
 Import-Package: 
- etherip,
- etherip.data,
- etherip.driver.request,
- etherip.protocol,
- etherip.types,
- etherip.util,
+ etherip;version="[0.0,1)",
+ etherip.data;version="[0.0,1)",
+ etherip.driver.request;version="[0.0,1)",
+ etherip.protocol;version="[0.0,1)",
+ etherip.types;version="[0.0,1)",
+ etherip.util;version="[0.0,1)",
  org.eclipse.kura;version="[1.5,2)",
  org.eclipse.kura.channel;version="[1.1,2)",
  org.eclipse.kura.channel.listener;version="[1.0,2)",

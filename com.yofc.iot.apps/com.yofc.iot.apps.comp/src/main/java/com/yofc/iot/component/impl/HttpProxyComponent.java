@@ -20,10 +20,13 @@ import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ReferenceScope;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
 
+import com.yofc.iot.component.impl.HttpProxyComponent.HttpProxyComponentCfg;
 import com.yofc.vertx.osgi.api.ProxyRoute;
 import com.yofc.vertx.osgi.api.Utils;
 
@@ -127,6 +130,22 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     public void consumersConnected(Wire[] wires) {
         this.wireSupport.consumersConnected(wires);
 
+    }
+
+    @ObjectClassDefinition(id = "com.yofc.iot.component.impl.HttpProxyComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.HttpProxyComponentCfg")
+    @interface HttpProxyComponentCfg {
+
+        @AttributeDefinition(name = "%ip", description = "%ipDesc")
+        String ip() default "localhost";
+
+        @AttributeDefinition(name = "%port", description = "%portDesc")
+        int port() default 80;
+
+        @AttributeDefinition(name = "%context", description = "%contextDesc", required = false)
+        String context() default "";
+
+        @AttributeDefinition(name = "%routeUrl", description = "%routeUrlDesc")
+        String routeUrl() default "/*";
     }
 
 }

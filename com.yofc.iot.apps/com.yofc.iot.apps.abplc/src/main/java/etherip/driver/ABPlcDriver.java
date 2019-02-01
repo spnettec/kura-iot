@@ -39,11 +39,14 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import etherip.EtherNetIP;
+import etherip.driver.ABPlcDriver.Config;
 import etherip.driver.request.Request;
 import etherip.driver.request.WriteParams;
 import etherip.types.CIPData;
@@ -54,23 +57,23 @@ import etherip.types.CIPData;
 public class ABPlcDriver implements Driver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(ABPlcDriver.class);
-    private ABPlcClientState state = new ABPlcClientState(new ABPlcOptions(Collections.emptyMap()));
-    private final AtomicReference<ABPlcOptions> options = new AtomicReference<>();
+    private ABPlcClientState state = new ABPlcClientState(null);
+    private final AtomicReference<Config> options = new AtomicReference<>();
 
     @Activate
-    protected synchronized void activate(final Map<String, Object> properties) {
+    protected synchronized void activate(final Config properties) {
         logger.info("Activating AB-PLC Driver...");
         extractProperties(properties);
         logger.info("Activating AB-PLC Driver... Done");
     }
 
-    private void extractProperties(final Map<String, Object> properties) {
+    private void extractProperties(final Config properties) {
         requireNonNull(properties, "Properties cannot be null");
-        this.options.set(new ABPlcOptions(properties));
+        this.options.set(properties);
     }
 
     @Modified
-    public synchronized void updated(final Map<String, Object> properties) {
+    public synchronized void updated(final Config properties) {
         logger.info("Updating AB-PLC Driver...");
 
         extractProperties(properties);
@@ -99,7 +102,7 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
     @Override
     public void connect() throws ConnectionException {
         try {
-            final ABPlcOptions currentOptions = this.options.get();
+            final Config currentOptions = this.options.get();
 
             if (this.state.options != currentOptions) {
                 logger.info("configuration changed, disconnecting...");
@@ -119,13 +122,13 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         }
     }
 
-    protected ABPlcClientState createClientState(final ABPlcOptions options) {
+    protected ABPlcClientState createClientState(final Config options) {
         return new ABPlcClientState(options);
     }
 
     @Override
     public void disconnect() throws ConnectionException {
-        if (this.state.client.isConnected()) {
+        if (this.state.client != null && this.state.client.isConnected()) {
             logger.debug("Disconnecting from AB PLC...");
             try {
                 this.state.client.close();
@@ -165,11 +168,11 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
                 tagRecordMap.put(tagName, record);
             }
         }
-        final ABPlcOptions abOptions = this.options.get();
-        int maxItemCountPerRequest = abOptions.getMaxItemCountPerRequest();
+        final Config abOptions = this.options.get();
+        int maxItemCountPerRequest = abOptions.maxRequestItems();
         String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
         try {
-            if (!this.state.client.isConnected()) {
+            if (this.state.client == null || !this.state.client.isConnected()) {
                 connect();
             }
             CIPData[] cipDatas = this.state.client.readTags(maxItemCountPerRequest, tagNames);
@@ -294,13 +297,13 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
     static final class ABPlcClientState {
 
         private final EtherNetIP client;
-        private final ABPlcOptions options;
+        private final Config options;
 
-        ABPlcClientState(final ABPlcOptions options) {
-            this(options, new EtherNetIP(options.getIp(), options.getSlot(), options.getPort()));
+        ABPlcClientState(final Config options) {
+            this(options, options == null ? null : new EtherNetIP(options.hostIp(), options.slot(), options.port()));
         }
 
-        public ABPlcClientState(final ABPlcOptions options, final EtherNetIP client) {
+        public ABPlcClientState(final Config options, final EtherNetIP client) {
             this.options = options;
             this.client = client;
         }
@@ -333,6 +336,22 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         public void close() {
             // no need
         }
+    }
+
+    @ObjectClassDefinition(id = "etherip.driver.ABPlcDriver", name = "%name", description = "%description", localization = "OSGI-INF/l10n/etherip.driver.Config")
+    @interface Config {
+
+        @AttributeDefinition(name = "%hostIp", description = "%hostIpDesc")
+        String hostIp() default "localhost";
+
+        @AttributeDefinition(name = "%port", description = "%portDesc")
+        int port() default 44818;
+
+        @AttributeDefinition(name = "%slot", description = "%slotDesc")
+        int slot() default 0;
+
+        @AttributeDefinition(name = "%maxRequestItems", description = "%maxRequestItemsDesc")
+        int maxRequestItems() default 100;
     }
 
 }

@@ -32,13 +32,16 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.osgi.service.wireadmin.Consumer;
 import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.impl.GroovyScriptFilter.GroovyScriptFilterCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 
 import groovy.lang.Binding;
@@ -169,4 +172,12 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     public void producersConnected(Wire[] wires) {
         this.wireSupport.producersConnected(wires);
     }
+
+    @ObjectClassDefinition(id = "com.yofc.iot.component.impl.GroovyScriptFilter", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.GroovyScriptFilterCfg")
+    @interface GroovyScriptFilterCfg {
+
+        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = true)
+        String script() default "def aa=1";
+    }
+
 }

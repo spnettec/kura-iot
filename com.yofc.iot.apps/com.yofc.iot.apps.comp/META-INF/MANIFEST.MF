@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1548699125228
+Bnd-LastModified: 1548991659304
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,6 +16,8 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
+Export-Package: com.yofc.iot.component.api;version="0.0.1";uses:="org.ec
+ lipse.kura.channel,org.eclipse.kura.driver"
 Import-Package: 
  com.yofc.vertx.osgi.api;version="[0.0,1)",
  groovy.lang;version="[2.5,3)",
@@ -28,11 +30,18 @@ Import-Package:
  io.vertx.ext.web;version="[3.6,4)",
  io.vertx.ext.web.client;version="[3.6,4)",
  io.vertx.ext.web.handler;version="[3.6,4)",
+ org.eclipse.kura;version="[1.5,2)",
  org.eclipse.kura.asset;version="[1.0,2)",
+ org.eclipse.kura.channel;version="[1.1,2)",
+ org.eclipse.kura.channel.listener;version="[1.0,2)",
  org.eclipse.kura.configuration;version="[1.1,2)",
+ org.eclipse.kura.core.configuration.metatype;version="[1.0,2)",
+ org.eclipse.kura.driver;version="[1.0,1.1)",
  org.eclipse.kura.type;version="[1.1,2)",
+ org.eclipse.kura.util.collection;version="[1.0,2)",
  org.eclipse.kura.wire;version="[2.0,3)",
  org.eclipse.kura.wire.graph;version="[1.0,2)",
+ org.h2.mvstore;version="[1.4,2)",
  org.osgi.framework;version="[1.9,2)",
  org.osgi.service.component;version="[1.3,2)",
  org.osgi.service.wireadmin;version="[1.0,2)",
@@ -42,6 +51,8 @@ Import-Package:
  org.h2.jdbcx;version="1.4.197",
  org.h2.tools;version="1.4.197"
 Provide-Capability: 
+ osgi.service;objectClass:List<String>="org.eclipse.kura.configuration.C
+ onfigurableComponent,org.eclipse.kura.driver.Driver",
  osgi.service;objectClass:List<String>="org.eclipse.kura.configuration.C
  onfigurableComponent,org.eclipse.kura.wire.WireComponent,org.eclipse.ku
  ra.wire.WireEmitter,org.eclipse.kura.wire.WireReceiver,org.osgi.service
@@ -66,7 +77,8 @@ Require-Capability:
  ice)";effective:=active
 Service-Component: OSGI-INF/com.yofc.iot.component.impl.GroovyScriptFilt
  er.xml,OSGI-INF/com.yofc.iot.component.impl.H2JDBCClientProvider.xml,OS
- GI-INF/com.yofc.iot.component.impl.HttpProxyComponent.xml,OSGI-INF/com.
- yofc.iot.component.impl.HttpRestComponent.xml,OSGI-INF/com.yofc.iot.com
- ponent.impl.ValueChangeComponent.xml
+ GI-INF/com.yofc.iot.component.impl.H2MVStoreDriver.xml,OSGI-INF/com.yof
+ c.iot.component.impl.HttpProxyComponent.xml,OSGI-INF/com.yofc.iot.compo
+ nent.impl.HttpRestComponent.xml,OSGI-INF/com.yofc.iot.component.impl.Va
+ lueChangeComponent.xml
 Tool: Bnd-4.1.0.201810181252

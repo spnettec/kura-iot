@@ -22,13 +22,17 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
+import org.osgi.service.metatype.annotations.Option;
 import org.osgi.service.wireadmin.Consumer;
 import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.impl.ValueChangeComponent.ValueChangeComponentCfg;
 import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(factory = true, ocd = ValueChangeComponentCfg.class)
@@ -91,7 +95,7 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
             tagNames.remove("assetName");
         }
         WireEnvelope currentWireEnvelope = wireEnvelope;
-        if (preWireEnvelope == null || preWireEnvelope == currentWireEnvelope) {
+        if (preWireEnvelope == null) {
             preWireEnvelope = currentWireEnvelope;
             return;
         }
@@ -117,14 +121,23 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
                 changed = false;
 
         }
-        preWireEnvelope = currentWireEnvelope;
-        if (changed)
+        if (changed) {
             this.wireSupport.emit(currentWireEnvelope.getRecords());
+            preWireEnvelope = currentWireEnvelope;
+        }
     }
 
     private boolean isChanged(WireEnvelope preWireEnvelope, WireEnvelope currentWireEnvelope, String tag) {
         TypedValue<?> prValue = Utils.getValue(tag, preWireEnvelope.getRecords());
+        if (prValue == null) {
+            logger.error("can not find tag:{}", tag);
+            return false;
+        }
         TypedValue<?> cuValue = Utils.getValue(tag, currentWireEnvelope.getRecords());
+        if (cuValue == null) {
+            logger.error("can not find tag:{}", tag);
+            return false;
+        }
         boolean isSame = prValue.getValue().equals(cuValue.getValue());
         return !isSame;
 
@@ -149,4 +162,16 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
     public void producersConnected(Wire[] wires) {
         this.wireSupport.producersConnected(wires);
     }
+
+    @ObjectClassDefinition(id = "com.yofc.iot.component.impl.ValueChangeComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.ValueChangeComponentCfg")
+    @interface ValueChangeComponentCfg {
+
+        @AttributeDefinition(name = "%type", description = "%typeDesc", options = {
+                @Option(label = "and", value = "and"), @Option(label = "or", value = "or") }, required = true)
+        String type() default "or";
+
+        @AttributeDefinition(name = "%tags", cardinality = -1, description = "%tagsDesc", required = false)
+        String[] tags() default "";
+    }
+
 }
