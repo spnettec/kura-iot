@@ -21,7 +21,6 @@ import java.util.Hashtable;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
-import org.jolokia.backend.Config;
 import org.jolokia.config.ConfigKey;
 import org.jolokia.osgi.security.BasicAuthenticationHttpContext;
 import org.jolokia.osgi.security.BasicAuthenticator;
@@ -40,6 +39,8 @@ import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.AttributeType;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
+
+import com.yofc.iot.jolokia.JolokiaComponent.Config;
 
 @Designate(ocd = Config.class)
 @Component(immediate = true, configurationPolicy = ConfigurationPolicy.REQUIRE)
