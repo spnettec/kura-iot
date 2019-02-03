@@ -1,18 +1,18 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-repack-vertx
-Bnd-LastModified: 1549011017785
+Bnd-LastModified: 1549095789057
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .,lib/vertx-core-3.6.2.jar,lib/vertx-web-3.6.2.jar,lib
- /vertx-auth-common-3.6.2.jar,lib/vertx-bridge-common-3.6.2.jar,lib/vert
- x-web-common-3.6.2.jar,lib/vertx-web-client-3.6.2.jar,lib/vertx-auth-sh
- iro-3.6.2.jar,lib/shiro-core-1.2.6.jar,lib/vertx-rx-java2-3.6.2.jar,lib
- /vertx-rx-java2-gen-3.6.2.jar,lib/vertx-rx-gen-3.6.2.jar,lib/rxjava-2.2
- .4.jar,lib/reactive-streams-1.0.2.jar,lib/vertx-auth-jwt-3.6.2.jar,lib/
- vertx-jwt-3.6.2.jar,lib/vertx-jdbc-client-3.6.2.jar,lib/vertx-tcp-event
- bus-bridge-3.6.2.jar,lib/c3p0-0.9.5.2.jar,lib/mchange-commons-java-0.2.
- 15.jar,lib/vertx-sql-common-3.6.2.jar,lib/vertx-lang-groovy-3.6.2.jar,l
+Bundle-ClassPath: .,lib/vertx-core-3.6.3.jar,lib/vertx-web-3.6.3.jar,lib
+ /vertx-auth-common-3.6.3.jar,lib/vertx-bridge-common-3.6.3.jar,lib/vert
+ x-web-common-3.6.3.jar,lib/vertx-web-client-3.6.3.jar,lib/vertx-auth-sh
+ iro-3.6.3.jar,lib/shiro-core-1.2.6.jar,lib/vertx-rx-java2-3.6.3.jar,lib
+ /vertx-rx-java2-gen-3.6.3.jar,lib/vertx-rx-gen-3.6.3.jar,lib/rxjava-2.2
+ .4.jar,lib/reactive-streams-1.0.2.jar,lib/vertx-auth-jwt-3.6.3.jar,lib/
+ vertx-jwt-3.6.3.jar,lib/vertx-jdbc-client-3.6.3.jar,lib/vertx-tcp-event
+ bus-bridge-3.6.3.jar,lib/c3p0-0.9.5.2.jar,lib/mchange-commons-java-0.2.
+ 15.jar,lib/vertx-sql-common-3.6.3.jar,lib/vertx-lang-groovy-3.6.3.jar,l
  ib/HikariCP-3.2.0.jar
 Bundle-Description: YOFC Applications for Repack Vertx
 Bundle-ManifestVersion: 2
@@ -26,381 +26,381 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Embedded-Artifacts: lib/vertx-core-3.6.2.jar;g="io.vertx";a="vertx-core"
- ;v="3.6.2",lib/vertx-web-3.6.2.jar;g="io.vertx";a="vertx-web";v="3.6.2"
- ,lib/vertx-auth-common-3.6.2.jar;g="io.vertx";a="vertx-auth-common";v="
- 3.6.2",lib/vertx-bridge-common-3.6.2.jar;g="io.vertx";a="vertx-bridge-c
- ommon";v="3.6.2",lib/vertx-web-common-3.6.2.jar;g="io.vertx";a="vertx-w
- eb-common";v="3.6.2",lib/vertx-web-client-3.6.2.jar;g="io.vertx";a="ver
- tx-web-client";v="3.6.2",lib/vertx-auth-shiro-3.6.2.jar;g="io.vertx";a=
- "vertx-auth-shiro";v="3.6.2",lib/shiro-core-1.2.6.jar;g="org.apache.shi
- ro";a="shiro-core";v="1.2.6",lib/vertx-rx-java2-3.6.2.jar;g="io.vertx";
- a="vertx-rx-java2";v="3.6.2",lib/vertx-rx-java2-gen-3.6.2.jar;g="io.ver
- tx";a="vertx-rx-java2-gen";v="3.6.2",lib/vertx-rx-gen-3.6.2.jar;g="io.v
- ertx";a="vertx-rx-gen";v="3.6.2",lib/rxjava-2.2.4.jar;g="io.reactivex.r
+Embedded-Artifacts: lib/vertx-core-3.6.3.jar;g="io.vertx";a="vertx-core"
+ ;v="3.6.3",lib/vertx-web-3.6.3.jar;g="io.vertx";a="vertx-web";v="3.6.3"
+ ,lib/vertx-auth-common-3.6.3.jar;g="io.vertx";a="vertx-auth-common";v="
+ 3.6.3",lib/vertx-bridge-common-3.6.3.jar;g="io.vertx";a="vertx-bridge-c
+ ommon";v="3.6.3",lib/vertx-web-common-3.6.3.jar;g="io.vertx";a="vertx-w
+ eb-common";v="3.6.3",lib/vertx-web-client-3.6.3.jar;g="io.vertx";a="ver
+ tx-web-client";v="3.6.3",lib/vertx-auth-shiro-3.6.3.jar;g="io.vertx";a=
+ "vertx-auth-shiro";v="3.6.3",lib/shiro-core-1.2.6.jar;g="org.apache.shi
+ ro";a="shiro-core";v="1.2.6",lib/vertx-rx-java2-3.6.3.jar;g="io.vertx";
+ a="vertx-rx-java2";v="3.6.3",lib/vertx-rx-java2-gen-3.6.3.jar;g="io.ver
+ tx";a="vertx-rx-java2-gen";v="3.6.3",lib/vertx-rx-gen-3.6.3.jar;g="io.v
+ ertx";a="vertx-rx-gen";v="3.6.3",lib/rxjava-2.2.4.jar;g="io.reactivex.r
  xjava2";a="rxjava";v="2.2.4",lib/reactive-streams-1.0.2.jar;g="org.reac
- tivestreams";a="reactive-streams";v="1.0.2",lib/vertx-auth-jwt-3.6.2.ja
- r;g="io.vertx";a="vertx-auth-jwt";v="3.6.2",lib/vertx-jwt-3.6.2.jar;g="
- io.vertx";a="vertx-jwt";v="3.6.2",lib/vertx-jdbc-client-3.6.2.jar;g="io
- .vertx";a="vertx-jdbc-client";v="3.6.2",lib/vertx-tcp-eventbus-bridge-3
- .6.2.jar;g="io.vertx";a="vertx-tcp-eventbus-bridge";v="3.6.2",lib/c3p0-
+ tivestreams";a="reactive-streams";v="1.0.2",lib/vertx-auth-jwt-3.6.3.ja
+ r;g="io.vertx";a="vertx-auth-jwt";v="3.6.3",lib/vertx-jwt-3.6.3.jar;g="
+ io.vertx";a="vertx-jwt";v="3.6.3",lib/vertx-jdbc-client-3.6.3.jar;g="io
+ .vertx";a="vertx-jdbc-client";v="3.6.3",lib/vertx-tcp-eventbus-bridge-3
+ .6.3.jar;g="io.vertx";a="vertx-tcp-eventbus-bridge";v="3.6.3",lib/c3p0-
  0.9.5.2.jar;g="com.mchange";a="c3p0";v="0.9.5.2",lib/mchange-commons-ja
  va-0.2.15.jar;g="com.mchange";a="mchange-commons-java";v="0.2.15",lib/v
- ertx-sql-common-3.6.2.jar;g="io.vertx";a="vertx-sql-common";v="3.6.2",l
- ib/vertx-lang-groovy-3.6.2.jar;g="io.vertx";a="vertx-lang-groovy";v="3.
- 6.2",lib/HikariCP-3.2.0.jar;g="com.zaxxer";a="HikariCP";v="3.2.0"
+ ertx-sql-common-3.6.3.jar;g="io.vertx";a="vertx-sql-common";v="3.6.3",l
+ ib/vertx-lang-groovy-3.6.3.jar;g="io.vertx";a="vertx-lang-groovy";v="3.
+ 6.3",lib/HikariCP-3.2.0.jar;g="com.zaxxer";a="HikariCP";v="3.2.0"
 Export-Package: 
- io.vertx.core;version="3.6.2";uses:="io.netty.channel,io.vertx.codegen.
+ io.vertx.core;version="3.6.3";uses:="io.netty.channel,io.vertx.codegen.
  annotations,io.vertx.core.datagram,io.vertx.core.dns,io.vertx.core.even
  tbus,io.vertx.core.file,io.vertx.core.http,io.vertx.core.impl,io.vertx.
  core.impl.launcher,io.vertx.core.json,io.vertx.core.metrics,io.vertx.co
  re.net,io.vertx.core.shareddata,io.vertx.core.spi,io.vertx.core.spi.clu
  ster,io.vertx.core.streams",
- io.vertx.core.buffer;version="3.6.2";uses:="io.netty.buffer,io.vertx.co
+ io.vertx.core.buffer;version="3.6.3";uses:="io.netty.buffer,io.vertx.co
  degen.annotations,io.vertx.core.json,io.vertx.core.shareddata,io.vertx.
  core.shareddata.impl,io.vertx.core.spi",
- io.vertx.core.buffer.impl;version="3.6.2";uses:="io.netty.buffer,io.ver
+ io.vertx.core.buffer.impl;version="3.6.3";uses:="io.netty.buffer,io.ver
  tx.core.buffer,io.vertx.core.json,io.vertx.core.shareddata,io.vertx.cor
  e.spi",
- io.vertx.core.cli;version="3.6.2";uses:="io.vertx.codegen.annotations,i
+ io.vertx.core.cli;version="3.6.3";uses:="io.vertx.codegen.annotations,i
  o.vertx.core.cli.converters,io.vertx.core.json",
- io.vertx.core.cli.annotations;version="3.6.2";uses:="io.vertx.core.cli,
+ io.vertx.core.cli.annotations;version="3.6.3";uses:="io.vertx.core.cli,
  io.vertx.core.cli.converters",
- io.vertx.core.cli.converters;version="3.6.2",
- io.vertx.core.cli.impl;version="3.6.2";uses:="io.vertx.core.cli",
- io.vertx.core.datagram;version="3.6.2";uses:="io.vertx.codegen.annotati
+ io.vertx.core.cli.converters;version="3.6.3",
+ io.vertx.core.cli.impl;version="3.6.3";uses:="io.vertx.core.cli",
+ io.vertx.core.datagram;version="3.6.3";uses:="io.vertx.codegen.annotati
  ons,io.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.vertx.core
  .metrics,io.vertx.core.net,io.vertx.core.streams",
- io.vertx.core.datagram.impl;version="3.6.2";uses:="io.vertx.core,io.ver
+ io.vertx.core.datagram.impl;version="3.6.3";uses:="io.vertx.core,io.ver
  tx.core.buffer,io.vertx.core.datagram,io.vertx.core.impl,io.vertx.core.
  net,io.vertx.core.spi.metrics,io.vertx.core.streams",
- io.vertx.core.dns;version="3.6.2";uses:="io.vertx.codegen.annotations,i
+ io.vertx.core.dns;version="3.6.3";uses:="io.vertx.codegen.annotations,i
  o.vertx.core,io.vertx.core.buffer,io.vertx.core.impl,io.vertx.core.json
  ",
- io.vertx.core.dns.impl;version="3.6.2";uses:="io.vertx.core,io.vertx.co
+ io.vertx.core.dns.impl;version="3.6.3";uses:="io.vertx.core,io.vertx.co
  re.dns,io.vertx.core.impl",
- io.vertx.core.dns.impl.decoder;version="3.6.2";uses:="io.netty.handler.
+ io.vertx.core.dns.impl.decoder;version="3.6.3";uses:="io.netty.handler.
  codec.dns,io.vertx.core.dns.impl",
- io.vertx.core.dns.impl.netty;version="3.6.2";uses:="io.netty.resolver.d
+ io.vertx.core.dns.impl.netty;version="3.6.3";uses:="io.netty.resolver.d
  ns",
- io.vertx.core.eventbus;version="3.6.2";uses:="io.vertx.codegen.annotati
+ io.vertx.core.eventbus;version="3.6.3";uses:="io.vertx.codegen.annotati
  ons,io.vertx.core,io.vertx.core.buffer,io.vertx.core.http,io.vertx.core
  .json,io.vertx.core.metrics,io.vertx.core.net,io.vertx.core.streams",
- io.vertx.core.eventbus.impl;version="3.6.2";uses:="io.vertx.core,io.ver
+ io.vertx.core.eventbus.impl;version="3.6.3";uses:="io.vertx.core,io.ver
  tx.core.buffer,io.vertx.core.eventbus,io.vertx.core.impl,io.vertx.core.
  impl.utils,io.vertx.core.json,io.vertx.core.spi.metrics,io.vertx.core.s
  treams",
- io.vertx.core.eventbus.impl.clustered;version="3.6.2";uses:="io.vertx.c
+ io.vertx.core.eventbus.impl.clustered;version="3.6.3";uses:="io.vertx.c
  ore,io.vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.eventbus.
  impl,io.vertx.core.impl,io.vertx.core.net.impl,io.vertx.core.spi.cluste
  r",
- io.vertx.core.eventbus.impl.codecs;version="3.6.2";uses:="io.vertx.core
+ io.vertx.core.eventbus.impl.codecs;version="3.6.3";uses:="io.vertx.core
  .buffer,io.vertx.core.eventbus,io.vertx.core.json",
- io.vertx.core.file;version="3.6.2";uses:="io.vertx.codegen.annotations,
+ io.vertx.core.file;version="3.6.3";uses:="io.vertx.codegen.annotations,
  io.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.vertx.core.str
  eams",
- io.vertx.core.file.impl;version="3.6.2";uses:="io.vertx.core,io.vertx.c
+ io.vertx.core.file.impl;version="3.6.3";uses:="io.vertx.core,io.vertx.c
  ore.buffer,io.vertx.core.file,io.vertx.core.impl,io.vertx.core.streams"
  ,
- io.vertx.core.http;version="3.6.2";uses:="io.vertx.codegen.annotations,
+ io.vertx.core.http;version="3.6.3";uses:="io.vertx.codegen.annotations,
  io.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.vertx.core.met
  rics,io.vertx.core.net,io.vertx.core.spi,io.vertx.core.streams,javax.ne
  t.ssl,javax.security.cert",
- io.vertx.core.http.impl;version="3.6.2";uses:="io.netty.buffer,io.netty
+ io.vertx.core.http.impl;version="3.6.3";uses:="io.netty.buffer,io.netty
  .channel,io.netty.handler.codec.http,io.netty.handler.codec.http2,io.ve
  rtx.codegen.annotations,io.vertx.core,io.vertx.core.buffer,io.vertx.cor
  e.http,io.vertx.core.impl,io.vertx.core.net,io.vertx.core.net.impl,io.v
  ertx.core.spi,io.vertx.core.spi.metrics,io.vertx.core.streams,javax.net
  .ssl,javax.security.cert",
- io.vertx.core.http.impl.cgbystrom;version="3.6.2";uses:="io.netty.chann
+ io.vertx.core.http.impl.cgbystrom;version="3.6.3";uses:="io.netty.chann
  el",
- io.vertx.core.http.impl.headers;version="3.6.2";uses:="io.netty.buffer,
+ io.vertx.core.http.impl.headers;version="3.6.3";uses:="io.netty.buffer,
  io.netty.handler.codec.http,io.vertx.core",
- io.vertx.core.http.impl.pool;version="3.6.2";uses:="io.netty.channel,io
- .vertx.core,io.vertx.core.impl",
- io.vertx.core.http.impl.ws;version="3.6.2";uses:="io.netty.buffer,io.ne
+ io.vertx.core.http.impl.pool;version="3.6.3";uses:="io.vertx.core,io.ve
+ rtx.core.impl",
+ io.vertx.core.http.impl.ws;version="3.6.3";uses:="io.netty.buffer,io.ne
  tty.util,io.vertx.core.buffer,io.vertx.core.http,io.vertx.core.http.imp
  l",
- io.vertx.core.impl;version="3.6.2";uses:="io.netty.channel,io.netty.res
+ io.vertx.core.impl;version="3.6.3";uses:="io.netty.channel,io.netty.res
  olver,io.netty.util.concurrent,io.vertx.core,io.vertx.core.datagram,io.
  vertx.core.dns,io.vertx.core.eventbus,io.vertx.core.file,io.vertx.core.
  http,io.vertx.core.http.impl,io.vertx.core.json,io.vertx.core.net,io.ve
  rtx.core.net.impl,io.vertx.core.net.impl.transport,io.vertx.core.shared
  data,io.vertx.core.spi,io.vertx.core.spi.cluster,io.vertx.core.spi.metr
  ics",
- io.vertx.core.impl.cpu;version="3.6.2",
- io.vertx.core.impl.launcher;version="3.6.2";uses:="io.vertx.core,io.ver
+ io.vertx.core.impl.cpu;version="3.6.3",
+ io.vertx.core.impl.launcher;version="3.6.3";uses:="io.vertx.core,io.ver
  tx.core.cli,io.vertx.core.json,io.vertx.core.spi.launcher",
- io.vertx.core.impl.launcher.commands;version="3.6.2";uses:="io.vertx.co
+ io.vertx.core.impl.launcher.commands;version="3.6.3";uses:="io.vertx.co
  re,io.vertx.core.cli,io.vertx.core.cli.annotations,io.vertx.core.json,i
  o.vertx.core.logging,io.vertx.core.metrics,io.vertx.core.spi.launcher",
- io.vertx.core.impl.resolver;version="3.6.2";uses:="io.netty.resolver,io
+ io.vertx.core.impl.resolver;version="3.6.3";uses:="io.netty.resolver,io
  .vertx.core,io.vertx.core.dns,io.vertx.core.impl,io.vertx.core.spi.reso
  lver",
- io.vertx.core.impl.utils;version="3.6.2",
- io.vertx.core.impl.verticle;version="3.6.2";uses:="javax.lang.model.ele
+ io.vertx.core.impl.utils;version="3.6.3",
+ io.vertx.core.impl.verticle;version="3.6.3";uses:="javax.lang.model.ele
  ment,javax.tools",
- io.vertx.core.json;version="3.6.2";uses:="com.fasterxml.jackson.core.ty
+ io.vertx.core.json;version="3.6.3";uses:="com.fasterxml.jackson.core.ty
  pe,com.fasterxml.jackson.databind,io.vertx.codegen.annotations,io.vertx
  .core.buffer,io.vertx.core.shareddata,io.vertx.core.shareddata.impl",
- io.vertx.core.logging;version="3.6.2";uses:="io.vertx.core.spi.logging"
+ io.vertx.core.logging;version="3.6.3";uses:="io.vertx.core.spi.logging"
  ,
- io.vertx.core.metrics;version="3.6.2";uses:="io.vertx.codegen.annotatio
+ io.vertx.core.metrics;version="3.6.3";uses:="io.vertx.codegen.annotatio
  ns,io.vertx.core.json,io.vertx.core.spi",
- io.vertx.core.metrics.impl;version="3.6.2";uses:="io.vertx.core.spi.met
+ io.vertx.core.metrics.impl;version="3.6.3";uses:="io.vertx.core.spi.met
  rics",
- io.vertx.core.net;version="3.6.2";uses:="io.vertx.codegen.annotations,i
+ io.vertx.core.net;version="3.6.3";uses:="io.vertx.codegen.annotations,i
  o.vertx.core,io.vertx.core.buffer,io.vertx.core.http,io.vertx.core.json
  ,io.vertx.core.metrics,io.vertx.core.streams,javax.net.ssl,javax.securi
  ty.cert",
- io.vertx.core.net.impl;version="3.6.2";uses:="io.netty.bootstrap,io.net
+ io.vertx.core.net.impl;version="3.6.3";uses:="io.netty.bootstrap,io.net
  ty.buffer,io.netty.channel,io.netty.handler.ssl,io.netty.util,io.netty.
  util.concurrent,io.vertx.core,io.vertx.core.buffer,io.vertx.core.http,i
  o.vertx.core.impl,io.vertx.core.net,io.vertx.core.spi.metrics,io.vertx.
  core.streams,javax.net.ssl,javax.security.cert",
- io.vertx.core.net.impl.pkcs1;version="3.6.2";uses:="io.vertx.core",
- io.vertx.core.net.impl.transport;version="3.6.2";uses:="io.netty.bootst
+ io.vertx.core.net.impl.pkcs1;version="3.6.3";uses:="io.vertx.core",
+ io.vertx.core.net.impl.transport;version="3.6.3";uses:="io.netty.bootst
  rap,io.netty.channel,io.netty.channel.socket,io.vertx.core.datagram,io.
  vertx.core.net",
- io.vertx.core.parsetools;version="3.6.2";uses:="com.fasterxml.jackson.c
+ io.vertx.core.parsetools;version="3.6.3";uses:="com.fasterxml.jackson.c
  ore.type,io.vertx.codegen.annotations,io.vertx.core,io.vertx.core.buffe
  r,io.vertx.core.json,io.vertx.core.streams",
- io.vertx.core.parsetools.impl;version="3.6.2";uses:="com.fasterxml.jack
+ io.vertx.core.parsetools.impl;version="3.6.3";uses:="com.fasterxml.jack
  son.core.type,com.fasterxml.jackson.databind.util,io.vertx.core,io.vert
  x.core.buffer,io.vertx.core.json,io.vertx.core.parsetools,io.vertx.core
  .streams",
- io.vertx.core.shareddata;version="3.6.2";uses:="io.vertx.codegen.annota
+ io.vertx.core.shareddata;version="3.6.3";uses:="io.vertx.codegen.annota
  tions,io.vertx.core",
- io.vertx.core.shareddata.impl;version="3.6.2";uses:="io.vertx.core,io.v
+ io.vertx.core.shareddata.impl;version="3.6.3";uses:="io.vertx.core,io.v
  ertx.core.buffer,io.vertx.core.impl,io.vertx.core.shareddata,io.vertx.c
  ore.spi.cluster",
- io.vertx.core.spi;version="3.6.2";uses:="io.netty.buffer,io.vertx.core,
+ io.vertx.core.spi;version="3.6.3";uses:="io.netty.buffer,io.vertx.core,
  io.vertx.core.buffer,io.vertx.core.http,io.vertx.core.json,io.vertx.cor
  e.metrics,io.vertx.core.spi.metrics,io.vertx.core.streams",
- io.vertx.core.spi.cluster;version="3.6.2";uses:="io.vertx.core,io.vertx
+ io.vertx.core.spi.cluster;version="3.6.3";uses:="io.vertx.core,io.vertx
  .core.shareddata",
- io.vertx.core.spi.launcher;version="3.6.2";uses:="io.vertx.core.cli,io.
+ io.vertx.core.spi.launcher;version="3.6.3";uses:="io.vertx.core.cli,io.
  vertx.core.cli.annotations,io.vertx.core.impl.launcher",
- io.vertx.core.spi.logging;version="3.6.2",
- io.vertx.core.spi.metrics;version="3.6.2";uses:="io.vertx.core,io.vertx
+ io.vertx.core.spi.logging;version="3.6.3",
+ io.vertx.core.spi.metrics;version="3.6.3";uses:="io.vertx.core,io.vertx
  .core.datagram,io.vertx.core.eventbus,io.vertx.core.http,io.vertx.core.
  metrics,io.vertx.core.net",
- io.vertx.core.spi.resolver;version="3.6.2";uses:="io.netty.resolver,io.
+ io.vertx.core.spi.resolver;version="3.6.3";uses:="io.netty.resolver,io.
  vertx.core,io.vertx.core.dns",
- io.vertx.core.streams;version="3.6.2";uses:="io.vertx.codegen.annotatio
+ io.vertx.core.streams;version="3.6.3";uses:="io.vertx.codegen.annotatio
  ns,io.vertx.core,io.vertx.core.spi",
- io.vertx.core.streams.impl;version="3.6.2";uses:="io.vertx.core,io.vert
+ io.vertx.core.streams.impl;version="3.6.3";uses:="io.vertx.core,io.vert
  x.core.spi,io.vertx.core.streams",
- io.vertx.ext.auth;version="3.6.2";uses:="io.vertx.codegen.annotations,i
+ io.vertx.ext.auth;version="3.6.3";uses:="io.vertx.codegen.annotations,i
  o.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.vertx.core.shar
  eddata.impl",
- io.vertx.ext.auth.impl;version="0.0.1";uses:="io.vertx.core,io.vertx.co
- re.json,io.vertx.ext.auth",
- io.vertx.ext.auth.impl.hash;version="3.6.2";uses:="io.vertx.ext.auth",
- io.vertx.ext.auth.jwt;version="3.6.2";uses:="io.vertx.codegen.annotatio
+ io.vertx.ext.auth.impl;uses:="io.vertx.core,io.vertx.core.json,io.vertx
+ .ext.auth";version="0.0.1",
+ io.vertx.ext.auth.impl.hash;version="3.6.3";uses:="io.vertx.ext.auth",
+ io.vertx.ext.auth.jwt;version="3.6.3";uses:="io.vertx.codegen.annotatio
  ns,io.vertx.core,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.jwt"
  ,
- io.vertx.ext.auth.jwt.impl;version="0.0.1";uses:="io.vertx.core,io.vert
- x.core.buffer,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.auth.jw
- t,io.vertx.ext.jwt",
- io.vertx.ext.auth.shiro;version="3.6.2";uses:="io.vertx.codegen.annotat
+ io.vertx.ext.auth.jwt.impl;uses:="io.vertx.core,io.vertx.core.buffer,io
+ .vertx.core.json,io.vertx.ext.auth,io.vertx.ext.auth.jwt,io.vertx.ext.j
+ wt";version="0.0.1",
+ io.vertx.ext.auth.shiro;version="3.6.3";uses:="io.vertx.codegen.annotat
  ions,io.vertx.core,io.vertx.core.json,io.vertx.ext.auth",
- io.vertx.ext.auth.shiro.impl;version="0.0.1";uses:="io.vertx.core,io.ve
- rtx.core.buffer,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.auth.
- shiro",
- io.vertx.ext.bridge;version="3.6.2";uses:="io.vertx.codegen.annotations
+ io.vertx.ext.auth.shiro.impl;uses:="io.vertx.core,io.vertx.core.buffer,
+ io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.auth.shiro";version="
+ 0.0.1",
+ io.vertx.ext.bridge;version="3.6.3";uses:="io.vertx.codegen.annotations
  ,io.vertx.core,io.vertx.core.json",
- io.vertx.ext.eventbus.bridge.tcp;version="0.0.1";uses:="io.vertx.codege
- n.annotations,io.vertx.core,io.vertx.core.json,io.vertx.core.net,io.ver
- tx.ext.bridge",
- io.vertx.ext.eventbus.bridge.tcp.impl;version="0.0.1";uses:="io.vertx.c
- ore,io.vertx.core.net,io.vertx.ext.bridge,io.vertx.ext.eventbus.bridge.
- tcp",
- io.vertx.ext.eventbus.bridge.tcp.impl.protocol;version="0.0.1";uses:="i
- o.vertx.core,io.vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.
- json,io.vertx.core.streams",
- io.vertx.ext.groovy.eventbus.bridge.tcp;version="0.0.1";uses:="io.vertx
- .core,io.vertx.ext.eventbus.bridge.tcp",
- io.vertx.ext.jdbc;version="3.6.2";uses:="io.vertx.codegen.annotations,i
+ io.vertx.ext.eventbus.bridge.tcp;uses:="io.vertx.codegen.annotations,io
+ .vertx.core,io.vertx.core.json,io.vertx.core.net,io.vertx.ext.bridge";v
+ ersion="0.0.1",
+ io.vertx.ext.eventbus.bridge.tcp.impl;uses:="io.vertx.core,io.vertx.cor
+ e.net,io.vertx.ext.bridge,io.vertx.ext.eventbus.bridge.tcp";version="0.
+ 0.1",
+ io.vertx.ext.eventbus.bridge.tcp.impl.protocol;uses:="io.vertx.core,io.
+ vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.json,io.vertx.co
+ re.streams";version="0.0.1",
+ io.vertx.ext.jdbc;version="3.6.3";uses:="io.vertx.codegen.annotations,i
  o.vertx.core,io.vertx.core.json,io.vertx.ext.sql,javax.sql",
- io.vertx.ext.jdbc.impl;version="0.0.1";uses:="io.vertx.core,io.vertx.co
- re.json,io.vertx.ext.jdbc,io.vertx.ext.sql,javax.sql",
- io.vertx.ext.jdbc.impl.actions;version="0.0.1";uses:="io.vertx.core,io.
- vertx.core.impl,io.vertx.core.json,io.vertx.core.spi.metrics,io.vertx.e
- xt.sql",
- io.vertx.ext.jdbc.spi;version="3.6.2";uses:="io.vertx.core.json,javax.s
+ io.vertx.ext.jdbc.impl;uses:="io.vertx.core,io.vertx.core.json,io.vertx
+ .ext.jdbc,io.vertx.ext.sql,javax.sql";version="0.0.1",
+ io.vertx.ext.jdbc.impl.actions;uses:="io.vertx.core,io.vertx.core.impl,
+ io.vertx.core.json,io.vertx.core.spi.metrics,io.vertx.ext.sql";version=
+ "0.0.1",
+ io.vertx.ext.jdbc.spi;version="3.6.3";uses:="io.vertx.core.json,javax.s
  ql",
- io.vertx.ext.jdbc.spi.impl;version="0.0.1";uses:="io.vertx.core.json,io
- .vertx.ext.jdbc.spi,javax.sql",
- io.vertx.ext.jwt;version="3.6.2";uses:="io.vertx.codegen.annotations,io
+ io.vertx.ext.jdbc.spi.impl;uses:="io.vertx.core.json,io.vertx.ext.jdbc.
+ spi,javax.sql";version="0.0.1",
+ io.vertx.ext.jwt;version="3.6.3";uses:="io.vertx.codegen.annotations,io
  .vertx.core.json",
  io.vertx.ext.jwt.impl;version="0.0.1",
- io.vertx.ext.sql;version="3.6.2";uses:="io.vertx.codegen.annotations,io
+ io.vertx.ext.sql;version="3.6.3";uses:="io.vertx.codegen.annotations,io
  .vertx.core,io.vertx.core.json,io.vertx.core.streams",
- io.vertx.ext.sql.impl;version="0.0.1";uses:="io.vertx.core,io.vertx.cor
- e.json,io.vertx.core.streams,io.vertx.ext.sql",
- io.vertx.ext.web;version="3.6.2";uses:="io.netty.handler.codec.http.coo
+ io.vertx.ext.sql.impl;uses:="io.vertx.core,io.vertx.core.json,io.vertx.
+ core.streams,io.vertx.ext.sql";version="0.0.1",
+ io.vertx.ext.web;version="3.6.3";uses:="io.netty.handler.codec.http.coo
  kie,io.vertx.codegen.annotations,io.vertx.core,io.vertx.core.buffer,io.
  vertx.core.http,io.vertx.core.json,io.vertx.ext.auth",
- io.vertx.ext.web.client;version="3.6.2";uses:="io.vertx.codegen.annotat
+ io.vertx.ext.web.client;version="3.6.3";uses:="io.vertx.codegen.annotat
  ions,io.vertx.core,io.vertx.core.buffer,io.vertx.core.http,io.vertx.cor
  e.json,io.vertx.core.net,io.vertx.core.streams,io.vertx.ext.web.client.
  predicate,io.vertx.ext.web.client.spi,io.vertx.ext.web.codec,io.vertx.e
  xt.web.multipart",
- io.vertx.ext.web.client.impl;version="0.0.1";uses:="io.netty.handler.co
- dec.http.cookie,io.vertx.core,io.vertx.core.buffer,io.vertx.core.http,i
- o.vertx.core.json,io.vertx.core.streams,io.vertx.ext.web.client,io.vert
- x.ext.web.client.predicate,io.vertx.ext.web.client.spi,io.vertx.ext.web
- .codec,io.vertx.ext.web.multipart",
- io.vertx.ext.web.client.impl.predicate;version="3.6.2";uses:="io.vertx.
+ io.vertx.ext.web.client.impl;uses:="io.netty.handler.codec.http.cookie,
+ io.vertx.core,io.vertx.core.buffer,io.vertx.core.http,io.vertx.core.jso
+ n,io.vertx.core.streams,io.vertx.ext.web.client,io.vertx.ext.web.client
+ .predicate,io.vertx.ext.web.client.spi,io.vertx.ext.web.codec,io.vertx.
+ ext.web.multipart";version="0.0.1",
+ io.vertx.ext.web.client.impl.predicate;version="3.6.3";uses:="io.vertx.
  core,io.vertx.core.buffer,io.vertx.ext.web.client,io.vertx.ext.web.clie
  nt.impl,io.vertx.ext.web.client.predicate",
- io.vertx.ext.web.client.predicate;version="3.6.2";uses:="io.vertx.codeg
+ io.vertx.ext.web.client.predicate;version="3.6.3";uses:="io.vertx.codeg
  en.annotations,io.vertx.core.buffer,io.vertx.ext.web.client",
- io.vertx.ext.web.client.spi;version="3.6.2";uses:="io.netty.handler.cod
+ io.vertx.ext.web.client.spi;version="3.6.3";uses:="io.netty.handler.cod
  ec.http.cookie,io.vertx.codegen.annotations",
- io.vertx.ext.web.codec;version="3.6.2";uses:="io.vertx.codegen.annotati
+ io.vertx.ext.web.codec;version="3.6.3";uses:="io.vertx.codegen.annotati
  ons,io.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.vertx.core
  .streams,io.vertx.ext.web.codec.spi",
- io.vertx.ext.web.codec.impl;version="3.6.2";uses:="io.vertx.core,io.ver
+ io.vertx.ext.web.codec.impl;version="3.6.3";uses:="io.vertx.core,io.ver
  tx.core.buffer,io.vertx.core.json,io.vertx.core.streams,io.vertx.ext.we
  b.codec,io.vertx.ext.web.codec.spi",
- io.vertx.ext.web.codec.spi;version="3.6.2";uses:="io.vertx.core,io.vert
+ io.vertx.ext.web.codec.spi;version="3.6.3";uses:="io.vertx.core,io.vert
  x.core.buffer,io.vertx.core.streams",
- io.vertx.ext.web.common;version="3.6.2",
- io.vertx.ext.web.common.template;version="3.6.2";uses:="io.vertx.codege
+ io.vertx.ext.web.common;version="3.6.3",
+ io.vertx.ext.web.common.template;version="3.6.3";uses:="io.vertx.codege
  n.annotations,io.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.
  vertx.ext.web.common.template.impl",
- io.vertx.ext.web.common.template.impl;version="3.6.2",
- io.vertx.ext.web.handler;version="3.6.2";uses:="io.vertx.codegen.annota
+ io.vertx.ext.web.common.template.impl;version="3.6.3",
+ io.vertx.ext.web.handler;version="3.6.3";uses:="io.vertx.codegen.annota
  tions,io.vertx.core,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.
  auth,io.vertx.ext.auth.htdigest,io.vertx.ext.auth.jwt,io.vertx.ext.web,
  io.vertx.ext.web.common.template,io.vertx.ext.web.sstore",
- io.vertx.ext.web.handler.impl;version="0.0.1";uses:="io.vertx.core,io.v
- ertx.core.buffer,io.vertx.core.http,io.vertx.core.json,io.vertx.core.sh
- areddata.impl,io.vertx.ext.auth,io.vertx.ext.auth.htdigest,io.vertx.ext
- .auth.jwt,io.vertx.ext.web,io.vertx.ext.web.common.template,io.vertx.ex
- t.web.handler,io.vertx.ext.web.sstore",
- io.vertx.ext.web.handler.sockjs;version="3.6.2";uses:="io.vertx.codegen
+ io.vertx.ext.web.handler.impl;uses:="io.vertx.core,io.vertx.core.buffer
+ ,io.vertx.core.http,io.vertx.core.json,io.vertx.core.shareddata.impl,io
+ .vertx.ext.auth,io.vertx.ext.auth.htdigest,io.vertx.ext.auth.jwt,io.ver
+ tx.ext.web,io.vertx.ext.web.common.template,io.vertx.ext.web.handler,io
+ .vertx.ext.web.sstore";version="0.0.1",
+ io.vertx.ext.web.handler.sockjs;version="3.6.3";uses:="io.vertx.codegen
  .annotations,io.vertx.core,io.vertx.core.buffer,io.vertx.core.json,io.v
  ertx.core.net,io.vertx.core.streams,io.vertx.ext.auth,io.vertx.ext.brid
  ge,io.vertx.ext.web",
- io.vertx.ext.web.handler.sockjs.impl;version="0.0.1";uses:="io.vertx.co
- re,io.vertx.core.http,io.vertx.core.json,io.vertx.core.streams,io.vertx
- .ext.auth,io.vertx.ext.web,io.vertx.ext.web.handler.sockjs",
- io.vertx.ext.web.impl;version="0.0.1";uses:="com.fasterxml.jackson.data
- bind,io.netty.handler.codec.http.cookie,io.vertx.codegen.annotations,io
- .vertx.core,io.vertx.core.buffer,io.vertx.core.http,io.vertx.core.impl,
- io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.web",
- io.vertx.ext.web.multipart;version="3.6.2";uses:="io.vertx.codegen.anno
+ io.vertx.ext.web.handler.sockjs.impl;uses:="io.vertx.core,io.vertx.core
+ .http,io.vertx.core.json,io.vertx.core.streams,io.vertx.ext.auth,io.ver
+ tx.ext.web,io.vertx.ext.web.handler.sockjs";version="0.0.1",
+ io.vertx.ext.web.impl;uses:="com.fasterxml.jackson.databind,io.netty.ha
+ ndler.codec.http.cookie,io.vertx.codegen.annotations,io.vertx.core,io.v
+ ertx.core.buffer,io.vertx.core.http,io.vertx.core.impl,io.vertx.core.js
+ on,io.vertx.ext.auth,io.vertx.ext.web";version="0.0.1",
+ io.vertx.ext.web.multipart;version="3.6.3";uses:="io.vertx.codegen.anno
  tations",
- io.vertx.ext.web.multipart.impl;version="3.6.2";uses:="io.vertx.ext.web
+ io.vertx.ext.web.multipart.impl;version="3.6.3";uses:="io.vertx.ext.web
  .multipart",
- io.vertx.ext.web.sstore;version="3.6.2";uses:="io.vertx.codegen.annotat
+ io.vertx.ext.web.sstore;version="3.6.3";uses:="io.vertx.codegen.annotat
  ions,io.vertx.core,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.we
  b",
- io.vertx.ext.web.sstore.impl;version="0.0.1";uses:="io.vertx.core,io.ve
- rtx.core.buffer,io.vertx.core.json,io.vertx.core.shareddata,io.vertx.co
- re.shareddata.impl,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.
- sstore",
- io.vertx.ext.web.templ;version="3.6.2";uses:="io.vertx.codegen.annotati
+ io.vertx.ext.web.sstore.impl;uses:="io.vertx.core,io.vertx.core.buffer,
+ io.vertx.core.json,io.vertx.core.shareddata,io.vertx.core.shareddata.im
+ pl,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.sstore";version=
+ "0.0.1",
+ io.vertx.ext.web.templ;version="3.6.3";uses:="io.vertx.codegen.annotati
  ons,io.vertx.core,io.vertx.core.buffer,io.vertx.ext.web,io.vertx.ext.we
  b.common.template,io.vertx.ext.web.impl",
- io.vertx.groovy.amqpbridge;version="0.0.1";uses:="io.vertx.amqpbridge,i
- o.vertx.core",
- io.vertx.groovy.cassandra;version="0.0.1";uses:="io.vertx.cassandra,io.
- vertx.core",
- io.vertx.groovy.circuitbreaker;version="0.0.1";uses:="io.vertx.circuitb
- reaker,io.vertx.core",
- io.vertx.groovy.config;version="0.0.1";uses:="io.vertx.config,io.vertx.
- core",
- io.vertx.groovy.core;version="0.0.1";uses:="io.vertx.core,io.vertx.core
- .datagram,io.vertx.core.dns,io.vertx.core.http,io.vertx.core.net",
- io.vertx.groovy.core.buffer;version="0.0.1";uses:="io.vertx.core.buffer
+ io.vertx.groovy.amqpbridge;uses:="io.vertx.amqpbridge,io.vertx.core";ve
+ rsion="0.0.1",
+ io.vertx.groovy.cassandra;uses:="io.vertx.cassandra,io.vertx.core";vers
+ ion="0.0.1",
+ io.vertx.groovy.circuitbreaker;uses:="io.vertx.circuitbreaker,io.vertx.
+ core";version="0.0.1",
+ io.vertx.groovy.config;uses:="io.vertx.config,io.vertx.core";version="0
+ .0.1",
+ io.vertx.groovy.core;uses:="io.vertx.core,io.vertx.core.datagram,io.ver
+ tx.core.dns,io.vertx.core.http,io.vertx.core.net";version="0.0.1",
+ io.vertx.groovy.core.buffer;uses:="io.vertx.core.buffer";version="0.0.1
  ",
- io.vertx.groovy.core.cli;version="0.0.1";uses:="io.vertx.core.cli",
- io.vertx.groovy.core.eventbus;version="0.0.1";uses:="io.vertx.core,io.v
- ertx.core.eventbus",
- io.vertx.groovy.core.file;version="0.0.1";uses:="io.vertx.core,io.vertx
- .core.file",
- io.vertx.groovy.core.http;version="0.0.1";uses:="io.vertx.core,io.vertx
- .core.http,io.vertx.core.streams",
- io.vertx.groovy.core.net;version="0.0.1";uses:="io.vertx.core.net",
- io.vertx.groovy.core.parsetools;version="0.0.1";uses:="io.vertx.core.pa
- rsetools",
- io.vertx.groovy.core.shareddata;version="0.0.1";uses:="io.vertx.core,io
- .vertx.core.shareddata",
- io.vertx.groovy.core.streams;version="0.0.1";uses:="io.vertx.core,io.ve
- rtx.core.streams",
- io.vertx.groovy.ext.asyncsql;version="0.0.1";uses:="io.vertx.core,io.ve
- rtx.ext.asyncsql,io.vertx.ext.sql",
- io.vertx.groovy.ext.auth;version="0.0.1";uses:="io.vertx.core,io.vertx.
- ext.auth",
+ io.vertx.groovy.core.cli;uses:="io.vertx.core.cli";version="0.0.1",
+ io.vertx.groovy.core.eventbus;uses:="io.vertx.core,io.vertx.core.eventb
+ us";version="0.0.1",
+ io.vertx.groovy.core.file;uses:="io.vertx.core,io.vertx.core.file";vers
+ ion="0.0.1",
+ io.vertx.groovy.core.http;uses:="io.vertx.core,io.vertx.core.http,io.ve
+ rtx.core.streams";version="0.0.1",
+ io.vertx.groovy.core.net;uses:="io.vertx.core.net";version="0.0.1",
+ io.vertx.groovy.core.parsetools;uses:="io.vertx.core.parsetools";versio
+ n="0.0.1",
+ io.vertx.groovy.core.shareddata;uses:="io.vertx.core,io.vertx.core.shar
+ eddata";version="0.0.1",
+ io.vertx.groovy.core.streams;uses:="io.vertx.core,io.vertx.core.streams
+ ";version="0.0.1",
+ io.vertx.groovy.ext.asyncsql;uses:="io.vertx.core,io.vertx.ext.asyncsql
+ ,io.vertx.ext.sql";version="0.0.1",
+ io.vertx.groovy.ext.auth;uses:="io.vertx.core,io.vertx.ext.auth";versio
+ n="0.0.1",
  io.vertx.groovy.ext.auth.htdigest;version="0.0.1",
- io.vertx.groovy.ext.auth.htpasswd;version="0.0.1";uses:="io.vertx.core,
- io.vertx.ext.auth.htpasswd",
- io.vertx.groovy.ext.auth.jdbc;version="0.0.1";uses:="io.vertx.ext.auth.
- jdbc",
- io.vertx.groovy.ext.auth.jwt;version="0.0.1";uses:="io.vertx.core,io.ve
- rtx.ext.auth.jwt",
- io.vertx.groovy.ext.auth.mongo;version="0.0.1";uses:="io.vertx.ext.auth
- .mongo,io.vertx.ext.mongo",
- io.vertx.groovy.ext.auth.oauth2;version="0.0.1";uses:="io.vertx.core,io
- .vertx.core.buffer,io.vertx.core.http",
- io.vertx.groovy.ext.auth.oauth2.providers;version="0.0.1";uses:="io.ver
- tx.core",
+ io.vertx.groovy.ext.auth.htpasswd;uses:="io.vertx.core,io.vertx.ext.aut
+ h.htpasswd";version="0.0.1",
+ io.vertx.groovy.ext.auth.jdbc;uses:="io.vertx.ext.auth.jdbc";version="0
+ .0.1",
+ io.vertx.groovy.ext.auth.jwt;uses:="io.vertx.core,io.vertx.ext.auth.jwt
+ ";version="0.0.1",
+ io.vertx.groovy.ext.auth.mongo;uses:="io.vertx.ext.auth.mongo,io.vertx.
+ ext.mongo";version="0.0.1",
+ io.vertx.groovy.ext.auth.oauth2;uses:="io.vertx.core,io.vertx.core.buff
+ er,io.vertx.core.http";version="0.0.1",
+ io.vertx.groovy.ext.auth.oauth2.providers;uses:="io.vertx.core";version
+ ="0.0.1",
  io.vertx.groovy.ext.auth.oauth2.rbac;version="0.0.1",
- io.vertx.groovy.ext.auth.shiro;version="0.0.1";uses:="io.vertx.core,io.
- vertx.ext.auth.shiro",
- io.vertx.groovy.ext.bridge;version="0.0.1";uses:="io.vertx.core,io.vert
- x.ext.bridge",
- io.vertx.groovy.ext.consul;version="0.0.1";uses:="io.vertx.core,io.vert
- x.ext.consul",
- io.vertx.groovy.ext.dropwizard;version="0.0.1";uses:="io.vertx.core.met
- rics,io.vertx.ext.dropwizard",
- io.vertx.groovy.ext.healthchecks;version="0.0.1";uses:="io.vertx.core,i
- o.vertx.ext.healthchecks",
- io.vertx.groovy.ext.jdbc;version="0.0.1";uses:="io.vertx.core,io.vertx.
- ext.jdbc,io.vertx.ext.sql",
- io.vertx.groovy.ext.mail;version="0.0.1";uses:="io.vertx.core,io.vertx.
- ext.mail",
- io.vertx.groovy.ext.mongo;version="0.0.1";uses:="io.vertx.core,io.vertx
- .core.json,io.vertx.core.streams,io.vertx.ext.mongo",
- io.vertx.groovy.ext.shell;version="0.0.1";uses:="io.vertx.core,io.vertx
- .ext.shell",
- io.vertx.groovy.ext.shell.session;version="0.0.1";uses:="io.vertx.ext.s
- hell.session",
- io.vertx.groovy.ext.shell.term;version="0.0.1";uses:="io.vertx.core,io.
- vertx.ext.shell.term,io.vertx.ext.web",
- io.vertx.groovy.ext.sql;version="0.0.1";uses:="io.vertx.core,io.vertx.e
- xt.sql",
- io.vertx.groovy.ext.stomp;version="0.0.1";uses:="io.vertx.core,io.vertx
- .core.buffer,io.vertx.core.net,io.vertx.ext.stomp",
- io.vertx.groovy.ext.unit;version="0.0.1";uses:="io.vertx.core,io.vertx.
- ext.unit",
- io.vertx.groovy.ext.unit.collect;version="0.0.1";uses:="io.vertx.core,i
- o.vertx.ext.unit.collect",
- io.vertx.groovy.ext.web;version="0.0.1";uses:="io.vertx.ext.web",
+ io.vertx.groovy.ext.auth.shiro;uses:="io.vertx.core,io.vertx.ext.auth.s
+ hiro";version="0.0.1",
+ io.vertx.groovy.ext.bridge;uses:="io.vertx.core,io.vertx.ext.bridge";ve
+ rsion="0.0.1",
+ io.vertx.groovy.ext.consul;uses:="io.vertx.core,io.vertx.ext.consul";ve
+ rsion="0.0.1",
+ io.vertx.groovy.ext.dropwizard;uses:="io.vertx.core.metrics,io.vertx.ex
+ t.dropwizard";version="0.0.1",
+ io.vertx.groovy.ext.eventbus.bridge.tcp;uses:="io.vertx.core,io.vertx.e
+ xt.eventbus.bridge.tcp";version="0.0.1",
+ io.vertx.groovy.ext.healthchecks;uses:="io.vertx.core,io.vertx.ext.heal
+ thchecks";version="0.0.1",
+ io.vertx.groovy.ext.jdbc;uses:="io.vertx.core,io.vertx.ext.jdbc,io.vert
+ x.ext.sql";version="0.0.1",
+ io.vertx.groovy.ext.mail;uses:="io.vertx.core,io.vertx.ext.mail";versio
+ n="0.0.1",
+ io.vertx.groovy.ext.mongo;uses:="io.vertx.core,io.vertx.core.json,io.ve
+ rtx.core.streams,io.vertx.ext.mongo";version="0.0.1",
+ io.vertx.groovy.ext.shell;uses:="io.vertx.core,io.vertx.ext.shell";vers
+ ion="0.0.1",
+ io.vertx.groovy.ext.shell.session;uses:="io.vertx.ext.shell.session";ve
+ rsion="0.0.1",
+ io.vertx.groovy.ext.shell.term;uses:="io.vertx.core,io.vertx.ext.shell.
+ term,io.vertx.ext.web";version="0.0.1",
+ io.vertx.groovy.ext.sql;uses:="io.vertx.core,io.vertx.ext.sql";version=
+ "0.0.1",
+ io.vertx.groovy.ext.stomp;uses:="io.vertx.core,io.vertx.core.buffer,io.
+ vertx.core.net,io.vertx.ext.stomp";version="0.0.1",
+ io.vertx.groovy.ext.unit;uses:="io.vertx.core,io.vertx.ext.unit";versio
+ n="0.0.1",
+ io.vertx.groovy.ext.unit.collect;uses:="io.vertx.core,io.vertx.ext.unit
+ .collect";version="0.0.1",
+ io.vertx.groovy.ext.web;uses:="io.vertx.ext.web";version="0.0.1",
  io.vertx.groovy.ext.web.api;version="0.0.1",
- io.vertx.groovy.ext.web.api.contract;version="0.0.1";uses:="io.vertx.ex
- t.web",
- io.vertx.groovy.ext.web.api.contract.openapi3;version="0.0.1";uses:="io
- .vertx.core,io.vertx.ext.web",
+ io.vertx.groovy.ext.web.api.contract;uses:="io.vertx.ext.web";version="
+ 0.0.1",
+ io.vertx.groovy.ext.web.api.contract.openapi3;uses:="io.vertx.core,io.v
+ ertx.ext.web";version="0.0.1",
  io.vertx.groovy.ext.web.api.validation;version="0.0.1",
- io.vertx.groovy.ext.web.client;version="0.0.1";uses:="io.vertx.core,io.
- vertx.core.buffer,io.vertx.core.http,io.vertx.ext.web.client",
- io.vertx.groovy.ext.web.codec;version="0.0.1";uses:="io.vertx.core.buff
- er,io.vertx.ext.web.codec",
+ io.vertx.groovy.ext.web.client;uses:="io.vertx.core,io.vertx.core.buffe
+ r,io.vertx.core.http,io.vertx.ext.web.client";version="0.0.1",
+ io.vertx.groovy.ext.web.codec;uses:="io.vertx.core.buffer,io.vertx.ext.
+ web.codec";version="0.0.1",
  io.vertx.groovy.ext.web.common;version="0.0.1",
- io.vertx.groovy.ext.web.common.template;version="0.0.1";uses:="io.vertx
- .core,io.vertx.core.buffer,io.vertx.ext.web.common.template",
- io.vertx.groovy.ext.web.handler;version="0.0.1";uses:="io.vertx.core,io
- .vertx.ext.web,io.vertx.ext.web.handler",
- io.vertx.groovy.ext.web.handler.sockjs;version="0.0.1";uses:="io.vertx.
- core,io.vertx.ext.web.handler.sockjs",
+ io.vertx.groovy.ext.web.common.template;uses:="io.vertx.core,io.vertx.c
+ ore.buffer,io.vertx.ext.web.common.template";version="0.0.1",
+ io.vertx.groovy.ext.web.handler;uses:="io.vertx.core,io.vertx.ext.web,i
+ o.vertx.ext.web.handler";version="0.0.1",
+ io.vertx.groovy.ext.web.handler.sockjs;uses:="io.vertx.core,io.vertx.ex
+ t.web.handler.sockjs";version="0.0.1",
  io.vertx.groovy.ext.web.multipart;version="0.0.1",
- io.vertx.groovy.ext.web.sstore;version="0.0.1";uses:="io.vertx.core,io.
- vertx.ext.web.sstore",
+ io.vertx.groovy.ext.web.sstore;uses:="io.vertx.core,io.vertx.ext.web.ss
+ tore";version="0.0.1",
  io.vertx.groovy.ext.web.templ.freemarker;version="0.0.1",
  io.vertx.groovy.ext.web.templ.handlebars;version="0.0.1",
  io.vertx.groovy.ext.web.templ.jade;version="0.0.1",
@@ -410,49 +410,49 @@ Export-Package:
  io.vertx.groovy.ext.web.templ.thymeleaf;version="0.0.1",
  io.vertx.groovy.kafka.admin;version="0.0.1",
  io.vertx.groovy.kafka.client;version="0.0.1",
- io.vertx.groovy.kafka.client.consumer;version="0.0.1";uses:="io.vertx.c
- ore,io.vertx.kafka.client.consumer",
- io.vertx.groovy.kafka.client.producer;version="0.0.1";uses:="io.vertx.c
- ore,io.vertx.kafka.client.producer",
- io.vertx.groovy.micrometer;version="0.0.1";uses:="io.vertx.micrometer",
- io.vertx.groovy.mqtt;version="0.0.1";uses:="io.vertx.core,io.vertx.mqtt
+ io.vertx.groovy.kafka.client.consumer;uses:="io.vertx.core,io.vertx.kaf
+ ka.client.consumer";version="0.0.1",
+ io.vertx.groovy.kafka.client.producer;uses:="io.vertx.core,io.vertx.kaf
+ ka.client.producer";version="0.0.1",
+ io.vertx.groovy.micrometer;uses:="io.vertx.micrometer";version="0.0.1",
+ io.vertx.groovy.mqtt;uses:="io.vertx.core,io.vertx.mqtt";version="0.0.1
  ",
- io.vertx.groovy.rabbitmq;version="0.0.1";uses:="io.vertx.core,io.vertx.
- rabbitmq",
- io.vertx.groovy.redis;version="0.0.1";uses:="io.vertx.core,io.vertx.cor
- e.buffer,io.vertx.redis,io.vertx.redis.op",
- io.vertx.groovy.redis.sentinel;version="0.0.1";uses:="io.vertx.core,io.
- vertx.redis.sentinel",
- io.vertx.groovy.servicediscovery;version="0.0.1";uses:="io.vertx.core,i
- o.vertx.servicediscovery,io.vertx.servicediscovery.spi",
- io.vertx.groovy.servicediscovery.spi;version="0.0.1";uses:="io.vertx.co
- re,io.vertx.servicediscovery.spi",
- io.vertx.groovy.servicediscovery.types;version="0.0.1";uses:="io.vertx.
- core,io.vertx.core.eventbus,io.vertx.core.http,io.vertx.ext.jdbc,io.ver
- tx.ext.mongo,io.vertx.ext.web.client,io.vertx.redis,io.vertx.servicedis
- covery,io.vertx.servicediscovery.types",
- io.vertx.lang.reactivex;version="3.6.2";uses:="io.vertx.codegen,javax.a
+ io.vertx.groovy.rabbitmq;uses:="io.vertx.core,io.vertx.rabbitmq";versio
+ n="0.0.1",
+ io.vertx.groovy.redis;uses:="io.vertx.core,io.vertx.core.buffer,io.vert
+ x.redis,io.vertx.redis.op";version="0.0.1",
+ io.vertx.groovy.redis.sentinel;uses:="io.vertx.core,io.vertx.redis.sent
+ inel";version="0.0.1",
+ io.vertx.groovy.servicediscovery;uses:="io.vertx.core,io.vertx.serviced
+ iscovery,io.vertx.servicediscovery.spi";version="0.0.1",
+ io.vertx.groovy.servicediscovery.spi;uses:="io.vertx.core,io.vertx.serv
+ icediscovery.spi";version="0.0.1",
+ io.vertx.groovy.servicediscovery.types;uses:="io.vertx.core,io.vertx.co
+ re.eventbus,io.vertx.core.http,io.vertx.ext.jdbc,io.vertx.ext.mongo,io.
+ vertx.ext.web.client,io.vertx.redis,io.vertx.servicediscovery,io.vertx.
+ servicediscovery.types";version="0.0.1",
+ io.vertx.lang.reactivex;version="3.6.3";uses:="io.vertx.codegen,javax.a
  nnotation.processing",
- io.vertx.lang.rx;version="3.6.2";uses:="io.vertx.codegen,io.vertx.codeg
+ io.vertx.lang.rx;version="3.6.3";uses:="io.vertx.codegen,io.vertx.codeg
  en.type",
- io.vertx.reactivex;version="3.6.2";uses:="com.fasterxml.jackson.core.ty
+ io.vertx.reactivex;version="3.6.3";uses:="com.fasterxml.jackson.core.ty
  pe,com.fasterxml.jackson.databind,io.reactivex,io.reactivex.disposables
  ,io.reactivex.functions,io.vertx.core,io.vertx.core.buffer,io.vertx.cor
  e.streams",
- io.vertx.reactivex.amqpbridge;version="3.6.2";uses:="io.reactivex,io.ve
+ io.vertx.reactivex.amqpbridge;version="3.6.3";uses:="io.reactivex,io.ve
  rtx.amqpbridge,io.vertx.core,io.vertx.lang.rx,io.vertx.reactivex.core,i
  o.vertx.reactivex.core.eventbus",
- io.vertx.reactivex.cassandra;version="3.6.2";uses:="com.datastax.driver
+ io.vertx.reactivex.cassandra;version="3.6.3";uses:="com.datastax.driver
  .core,io.reactivex,io.vertx.cassandra,io.vertx.core,io.vertx.core.strea
  ms,io.vertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.core.str
  eams",
- io.vertx.reactivex.circuitbreaker;version="3.6.2";uses:="io.reactivex,i
+ io.vertx.reactivex.circuitbreaker;version="3.6.3";uses:="io.reactivex,i
  o.vertx.circuitbreaker,io.vertx.core,io.vertx.lang.rx,io.vertx.reactive
  x.core,io.vertx.reactivex.ext.web",
- io.vertx.reactivex.config;version="3.6.2";uses:="io.reactivex,io.vertx.
+ io.vertx.reactivex.config;version="3.6.3";uses:="io.reactivex,io.vertx.
  config,io.vertx.core,io.vertx.core.json,io.vertx.lang.rx,io.vertx.react
  ivex.core,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.core;version="3.6.2";uses:="com.fasterxml.jackson.co
+ io.vertx.reactivex.core;version="3.6.3";uses:="com.fasterxml.jackson.co
  re.type,com.fasterxml.jackson.databind,io.netty.channel,io.reactivex,io
  .vertx.core,io.vertx.core.datagram,io.vertx.core.dns,io.vertx.core.http
  ,io.vertx.core.json,io.vertx.core.metrics,io.vertx.core.net,io.vertx.co
@@ -462,262 +462,266 @@ Export-Package:
  tivex.core.http,io.vertx.reactivex.core.metrics,io.vertx.reactivex.core
  .net,io.vertx.reactivex.core.shareddata,io.vertx.reactivex.core.streams
  ",
- io.vertx.reactivex.core.buffer;version="3.6.2";uses:="io.netty.buffer,i
+ io.vertx.reactivex.core.buffer;version="3.6.3";uses:="io.netty.buffer,i
  o.vertx.core.buffer,io.vertx.core.json,io.vertx.core.shareddata.impl,io
  .vertx.lang.rx",
- io.vertx.reactivex.core.cli;version="3.6.2";uses:="io.vertx.core.cli,io
+ io.vertx.reactivex.core.cli;version="3.6.3";uses:="io.vertx.core.cli,io
  .vertx.lang.rx",
- io.vertx.reactivex.core.datagram;version="3.6.2";uses:="io.reactivex,io
+ io.vertx.reactivex.core.datagram;version="3.6.3";uses:="io.reactivex,io
  .vertx.core,io.vertx.core.datagram,io.vertx.core.metrics,io.vertx.core.
  streams,io.vertx.lang.rx,io.vertx.reactivex.core.buffer,io.vertx.reacti
  vex.core.metrics,io.vertx.reactivex.core.net,io.vertx.reactivex.core.st
  reams",
- io.vertx.reactivex.core.dns;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.core.dns;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.core.dns,io.vertx.lang.rx",
- io.vertx.reactivex.core.eventbus;version="3.6.2";uses:="io.reactivex,io
+ io.vertx.reactivex.core.eventbus;version="3.6.3";uses:="io.reactivex,io
  .vertx.core,io.vertx.core.eventbus,io.vertx.core.metrics,io.vertx.core.
  streams,io.vertx.lang.rx,io.vertx.reactivex,io.vertx.reactivex.core,io.
  vertx.reactivex.core.metrics,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.core.file;version="3.6.2";uses:="io.reactivex,io.ver
+ io.vertx.reactivex.core.file;version="3.6.3";uses:="io.reactivex,io.ver
  tx.core,io.vertx.core.file,io.vertx.core.streams,io.vertx.lang.rx,io.ve
  rtx.reactivex,io.vertx.reactivex.core.buffer,io.vertx.reactivex.core.st
  reams",
- io.vertx.reactivex.core.http;version="3.6.2";uses:="io.reactivex,io.ver
+ io.vertx.reactivex.core.http;version="3.6.3";uses:="io.reactivex,io.ver
  tx.core,io.vertx.core.http,io.vertx.core.metrics,io.vertx.core.streams,
  io.vertx.lang.rx,io.vertx.reactivex,io.vertx.reactivex.core,io.vertx.re
  activex.core.buffer,io.vertx.reactivex.core.metrics,io.vertx.reactivex.
  core.net,io.vertx.reactivex.core.streams,javax.net.ssl",
- io.vertx.reactivex.core.metrics;version="3.6.2";uses:="io.vertx.core.me
+ io.vertx.reactivex.core.metrics;version="3.6.3";uses:="io.vertx.core.me
  trics,io.vertx.lang.rx",
- io.vertx.reactivex.core.net;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.core.net;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.core.metrics,io.vertx.core.net,io.vertx.core.streams,io
  .vertx.lang.rx,io.vertx.reactivex,io.vertx.reactivex.core.buffer,io.ver
  tx.reactivex.core.metrics,io.vertx.reactivex.core.streams,javax.net.ssl
  ",
- io.vertx.reactivex.core.parsetools;version="3.6.2";uses:="com.fasterxml
+ io.vertx.reactivex.core.parsetools;version="3.6.3";uses:="com.fasterxml
  .jackson.core.type,io.reactivex,io.vertx.core,io.vertx.core.json,io.ver
  tx.core.parsetools,io.vertx.core.streams,io.vertx.lang.rx,io.vertx.reac
  tivex.core.buffer,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.core.shareddata;version="3.6.2";uses:="io.reactivex,
+ io.vertx.reactivex.core.shareddata;version="3.6.3";uses:="io.reactivex,
  io.vertx.core,io.vertx.core.shareddata,io.vertx.lang.rx",
- io.vertx.reactivex.core.streams;version="3.6.2";uses:="io.reactivex,io.
+ io.vertx.reactivex.core.streams;version="3.6.3";uses:="io.reactivex,io.
  vertx.core,io.vertx.core.streams,io.vertx.lang.rx",
- io.vertx.reactivex.ext.asyncsql;version="3.6.2";uses:="io.reactivex,io.
+ io.vertx.reactivex.ext.asyncsql;version="3.6.3";uses:="io.reactivex,io.
  vertx.core,io.vertx.core.json,io.vertx.ext.asyncsql,io.vertx.ext.sql,io
  .vertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext.sql",
- io.vertx.reactivex.ext.auth;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.ext.auth;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.core.json,io.vertx.ext.auth,io.vertx.lang.rx,io.vertx.r
  eactivex.core",
- io.vertx.reactivex.ext.auth.htdigest;version="3.6.2";uses:="io.vertx.ex
+ io.vertx.reactivex.ext.auth.htdigest;version="3.6.3";uses:="io.vertx.ex
  t.auth,io.vertx.ext.auth.htdigest,io.vertx.lang.rx,io.vertx.reactivex.c
  ore,io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.auth.htpasswd;version="3.6.2";uses:="io.vertx.ex
+ io.vertx.reactivex.ext.auth.htpasswd;version="3.6.3";uses:="io.vertx.ex
  t.auth,io.vertx.ext.auth.htpasswd,io.vertx.lang.rx,io.vertx.reactivex.c
  ore,io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.auth.jdbc;version="3.6.2";uses:="io.vertx.core.j
+ io.vertx.reactivex.ext.auth.jdbc;version="3.6.3";uses:="io.vertx.core.j
  son,io.vertx.ext.auth,io.vertx.ext.auth.jdbc,io.vertx.lang.rx,io.vertx.
  reactivex.core,io.vertx.reactivex.ext.auth,io.vertx.reactivex.ext.jdbc"
  ,
- io.vertx.reactivex.ext.auth.jwt;version="3.6.2";uses:="io.vertx.core.js
+ io.vertx.reactivex.ext.auth.jwt;version="3.6.3";uses:="io.vertx.core.js
  on,io.vertx.ext.auth,io.vertx.ext.auth.jwt,io.vertx.ext.jwt,io.vertx.la
  ng.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.auth.mongo;version="3.6.2";uses:="io.reactivex,i
+ io.vertx.reactivex.ext.auth.mongo;version="3.6.3";uses:="io.reactivex,i
  o.vertx.core,io.vertx.core.json,io.vertx.ext.auth,io.vertx.ext.auth.mon
  go,io.vertx.lang.rx,io.vertx.reactivex.ext.auth,io.vertx.reactivex.ext.
  mongo",
- io.vertx.reactivex.ext.auth.oauth2;version="3.6.2";uses:="io.reactivex,
+ io.vertx.reactivex.ext.auth.oauth2;version="3.6.3";uses:="io.reactivex,
  io.vertx.core,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.auth,i
  o.vertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.core.buffer,
  io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.auth.oauth2.providers;version="3.6.2";uses:="io.
+ io.vertx.reactivex.ext.auth.oauth2.providers;version="3.6.3";uses:="io.
  reactivex,io.vertx.core,io.vertx.core.http,io.vertx.core.json,io.vertx.
  lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext.auth.oauth2",
- io.vertx.reactivex.ext.auth.oauth2.rbac;version="3.6.2";uses:="io.vertx
+ io.vertx.reactivex.ext.auth.oauth2.rbac;version="3.6.3";uses:="io.vertx
  .lang.rx,io.vertx.reactivex.ext.auth.oauth2",
- io.vertx.reactivex.ext.auth.shiro;version="3.6.2";uses:="io.vertx.core.
+ io.vertx.reactivex.ext.auth.shiro;version="3.6.3";uses:="io.vertx.core.
  json,io.vertx.ext.auth,io.vertx.ext.auth.shiro,io.vertx.lang.rx,io.vert
  x.reactivex.core,io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.bridge;version="3.6.2";uses:="io.reactivex,io.ve
+ io.vertx.reactivex.ext.bridge;version="3.6.3";uses:="io.reactivex,io.ve
  rtx.core,io.vertx.core.json,io.vertx.ext.bridge,io.vertx.lang.rx,io.ver
  tx.reactivex.core",
- io.vertx.reactivex.ext.consul;version="3.6.2";uses:="io.reactivex,io.ve
+ io.vertx.reactivex.ext.consul;version="3.6.3";uses:="io.reactivex,io.ve
  rtx.core,io.vertx.core.json,io.vertx.ext.consul,io.vertx.lang.rx,io.ver
  tx.reactivex.core",
- io.vertx.reactivex.ext.dropwizard;version="3.6.2";uses:="io.vertx.core.
+ io.vertx.reactivex.ext.dropwizard;version="3.6.3";uses:="io.vertx.core.
  json,io.vertx.ext.dropwizard,io.vertx.lang.rx,io.vertx.reactivex.core,i
  o.vertx.reactivex.core.metrics",
- io.vertx.reactivex.ext.healthchecks;version="3.6.2";uses:="io.reactivex
+ io.vertx.reactivex.ext.eventbus.bridge.tcp;version="3.6.3";uses:="io.re
+ activex,io.vertx.core,io.vertx.core.json,io.vertx.core.net,io.vertx.ext
+ .bridge,io.vertx.ext.eventbus.bridge.tcp,io.vertx.lang.rx,io.vertx.reac
+ tivex.core,io.vertx.reactivex.core.net,io.vertx.reactivex.ext.bridge",
+ io.vertx.reactivex.ext.healthchecks;version="3.6.3";uses:="io.reactivex
  ,io.vertx.core,io.vertx.core.json,io.vertx.ext.healthchecks,io.vertx.la
  ng.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext.auth,io.vertx.reac
  tivex.ext.web",
- io.vertx.reactivex.ext.jdbc;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.ext.jdbc;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.core.json,io.vertx.ext.jdbc,io.vertx.ext.sql,io.vertx.l
  ang.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext.sql",
- io.vertx.reactivex.ext.mail;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.ext.mail;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.ext.mail,io.vertx.lang.rx,io.vertx.reactivex.core",
- io.vertx.reactivex.ext.mongo;version="3.6.2";uses:="io.reactivex,io.ver
+ io.vertx.reactivex.ext.mongo;version="3.6.3";uses:="io.reactivex,io.ver
  tx.core,io.vertx.core.json,io.vertx.ext.mongo,io.vertx.lang.rx,io.vertx
  .reactivex.core,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.ext.shell;version="3.6.2";uses:="io.reactivex,io.ver
+ io.vertx.reactivex.ext.shell;version="3.6.3";uses:="io.reactivex,io.ver
  tx.core,io.vertx.ext.shell,io.vertx.lang.rx,io.vertx.reactivex.core,io.
  vertx.reactivex.ext.shell.cli,io.vertx.reactivex.ext.shell.command,io.v
  ertx.reactivex.ext.shell.session,io.vertx.reactivex.ext.shell.system,io
  .vertx.reactivex.ext.shell.term",
- io.vertx.reactivex.ext.shell.cli;version="3.6.2";uses:="io.vertx.ext.sh
+ io.vertx.reactivex.ext.shell.cli;version="3.6.3";uses:="io.vertx.ext.sh
  ell.cli,io.vertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext
  .shell.session",
- io.vertx.reactivex.ext.shell.command;version="3.6.2";uses:="io.reactive
+ io.vertx.reactivex.ext.shell.command;version="3.6.3";uses:="io.reactive
  x,io.vertx.core,io.vertx.ext.shell.command,io.vertx.ext.shell.term,io.v
  ertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.core.cli,io.ver
  tx.reactivex.ext.shell.cli,io.vertx.reactivex.ext.shell.session,io.vert
  x.reactivex.ext.shell.system,io.vertx.reactivex.ext.shell.term",
- io.vertx.reactivex.ext.shell.session;version="3.6.2";uses:="io.vertx.ex
+ io.vertx.reactivex.ext.shell.session;version="3.6.3";uses:="io.vertx.ex
  t.shell.session,io.vertx.lang.rx",
- io.vertx.reactivex.ext.shell.system;version="3.6.2";uses:="io.vertx.cor
+ io.vertx.reactivex.ext.shell.system;version="3.6.3";uses:="io.vertx.cor
  e,io.vertx.ext.shell.system,io.vertx.lang.rx,io.vertx.reactivex.ext.she
  ll.session,io.vertx.reactivex.ext.shell.term",
- io.vertx.reactivex.ext.shell.term;version="3.6.2";uses:="io.reactivex,i
+ io.vertx.reactivex.ext.shell.term;version="3.6.3";uses:="io.reactivex,i
  o.vertx.core,io.vertx.ext.shell.term,io.vertx.lang.rx,io.vertx.reactive
  x.core,io.vertx.reactivex.ext.auth,io.vertx.reactivex.ext.shell.cli,io.
  vertx.reactivex.ext.shell.session,io.vertx.reactivex.ext.web,io.vertx.r
  eactivex.ext.web.handler.sockjs",
- io.vertx.reactivex.ext.sql;version="3.6.2";uses:="io.reactivex,io.vertx
+ io.vertx.reactivex.ext.sql;version="3.6.3";uses:="io.reactivex,io.vertx
  .core,io.vertx.core.json,io.vertx.core.streams,io.vertx.ext.sql,io.vert
  x.lang.rx,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.ext.sql.impl;version="3.6.2";uses:="io.reactivex,io.
+ io.vertx.reactivex.ext.sql.impl;version="3.6.3";uses:="io.reactivex,io.
  vertx.reactivex.ext.sql,org.reactivestreams",
- io.vertx.reactivex.ext.stomp;version="3.6.2";uses:="io.reactivex,io.ver
+ io.vertx.reactivex.ext.stomp;version="3.6.3";uses:="io.reactivex,io.ver
  tx.core,io.vertx.ext.stomp,io.vertx.lang.rx,io.vertx.reactivex.core,io.
  vertx.reactivex.core.buffer,io.vertx.reactivex.core.http,io.vertx.react
  ivex.core.net,io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.unit;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.ext.unit;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.ext.unit,io.vertx.lang.rx,io.vertx.reactivex.core",
- io.vertx.reactivex.ext.unit.collect;version="3.6.2";uses:="io.vertx.cor
+ io.vertx.reactivex.ext.unit.collect;version="3.6.3";uses:="io.vertx.cor
  e,io.vertx.ext.unit.collect,io.vertx.ext.unit.report,io.vertx.lang.rx,i
  o.vertx.reactivex.core,io.vertx.reactivex.core.eventbus,io.vertx.reacti
  vex.ext.unit.report",
- io.vertx.reactivex.ext.unit.report;version="3.6.2";uses:="io.reactivex,
+ io.vertx.reactivex.ext.unit.report;version="3.6.3";uses:="io.reactivex,
  io.vertx.core,io.vertx.core.streams,io.vertx.ext.unit.report,io.vertx.l
  ang.rx,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.ext.web;version="3.6.2";uses:="io.vertx.core,io.vert
+ io.vertx.reactivex.ext.web;version="3.6.3";uses:="io.vertx.core,io.vert
  x.core.http,io.vertx.core.json,io.vertx.ext.web,io.vertx.lang.rx,io.ver
  tx.reactivex.core,io.vertx.reactivex.core.buffer,io.vertx.reactivex.cor
  e.http,io.vertx.reactivex.ext.auth",
- io.vertx.reactivex.ext.web.api;version="3.6.2";uses:="io.vertx.core.jso
+ io.vertx.reactivex.ext.web.api;version="3.6.3";uses:="io.vertx.core.jso
  n,io.vertx.lang.rx",
- io.vertx.reactivex.ext.web.api.contract;version="3.6.2";uses:="io.vertx
+ io.vertx.reactivex.ext.web.api.contract;version="3.6.3";uses:="io.vertx
  .core,io.vertx.core.json,io.vertx.lang.rx,io.vertx.reactivex.ext.web,io
  .vertx.reactivex.ext.web.api.validation,io.vertx.reactivex.ext.web.hand
  ler",
- io.vertx.reactivex.ext.web.api.contract.openapi3;version="3.6.2";uses:=
+ io.vertx.reactivex.ext.web.api.contract.openapi3;version="3.6.3";uses:=
  "io.reactivex,io.swagger.v3.oas.models,io.vertx.core,io.vertx.core.json
  ,io.vertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.ext.web,io
  .vertx.reactivex.ext.web.api.contract,io.vertx.reactivex.ext.web.handle
  r",
- io.vertx.reactivex.ext.web.api.validation;version="3.6.2";uses:="io.ver
+ io.vertx.reactivex.ext.web.api.validation;version="3.6.3";uses:="io.ver
  tx.core,io.vertx.lang.rx,io.vertx.reactivex.ext.web,io.vertx.reactivex.
  ext.web.api",
- io.vertx.reactivex.ext.web.client;version="3.6.2";uses:="io.reactivex,i
+ io.vertx.reactivex.ext.web.client;version="3.6.3";uses:="io.reactivex,i
  o.vertx.core,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.web.cli
  ent,io.vertx.lang.rx,io.vertx.reactivex.core,io.vertx.reactivex.core.bu
  ffer,io.vertx.reactivex.core.http,io.vertx.reactivex.core.streams,io.ve
  rtx.reactivex.ext.web.client.predicate,io.vertx.reactivex.ext.web.codec
  ,io.vertx.reactivex.ext.web.multipart",
- io.vertx.reactivex.ext.web.client.predicate;version="3.6.2";uses:="io.v
+ io.vertx.reactivex.ext.web.client.predicate;version="3.6.3";uses:="io.v
  ertx.ext.web.client.predicate,io.vertx.lang.rx,io.vertx.reactivex.core.
  buffer,io.vertx.reactivex.ext.web.client",
- io.vertx.reactivex.ext.web.codec;version="3.6.2";uses:="io.vertx.core.j
+ io.vertx.reactivex.ext.web.codec;version="3.6.3";uses:="io.vertx.core.j
  son,io.vertx.ext.web.codec,io.vertx.lang.rx,io.vertx.reactivex.core.buf
  fer,io.vertx.reactivex.core.streams",
- io.vertx.reactivex.ext.web.common.template;version="3.6.2";uses:="io.re
+ io.vertx.reactivex.ext.web.common.template;version="3.6.3";uses:="io.re
  activex,io.vertx.core,io.vertx.core.json,io.vertx.ext.web.common.templa
  te,io.vertx.lang.rx,io.vertx.reactivex.core.buffer",
- io.vertx.reactivex.ext.web.handler;version="3.6.2";uses:="io.reactivex,
+ io.vertx.reactivex.ext.web.handler;version="3.6.3";uses:="io.reactivex,
  io.vertx.core,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.web,io
  .vertx.ext.web.handler,io.vertx.lang.rx,io.vertx.reactivex.ext.auth,io.
  vertx.reactivex.ext.auth.htdigest,io.vertx.reactivex.ext.auth.jwt,io.ve
  rtx.reactivex.ext.auth.oauth2,io.vertx.reactivex.ext.web,io.vertx.react
  ivex.ext.web.common.template,io.vertx.reactivex.ext.web.sstore",
- io.vertx.reactivex.ext.web.handler.sockjs;version="3.6.2";uses:="io.rea
+ io.vertx.reactivex.ext.web.handler.sockjs;version="3.6.3";uses:="io.rea
  ctivex,io.vertx.core,io.vertx.core.json,io.vertx.core.streams,io.vertx.
  ext.bridge,io.vertx.ext.web.handler.sockjs,io.vertx.lang.rx,io.vertx.re
  activex,io.vertx.reactivex.core,io.vertx.reactivex.core.buffer,io.vertx
  .reactivex.core.net,io.vertx.reactivex.core.streams,io.vertx.reactivex.
  ext.auth,io.vertx.reactivex.ext.bridge,io.vertx.reactivex.ext.web",
- io.vertx.reactivex.ext.web.multipart;version="3.6.2";uses:="io.vertx.ex
+ io.vertx.reactivex.ext.web.multipart;version="3.6.3";uses:="io.vertx.ex
  t.web.multipart,io.vertx.lang.rx",
- io.vertx.reactivex.ext.web.sstore;version="3.6.2";uses:="io.reactivex,i
+ io.vertx.reactivex.ext.web.sstore;version="3.6.3";uses:="io.reactivex,i
  o.vertx.core,io.vertx.core.json,io.vertx.ext.web.sstore,io.vertx.lang.r
  x,io.vertx.reactivex.core,io.vertx.reactivex.ext.web",
- io.vertx.reactivex.ext.web.templ;version="3.6.2";uses:="io.reactivex,io
+ io.vertx.reactivex.ext.web.templ;version="3.6.3";uses:="io.reactivex,io
  .vertx.core,io.vertx.ext.web.common.template,io.vertx.ext.web.templ,io.
  vertx.lang.rx,io.vertx.reactivex.core.buffer,io.vertx.reactivex.ext.web
  ,io.vertx.reactivex.ext.web.common.template",
- io.vertx.reactivex.ext.web.templ.freemarker;version="3.6.2";uses:="io.v
+ io.vertx.reactivex.ext.web.templ.freemarker;version="3.6.3";uses:="io.v
  ertx.ext.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.core,i
  o.vertx.reactivex.ext.web.common.template",
- io.vertx.reactivex.ext.web.templ.handlebars;version="3.6.2";uses:="io.v
+ io.vertx.reactivex.ext.web.templ.handlebars;version="3.6.3";uses:="io.v
  ertx.ext.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.core,i
  o.vertx.reactivex.ext.web.common.template",
- io.vertx.reactivex.ext.web.templ.jade;version="3.6.2";uses:="io.vertx.e
+ io.vertx.reactivex.ext.web.templ.jade;version="3.6.3";uses:="io.vertx.e
  xt.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.core,io.vert
  x.reactivex.ext.web.common.template",
- io.vertx.reactivex.ext.web.templ.mvel;version="3.6.2";uses:="io.vertx.e
+ io.vertx.reactivex.ext.web.templ.mvel;version="3.6.3";uses:="io.vertx.e
  xt.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.core,io.vert
  x.reactivex.ext.web.common.template",
- io.vertx.reactivex.ext.web.templ.pebble;version="3.6.2";uses:="io.vertx
+ io.vertx.reactivex.ext.web.templ.pebble;version="3.6.3";uses:="io.vertx
  .ext.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.core,io.ve
  rtx.reactivex.ext.web.common.template",
- io.vertx.reactivex.ext.web.templ.rocker;version="3.6.2";uses:="io.vertx
+ io.vertx.reactivex.ext.web.templ.rocker;version="3.6.3";uses:="io.vertx
  .ext.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.ext.web.co
  mmon.template",
- io.vertx.reactivex.ext.web.templ.thymeleaf;version="3.6.2";uses:="io.ve
+ io.vertx.reactivex.ext.web.templ.thymeleaf;version="3.6.3";uses:="io.ve
  rtx.ext.web.common.template,io.vertx.lang.rx,io.vertx.reactivex.core,io
  .vertx.reactivex.ext.web.common.template,org.thymeleaf.templatemode",
- io.vertx.reactivex.impl;version="3.6.2";uses:="com.fasterxml.jackson.co
+ io.vertx.reactivex.impl;version="3.6.3";uses:="com.fasterxml.jackson.co
  re.type,com.fasterxml.jackson.databind,io.reactivex,io.reactivex.dispos
  ables,io.reactivex.functions,io.vertx.core,io.vertx.core.buffer,io.vert
  x.core.streams,io.vertx.reactivex,org.reactivestreams",
- io.vertx.reactivex.kafka.admin;version="3.6.2";uses:="io.reactivex,io.v
+ io.vertx.reactivex.kafka.admin;version="3.6.3";uses:="io.reactivex,io.v
  ertx.core,io.vertx.kafka.admin,io.vertx.lang.rx,io.vertx.reactivex.core
  ",
- io.vertx.reactivex.kafka.client.consumer;version="3.6.2";uses:="io.reac
+ io.vertx.reactivex.kafka.client.consumer;version="3.6.3";uses:="io.reac
  tivex,io.vertx.core,io.vertx.core.streams,io.vertx.kafka.client.common,
  io.vertx.kafka.client.consumer,io.vertx.lang.rx,io.vertx.reactivex.core
  ,io.vertx.reactivex.core.streams,io.vertx.reactivex.kafka.client.produc
  er,org.apache.kafka.common.record",
- io.vertx.reactivex.kafka.client.producer;version="3.6.2";uses:="io.reac
+ io.vertx.reactivex.kafka.client.producer;version="3.6.3";uses:="io.reac
  tivex,io.vertx.core,io.vertx.core.streams,io.vertx.kafka.client.common,
  io.vertx.kafka.client.producer,io.vertx.lang.rx,io.vertx.reactivex,io.v
  ertx.reactivex.core,io.vertx.reactivex.core.buffer,io.vertx.reactivex.c
  ore.streams",
- io.vertx.reactivex.micrometer;version="3.6.2";uses:="io.vertx.core,io.v
+ io.vertx.reactivex.micrometer;version="3.6.3";uses:="io.vertx.core,io.v
  ertx.core.json,io.vertx.lang.rx,io.vertx.micrometer,io.vertx.reactivex.
  core.metrics,io.vertx.reactivex.ext.web",
- io.vertx.reactivex.mqtt;version="3.6.2";uses:="io.netty.handler.codec.m
+ io.vertx.reactivex.mqtt;version="3.6.3";uses:="io.netty.handler.codec.m
  qtt,io.reactivex,io.vertx.core,io.vertx.lang.rx,io.vertx.mqtt,io.vertx.
  reactivex.core,io.vertx.reactivex.core.buffer,io.vertx.reactivex.core.n
  et,io.vertx.reactivex.mqtt.messages",
- io.vertx.reactivex.mqtt.messages;version="3.6.2";uses:="io.netty.handle
+ io.vertx.reactivex.mqtt.messages;version="3.6.3";uses:="io.netty.handle
  r.codec.mqtt,io.vertx.lang.rx,io.vertx.mqtt.messages,io.vertx.reactivex
  .core.buffer,io.vertx.reactivex.mqtt",
- io.vertx.reactivex.rabbitmq;version="3.6.2";uses:="io.reactivex,io.vert
+ io.vertx.reactivex.rabbitmq;version="3.6.3";uses:="io.reactivex,io.vert
  x.core,io.vertx.core.json,io.vertx.core.streams,io.vertx.lang.rx,io.ver
  tx.rabbitmq,io.vertx.reactivex.core,io.vertx.reactivex.core.buffer,io.v
  ertx.reactivex.core.streams",
- io.vertx.reactivex.redis;version="3.6.2";uses:="io.reactivex,io.vertx.c
+ io.vertx.reactivex.redis;version="3.6.3";uses:="io.reactivex,io.vertx.c
  ore,io.vertx.core.json,io.vertx.lang.rx,io.vertx.reactivex.core,io.vert
  x.reactivex.core.buffer,io.vertx.redis,io.vertx.redis.op",
- io.vertx.reactivex.redis.sentinel;version="3.6.2";uses:="io.reactivex,i
+ io.vertx.reactivex.redis.sentinel;version="3.6.3";uses:="io.reactivex,i
  o.vertx.core,io.vertx.core.json,io.vertx.lang.rx,io.vertx.reactivex.cor
  e,io.vertx.redis,io.vertx.redis.sentinel",
- io.vertx.reactivex.servicediscovery;version="3.6.2";uses:="io.reactivex
+ io.vertx.reactivex.servicediscovery;version="3.6.3";uses:="io.reactivex
  ,io.vertx.core,io.vertx.core.json,io.vertx.lang.rx,io.vertx.reactivex.c
  ore,io.vertx.reactivex.servicediscovery.spi,io.vertx.servicediscovery",
- io.vertx.reactivex.servicediscovery.spi;version="3.6.2";uses:="io.react
+ io.vertx.reactivex.servicediscovery.spi;version="3.6.3";uses:="io.react
  ivex,io.vertx.core,io.vertx.core.json,io.vertx.lang.rx,io.vertx.reactiv
  ex.core,io.vertx.servicediscovery,io.vertx.servicediscovery.spi",
- io.vertx.reactivex.servicediscovery.types;version="3.6.2";uses:="io.rea
+ io.vertx.reactivex.servicediscovery.types;version="3.6.3";uses:="io.rea
  ctivex,io.vertx.core,io.vertx.core.json,io.vertx.lang.rx,io.vertx.react
  ivex.core.eventbus,io.vertx.reactivex.core.http,io.vertx.reactivex.ext.
  jdbc,io.vertx.reactivex.ext.mongo,io.vertx.reactivex.ext.web.client,io.
@@ -806,52 +810,52 @@ Export-Package:
  x.sql",
  com.zaxxer.hikari.hibernate;version="3.2.0";uses:="com.zaxxer.hikari",
  com.zaxxer.hikari.metrics;version="3.2.0",
- com.zaxxer.hikari.metrics.dropwizard;version="0.0.1";uses:="com.zaxxer.
- hikari,com.zaxxer.hikari.metrics,com.zaxxer.hikari.pool",
- com.zaxxer.hikari.metrics.micrometer;version="0.0.1";uses:="com.zaxxer.
- hikari.metrics",
- com.zaxxer.hikari.metrics.prometheus;version="0.0.1";uses:="com.zaxxer.
- hikari.metrics",
+ com.zaxxer.hikari.metrics.dropwizard;uses:="com.zaxxer.hikari,com.zaxxe
+ r.hikari.metrics,com.zaxxer.hikari.pool";version="0.0.1",
+ com.zaxxer.hikari.metrics.micrometer;uses:="com.zaxxer.hikari.metrics";
+ version="0.0.1",
+ com.zaxxer.hikari.metrics.prometheus;uses:="com.zaxxer.hikari.metrics";
+ version="0.0.1",
  com.zaxxer.hikari.pool;version="3.2.0";uses:="com.zaxxer.hikari,com.zax
  xer.hikari.metrics,com.zaxxer.hikari.util,javax.sql",
  com.zaxxer.hikari.util;version="3.2.0";uses:="javax.sql",
  com.mchange.v2;version="0.0.1",
  com.mchange.v2.async;version="0.0.1",
  com.mchange.v2.async.test;version="0.0.1",
- com.mchange.v2.beans;version="0.0.1";uses:="com.mchange.v2.log",
+ com.mchange.v2.beans;uses:="com.mchange.v2.log";version="0.0.1",
  com.mchange.v2.beans.swing;version="0.0.1",
- com.mchange.v2.c3p0;version="0.0.1";uses:="com.mchange.v2.c3p0.impl,jav
- ax.sql",
- com.mchange.v2.c3p0.cfg;version="0.0.1";uses:="com.mchange.v2.cfg",
- com.mchange.v2.c3p0.codegen;version="0.0.1";uses:="com.mchange.v2.codeg
- en,com.mchange.v2.codegen.bean,com.mchange.v2.codegen.intfc",
- com.mchange.v2.c3p0.debug;version="0.0.1";uses:="com.mchange.v2.c3p0,co
- m.mchange.v2.log,com.mchange.v2.sql.filter",
- com.mchange.v2.c3p0.example;version="0.0.1";uses:="com.mchange.v2.c3p0,
- com.mchange.v2.c3p0.util",
- com.mchange.v2.c3p0.filter;version="0.0.1";uses:="javax.sql",
- com.mchange.v2.c3p0.impl;version="0.0.1";uses:="com.mchange.v2.c3p0,com
- .mchange.v2.c3p0.stmt,com.mchange.v2.coalesce,com.mchange.v2.naming,jav
- ax.sql",
+ com.mchange.v2.c3p0;uses:="com.mchange.v2.c3p0.impl,javax.sql";version=
+ "0.0.1",
+ com.mchange.v2.c3p0.cfg;uses:="com.mchange.v2.cfg";version="0.0.1",
+ com.mchange.v2.c3p0.codegen;uses:="com.mchange.v2.codegen,com.mchange.v
+ 2.codegen.bean,com.mchange.v2.codegen.intfc";version="0.0.1",
+ com.mchange.v2.c3p0.debug;uses:="com.mchange.v2.c3p0,com.mchange.v2.log
+ ,com.mchange.v2.sql.filter";version="0.0.1",
+ com.mchange.v2.c3p0.example;uses:="com.mchange.v2.c3p0,com.mchange.v2.c
+ 3p0.util";version="0.0.1",
+ com.mchange.v2.c3p0.filter;uses:="javax.sql";version="0.0.1",
+ com.mchange.v2.c3p0.impl;uses:="com.mchange.v2.c3p0,com.mchange.v2.c3p0
+ .stmt,com.mchange.v2.coalesce,com.mchange.v2.naming,javax.sql";version=
+ "0.0.1",
  com.mchange.v2.c3p0.jboss;version="0.0.1",
- com.mchange.v2.c3p0.management;version="0.0.1";uses:="com.mchange.v2.c3
- p0",
+ com.mchange.v2.c3p0.management;uses:="com.mchange.v2.c3p0";version="0.0
+ .1",
  com.mchange.v2.c3p0.mbean;version="0.0.1",
- com.mchange.v2.c3p0.stmt;version="0.0.1";uses:="com.mchange.v2.async,co
- m.mchange.v2.util",
+ com.mchange.v2.c3p0.stmt;uses:="com.mchange.v2.async,com.mchange.v2.uti
+ l";version="0.0.1",
  com.mchange.v2.c3p0.subst;version="0.0.1",
- com.mchange.v2.c3p0.test;version="0.0.1";uses:="com.mchange.v2.c3p0,com
- .mchange.v2.c3p0.impl,javax.sql",
- com.mchange.v2.c3p0.util;version="0.0.1";uses:="com.mchange.v2.c3p0,com
- .mchange.v2.sql.filter,javax.sql",
- com.mchange.v2.cfg;version="0.0.1";uses:="com.mchange.v2.log",
+ com.mchange.v2.c3p0.test;uses:="com.mchange.v2.c3p0,com.mchange.v2.c3p0
+ .impl,javax.sql";version="0.0.1",
+ com.mchange.v2.c3p0.util;uses:="com.mchange.v2.c3p0,com.mchange.v2.sql.
+ filter,javax.sql";version="0.0.1",
+ com.mchange.v2.cfg;uses:="com.mchange.v2.log";version="0.0.1",
  com.mchange.v2.cmdline;version="0.0.1",
  com.mchange.v2.coalesce;version="0.0.1",
- com.mchange.v2.codegen;version="0.0.1";uses:="com.mchange.v2.io",
- com.mchange.v2.codegen.bean;version="0.0.1";uses:="com.mchange.v2.codeg
- en,com.mchange.v2.ser",
- com.mchange.v2.codegen.intfc;version="0.0.1";uses:="com.mchange.v2.code
- gen",
+ com.mchange.v2.codegen;uses:="com.mchange.v2.io";version="0.0.1",
+ com.mchange.v2.codegen.bean;uses:="com.mchange.v2.codegen,com.mchange.v
+ 2.ser";version="0.0.1",
+ com.mchange.v2.codegen.intfc;uses:="com.mchange.v2.codegen";version="0.
+ 0.1",
  com.mchange.v2.collection;version="0.0.1",
  com.mchange.v2.csv;version="0.0.1",
  com.mchange.v2.debug;version="0.0.1",
@@ -861,21 +865,21 @@ Export-Package:
  com.mchange.v2.lang;version="0.0.1",
  com.mchange.v2.lang.reflect;version="0.0.1",
  com.mchange.v2.lock;version="0.0.1",
- com.mchange.v2.log;version="0.0.1";uses:="com.mchange.v2.cfg",
- com.mchange.v2.log.jdk14logging;version="0.0.1";uses:="com.mchange.v2.l
- og",
- com.mchange.v2.log.log4j;version="0.0.1";uses:="com.mchange.v2.log",
- com.mchange.v2.log.log4j2;version="0.0.1";uses:="com.mchange.v2.log",
- com.mchange.v2.log.slf4j;version="0.0.1";uses:="com.mchange.v2.log",
+ com.mchange.v2.log;uses:="com.mchange.v2.cfg";version="0.0.1",
+ com.mchange.v2.log.jdk14logging;uses:="com.mchange.v2.log";version="0.0
+ .1",
+ com.mchange.v2.log.log4j;uses:="com.mchange.v2.log";version="0.0.1",
+ com.mchange.v2.log.log4j2;uses:="com.mchange.v2.log";version="0.0.1",
+ com.mchange.v2.log.slf4j;uses:="com.mchange.v2.log";version="0.0.1",
  com.mchange.v2.management;version="0.0.1",
- com.mchange.v2.naming;version="0.0.1";uses:="com.mchange.v2.ser",
+ com.mchange.v2.naming;uses:="com.mchange.v2.ser";version="0.0.1",
  com.mchange.v2.net;version="0.0.1",
  com.mchange.v2.reflect;version="0.0.1",
- com.mchange.v2.resourcepool;version="0.0.1";uses:="com.mchange.v2.async
+ com.mchange.v2.resourcepool;uses:="com.mchange.v2.async";version="0.0.1
  ",
  com.mchange.v2.ser;version="0.0.1",
  com.mchange.v2.sql;version="0.0.1",
- com.mchange.v2.sql.filter;version="0.0.1";uses:="javax.sql",
+ com.mchange.v2.sql.filter;uses:="javax.sql";version="0.0.1",
  com.mchange.v2.uid;version="0.0.1",
  com.mchange.v2.util;version="0.0.1"
 Import-Package: 
@@ -955,8 +959,7 @@ Import-Package:
  io.vertx.ext.auth.mongo;resolution:=optional;version="[3.6,4)",
  io.vertx.ext.consul;resolution:=optional;version="[3.6,4)",
  io.vertx.ext.dropwizard;resolution:=optional;version="[3.6,4)",
- io.vertx.ext.eventbus.bridge.tcp;resolution:=optional;version="[0.0,1)"
- ,
+ io.vertx.ext.eventbus.bridge.tcp;resolution:=optional,
  io.vertx.ext.healthchecks;resolution:=optional;version="[3.6,4)",
  io.vertx.ext.jdbc;resolution:=optional;version="[3.6,4)",
  io.vertx.ext.mail;resolution:=optional;version="[3.6,4)",
@@ -1045,9 +1048,9 @@ Import-Package:
  io.vertx.codegen.generators.mvel;resolution:=optional;version="[3.6,4)"
  ,
  io.vertx.codegen.overloadcheck;resolution:=optional;version="[3.6,4)",
- com.mchange.v2.c3p0;resolution:=optional;version="[0.0,1)",
- com.mchange.v2.c3p0.cfg;resolution:=optional;version="[0.0,1)",
- com.mchange.v2.c3p0.impl;resolution:=optional;version="[0.0,1)",
+ com.mchange.v2.c3p0;resolution:=optional,
+ com.mchange.v2.c3p0.cfg;resolution:=optional,
+ com.mchange.v2.c3p0.impl;resolution:=optional,
  com.sun.source.tree;resolution:=optional,
  com.sun.source.util;resolution:=optional,
  com.sun.tools.javac.code;resolution:=optional,

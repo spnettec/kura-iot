@@ -104,7 +104,7 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         try {
             final Config currentOptions = this.options.get();
 
-            if (this.state.options != currentOptions) {
+            if (this.state.client == null || this.state.options != currentOptions) {
                 logger.info("configuration changed, disconnecting...");
                 disconnect();
                 this.state = createClientState(currentOptions);
@@ -132,6 +132,7 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
             logger.debug("Disconnecting from AB PLC...");
             try {
                 this.state.client.close();
+                state = new ABPlcClientState(null);
             } catch (Exception e) {
                 throw new ConnectionException(e);
             }
@@ -171,10 +172,11 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         final Config abOptions = this.options.get();
         int maxItemCountPerRequest = abOptions.maxRequestItems();
         String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
+
+        if (this.state.client == null || !this.state.client.isConnected()) {
+            connect();
+        }
         try {
-            if (this.state.client == null || !this.state.client.isConnected()) {
-                connect();
-            }
             CIPData[] cipDatas = this.state.client.readTags(maxItemCountPerRequest, tagNames);
             for (int i = 0; i < tagNames.length; i++) {
                 String tagName = tagNames[i];
@@ -188,8 +190,9 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 record.setTimestamp(System.currentTimeMillis());
             }
+            disconnect();
+            throw new ConnectionException(e);
         }
-
     }
 
     public static void fillRecord(final CIPData value, final ChannelRecord record) {
@@ -247,6 +250,16 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void write(List<ChannelRecord> records) throws ConnectionException {
+        if (this.state.client == null || !this.state.client.isConnected()) {
+            connect();
+        }
+        if (this.state.options.single())
+            writeSingle(records);
+        else
+            writeMuti(records);
+    }
+
+    private void writeMuti(List<ChannelRecord> records) throws ConnectionException {
         List<Request<WriteParams>> requests = Request.extractWriteRequests(records);
         String[] tagNames = new String[requests.size()];
         CIPData[] cipData = new CIPData[requests.size()];
@@ -257,13 +270,13 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
             String tagName = para.getWriteTag();
             tagNames[i] = tagName;
             CIPData data = para.getWriteValue();
+            if (data == null)
+                throw new ConnectionException("Data Error");
             cipData[i] = data;
 
         }
+
         try {
-            if (!this.state.client.isConnected()) {
-                connect();
-            }
             this.state.client.writeTags(tagNames, cipData);
             for (Request<WriteParams> request : requests) {
                 ChannelRecord record = request.getRecord();
@@ -275,9 +288,36 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
                 ChannelRecord record = request.getRecord();
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
             }
+            disconnect();
             throw new ConnectionException(e);
         }
 
+    }
+
+    private void writeSingle(List<ChannelRecord> records) throws ConnectionException {
+        List<Request<WriteParams>> requests = Request.extractWriteRequests(records);
+        for (int i = 0; i < requests.size(); i++) {
+            Request<WriteParams> request = requests.get(i);
+            WriteParams para = request.getParameters();
+
+            String tagName = para.getWriteTag();
+            CIPData data = para.getWriteValue();
+            if (data == null)
+                throw new ConnectionException("Data Error");
+
+            ChannelRecord record = request.getRecord();
+            record.setTimestamp(System.currentTimeMillis());
+            try {
+                this.state.client.writeTag(tagName, data);
+
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+            } catch (Exception e) {
+
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+
+            }
+
+        }
     }
 
     @Override
@@ -349,6 +389,9 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%slot", description = "%slotDesc")
         int slot() default 0;
+
+        @AttributeDefinition(name = "%single", description = "%singleDesc")
+        boolean single() default true;
 
         @AttributeDefinition(name = "%maxRequestItems", description = "%maxRequestItemsDesc")
         int maxRequestItems() default 100;

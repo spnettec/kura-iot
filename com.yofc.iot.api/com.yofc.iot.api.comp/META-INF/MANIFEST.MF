@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1549011013674
+Bnd-LastModified: 1549095798818
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -20,15 +20,15 @@ Embed-Transitive: false
 Embedded-Artifacts: lib/fastjson-1.2.56.jar;g="com.alibaba";a="fastjson"
  ;v="1.2.56"
 Export-Package: 
- com.yofc.vertx.osgi.api;version="0.0.1";uses:="io.vertx.core,io.vertx.c
- ore.buffer,io.vertx.core.eventbus,io.vertx.core.http,io.vertx.core.json
- ,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.handler,io.vertx.e
- xt.web.handler.impl,org.eclipse.kura,org.eclipse.kura.asset,org.eclipse
- .kura.type,org.eclipse.kura.wire",
+ com.yofc.vertx.osgi.api;uses:="io.vertx.core,io.vertx.core.buffer,io.ve
+ rtx.core.eventbus,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.au
+ th,io.vertx.ext.web,io.vertx.ext.web.handler,io.vertx.ext.web.handler.i
+ mpl,org.eclipse.kura,org.eclipse.kura.asset,org.eclipse.kura.type,org.e
+ clipse.kura.wire";version="0.0.1",
  com.alibaba.fastjson;version="0.0.1"
 Import-Package: 
  com.google.common.collect,
- com.yofc.vertx.osgi.api;version="[0.0,1)",
+ com.yofc.vertx.osgi.api,
  io.netty.handler.codec.http;version="[4.1,5)",
  io.netty.util;version="[4.1,5)",
  io.vertx.core;version="[3.6,4)",

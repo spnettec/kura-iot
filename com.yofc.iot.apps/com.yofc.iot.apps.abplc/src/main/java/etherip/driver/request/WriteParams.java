@@ -58,7 +58,11 @@ public class WriteParams {
                 this.writeValue = new CIPData(String.valueOf(value));
             } else if (valueType == DataType.BYTE_ARRAY)
                 this.writeValue = new CIPData(type, (byte[]) value);
-            else {
+            else if (valueType == DataType.BOOLEAN) {
+                this.writeValue = new CIPData(type);
+                boolean isTrue = Boolean.parseBoolean(String.valueOf(value));
+                this.writeValue.set(0, (Number) (isTrue ? 1 : 0));
+            } else {
                 this.writeValue = new CIPData(type);
                 this.writeValue.set(0, (Number) value);
             }

@@ -117,4 +117,11 @@ public class Utils {
         return new JsonObject(merged);
 
     }
+
+    public static List<WireRecord> toWireRecords(JsonObject object) {
+        Map<String, TypedValue<?>> mapWireRecord = object.getMap().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> TypedValues.newTypedValue(entry.getValue())));
+        return getWireRecords(new WireRecord(mapWireRecord));
+    }
+
 }

@@ -11,7 +11,7 @@
     <description>YOFC Applications for Components</description>
     <packaging>bundle</packaging>
     <properties>
-        <vertx.version>3.6.2</vertx.version>
+        <vertx.version>3.6.3</vertx.version>
     </properties>
     <dependencies>
         <dependency>

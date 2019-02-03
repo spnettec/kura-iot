@@ -43,10 +43,12 @@ import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.component.impl.GroovyScriptFilter.GroovyScriptFilterCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
+import com.yofc.vertx.osgi.api.Utils;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 
 @Designate(factory = true, ocd = GroovyScriptFilterCfg.class)
@@ -120,6 +122,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
         logger.info("Updating Script Filter... Done");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
 
@@ -143,11 +146,19 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             }
             binding.setVariable("output", outputEnvelopeWrapper);
             shell.evaluate(this.scriptSource);
-            if (outputEnvelopeWrapper.isEmpty())
+            Object output = binding.getVariable("output");
+            if (output == null)
                 return;
-
-            this.wireSupport.emit(outputEnvelopeWrapper);
-
+            if (output instanceof List) {
+                List<?> outputList = (List<?>) output;
+                if (outputList.isEmpty())
+                    return;
+                if (outputList.get(0) instanceof WireRecord) {
+                    this.wireSupport.emit((List<WireRecord>) outputList);
+                }
+            } else if (output instanceof JsonObject) {
+                this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
+            }
         } catch (Exception e) {
             logger.warn("Failed to execute script", e);
         }

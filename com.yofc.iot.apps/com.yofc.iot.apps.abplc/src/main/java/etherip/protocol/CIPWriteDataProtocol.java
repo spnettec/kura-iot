@@ -31,7 +31,7 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
     }
 
     public CIPWriteDataProtocol(final CIPData data) {
-        this(data, (short) data.getElementCount(), 0, 0);
+        this(data, (short) 0, 0, 0);
     }
 
     public CIPWriteDataProtocol(final CIPData data, short writeCount, int start, final int dataOffset) {

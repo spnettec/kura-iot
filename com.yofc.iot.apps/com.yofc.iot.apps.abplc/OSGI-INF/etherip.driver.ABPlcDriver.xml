@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="etherip.driver.ABPlcDriver" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
+  <property name="single" type="Boolean" value="true"/>
   <property name="maxRequestItems" type="Integer" value="100"/>
   <property name="slot" type="Integer" value="0"/>
   <property name="hostIp" type="String" value="localhost"/>

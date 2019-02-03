@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1549011014629
+Bnd-LastModified: 1549095806483
 Build-Jdk: 1.8.0_202-ea
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,9 +16,10 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.iot.component.api;version="0.0.1";uses:="org.ec
- lipse.kura.channel,org.eclipse.kura.driver"
+Export-Package: com.yofc.iot.component.api;uses:="org.eclipse.kura.chann
+ el,org.eclipse.kura.driver";version="0.0.1"
 Import-Package: 
+ com.google.common.reflect;version="25.0.0",
  com.yofc.vertx.osgi.api;version="[0.0,1)",
  groovy.lang;version="[2.5,3)",
  io.vertx.core;version="[3.6,4)",
@@ -41,15 +42,15 @@ Import-Package:
  org.eclipse.kura.util.collection;version="[1.0,2)",
  org.eclipse.kura.wire;version="[2.0,3)",
  org.eclipse.kura.wire.graph;version="[1.0,2)",
- org.h2.mvstore;version="[1.4,2)",
- org.osgi.framework;version="[1.9,2)",
- org.osgi.service.component;version="[1.3,2)",
- org.osgi.service.wireadmin;version="[1.0,2)",
- org.slf4j;version="[1.7,2)",
  org.h2;version="1.4.197",
  org.h2.api;version="1.4.197",
  org.h2.jdbcx;version="1.4.197",
- org.h2.tools;version="1.4.197"
+ org.h2.mvstore;version="[1.4,2)",
+ org.h2.tools;version="1.4.197",
+ org.osgi.framework;version="[1.9,2)",
+ org.osgi.service.component;version="[1.3,2)",
+ org.osgi.service.wireadmin;version="[1.0,2)",
+ org.slf4j;version="[1.7,2)"
 Provide-Capability: 
  osgi.service;objectClass:List<String>="org.eclipse.kura.configuration.C
  onfigurableComponent,org.eclipse.kura.driver.Driver",

@@ -65,7 +65,7 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     private ComponentServiceObjects<ProxyRoute> proxyRouteRef;
     private ProxyRoute proxyRoute;
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
-    private volatile WireHelperService wireHelperService;
+    private WireHelperService wireHelperService;
     private MultiportWireSupport wireSupport;
     private EmitterPort prePort;
     private EmitterPort postPort;

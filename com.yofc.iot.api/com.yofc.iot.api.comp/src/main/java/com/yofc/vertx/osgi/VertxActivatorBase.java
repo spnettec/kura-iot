@@ -73,7 +73,7 @@ public class VertxActivatorBase {
         routes.add(
                 router.route("/static/*").handler(StaticHandler.create("webroot", this.getClass().getClassLoader())));
         AssetHelp assetHelp = new AssetHelp(assetService);
-        routes.add(router.post("/api/:method").handler(BodyHandler.create()).handler(ctx -> {
+        routes.add(router.post("/api/:method").handler(BodyHandler.create()).blockingHandler(ctx -> {
             String method = ctx.request().getParam("method");
             JsonObject body = null;
             try {
@@ -81,7 +81,7 @@ public class VertxActivatorBase {
             } catch (Exception e) {
                 ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                 ctx.response().setStatusCode(400).setStatusMessage("parameter error").end();
-                e.printStackTrace();
+                logger.error("Rest Body Error:{}", e);
                 return;
             }
             String assetPid = body.getString("assetPid");
@@ -96,7 +96,7 @@ public class VertxActivatorBase {
                 } catch (KuraException e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                     ctx.response().setStatusCode(400).setStatusMessage(e.toString()).end();
-                    e.printStackTrace();
+                    logger.error("Read Tag Error:{}", e);
                 }
                 break;
             case "writeTags":
@@ -121,21 +121,22 @@ public class VertxActivatorBase {
                 } catch (KuraException e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                     ctx.response().setStatusCode(400).setStatusMessage(e.toString()).end();
-                    e.printStackTrace();
+                    logger.error("Write Tag Error:{}", e);
                 }
                 break;
             default:
                 ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                 ctx.response().setStatusCode(405).setStatusMessage("method not suported").end();
             }
-        }));
+        }, false));
 
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
         BridgeOptions options = new BridgeOptions();
-        options.addOutboundPermitted(new PermittedOptions().setAddress("tagData"));
-        options.addInboundPermitted(new PermittedOptions().setAddress("tagData"));
-        sockJSHandler.bridge(options);
-
+        options.addOutboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
+        options.addInboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
+        sockJSHandler.bridge(options, event -> {
+            event.complete(true);
+        });
         routes.add(router.route("/bridge/*").handler(sockJSHandler));
 
         rtRegistration = context.registerService(Router.class, router, null);

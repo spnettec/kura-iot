@@ -12,8 +12,6 @@ package com.yofc.iot.component.api;
 
 import java.util.Map;
 
-import org.eclipse.kura.type.DataType;
-
 public class WriteParams {
 
     private Object writeValue;
@@ -21,8 +19,7 @@ public class WriteParams {
 
     public WriteParams(final Map<String, Object> channelConfig, final Object value) {
         writeTag = channelConfig.get(H2MVStoreChannelDescriptor.DATA_TAG_NAME_ID).toString();
-        final DataType valueType = Utils.tryExtract(channelConfig,
-                config -> DataType.valueOf((String) config.get("+value.type")), "Error while retrieving value type");
+
         this.writeValue = value;
     }
 

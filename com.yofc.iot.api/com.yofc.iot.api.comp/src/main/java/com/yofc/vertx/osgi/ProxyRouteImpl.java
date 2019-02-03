@@ -56,6 +56,7 @@ public class ProxyRouteImpl implements ProxyRoute {
     private String context = "";
     private String targetHost;
     private Long timeout;
+    private boolean isSsl;
     private Integer targetPort;
     private HttpClient client;
     private Route route;
@@ -80,6 +81,7 @@ public class ProxyRouteImpl implements ProxyRoute {
 
     public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl) {
         this.context = (context == null || context.equals("/")) ? "" : context;
+        this.isSsl = isSsl;
         routeUrl = (routeUrl == null || routeUrl.equals("") || routeUrl.equals("/")) ? "/*" : routeUrl;
         HttpClientOptions options = new HttpClientOptions().setLogActivity(true).setMaxPoolSize(100);
         if (isSsl)
@@ -92,7 +94,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         this.route = this.router.route(this.context + routeUrl);
         if (order >= 0)
             this.route.order(order);
-        this.route.handler(this::doProxyRequest).failureHandler(this::doProxyRequestFailure);
+        this.route.blockingHandler(this::doProxyRequest).failureHandler(this::doProxyRequestFailure);
         return this;
     }
 
@@ -124,7 +126,8 @@ public class ProxyRouteImpl implements ProxyRoute {
         Buffer responseBuffer = Buffer.buffer();
         Buffer requestBuffer = Buffer.buffer();
         long timeoutToUse = this.timeout == null ? 1000L : this.timeout;
-        int portToUse = (this.targetPort == null) ? 80 : this.targetPort;
+        int defaultPort = this.isSsl ? 443 : 80;
+        int portToUse = (this.targetPort == null) ? defaultPort : this.targetPort;
         Set<FileUpload> fileUploads = routingContext.fileUploads();
         final String contentType = serverRequest.getHeader(HttpHeaders.CONTENT_TYPE);
         boolean isMultipart = false;
