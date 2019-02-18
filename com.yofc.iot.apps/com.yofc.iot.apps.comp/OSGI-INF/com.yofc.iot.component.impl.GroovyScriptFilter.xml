@@ -12,6 +12,6 @@
   </service>
   <reference name="assetService" interface="org.eclipse.kura.asset.AssetService" field="assetService"/>
   <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>
-  <reference name="wireHelperService" policy="dynamic" interface="org.eclipse.kura.wire.WireHelperService" bind="bindWireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>
+  <reference name="wireHelperService" interface="org.eclipse.kura.wire.WireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>
   <implementation class="com.yofc.iot.component.impl.GroovyScriptFilter"/>
 </scr:component>

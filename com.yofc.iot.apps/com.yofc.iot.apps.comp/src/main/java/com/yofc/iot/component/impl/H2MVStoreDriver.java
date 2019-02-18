@@ -102,6 +102,7 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
                 logger.info("configuration changed, disconnecting...");
                 disconnect();
                 MVStore s = MVStore.open(getFilename(currentOptions.file()));
+                s.setVersionsToKeep(0);
                 MVMap<String, Object> map = s.openMap(currentOptions.data());
                 this.state = new H2MVStoreDriverState(currentOptions, map);
                 logger.info("configuration changed, disconnecting...Done");

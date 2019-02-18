@@ -49,11 +49,18 @@ public class JolokiaComponent implements ConfigurableComponent {
     private static final String REALM = "jolokia";
     private static final String ALIAS = "/jolokia";
 
-    @Reference
     private HttpService httpService;
+    private CryptoService cryptoService;
 
     @Reference
-    private CryptoService cryptoService;
+    public void setHttpService(HttpService httpService) {
+        this.httpService = httpService;
+    }
+
+    @Reference
+    public void setCryptoService(CryptoService cryptoService) {
+        this.cryptoService = cryptoService;
+    }
 
     private JolokiaServlet servlet;
 

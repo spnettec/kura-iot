@@ -44,7 +44,7 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
     private static final Logger logger = LoggerFactory.getLogger(ValueChangeComponent.class);
 
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
-    private volatile WireHelperService wireHelperService;
+    private WireHelperService wireHelperService;
     private WireSupport wireSupport;
     private WireEnvelope preWireEnvelope;
     private boolean isOr = true;

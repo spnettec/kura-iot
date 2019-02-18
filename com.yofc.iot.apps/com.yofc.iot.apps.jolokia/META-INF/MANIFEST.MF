@@ -1,10 +1,13 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-jolokia
-Bnd-LastModified: 1549011015209
-Build-Jdk: 1.8.0_202-ea
+Bnd-LastModified: 1550308642408
+Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
+Bundle-Activator: com.yofc.iot.jolokia.Activator
 Bundle-ClassPath: .,lib/jolokia-osgi-1.6.0.jar,lib/json-simple-1.1.1.jar
+ ,lib/org.apache.aries.jmx.core-1.1.8.jar,lib/org.apache.aries.jmx.api-1
+ .1.5.jar,lib/org.apache.aries.util-1.1.3.jar
 Bundle-Description: YOFC Applications for Jolokia
 Bundle-ManifestVersion: 2
 Bundle-Name: YOFC-Applications::Jolokia
@@ -18,8 +21,13 @@ Embed-StripGroup: true
 Embed-StripVersion: false
 Embedded-Artifacts: lib/jolokia-osgi-1.6.0.jar;g="org.jolokia";a="joloki
  a-osgi";v="1.6.0",lib/json-simple-1.1.1.jar;g="com.googlecode.json-simp
- le";a="json-simple";v="1.1.1"
+ le";a="json-simple";v="1.1.1",lib/org.apache.aries.jmx.core-1.1.8.jar;g
+ ="org.apache.aries.jmx";a="org.apache.aries.jmx.core";v="1.1.8",lib/org
+ .apache.aries.jmx.api-1.1.5.jar;g="org.apache.aries.jmx";a="org.apache.
+ aries.jmx.api";v="1.1.5",lib/org.apache.aries.util-1.1.3.jar;g="org.apa
+ che.aries";a="org.apache.aries.util";v="1.1.3"
 Import-Package: 
+ org.osgi.framework;version="1.5.0",
  javax.crypto,
  javax.crypto.spec,
  javax.management,
@@ -37,10 +45,17 @@ Import-Package:
  org.eclipse.kura;version="[1.5,2)",
  org.eclipse.kura.configuration;version="[1.1,2)",
  org.eclipse.kura.crypto;version="[1.2,2)",
- org.osgi.framework;version="[1.8,2)",
- org.osgi.service.cm,
+ org.osgi.framework.hooks.bundle;version="[1.1,2)",
+ org.osgi.framework.launch;version="[1.2,2)",
+ org.osgi.framework.wiring;version="[1.2,2)",
+ org.osgi.service.cm;version="[1.5,2)",
  org.osgi.service.http;version="[1.2,2)",
- org.osgi.service.log,
+ org.osgi.service.log;version="[1.3,2)",
+ org.osgi.service.packageadmin;version="[1.2,2)",
+ org.osgi.service.permissionadmin;version="[1.2,2)",
+ org.osgi.service.provisioning;version="[1.2,2)",
+ org.osgi.service.startlevel;version="[1.1,2)",
+ org.osgi.service.useradmin;version="[1.1,2)",
  org.osgi.util.tracker;version="[1.5,2)",
  org.w3c.dom,
  org.xml.sax

@@ -18,7 +18,7 @@ import io.vertx.core.Vertx;
 @Component(immediate = true)
 public class VertxVerticleHost {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(VertxVerticleHost.class);
+    private static final Logger logger = LoggerFactory.getLogger(VertxVerticleHost.class);
     @Reference
     private Vertx vertx;
 
@@ -26,19 +26,19 @@ public class VertxVerticleHost {
 
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unbindVerticle")
     public void bindVerticle(Verticle verticle) {
-        LOGGER.info("Deploying verticle {}", verticle);
+        logger.info("Deploying verticle {}", verticle);
         this.vertx.deployVerticle(verticle, ar -> {
             if (ar.succeeded()) {
                 deploymentIds.put(verticle, ar.result());
             } else {
-                LOGGER.error("Cannot deploy {}" + verticle, ar.cause());
+                logger.error("Cannot deploy {}" + verticle, ar.cause());
             }
         });
     }
 
     public void unbindVerticle(Verticle verticle) {
         String id = deploymentIds.get(verticle);
-        LOGGER.info("Undeploying verticle ({} {})", verticle, id);
+        logger.info("Undeploying verticle ({} {})", verticle, id);
         if (id != null) {
             this.vertx.undeploy(id);
         }

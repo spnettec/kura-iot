@@ -5,7 +5,7 @@
   <service>
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
   </service>
-  <reference name="cryptoService" interface="org.eclipse.kura.crypto.CryptoService" field="cryptoService"/>
-  <reference name="httpService" interface="org.osgi.service.http.HttpService" field="httpService"/>
+  <reference name="CryptoService" interface="org.eclipse.kura.crypto.CryptoService" bind="setCryptoService"/>
+  <reference name="HttpService" interface="org.osgi.service.http.HttpService" bind="setHttpService"/>
   <implementation class="com.yofc.iot.jolokia.JolokiaComponent"/>
 </scr:component>

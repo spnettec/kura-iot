@@ -34,6 +34,7 @@ import com.yofc.vertx.osgi.api.Utils;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServerResponse;
@@ -71,9 +72,10 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     private AssetService assetService;
     private Route route;
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
-    private volatile WireHelperService wireHelperService;
+    private WireHelperService wireHelperService;
     private WireSupport wireSupport;
     private AssetHelp assetHelp;
+    private Script script;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -117,6 +119,14 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         if (scriptSource == null) {
             logger.warn("Script source is null");
         }
+        Binding binding = new Binding();
+        GroovyShell shell = new GroovyShell(binding);
+        binding.setVariable("logger", logger);
+        binding.setVariable("wireSupport", wireSupport);
+        binding.setVariable("assetHelp", assetHelp);
+        binding.setVariable("vertx", vertx);
+        binding.setVariable("webClient", webClient);
+        script = shell.parse(scriptSource);
     }
 
     @Deactivate
@@ -153,18 +163,11 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             return;
         }
         try {
-            Binding binding = new Binding();
-            GroovyShell shell = new GroovyShell(binding);
-            binding.setVariable("logger", logger);
-            binding.setVariable("wireSupport", wireSupport);
-            binding.setVariable("routingContext", routingContext);
-            binding.setVariable("assetHelp", assetHelp);
-            binding.setVariable("vertx", vertx);
-            binding.setVariable("webClient", webClient);
+            script.setProperty("routingContext", routingContext);
             String outputName = "result";
-            binding.setVariable(outputName, null);
-            shell.evaluate(this.scriptSource);
-            Object output = binding.getVariable(outputName);
+            script.setProperty(outputName, null);
+            script.run();
+            Object output = script.getProperty(outputName);
             if (output != null) {
                 wireSupport.emit(Utils.getWireRecords(Utils.objectToWireRecord(outputName, output)));
             }

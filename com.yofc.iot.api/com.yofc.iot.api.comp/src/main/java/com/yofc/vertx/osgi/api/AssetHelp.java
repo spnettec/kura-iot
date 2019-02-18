@@ -75,4 +75,33 @@ public class AssetHelp {
         }
         asset.write(channelRecords);
     }
+
+    public void writeTags(String assetPid, String jsonString) throws KuraException {
+        JsonObject jsonObject = new JsonObject(jsonString);
+        writeTags(assetPid, jsonObject);
+    }
+
+    public void writeTags(String assetPid, Map<String, Object> map) throws KuraException {
+        JsonObject jsonObject = new JsonObject(map);
+        writeTags(assetPid, jsonObject);
+    }
+
+    public void writeTags(String assetPid, Object bean) throws KuraException {
+        JsonObject jsonObject = JsonObject.mapFrom(bean);
+        writeTags(assetPid, jsonObject);
+    }
+
+    public void writeTag(String assetPid, String tagName, Object value) throws KuraException {
+        List<ChannelRecord> channelRecords = new ArrayList<>();
+        Asset asset = getAsset(assetPid);
+        Map<String, Channel> chennels = asset.getAssetConfiguration().getAssetChannels();
+        Channel channel = chennels.get(tagName);
+        if (channel == null)
+            throw KuraException.internalError("标签:" + tagName + "错误");
+        DataType dataType = channel.getValueType();
+        TypedValue<?> tValue = TypedValues.parseTypedValue(dataType, String.valueOf(value));
+        ChannelRecord writeRecord = ChannelRecord.createWriteRecord(tagName, tValue);
+        channelRecords.add(writeRecord);
+        asset.write(channelRecords);
+    }
 }

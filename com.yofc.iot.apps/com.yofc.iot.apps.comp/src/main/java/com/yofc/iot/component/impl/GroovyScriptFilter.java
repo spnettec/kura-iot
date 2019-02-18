@@ -47,6 +47,7 @@ import com.yofc.vertx.osgi.api.Utils;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -60,8 +61,8 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     private static final Logger logger = LoggerFactory.getLogger(GroovyScriptFilter.class);
 
     private String scriptSource;
-    @Reference(bind = "bindWireHelperService", unbind = "unbindWireHelperService")
-    private volatile WireHelperService wireHelperService;
+    @Reference(unbind = "unbindWireHelperService")
+    private WireHelperService wireHelperService;
     @Reference
     private Vertx vertx;
     private WebClient webClient;
@@ -69,12 +70,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @Reference
     private AssetService assetService;
     private AssetHelp assetHelp;
-
-    public void bindWireHelperService(final WireHelperService wireHelperService) {
-        if (this.wireHelperService == null) {
-            this.wireHelperService = wireHelperService;
-        }
-    }
+    private Script script;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -119,6 +115,13 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             webClient.close();
             webClient = WebClient.create(vertx);
         }
+        Binding binding = new Binding();
+        GroovyShell shell = new GroovyShell(binding);
+        binding.setVariable("logger", logger);
+        binding.setVariable("webClient", webClient);
+        binding.setVariable("assetHelp", assetHelp);
+        binding.setVariable("vertx", vertx);
+        script = shell.parse(scriptSource);
         logger.info("Updating Script Filter... Done");
     }
 
@@ -132,21 +135,15 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
         }
 
         try {
-            Binding binding = new Binding();
-            GroovyShell shell = new GroovyShell(binding);
-            binding.setVariable("logger", logger);
-            binding.setVariable("input", wireEnvelope);
-            binding.setVariable("webClient", webClient);
-            binding.setVariable("assetHelp", assetHelp);
-            binding.setVariable("vertx", vertx);
+            script.setProperty("input", wireEnvelope);
             List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
             for (WireRecord record : wireEnvelope.getRecords()) {
                 Map<String, TypedValue<?>> mapCopy = record.getProperties();
                 outputEnvelopeWrapper.add(new WireRecord(mapCopy));
             }
-            binding.setVariable("output", outputEnvelopeWrapper);
-            shell.evaluate(this.scriptSource);
-            Object output = binding.getVariable("output");
+            script.setProperty("output", outputEnvelopeWrapper);
+            script.run();
+            Object output = script.getProperty("output");
             if (output == null)
                 return;
             if (output instanceof List) {
