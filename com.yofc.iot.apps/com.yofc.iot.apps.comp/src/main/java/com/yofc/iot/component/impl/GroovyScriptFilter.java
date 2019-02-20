@@ -60,7 +60,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
     private static final Logger logger = LoggerFactory.getLogger(GroovyScriptFilter.class);
 
-    private String scriptSource;
+    private String scriptSource = "";
     @Reference(unbind = "unbindWireHelperService")
     private WireHelperService wireHelperService;
     @Reference
@@ -107,57 +107,56 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
         scriptSource = properties.script();
 
-        if (scriptSource == null) {
-            logger.warn("Script source is null");
-            return;
+        if (!scriptSource.equals("")) {
+
+            if (webClient != null) {
+                webClient.close();
+                webClient = WebClient.create(vertx);
+            }
+            Binding binding = new Binding();
+            GroovyShell shell = new GroovyShell(binding);
+            binding.setVariable("logger", logger);
+            binding.setVariable("webClient", webClient);
+            binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("vertx", vertx);
+            script = shell.parse(scriptSource);
+            logger.info("Updating Script Filter... Done");
         }
-        if (webClient != null) {
-            webClient.close();
-            webClient = WebClient.create(vertx);
-        }
-        Binding binding = new Binding();
-        GroovyShell shell = new GroovyShell(binding);
-        binding.setVariable("logger", logger);
-        binding.setVariable("webClient", webClient);
-        binding.setVariable("assetHelp", assetHelp);
-        binding.setVariable("vertx", vertx);
-        script = shell.parse(scriptSource);
-        logger.info("Updating Script Filter... Done");
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
 
-        if (this.scriptSource == null) {
-            logger.warn("Failed to compile script");
-            return;
-        }
+        if (!scriptSource.equals("")) {
 
-        try {
-            script.setProperty("input", wireEnvelope);
-            List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
-            for (WireRecord record : wireEnvelope.getRecords()) {
-                Map<String, TypedValue<?>> mapCopy = record.getProperties();
-                outputEnvelopeWrapper.add(new WireRecord(mapCopy));
-            }
-            script.setProperty("output", outputEnvelopeWrapper);
-            script.run();
-            Object output = script.getProperty("output");
-            if (output == null)
-                return;
-            if (output instanceof List) {
-                List<?> outputList = (List<?>) output;
-                if (outputList.isEmpty())
-                    return;
-                if (outputList.get(0) instanceof WireRecord) {
-                    this.wireSupport.emit((List<WireRecord>) outputList);
+            try {
+                script.setProperty("input", wireEnvelope);
+                List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
+                for (WireRecord record : wireEnvelope.getRecords()) {
+                    Map<String, TypedValue<?>> mapCopy = record.getProperties();
+                    outputEnvelopeWrapper.add(new WireRecord(mapCopy));
                 }
-            } else if (output instanceof JsonObject) {
-                this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
+                script.setProperty("output", outputEnvelopeWrapper);
+                script.run();
+                Object output = script.getProperty("output");
+                if (output == null)
+                    return;
+                if (output instanceof List) {
+                    List<?> outputList = (List<?>) output;
+                    if (outputList.isEmpty())
+                        return;
+                    if (outputList.get(0) instanceof WireRecord) {
+                        this.wireSupport.emit((List<WireRecord>) outputList);
+                    }
+                } else if (output instanceof JsonObject) {
+                    this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to execute script", e);
             }
-        } catch (Exception e) {
-            logger.warn("Failed to execute script", e);
+        } else {
+            this.wireSupport.emit(wireEnvelope.getRecords());
         }
     }
 
@@ -184,8 +183,8 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.GroovyScriptFilter", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.GroovyScriptFilterCfg")
     @interface GroovyScriptFilterCfg {
 
-        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = true)
-        String script() default "def aa=1";
+        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)
+        String script() default "";
     }
 
 }

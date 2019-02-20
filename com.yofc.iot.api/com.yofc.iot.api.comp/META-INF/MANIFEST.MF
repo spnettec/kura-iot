@@ -1,10 +1,11 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1550475287099
+Bnd-LastModified: 1550635397588
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .,lib/fastjson-1.2.56.jar
+Bundle-ClassPath: .,lib/fastjson-1.2.56.jar,lib/rxjava2-extras-0.1.31.ja
+ r
 Bundle-Description: YOFC Applications for Component API
 Bundle-ManifestVersion: 2
 Bundle-Name: YOFC-Applications::Component API
@@ -18,19 +19,32 @@ Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
 Embedded-Artifacts: lib/fastjson-1.2.56.jar;g="com.alibaba";a="fastjson"
- ;v="1.2.56"
+ ;v="1.2.56",lib/rxjava2-extras-0.1.31.jar;g="com.github.davidmoten";a="
+ rxjava2-extras";v="0.1.31"
 Export-Package: 
- com.yofc.vertx.osgi.api;uses:="io.vertx.core,io.vertx.core.buffer,io.ve
- rtx.core.eventbus,io.vertx.core.http,io.vertx.core.json,io.vertx.ext.au
- th,io.vertx.ext.web,io.vertx.ext.web.handler,io.vertx.ext.web.handler.i
- mpl,org.eclipse.kura,org.eclipse.kura.asset,org.eclipse.kura.type,org.e
- clipse.kura.wire";version="0.0.1",
+ com.yofc.vertx.osgi.api;version="0.0.1";uses:="io.reactivex,io.vertx.co
+ re,io.vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.http,io.ve
+ rtx.core.json,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.handl
+ er,io.vertx.ext.web.handler.impl,org.eclipse.kura,org.eclipse.kura.asse
+ t,org.eclipse.kura.type,org.eclipse.kura.wire",
  com.alibaba.fastjson;version="0.0.1"
 Import-Package: 
  com.google.common.collect,
- com.yofc.vertx.osgi.api,
  io.netty.handler.codec.http;version="[4.1,5)",
  io.netty.util;version="[4.1,5)",
+ io.reactivex;version="[2.2,3)",
+ io.reactivex.disposables;version="[2.2,3)",
+ io.reactivex.exceptions;version="[2.2,3)",
+ io.reactivex.flowables;version="[2.2,3)",
+ io.reactivex.functions;version="[2.2,3)",
+ io.reactivex.internal.functions;version="[2.2,3)",
+ io.reactivex.internal.fuseable;version="[2.2,3)",
+ io.reactivex.internal.queue;version="[2.2,3)",
+ io.reactivex.internal.subscriptions;version="[2.2,3)",
+ io.reactivex.internal.util;version="[2.2,3)",
+ io.reactivex.plugins;version="[2.2,3)",
+ io.reactivex.schedulers;version="[2.2,3)",
+ io.reactivex.subjects;version="[2.2,3)",
  io.vertx.core;version="[3.6,4)",
  io.vertx.core.buffer;version="[3.6,4)",
  io.vertx.core.eventbus;version="[3.6,4)",
@@ -58,6 +72,8 @@ Import-Package:
  javax.xml.transform.stream,
  org.apache.commons.lang3;version="[3.4,4)",
  org.apache.commons.logging,
+ org.apache.logging.log4j.core;version="[2.11,3)",
+ org.apache.logging.log4j.core.config;version="[2.11,3)",
  org.eclipse.kura;version="[1.5,2)",
  org.eclipse.kura.asset;version="[1.0,2)",
  org.eclipse.kura.channel;version="[1.1,2)",
@@ -65,8 +81,10 @@ Import-Package:
  org.eclipse.kura.type;version="[1.1,2)",
  org.eclipse.kura.wire;version="[2.0,3)",
  org.osgi.framework;version="[1.9,2)",
+ org.reactivestreams;version="[1.0,2)",
  org.slf4j;version="[1.7,2)",
- org.w3c.dom
+ org.w3c.dom,
+ sun.misc
 Provide-Capability: 
  osgi.service;objectClass:List<String>="com.yofc.vertx.osgi.VertxActivat
  orBase",

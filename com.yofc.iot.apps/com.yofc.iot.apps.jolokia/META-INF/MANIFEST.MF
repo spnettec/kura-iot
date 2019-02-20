@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-jolokia
-Bnd-LastModified: 1550308642408
+Bnd-LastModified: 1550565664489
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy

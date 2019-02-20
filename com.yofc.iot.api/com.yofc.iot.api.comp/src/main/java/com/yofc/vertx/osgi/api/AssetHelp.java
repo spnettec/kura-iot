@@ -39,7 +39,7 @@ public class AssetHelp {
         Asset asset = getAsset(assetPid);
         List<ChannelRecord> records = asset.read(Arrays.asList(tagNames).stream().collect(Collectors.toSet()));
         for (ChannelRecord record : records) {
-            json.put(record.getChannelName(), record.getValue().getValue().toString());
+            json.put(record.getChannelName(), record.getValue().getValue());
         }
         return json;
     }
@@ -49,11 +49,11 @@ public class AssetHelp {
         Asset asset = getAsset(assetPid);
         List<ChannelRecord> records = asset.read(tagNames.stream().collect(Collectors.toSet()));
         for (ChannelRecord record : records) {
-            String value = "";
+            Object value = null;
             if (record.getChannelStatus().getChannelFlag() == ChannelFlag.FAILURE)
                 value = "读取失败";
             else
-                value = record.getValue() == null ? "" : record.getValue().getValue().toString();
+                value = record.getValue() == null ? null : record.getValue().getValue();
             json.put(record.getChannelName(), value);
         }
         return json;

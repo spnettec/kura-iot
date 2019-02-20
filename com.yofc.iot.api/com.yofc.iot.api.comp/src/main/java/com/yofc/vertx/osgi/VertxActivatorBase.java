@@ -2,9 +2,12 @@ package com.yofc.vertx.osgi;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.AssetService;
 import org.osgi.framework.BundleContext;
@@ -140,6 +143,7 @@ public class VertxActivatorBase {
         routes.add(router.route("/bridge/*").handler(sockJSHandler));
 
         rtRegistration = context.registerService(Router.class, router, null);
+        Map<String, Appender> apps = LoggerContext.getContext().getConfiguration().getAppenders();
         logger.info("Vert.x Event Bus service registered");
     }
 

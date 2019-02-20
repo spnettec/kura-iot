@@ -1,10 +1,13 @@
 package com.yofc.log.osgi;
 
 import java.io.Serializable;
+import java.util.Map;
 
+import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
@@ -31,7 +34,7 @@ public class YofcOsgiAppender extends AbstractAppender {
             @PluginAttribute("ignoreExceptions") final String ignore) {
 
         if (name == null) {
-            LOGGER.error("No name provided for MemoryAppender");
+            LOGGER.error("No name provided for YofcOsgiAppender");
             return null;
         } else {
             if (layout == null) {
@@ -50,15 +53,16 @@ public class YofcOsgiAppender extends AbstractAppender {
     @Override
     public void start() {
         BundleContext bundleContext = null;
-        if (bundleContext == null) {
-            Bundle bundle = FrameworkUtil.getBundle(getClass());
-            if (bundle != null) {
-                bundleContext = bundle.getBundleContext();
-            }
-            if (bundleContext == null) {
-                throw new IllegalArgumentException("missing BundleContext");
-            }
+
+        Bundle bundle = FrameworkUtil.getBundle(getClass());
+        if (bundle != null) {
+            bundleContext = bundle.getBundleContext();
         }
+        if (bundleContext == null) {
+            throw new IllegalArgumentException("missing BundleContext");
+        }
+
+        Map<String, Appender> apps = LoggerContext.getContext().getConfiguration().getAppenders();
         super.start();
     }
 

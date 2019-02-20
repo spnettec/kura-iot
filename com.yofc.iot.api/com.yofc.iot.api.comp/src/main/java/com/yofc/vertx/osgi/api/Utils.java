@@ -118,10 +118,14 @@ public class Utils {
 
     }
 
-    public static List<WireRecord> toWireRecords(JsonObject object) {
+    public static WireRecord toWireRecord(JsonObject object) {
         Map<String, TypedValue<?>> mapWireRecord = object.getMap().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> TypedValues.newTypedValue(entry.getValue())));
-        return getWireRecords(new WireRecord(mapWireRecord));
+        return new WireRecord(mapWireRecord);
+    }
+
+    public static List<WireRecord> toWireRecords(JsonObject object) {
+        return getWireRecords(toWireRecord(object));
     }
 
 }

@@ -282,8 +282,14 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
             return TypedValues.newDoubleValue(((Number) (value == null ? 0 : value)).doubleValue());
         case INTEGER:
             return TypedValues.newIntegerValue(((Number) (value == null ? 0 : value)).intValue());
-        case BOOLEAN:
-            return TypedValues.newBooleanValue(((Number) (value == null ? 0 : value)).intValue() > 0);
+        case BOOLEAN: {
+            if (value instanceof Number)
+                return TypedValues.newBooleanValue(((Number) (value == null ? 0 : value)).intValue() > 0);
+            else if (value instanceof Boolean)
+                return TypedValues.newBooleanValue((Boolean) (value == null ? false : value));
+            else
+                return TypedValues.newBooleanValue(Boolean.parseBoolean(value == null ? "" : (String) value));
+        }
         case STRING:
             return TypedValues.newStringValue(value == null ? "" : (String) value);
         case BYTE_ARRAY:

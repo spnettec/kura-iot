@@ -11,6 +11,7 @@
   <packaging>bundle</packaging>
     <properties>
         <vertx.version>3.6.3</vertx.version>
+        <rxjava2.extras.version>0.1.31</rxjava2.extras.version>
     </properties>
     <dependencies>
         <dependency>
@@ -70,7 +71,17 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.56</version>
         </dependency>
-        
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava2-extras</artifactId>
+            <version>${rxjava2.extras.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.11.1</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -91,7 +102,7 @@
                             {maven-resources}
                         </Include-Resource>
                         <Import-Package>
-                         !org.joda.time.*,!okhttp3,!org.glassfish.*,!org.springframework.*,!retrofit2,!springfox.*,!sun.reflect.annotation,*
+                         !org.joda.time.*,!okhttp3,!org.glassfish.*,!org.springframework.*,!retrofit2,!springfox.*,!sun.reflect.annotation,!com.esotericsoftware.*,!com.github.davidmoten.*,!sun.nio.ch,*
                         </Import-Package>
                     </instructions>
                 </configuration>

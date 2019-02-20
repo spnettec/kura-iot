@@ -126,6 +126,11 @@
             <version>${vertx.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-mqtt</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
 		    <groupId>com.mchange</groupId>
 		    <artifactId>c3p0</artifactId>
 		    <version>0.9.5.2</version>
@@ -271,8 +276,6 @@
                              io.vertx.lang.reactivex;resolution:=optional;version="[3.6,4)",
                              io.vertx.lang.rx;resolution:=optional;version="[3.6,4)",
                              io.vertx.micrometer;resolution:=optional;version="[3.6,4)",
-                             io.vertx.mqtt;resolution:=optional;version="[3.6,4)",
-                             io.vertx.mqtt.messages;resolution:=optional;version="[3.6,4)",
                              io.vertx.rabbitmq;resolution:=optional,
                              io.vertx.reactivex;resolution:=optional;version="[3.6,4)",
                              

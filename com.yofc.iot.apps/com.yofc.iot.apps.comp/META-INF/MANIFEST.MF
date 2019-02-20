@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1550475299573
+Bnd-LastModified: 1550565663933
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,27 +16,33 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.iot.component.api;uses:="org.eclipse.kura.chann
- el,org.eclipse.kura.driver";version="0.0.1"
+Export-Package: com.yofc.iot.component.api;version="0.0.1";uses:="org.ec
+ lipse.kura.channel,org.eclipse.kura.driver"
 Import-Package: 
  com.yofc.vertx.osgi.api;version="[0.0,1)",
  groovy.lang;version="[2.5,3)",
+ io.netty.handler.codec.mqtt;version="[4.1,5)",
  io.vertx.core;version="[3.6,4)",
  io.vertx.core.buffer;version="[3.6,4)",
  io.vertx.core.eventbus;version="[3.6,4)",
  io.vertx.core.http;version="[3.6,4)",
  io.vertx.core.json;version="[3.6,4)",
+ io.vertx.core.net;version="[3.6,4)",
  io.vertx.ext.jdbc;version="[3.6,4)",
  io.vertx.ext.web;version="[3.6,4)",
  io.vertx.ext.web.client;version="[3.6,4)",
  io.vertx.ext.web.handler;version="[3.6,4)",
+ io.vertx.mqtt;version="[3.6,4)",
  org.eclipse.kura;version="[1.5,2)",
  org.eclipse.kura.asset;version="[1.0,2)",
  org.eclipse.kura.channel;version="[1.1,2)",
  org.eclipse.kura.channel.listener;version="[1.0,2)",
  org.eclipse.kura.configuration;version="[1.1,2)",
  org.eclipse.kura.core.configuration.metatype;version="[1.0,2)",
+ org.eclipse.kura.crypto;version="[1.2,2)",
  org.eclipse.kura.driver;version="[1.0,1.1)",
+ org.eclipse.kura.marshalling;version="[1.0,2)",
+ org.eclipse.kura.message;version="[1.2,2)",
  org.eclipse.kura.type;version="[1.1,2)",
  org.eclipse.kura.util.collection;version="[1.0,2)",
  org.eclipse.kura.wire;version="[2.0,3)",
@@ -59,7 +65,10 @@ Provide-Capability:
  .wireadmin.Consumer,org.osgi.service.wireadmin.Producer",
  osgi.service;objectClass:List<String>="org.eclipse.kura.configuration.C
  onfigurableComponent,org.eclipse.kura.wire.WireComponent,org.eclipse.ku
- ra.wire.WireEmitter,org.osgi.service.wireadmin.Producer"
+ ra.wire.WireEmitter,org.osgi.service.wireadmin.Producer",
+ osgi.service;objectClass:List<String>="org.eclipse.kura.configuration.C
+ onfigurableComponent,org.eclipse.kura.wire.WireComponent,org.osgi.servi
+ ce.wireadmin.Consumer"
 Require-Capability: 
  osgi.extender;filter:="(&(osgi.extender=osgi.component)(version>=1.3.0)
  (!(version>=2.0.0)))",
@@ -73,6 +82,10 @@ Require-Capability:
  =active,
  osgi.service;filter:="(objectClass=org.eclipse.kura.asset.AssetService)
  ";effective:=active,
+ osgi.service;filter:="(objectClass=org.eclipse.kura.crypto.CryptoServic
+ e)";effective:=active,
+ osgi.service;filter:="(objectClass=org.eclipse.kura.marshalling.Marshal
+ ler)";effective:=active,
  osgi.service;filter:="(objectClass=org.eclipse.kura.wire.WireHelperServ
  ice)";effective:=active
 Service-Component: OSGI-INF/com.yofc.iot.component.impl.GroovyScriptFilt
@@ -80,5 +93,6 @@ Service-Component: OSGI-INF/com.yofc.iot.component.impl.GroovyScriptFilt
  GI-INF/com.yofc.iot.component.impl.H2MVStoreDriver.xml,OSGI-INF/com.yof
  c.iot.component.impl.HttpProxyComponent.xml,OSGI-INF/com.yofc.iot.compo
  nent.impl.HttpRestComponent.xml,OSGI-INF/com.yofc.iot.component.impl.Va
- lueChangeComponent.xml
+ lueChangeComponent.xml,OSGI-INF/com.yofc.iot.component.impl.VertxMqttPu
+ blisher.xml
 Tool: Bnd-4.1.0.201810181252

@@ -1,14 +1,14 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-log4j
-Bnd-LastModified: 1549011019395
-Build-Jdk: 1.8.0_202-ea
+Bnd-LastModified: 1550641435406
+Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
 Bundle-Description: YOFC Applications for log4j
 Bundle-ManifestVersion: 2
 Bundle-Name: YOFC-Applications::log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-SymbolicName: com.yofc.iot.yofc-iot-api-log4j;singleton:=true
+Bundle-SymbolicName: com.yofc.iot.yofc-iot-api-log4j
 Bundle-Version: 0.0.1.SNAPSHOT
 Created-By: Apache Maven Bundle Plugin
 DynamicImport-Package: *;resolution:=optional
@@ -19,12 +19,14 @@ Embed-StripVersion: false
 Embed-Transitive: false
 Export-Package: com.yofc.log.osgi;version="0.0.1";uses:="org.apache.logg
  ing.log4j.core,org.apache.logging.log4j.core.appender,org.apache.loggin
- g.log4j.core.config.plugins"
+ g.log4j.core.config,org.apache.logging.log4j.core.config.plugins"
 Fragment-Host: org.apache.logging.log4j.api
 Import-Package: 
  org.apache.logging.log4j.core;version="[2.11,3)",
  org.apache.logging.log4j.core.appender;version="[2.11,3)",
+ org.apache.logging.log4j.core.config;version="[2.11,3)",
  org.apache.logging.log4j.core.config.plugins;version="[2.11,3)",
+ org.apache.logging.log4j.core.config.xml;version="[2.11,3)",
  org.apache.logging.log4j.core.layout;version="[2.11,3)",
  org.apache.logging.log4j.core.util;version="[2.11,3)",
  org.osgi.framework;version="[1.9,2)"
