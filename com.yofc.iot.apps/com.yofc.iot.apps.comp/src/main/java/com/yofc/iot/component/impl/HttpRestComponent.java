@@ -89,8 +89,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         update(properties);
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
-        webClient = WebClient.create(vertx);
-        assetHelp = new AssetHelp(assetService);
+
     }
 
     @Modified
@@ -100,6 +99,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             webClient.close();
             webClient = WebClient.create(vertx);
         }
+        assetHelp = new AssetHelp(assetService);
     }
 
     private void update(final HttpRestComponentCfg properties) {
@@ -116,17 +116,18 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         route.handler(BodyHandler.create()).blockingHandler(this::handleResult, false);
         scriptSource = properties.script();
 
-        if (scriptSource == null) {
+        if (scriptSource.equals("")) {
             logger.warn("Script source is null");
+        } else {
+            Binding binding = new Binding();
+            GroovyShell shell = new GroovyShell(binding);
+            binding.setVariable("logger", logger);
+            binding.setVariable("wireSupport", wireSupport);
+            binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("vertx", vertx);
+            binding.setVariable("webClient", webClient);
+            script = shell.parse(scriptSource);
         }
-        Binding binding = new Binding();
-        GroovyShell shell = new GroovyShell(binding);
-        binding.setVariable("logger", logger);
-        binding.setVariable("wireSupport", wireSupport);
-        binding.setVariable("assetHelp", assetHelp);
-        binding.setVariable("vertx", vertx);
-        binding.setVariable("webClient", webClient);
-        script = shell.parse(scriptSource);
     }
 
     @Deactivate
@@ -158,7 +159,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private void handleResult(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
-        if (scriptSource == null) {
+        if (scriptSource.equals("")) {
             response.end("No response exceuted");
             return;
         }

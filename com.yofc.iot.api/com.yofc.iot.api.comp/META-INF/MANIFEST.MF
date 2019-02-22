@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1550635397588
+Bnd-LastModified: 1550780982772
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -26,7 +26,8 @@ Export-Package:
  re,io.vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.http,io.ve
  rtx.core.json,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.handl
  er,io.vertx.ext.web.handler.impl,org.eclipse.kura,org.eclipse.kura.asse
- t,org.eclipse.kura.type,org.eclipse.kura.wire",
+ t,org.eclipse.kura.channel,org.eclipse.kura.type,org.eclipse.kura.wire"
+ ,
  com.alibaba.fastjson;version="0.0.1"
 Import-Package: 
  com.google.common.collect,

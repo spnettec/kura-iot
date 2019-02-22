@@ -105,9 +105,6 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         this.properties = properties;
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
-        webClient = WebClient.create(vertx);
-        assetHelp = new AssetHelp(assetService);
-
         updated(properties);
 
         logger.info("ActivatingScript Filter... Done");
@@ -138,6 +135,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 webClient.close();
                 webClient = WebClient.create(vertx);
             }
+            assetHelp = new AssetHelp(assetService);
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);

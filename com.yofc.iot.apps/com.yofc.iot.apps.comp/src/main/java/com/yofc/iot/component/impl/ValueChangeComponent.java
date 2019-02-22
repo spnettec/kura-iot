@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEmitter;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireHelperService;
 import org.eclipse.kura.wire.WireReceiver;
+import org.eclipse.kura.wire.WireRecord;
 import org.eclipse.kura.wire.WireSupport;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -46,10 +46,8 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
     private WireHelperService wireHelperService;
     private WireSupport wireSupport;
-    private WireEnvelope preWireEnvelope;
     private boolean isOr = true;
     private List<String> tagNames = new ArrayList<>();
-    private List<String> changedTagNames = new ArrayList<>();
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -80,67 +78,15 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
     }
 
     public synchronized void updated(final ValueChangeComponentCfg properties) {
-        tagNames = new ArrayList<>();
-
         final String[] v = properties.tags();
-        tagNames.addAll(Arrays.asList((String[]) v));
+        tagNames = Arrays.stream(v).filter(tag -> tag != null && !"".equals(tag)).collect(Collectors.toList());
         isOr = "or".equals(properties.type());
-        changedTagNames = new ArrayList<>();
     }
 
     @Override
     public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
-        if (tagNames.isEmpty()) {
-            tagNames = Utils.getTagNames(wireEnvelope.getRecords());
-            tagNames.remove("assetName");
-        }
-        WireEnvelope currentWireEnvelope = wireEnvelope;
-        if (preWireEnvelope == null) {
-            preWireEnvelope = currentWireEnvelope;
-            return;
-        }
-        boolean changed = true;
-        if (isOr) {
-            changed = tagNames.stream().anyMatch(tag -> {
-                return isChanged(preWireEnvelope, currentWireEnvelope, tag);
-            });
 
-        } else {
-            List<String> testTags = tagNames.stream().filter(t -> {
-                return !changedTagNames.contains(t);
-            }).collect(Collectors.toList());
-            testTags.stream().forEach(tag -> {
-                boolean isChanged = isChanged(preWireEnvelope, currentWireEnvelope, tag);
-                if (isChanged)
-                    changedTagNames.add(tag);
-            });
-            if (changedTagNames.size() >= tagNames.size()) {
-                changed = true;
-                changedTagNames = new ArrayList<>();
-            } else
-                changed = false;
-
-        }
-        if (changed) {
-            this.wireSupport.emit(currentWireEnvelope.getRecords());
-            preWireEnvelope = currentWireEnvelope;
-        }
-    }
-
-    private boolean isChanged(WireEnvelope preWireEnvelope, WireEnvelope currentWireEnvelope, String tag) {
-        TypedValue<?> prValue = Utils.getValue(tag, preWireEnvelope.getRecords());
-        if (prValue == null) {
-            logger.error("can not find tag:{}", tag);
-            return false;
-        }
-        TypedValue<?> cuValue = Utils.getValue(tag, currentWireEnvelope.getRecords());
-        if (cuValue == null) {
-            logger.error("can not find tag:{}", tag);
-            return false;
-        }
-        boolean isSame = prValue.getValue().equals(cuValue.getValue());
-        return !isSame;
-
+        this.wireSupport.emit(wireEnvelope.getRecords());
     }
 
     @Override
@@ -155,7 +101,28 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
 
     @Override
     public void updated(Wire wire, Object value) {
-        this.wireSupport.updated(wire, value);
+        WireEnvelope preWireEnvelope = (WireEnvelope) wire.getLastValue();
+        if (preWireEnvelope != null) {
+            WireEnvelope currentWireEnvelope = (WireEnvelope) value;
+
+            if (tagNames.isEmpty()) {
+                tagNames = Utils.getTagNames(currentWireEnvelope.getRecords());
+                tagNames.remove("assetName");
+            }
+            boolean changed = true;
+            if (isOr) {
+                changed = tagNames.stream().anyMatch(tag -> Utils.isChanged(preWireEnvelope, currentWireEnvelope, tag));
+            } else {
+                List<WireRecord> pre = Utils.filterByTages(preWireEnvelope.getRecords(),
+                        tagNames.toArray(new String[0]));
+                List<WireRecord> cur = Utils.filterByTages(currentWireEnvelope.getRecords(),
+                        tagNames.toArray(new String[0]));
+                changed = !pre.equals(cur);
+            }
+            if (changed) {
+                this.wireSupport.updated(wire, value);
+            }
+        }
     }
 
     @Override

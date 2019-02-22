@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1550565663933
+Bnd-LastModified: 1550780975744
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -92,7 +92,8 @@ Service-Component: OSGI-INF/com.yofc.iot.component.impl.GroovyScriptFilt
  er.xml,OSGI-INF/com.yofc.iot.component.impl.H2JDBCClientProvider.xml,OS
  GI-INF/com.yofc.iot.component.impl.H2MVStoreDriver.xml,OSGI-INF/com.yof
  c.iot.component.impl.HttpProxyComponent.xml,OSGI-INF/com.yofc.iot.compo
- nent.impl.HttpRestComponent.xml,OSGI-INF/com.yofc.iot.component.impl.Va
- lueChangeComponent.xml,OSGI-INF/com.yofc.iot.component.impl.VertxMqttPu
- blisher.xml
+ nent.impl.HttpRestComponent.xml,OSGI-INF/com.yofc.iot.component.impl.Jo
+ intValueChangeComponent.xml,OSGI-INF/com.yofc.iot.component.impl.ValueC
+ hangeComponent.xml,OSGI-INF/com.yofc.iot.component.impl.VertxMqttPublis
+ her.xml
 Tool: Bnd-4.1.0.201810181252

@@ -47,7 +47,7 @@ public class VertxActivatorBase {
     private ServiceRegistration<Router> rtRegistration;
     @Reference
     private AssetService assetService;
-    private volatile Vertx vertx;
+    private Vertx vertx;
     private final Set<Route> routes = new HashSet<>();
 
     @Activate
@@ -94,9 +94,11 @@ public class VertxActivatorBase {
                         .collect(Collectors.toList());
                 try {
                     JsonObject result = assetHelp.readTags(assetPid, tagNames);
+                    if (result == null)
+                        throw KuraException.internalError("读取标签错误");
                     ctx.response().putHeader("content-type", "application/json; charset=utf-8")
                             .end(result.encodePrettily());
-                } catch (KuraException e) {
+                } catch (Exception e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                     ctx.response().setStatusCode(400).setStatusMessage(e.toString()).end();
                     logger.error("Read Tag Error:{}", e);
@@ -106,22 +108,26 @@ public class VertxActivatorBase {
                 try {
                     final JsonObject tagsObj = new JsonObject();
                     Object tags = body.getValue("tagNames");
+                    boolean writesuccess = true;
                     if (tags instanceof JsonArray) {
                         JsonArray jarray = (JsonArray) tags;
                         jarray.stream().forEach(obj -> {
                             JsonObject jo = (JsonObject) obj;
                             tagsObj.getMap().putAll(jo.getMap());
                         });
-                        assetHelp.writeTags(assetPid, tagsObj);
+                        writesuccess = assetHelp.writeTags(assetPid, tagsObj);
+
                     } else if (tags instanceof JsonObject)
-                        assetHelp.writeTags(assetPid, (JsonObject) tags);
+                        writesuccess = assetHelp.writeTags(assetPid, (JsonObject) tags);
                     else {
                         ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                         ctx.response().setStatusCode(400).setStatusMessage("parameter error").end();
                         return;
                     }
+                    if (!writesuccess)
+                        throw KuraException.internalError("写入标签错误");
                     ctx.response().end();
-                } catch (KuraException e) {
+                } catch (Exception e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                     ctx.response().setStatusCode(400).setStatusMessage(e.toString()).end();
                     logger.error("Write Tag Error:{}", e);

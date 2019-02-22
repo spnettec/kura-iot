@@ -1,6 +1,8 @@
 package com.yofc.vertx.osgi.api;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +16,15 @@ import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
 public class Utils {
+
+    private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     public static <T> T executeWithTCCLSwitch(Callable<T> action) throws Exception {
         final ClassLoader original = Thread.currentThread().getContextClassLoader();
@@ -100,12 +106,61 @@ public class Utils {
         return value.get().getProperties().get(name);
     }
 
+    public static List<WireRecord> filterByTages(List<WireRecord> records, String... tags) {
+        if (tags.length == 0)
+            return records;
+        List<WireRecord> newRecords = new ArrayList<>();
+        records.forEach(wireRecord -> newRecords.add(new WireRecord(wireRecord.getProperties().entrySet().stream()
+                .filter(value -> Arrays.stream(tags).anyMatch(tag -> value.getKey().equals(tag)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))));
+        return newRecords;
+    }
+
+    public static WireRecord convertProperies(WireRecord record) {
+        Map<String, TypedValue<?>> properties = record.getProperties();
+        TypedValue<?> assertName = properties.get("assetName");
+        if (assertName == null)
+            return record;
+        Map<String, TypedValue<?>> map = properties.entrySet().stream().filter(v -> {
+            return !v.getKey().equals("assetName");
+        }).collect(Collectors.toMap(k -> assertName.getValue().toString() + "." + k.getKey(), Map.Entry::getValue));
+        return new WireRecord(map);
+    }
+
+    public static boolean isChanged(WireEnvelope preWireEnvelope, WireEnvelope currentWireEnvelope, String tag) {
+
+        return isChanged(preWireEnvelope.getRecords(), currentWireEnvelope.getRecords(), tag);
+    }
+
+    public static boolean isChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords, String tag) {
+
+        TypedValue<?> prValue = getValue(tag, preWireRecords);
+        if (prValue == null) {
+            logger.error("can not find tag:{}", tag);
+            return false;
+        }
+        TypedValue<?> cuValue = getValue(tag, currentRecords);
+        if (cuValue == null) {
+            logger.error("can not find tag:{}", tag);
+            return false;
+        }
+        return !prValue.equals(cuValue);
+    }
+
+    public static boolean isChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords) {
+        List<Map<String, TypedValue<?>>> preRecords = Stream.of(preWireRecords).flatMap(Collection::stream)
+                .map(WireRecord::getProperties).collect(Collectors.toList());
+
+        List<Map<String, TypedValue<?>>> currenRecords = Stream.of(currentRecords).flatMap(Collection::stream)
+                .map(WireRecord::getProperties).collect(Collectors.toList());
+        return !preRecords.equals(currenRecords);
+    }
+
     public static List<String> getTagNames(List<WireRecord> records) {
-        List<String> names = new ArrayList<>();
-        records.stream().forEach(record -> {
-            names.addAll(record.getProperties().keySet());
-        });
-        return names;
+
+        return records.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::keySet).flatMap(Set::stream)
+                .collect(Collectors.toList());
+
     }
 
     public static JsonObject toJson(WireEnvelope wireEnvelope) {

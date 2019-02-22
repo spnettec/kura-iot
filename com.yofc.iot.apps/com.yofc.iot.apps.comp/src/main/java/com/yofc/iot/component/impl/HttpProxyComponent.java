@@ -129,7 +129,6 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     @Override
     public void consumersConnected(Wire[] wires) {
         this.wireSupport.consumersConnected(wires);
-
     }
 
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.HttpProxyComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.HttpProxyComponentCfg")
