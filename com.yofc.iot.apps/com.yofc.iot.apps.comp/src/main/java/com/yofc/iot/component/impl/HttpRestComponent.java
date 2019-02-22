@@ -126,7 +126,12 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
             binding.setVariable("webClient", webClient);
-            script = shell.parse(scriptSource);
+            try {
+                script = shell.parse(scriptSource);
+            } catch (Exception e) {
+                logger.error("Script parse error:{}", e);
+                scriptSource = null;
+            }
         }
     }
 
@@ -159,6 +164,11 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private void handleResult(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
+        if (scriptSource == null) {
+            logger.error("Script parse error.Please input correct groovy script");
+            response.end("Script parse error.Please input correct groovy script");
+            return;
+        }
         if (scriptSource.equals("")) {
             response.end("No response exceuted");
             return;

@@ -142,7 +142,12 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             binding.setVariable("webClient", webClient);
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
-            script = shell.parse(scriptSource);
+            try {
+                script = shell.parse(scriptSource);
+            } catch (Exception e) {
+                logger.error("Script parse error:{}", e);
+                scriptSource = null;
+            }
             logger.info("Updating Script Filter... Done");
         }
         if (mqttClient != null && mqttClient.isConnected()) {
@@ -154,6 +159,10 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
 
     @Override
     public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
+        if (scriptSource == null) {
+            logger.error("Script parse error.Please input correct groovy script");
+            return;
+        }
         if (mqttClient == null || !mqttClient.isConnected()) {
             try {
                 mqttConnect();

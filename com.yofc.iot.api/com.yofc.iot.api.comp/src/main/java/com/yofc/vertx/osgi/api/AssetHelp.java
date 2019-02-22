@@ -40,7 +40,7 @@ public class AssetHelp {
     public Asset getAsset(String assetPid) {
         Asset asset = this.assetService.getAsset(assetPid);
         if (asset == null) {
-            logger.error("找不到设备:{}", assetPid);
+            logger.error("can not find asset name:{}", assetPid);
         }
         return asset;
 
@@ -80,14 +80,13 @@ public class AssetHelp {
         JsonObject json = new JsonObject();
         Asset asset = getAsset(assetPid);
         if (asset == null) {
-            logger.error("读取失败");
             return null;
         }
         List<ChannelRecord> records;
         try {
             records = asset.read(Arrays.asList(tagNames).stream().collect(Collectors.toSet()));
         } catch (KuraException e) {
-            logger.error("读取失败:{}", e);
+            logger.error("read tags:{} failured:{}", tagNames, e);
             return null;
         }
         for (ChannelRecord record : records) {
@@ -100,20 +99,19 @@ public class AssetHelp {
         JsonObject json = new JsonObject();
         Asset asset = getAsset(assetPid);
         if (asset == null) {
-            logger.error("读取失败");
             return null;
         }
         List<ChannelRecord> records;
         try {
             records = asset.read(tagNames.stream().collect(Collectors.toSet()));
         } catch (KuraException e) {
-            logger.error("读取失败:{}", e);
+            logger.error("read tags:{} failured:{}", tagNames, e);
             return null;
         }
         for (ChannelRecord record : records) {
             Object value = null;
             if (record.getChannelStatus().getChannelFlag() == ChannelFlag.FAILURE)
-                value = "读取失败";
+                value = "read failured";
             else
                 value = record.getValue() == null ? null : record.getValue().getValue();
             json.put(record.getChannelName(), value);
@@ -124,11 +122,13 @@ public class AssetHelp {
     public boolean writeTags(String assetPid, JsonObject json) {
         List<ChannelRecord> channelRecords = new ArrayList<>();
         Asset asset = getAsset(assetPid);
+        if (asset == null)
+            return false;
         for (String tagName : json.fieldNames()) {
             Map<String, Channel> chennels = asset.getAssetConfiguration().getAssetChannels();
             Channel channel = chennels.get(tagName);
             if (channel == null) {
-                logger.error("标签:{} 错误", tagName);
+                logger.error("tag:{} not attatched channel", tagName);
                 return false;
             }
             DataType dataType = channel.getValueType();
@@ -140,7 +140,8 @@ public class AssetHelp {
         try {
             asset.write(channelRecords);
         } catch (KuraException e) {
-            logger.error("写入通道错误");
+            logger.error("tags:{} Write error:{}", json.fieldNames(), e);
+            return false;
         }
         return true;
     }
@@ -155,24 +156,32 @@ public class AssetHelp {
         return writeTags(assetPid, jsonObject);
     }
 
-    public void writeTags(String assetPid, Object bean) throws KuraException {
+    public void writeTags(String assetPid, Object bean) {
         JsonObject jsonObject = JsonObject.mapFrom(bean);
         writeTags(assetPid, jsonObject);
     }
 
-    public void writeTag(String assetPid, String tagName, Object value) throws KuraException {
+    public boolean writeTag(String assetPid, String tagName, Object value) {
         List<ChannelRecord> channelRecords = new ArrayList<>();
         Asset asset = getAsset(assetPid);
+        if (asset == null)
+            return false;
         Map<String, Channel> chennels = asset.getAssetConfiguration().getAssetChannels();
         Channel channel = chennels.get(tagName);
         if (channel == null) {
-            logger.error("标签:{} 错误", tagName);
-            return;
+            logger.error("tag:{} not attatched channel", tagName);
+            return false;
         }
         DataType dataType = channel.getValueType();
         TypedValue<?> tValue = TypedValues.parseTypedValue(dataType, String.valueOf(value));
         ChannelRecord writeRecord = ChannelRecord.createWriteRecord(tagName, tValue);
         channelRecords.add(writeRecord);
-        asset.write(channelRecords);
+        try {
+            asset.write(channelRecords);
+        } catch (KuraException e) {
+            logger.error("tag:{} Write error:{}", tagName, e);
+            return false;
+        }
+        return true;
     }
 }

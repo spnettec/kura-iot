@@ -3,10 +3,10 @@ package com.yofc.iot.component.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
@@ -37,6 +37,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.api.WireEnvelopePair;
 import com.yofc.iot.component.impl.JointValueChangeComponent.JointValueChangeComponentCfg;
 import com.yofc.vertx.osgi.api.Utils;
 
@@ -54,7 +55,7 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
     private String isOrType = "none";
     private List<String> tagNames = new ArrayList<>();
     private int producersSize = 0;
-    private Map<Wire, WireEnvelope> wiresMap = new HashMap<>();
+    private Map<Wire, WireEnvelopePair> wiresMap = new ConcurrentHashMap<>();
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -110,46 +111,41 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
 
     @Override
     public void updated(Wire wire, Object value) {
-        int size = wiresMap.size();
-        if (size == this.producersSize - 1) {
-            if (wiresMap.containsKey(wire)) {
-                wiresMap = new HashMap<>();
-                return;
-            }
+        if (wiresMap.containsKey(wire)) {
+            wiresMap.clear();
         }
         WireEnvelope wireEnvelope = (WireEnvelope) value;
-        wiresMap.put(wire, wireEnvelope);
+        wiresMap.put(wire, new WireEnvelopePair((WireEnvelope) wire.getLastValue(), wireEnvelope));
+        int size = wiresMap.size();
         if (size < this.producersSize)
             return;
         String pid = wireEnvelope.getEmitterPid();
-        List<WireRecord> currentRecords = wiresMap.entrySet().stream().map(entry -> entry.getValue().getRecords())
-                .flatMap(Collection::stream).collect(Collectors.toList());
+        List<WireRecord> currentRecords = wiresMap.entrySet().stream()
+                .map(entry -> entry.getValue().getCurrentWireEnvelope().getRecords()).flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        List<WireRecord> currentRecordsCon = covertWireRecodsProperies(currentRecords);
         if ("none".equals(isOrType)) {
-            this.wireSupport.updated(wire, new WireEnvelope(pid, covertWireRecodsProperies(currentRecords)));
-            wiresMap = new HashMap<>();
+            this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));
         } else {
             List<WireRecord> preRecords = wiresMap.entrySet().stream()
-                    .map(entry -> ((WireEnvelope) entry.getKey().getLastValue()).getRecords())
-                    .flatMap(Collection::stream).collect(Collectors.toList());
-
+                    .map(entry -> (entry.getValue().getPreWireEnvelope()).getRecords()).flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            List<WireRecord> preRecordsCon = covertWireRecodsProperies(preRecords);
             if (tagNames.isEmpty()) {
-                tagNames = Utils.getTagNames(currentRecords);
+                tagNames = Utils.getTagNames(currentRecordsCon);
                 tagNames.remove("assetName");
             }
             boolean changed = true;
-            if ("or".equals(isOrType)) {
-                changed = tagNames.stream().anyMatch(tag -> Utils.isChanged(preRecords, currentRecords, tag));
-            } else {
-                List<WireRecord> pre = Utils.filterByTages(preRecords, tagNames.toArray(new String[0]));
-                List<WireRecord> cur = Utils.filterByTages(currentRecords, tagNames.toArray(new String[0]));
-                changed = !pre.equals(cur);
-            }
+            if ("or".equals(isOrType))
+                changed = tagNames.stream().anyMatch(tag -> Utils.isChanged(preRecordsCon, currentRecordsCon, tag));
+            else
+                changed = tagNames.stream().allMatch(tag -> Utils.isChanged(preRecordsCon, currentRecordsCon, tag));
+
             if (changed) {
-                this.wireSupport.updated(wire, new WireEnvelope(pid, covertWireRecodsProperies(currentRecords)));
+                this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));
 
             }
         }
-        wiresMap = new HashMap<>();
     }
 
     @Override

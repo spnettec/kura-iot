@@ -147,15 +147,6 @@ public class Utils {
         return !prValue.equals(cuValue);
     }
 
-    public static boolean isChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords) {
-        List<Map<String, TypedValue<?>>> preRecords = Stream.of(preWireRecords).flatMap(Collection::stream)
-                .map(WireRecord::getProperties).collect(Collectors.toList());
-
-        List<Map<String, TypedValue<?>>> currenRecords = Stream.of(currentRecords).flatMap(Collection::stream)
-                .map(WireRecord::getProperties).collect(Collectors.toList());
-        return !preRecords.equals(currenRecords);
-    }
-
     public static List<String> getTagNames(List<WireRecord> records) {
 
         return records.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::keySet).flatMap(Set::stream)
