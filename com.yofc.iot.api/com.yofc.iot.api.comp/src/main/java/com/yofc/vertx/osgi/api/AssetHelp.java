@@ -8,17 +8,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.asset.AssetConfiguration;
-import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.channel.Channel;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.ChannelType;
+import org.eclipse.kura.configuration.SelfConfiguringComponent;
 import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
@@ -30,17 +31,27 @@ import io.vertx.core.json.JsonObject;
 
 public class AssetHelp {
 
-    private final AssetService assetService;
     private static final Logger logger = LoggerFactory.getLogger(AssetHelp.class);
+    private volatile List<Asset> assets;
 
-    public AssetHelp(AssetService assetService) {
-        this.assetService = assetService;
+    public AssetHelp(List<Asset> assets) {
+        this.assets = assets;
     }
 
     public Asset getAsset(String assetPid) {
-        Asset asset = this.assetService.getAsset(assetPid);
-        if (asset == null) {
-            logger.error("can not find asset name:{}", assetPid);
+        Asset asset = null;
+        if (this.assets != null) {
+            Optional<Asset> optAsset = this.assets.stream().filter(v -> {
+                try {
+                    return ((SelfConfiguringComponent) v).getConfiguration().getPid().equals(assetPid);
+                } catch (KuraException e) {
+                    logger.error("can not find asset name:{}", assetPid);
+                }
+                return false;
+            }).findAny();
+            if (optAsset.isPresent())
+                asset = optAsset.get();
+
         }
         return asset;
 

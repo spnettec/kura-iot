@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.kura.asset.AssetService;
+import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEmitter;
@@ -69,12 +69,11 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @Reference
     private Router router;
     @Reference
-    private AssetService assetService;
+    private volatile List<Asset> assets;
     private Route route;
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
     private WireHelperService wireHelperService;
     private WireSupport wireSupport;
-    private AssetHelp assetHelp;
     private Script script;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
@@ -99,7 +98,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             webClient.close();
             webClient = WebClient.create(vertx);
         }
-        assetHelp = new AssetHelp(assetService);
+
     }
 
     private void update(final HttpRestComponentCfg properties) {
@@ -123,6 +122,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
             binding.setVariable("wireSupport", wireSupport);
+            AssetHelp assetHelp = new AssetHelp(assets);
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
             binding.setVariable("webClient", webClient);

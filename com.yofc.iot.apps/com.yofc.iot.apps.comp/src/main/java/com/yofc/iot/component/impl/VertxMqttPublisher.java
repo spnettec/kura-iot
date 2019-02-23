@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.kura.KuraException;
+import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -82,7 +83,8 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     private WireSupport wireSupport;
     @Reference
     private AssetService assetService;
-    private AssetHelp assetHelp;
+    @Reference
+    private volatile List<Asset> assets;
     private Script script;
     private MqttClient mqttClient;
     private VertxMqttPublisherCfg properties;
@@ -119,6 +121,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         }
         if (mqttClient != null && mqttClient.isConnected()) {
             mqttClient.disconnect();
+            mqttClient = null;
         }
         logger.info("Deactivating Script Filter... Done");
     }
@@ -135,7 +138,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 webClient.close();
                 webClient = WebClient.create(vertx);
             }
-            assetHelp = new AssetHelp(assetService);
+            AssetHelp assetHelp = new AssetHelp(assets);
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
@@ -154,7 +157,6 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             mqttClient.disconnect();
         }
         mqttClient = null;
-        mqttConnect();
     }
 
     @Override
@@ -166,8 +168,8 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         if (mqttClient == null || !mqttClient.isConnected()) {
             try {
                 mqttConnect();
-            } catch (KuraException e) {
-                logger.error("error:{}", e);
+            } catch (Exception e) {
+                logger.error("Failured to connect mqtt server\n{}", e);
             }
             return;
         }
@@ -204,7 +206,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 }
 
             } catch (Exception e) {
-                logger.error("Failed to execute script", e);
+                logger.error("Failured to execute script", e);
             }
         } else {
             for (WireRecord record : wireEnvelope.getRecords()) {
@@ -227,10 +229,16 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
 
     @Override
     public void producersConnected(Wire[] wires) {
+        if (wires == null) {
+            if (mqttClient != null && mqttClient.isConnected()) {
+                mqttClient.disconnect();
+            }
+        } else
+            mqttConnect();
         this.wireSupport.producersConnected(wires);
     }
 
-    private void mqttConnect() throws KuraException {
+    private void mqttConnect() {
         if (mqttClient != null && mqttClient.isConnected()) {
             mqttClient.disconnect();
         }
@@ -240,7 +248,12 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             if (!properties.username().equals(""))
                 options.setUsername(properties.username());
             if (!properties.password().equals(""))
-                options.setPassword(String.valueOf(cryptoService.decryptAes(properties.password().toCharArray())));
+                try {
+                    options.setPassword(String.valueOf(cryptoService.decryptAes(properties.password().toCharArray())));
+                } catch (KuraException e1) {
+                    logger.error("password decrypt failured\n{}", e1);
+                    return;
+                }
             options.setConnectTimeout(2000);
             mqttClient = MqttClient.create(vertx, options);
         }
@@ -249,18 +262,18 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 logger.info("Connect to Server");
             } else {
                 logger.info("Failed to connect to a server");
-                logger.error("error:{}", ackMes.cause());
+                logger.error("AckMessage error", ackMes.cause());
             }
         });
         mqttClient.closeHandler(h -> {
             try {
                 mqttConnect();
-            } catch (KuraException e1) {
-                logger.error("error:{}", e1);
+            } catch (Exception e1) {
+                logger.error("Failured to execute script", e1);
             }
         });
         mqttClient.exceptionHandler(e -> {
-            logger.error("error:{}", e);
+            logger.error("Mqtt error\n", e);
         });
         mqttClient.publishCompletionHandler(h -> {
             logger.info("info:{}", h);

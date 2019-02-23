@@ -11,7 +11,6 @@ import org.eclipse.kura.wire.WireEmitter;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireHelperService;
 import org.eclipse.kura.wire.WireReceiver;
-import org.eclipse.kura.wire.WireRecord;
 import org.eclipse.kura.wire.WireSupport;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
@@ -105,19 +104,20 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
         if (preWireEnvelope != null) {
             WireEnvelope currentWireEnvelope = (WireEnvelope) value;
 
-            if (tagNames.isEmpty()) {
-                tagNames = Utils.getTagNames(currentWireEnvelope.getRecords());
-                tagNames.remove("assetName");
-            }
             boolean changed = true;
             if (isOr) {
-                changed = tagNames.stream().anyMatch(tag -> Utils.isChanged(preWireEnvelope, currentWireEnvelope, tag));
+                if (tagNames.isEmpty())
+                    changed = Utils.isOrChanged(preWireEnvelope, currentWireEnvelope);
+                else
+                    changed = tagNames.stream()
+                            .anyMatch(tag -> Utils.isChanged(preWireEnvelope, currentWireEnvelope, tag));
             } else {
-                List<WireRecord> pre = Utils.filterByTages(preWireEnvelope.getRecords(),
-                        tagNames.toArray(new String[0]));
-                List<WireRecord> cur = Utils.filterByTages(currentWireEnvelope.getRecords(),
-                        tagNames.toArray(new String[0]));
-                changed = !pre.equals(cur);
+                if (tagNames.isEmpty()) {
+                    changed = Utils.isAndChanged(preWireEnvelope.getRecords(), currentWireEnvelope.getRecords());
+                } else {
+                    changed = tagNames.stream()
+                            .allMatch(tag -> Utils.isChanged(preWireEnvelope, currentWireEnvelope, tag));
+                }
             }
             if (changed) {
                 this.wireSupport.updated(wire, value);

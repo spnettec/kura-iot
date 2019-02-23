@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.kura.asset.AssetService;
+import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
@@ -68,8 +68,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     private WebClient webClient;
     private WireSupport wireSupport;
     @Reference
-    private AssetService assetService;
-    private AssetHelp assetHelp;
+    private volatile List<Asset> assets;
     private Script script;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
@@ -103,7 +102,6 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @Modified
     public synchronized void updated(final GroovyScriptFilterCfg properties) {
         logger.info("Updating Script Filter...");
-
         scriptSource = properties.script();
 
         if (!scriptSource.equals("")) {
@@ -112,11 +110,11 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
                 webClient.close();
                 webClient = WebClient.create(vertx);
             }
-            assetHelp = new AssetHelp(assetService);
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
             binding.setVariable("webClient", webClient);
+            AssetHelp assetHelp = new AssetHelp(assets);
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
             try {

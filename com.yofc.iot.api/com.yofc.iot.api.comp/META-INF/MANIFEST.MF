@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-api-comp
-Bnd-LastModified: 1550780982772
+Bnd-LastModified: 1550925947366
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -25,9 +25,8 @@ Export-Package:
  com.yofc.vertx.osgi.api;version="0.0.1";uses:="io.reactivex,io.vertx.co
  re,io.vertx.core.buffer,io.vertx.core.eventbus,io.vertx.core.http,io.ve
  rtx.core.json,io.vertx.ext.auth,io.vertx.ext.web,io.vertx.ext.web.handl
- er,io.vertx.ext.web.handler.impl,org.eclipse.kura,org.eclipse.kura.asse
- t,org.eclipse.kura.channel,org.eclipse.kura.type,org.eclipse.kura.wire"
- ,
+ er,io.vertx.ext.web.handler.impl,org.eclipse.kura.asset,org.eclipse.kur
+ a.channel,org.eclipse.kura.type,org.eclipse.kura.wire",
  com.alibaba.fastjson;version="0.0.1"
 Import-Package: 
  com.google.common.collect,
@@ -102,8 +101,8 @@ Require-Capability:
  ive,
  osgi.service;filter:="(objectClass=io.vertx.ext.web.Router)";effective:
  =active,
- osgi.service;filter:="(objectClass=org.eclipse.kura.asset.AssetService)
- ";effective:=active
+ osgi.service;filter:="(objectClass=org.eclipse.kura.asset.Asset)";effec
+ tive:=active;resolution:=optional;cardinality:=multiple
 Service-Component: OSGI-INF/com.yofc.vertx.osgi.ProxyRouteImpl.xml,OSGI-
  INF/com.yofc.vertx.osgi.VertxActivator.xml,OSGI-INF/com.yofc.vertx.osgi
  .VertxActivatorBase.xml,OSGI-INF/com.yofc.vertx.osgi.VertxVerticleHost.

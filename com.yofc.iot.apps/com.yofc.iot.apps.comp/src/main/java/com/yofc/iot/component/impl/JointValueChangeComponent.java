@@ -131,15 +131,19 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
                     .map(entry -> (entry.getValue().getPreWireEnvelope()).getRecords()).flatMap(Collection::stream)
                     .collect(Collectors.toList());
             List<WireRecord> preRecordsCon = covertWireRecodsProperies(preRecords);
-            if (tagNames.isEmpty()) {
-                tagNames = Utils.getTagNames(currentRecordsCon);
-                tagNames.remove("assetName");
-            }
+
             boolean changed = true;
-            if ("or".equals(isOrType))
-                changed = tagNames.stream().anyMatch(tag -> Utils.isChanged(preRecordsCon, currentRecordsCon, tag));
-            else
-                changed = tagNames.stream().allMatch(tag -> Utils.isChanged(preRecordsCon, currentRecordsCon, tag));
+            if ("or".equals(isOrType)) {
+                if (tagNames.isEmpty())
+                    changed = Utils.isOrChanged(preRecordsCon, currentRecordsCon);
+                else
+                    changed = tagNames.stream().anyMatch(tag -> Utils.isChanged(preRecordsCon, currentRecordsCon, tag));
+            } else {
+                if (tagNames.isEmpty()) {
+                    changed = Utils.isAndChanged(preRecordsCon, currentRecordsCon);
+                } else
+                    changed = tagNames.stream().allMatch(tag -> Utils.isChanged(preRecordsCon, currentRecordsCon, tag));
+            }
 
             if (changed) {
                 this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.eclipse.kura.KuraException;
-import org.eclipse.kura.asset.AssetService;
+import org.eclipse.kura.asset.Asset;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
@@ -46,7 +46,7 @@ public class VertxActivatorBase {
     private ServiceRegistration<EventBus> ebRegistration;
     private ServiceRegistration<Router> rtRegistration;
     @Reference
-    private AssetService assetService;
+    private volatile List<Asset> assets;
     private Vertx vertx;
     private final Set<Route> routes = new HashSet<>();
 
@@ -75,7 +75,7 @@ public class VertxActivatorBase {
                 .allowedMethods(allowedMethods)));
         routes.add(
                 router.route("/static/*").handler(StaticHandler.create("webroot", this.getClass().getClassLoader())));
-        AssetHelp assetHelp = new AssetHelp(assetService);
+        AssetHelp assetHelp = new AssetHelp(assets);
         routes.add(router.post("/api/:method").handler(BodyHandler.create()).blockingHandler(ctx -> {
             String method = ctx.request().getParam("method");
             JsonObject body = null;

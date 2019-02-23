@@ -2,7 +2,6 @@ package com.yofc.vertx.osgi.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,6 +131,11 @@ public class Utils {
         return isChanged(preWireEnvelope.getRecords(), currentWireEnvelope.getRecords(), tag);
     }
 
+    public static boolean isOrChanged(WireEnvelope preWireEnvelope, WireEnvelope currentWireEnvelope) {
+
+        return isOrChanged(preWireEnvelope.getRecords(), currentWireEnvelope.getRecords());
+    }
+
     public static boolean isChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords, String tag) {
 
         TypedValue<?> prValue = getValue(tag, preWireRecords);
@@ -145,6 +149,22 @@ public class Utils {
             return false;
         }
         return !prValue.equals(cuValue);
+    }
+
+    public static boolean isOrChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords) {
+        return preWireRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::entrySet)
+                .flatMap(Set::stream)
+                .anyMatch(preV -> currentRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of)
+                        .map(Map::entrySet).flatMap(Set::stream).anyMatch(curV -> curV.getKey().equals(preV.getKey())
+                                && !curV.getValue().equals(preV.getValue())));
+    }
+
+    public static boolean isAndChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords) {
+        return preWireRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::entrySet)
+                .flatMap(Set::stream)
+                .allMatch(preV -> currentRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of)
+                        .map(Map::entrySet).flatMap(Set::stream).anyMatch(curV -> curV.getKey().equals(preV.getKey())
+                                && !curV.getValue().equals(preV.getValue())));
     }
 
     public static List<String> getTagNames(List<WireRecord> records) {
