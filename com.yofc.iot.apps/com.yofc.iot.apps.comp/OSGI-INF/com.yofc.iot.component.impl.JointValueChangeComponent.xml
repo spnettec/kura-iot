@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.JointValueChangeComponent" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="modified">
+  <property name="barrier" type="Boolean" value="true"/>
   <property name="type" type="String" value="none"/>
   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
   <property name="tags" type="String"></property>

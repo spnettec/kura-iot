@@ -6,11 +6,24 @@ public class WireEnvelopePair {
 
     private WireEnvelope preWireEnvelope;
     private WireEnvelope currentWireEnvelope;
+    private boolean hasElement;
 
-    public WireEnvelopePair(WireEnvelope preWireEnvelope, WireEnvelope currentWireEnvelope) {
+    public boolean isHasElement() {
+        return hasElement;
+    }
+
+    public void setHasElement(boolean hasElement) {
+        this.hasElement = hasElement;
+    }
+
+    public WireEnvelopePair(WireEnvelope preWireEnvelope, WireEnvelope currentWireEnvelope, boolean hasElement) {
         super();
-        this.preWireEnvelope = preWireEnvelope;
+        if (preWireEnvelope == null)
+            this.preWireEnvelope = currentWireEnvelope;
+        else
+            this.preWireEnvelope = preWireEnvelope;
         this.currentWireEnvelope = currentWireEnvelope;
+        this.hasElement = hasElement;
     }
 
     public WireEnvelope getPreWireEnvelope() {

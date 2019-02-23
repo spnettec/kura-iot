@@ -1,7 +1,6 @@
 package com.yofc.iot.component.impl;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.kura.channel.ChannelFlag.FAILURE;
 
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
@@ -9,7 +8,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,8 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.component.api.H2MVStoreChannelDescriptor;
-import com.yofc.iot.component.api.Request;
-import com.yofc.iot.component.api.WriteParams;
 import com.yofc.iot.component.impl.H2MVStoreDriver.Config;
 
 @Designate(ocd = Config.class, factory = true)
@@ -137,58 +133,74 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void read(List<ChannelRecord> records) throws ConnectionException {
-        final String[] result = new String[records.size()];
-        Map<String, ChannelRecord> tagRecordMap = new HashMap<>();
-        for (int i = 0; i < records.size(); i++) {
-            ChannelRecord record = records.get(i);
+        if (this.state.client == null || this.state.client.getStore().isClosed()) {
+            connect();
+        }
+        records.stream().forEach(channelRecord -> {
             String tagName = null;
             try {
-                tagName = getStringProperty(record, H2MVStoreChannelDescriptor.DATA_TAG_NAME_ID,
-                        "H2MVStore Tag setting error");
-            } catch (KuraException e) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-                continue;
+                tagName = channelRecord.getChannelConfig().get(H2MVStoreChannelDescriptor.DATA_TAG_NAME_ID).toString();
+            } catch (Exception e) {
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                channelRecord.setTimestamp(System.currentTimeMillis());
+                return;
             }
             if (tagName == null) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "H2MVStore Tag is null",
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "H2MVStore Tag is null",
                         new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
-                record.setTimestamp(System.currentTimeMillis());
+                channelRecord.setTimestamp(System.currentTimeMillis());
             } else {
-                result[i] = tagName;
-                tagRecordMap.put(tagName, record);
-            }
-        }
-        String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
-        try {
-            if (this.state.client == null || this.state.client.getStore().isClosed()) {
-                connect();
-            }
-            for (int i = 0; i < tagNames.length; i++) {
-                String tagName = tagNames[i];
-                Object value;
-                ChannelRecord record = tagRecordMap.get(tagName);
                 try {
-                    if (!this.state.client.containsKey(tagName)) {
-                        value = map(null, record.getValueType()).getValue();
-                    } else
-                        value = this.state.client.get(tagName);
-                    fillRecord(value, record);
+                    Object value = null;
+                    if (H2MVStoreDriver.this.state.client.containsKey(tagName)) {
+                        value = H2MVStoreDriver.this.state.client.get(tagName);
+                    }
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                    channelRecord.setValue(map(value, channelRecord.getValueType()));
                 } catch (Exception e) {
-                    record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                    record.setTimestamp(System.currentTimeMillis());
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                    channelRecord.setTimestamp(System.currentTimeMillis());
                 }
+            }
 
-            }
-        } catch (Exception e) {
-            for (int i = 0; i < tagNames.length; i++) {
-                String tagName = tagNames[i];
-                ChannelRecord record = tagRecordMap.get(tagName);
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-            }
+        });
+
+    }
+
+    @Override
+    public void write(List<ChannelRecord> records) throws ConnectionException {
+        if (this.state.client == null || this.state.client.getStore().isClosed()) {
+            connect();
         }
+        records.stream().forEach(channelRecord -> {
+            String tagName = null;
+            try {
+                tagName = channelRecord.getChannelConfig().get(H2MVStoreChannelDescriptor.DATA_TAG_NAME_ID).toString();
+            } catch (Exception e) {
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                channelRecord.setTimestamp(System.currentTimeMillis());
+                return;
+            }
+            if (tagName == null) {
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "H2MVStore Tag is null",
+                        new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
+                channelRecord.setTimestamp(System.currentTimeMillis());
+            } else {
+                try {
+                    Object data = channelRecord.getValue().getValue();
+                    H2MVStoreDriver.this.state.client.put(tagName, data);
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+                    H2MVStoreDriver.this.state.client.getStore().commit();
+                } catch (Exception e) {
+                    this.state.client.getStore().rollback();
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                }
+            }
 
+        });
     }
 
     @Override
@@ -205,71 +217,8 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void write(List<ChannelRecord> records) throws ConnectionException {
-        List<Request<WriteParams>> requests = Request.extractWriteRequests(records);
-        try {
-            if (this.state.client == null || this.state.client.isClosed()) {
-                connect();
-            }
-            for (int i = 0; i < requests.size(); i++) {
-                Request<WriteParams> request = requests.get(i);
-                WriteParams para = request.getParameters();
-
-                String tagName = para.getWriteTag();
-                Object data = para.getWriteValue();
-                this.state.client.put(tagName, data);
-                ChannelRecord record = request.getRecord();
-                record.setTimestamp(System.currentTimeMillis());
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
-
-            }
-            for (Request<WriteParams> request : requests) {
-                ChannelRecord record = request.getRecord();
-                record.setTimestamp(System.currentTimeMillis());
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
-            }
-            this.state.client.getStore().commit();
-        } catch (Exception e) {
-            for (Request<WriteParams> request : requests) {
-                ChannelRecord record = request.getRecord();
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-            }
-            this.state.client.getStore().rollback();
-            throw new ConnectionException(e);
-        }
-
-    }
-
-    @Override
     public PreparedRead prepareRead(List<ChannelRecord> records) {
         return new H2MVStorePreparedRead(records);
-    }
-
-    private static String getStringProperty(ChannelRecord record, String propertyName, String failureMessage)
-            throws KuraException {
-        try {
-            return String.valueOf(record.getChannelConfig().get(propertyName).toString());
-        } catch (Exception e) {
-            throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, failureMessage);
-        }
-    }
-
-    public static void fillRecord(final Object value, final ChannelRecord record) {
-        record.setTimestamp(System.currentTimeMillis());
-
-        if (value == null) {
-            record.setChannelStatus(new ChannelStatus(FAILURE, "Operation Result cannot be null", null));
-            return;
-        }
-        record.setTimestamp(System.currentTimeMillis());
-        try {
-            record.setValue(map(value, record.getValueType()));
-            record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
-        } catch (Exception e) {
-            record.setChannelStatus(new ChannelStatus(FAILURE,
-                    "Error while converting the retrieved value to the defined typed", null));
-        }
-
     }
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
@@ -343,7 +292,9 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
     @interface Config {
 
         @AttributeDefinition(name = "%file", description = "%fileDesc", required = false)
-        String file() default "/var/kura/tagdata";
+        String file()
+
+        default "/var/kura/tagdata";
 
         @AttributeDefinition(name = "%data", description = "%dataDesc")
         String data() default "data";

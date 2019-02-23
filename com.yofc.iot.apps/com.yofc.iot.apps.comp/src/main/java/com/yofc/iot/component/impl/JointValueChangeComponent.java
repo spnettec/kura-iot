@@ -55,6 +55,7 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
     private String isOrType = "none";
     private List<String> tagNames = new ArrayList<>();
     private int producersSize = 0;
+    private boolean isBarrier = true;
     private Map<Wire, WireEnvelopePair> wiresMap = new ConcurrentHashMap<>();
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
@@ -91,6 +92,7 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
         final String[] v = properties.tags();
         tagNames = Arrays.stream(v).filter(tag -> tag != null && !"".equals(tag)).collect(Collectors.toList());
         isOrType = properties.type();
+        isBarrier = properties.barrier();
     }
 
     @Override
@@ -111,20 +113,29 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
 
     @Override
     public void updated(Wire wire, Object value) {
-        if (wiresMap.containsKey(wire)) {
-            wiresMap.clear();
-        }
         WireEnvelope wireEnvelope = (WireEnvelope) value;
-        wiresMap.put(wire, new WireEnvelopePair((WireEnvelope) wire.getLastValue(), wireEnvelope));
-        int size = wiresMap.size();
-        if (size < this.producersSize)
+        if (isBarrier && wiresMap.containsKey(wire)) {
+            WireEnvelopePair pair = wiresMap.get(wire);
+            pair.setHasElement(true);
+            pair.setCurrentWireEnvelope(wireEnvelope);
+        } else
+            wiresMap.put(wire, new WireEnvelopePair((WireEnvelope) wire.getLastValue(), wireEnvelope, true));
+        long barrierSize = wiresMap.entrySet().stream().filter(entry -> entry.getValue().isHasElement()).count();
+        if (isBarrier && barrierSize < this.producersSize)
             return;
+        else {
+            int realSize = wiresMap.size();
+            if (realSize < this.producersSize)
+                return;
+        }
         String pid = wireEnvelope.getEmitterPid();
         List<WireRecord> currentRecords = wiresMap.entrySet().stream()
                 .map(entry -> entry.getValue().getCurrentWireEnvelope().getRecords()).flatMap(Collection::stream)
                 .collect(Collectors.toList());
         List<WireRecord> currentRecordsCon = covertWireRecodsProperies(currentRecords);
         if ("none".equals(isOrType)) {
+            if (isBarrier)
+                wiresMap.entrySet().stream().forEach(entry -> entry.getValue().setHasElement(false));
             this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));
         } else {
             List<WireRecord> preRecords = wiresMap.entrySet().stream()
@@ -146,8 +157,11 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
             }
 
             if (changed) {
+                if (isBarrier)
+                    wiresMap.entrySet().stream().forEach(entry -> entry.getValue().setHasElement(false));
                 this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));
-
+                wiresMap.entrySet().stream().forEach(
+                        entry -> entry.getValue().setPreWireEnvelope(entry.getValue().getCurrentWireEnvelope()));
             }
         }
     }
@@ -177,6 +191,9 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
                 @Option(label = "none", value = "none"), @Option(label = "and", value = "and"),
                 @Option(label = "or", value = "or") }, required = true)
         String type() default "none";
+
+        @AttributeDefinition(name = "%barrier", cardinality = 0, description = "%barrierDesc", required = false)
+        boolean barrier() default true;
 
         @AttributeDefinition(name = "%tags", cardinality = -1, description = "%tagsDesc", required = false)
         String[] tags() default "";
