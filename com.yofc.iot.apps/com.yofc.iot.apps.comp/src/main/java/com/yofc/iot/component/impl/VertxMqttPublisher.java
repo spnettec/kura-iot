@@ -261,8 +261,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             if (ackMes.succeeded()) {
                 logger.info("Connect to Server");
             } else {
-                logger.info("Failed to connect to a server");
-                logger.error("AckMessage error", ackMes.cause());
+                logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
             }
         });
         mqttClient.closeHandler(h -> {
