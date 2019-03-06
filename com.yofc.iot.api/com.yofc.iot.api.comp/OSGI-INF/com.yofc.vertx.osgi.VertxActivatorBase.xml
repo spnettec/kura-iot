@@ -3,6 +3,6 @@
   <service>
     <provide interface="com.yofc.vertx.osgi.VertxActivatorBase"/>
   </service>
-  <reference name="assets" cardinality="0..n" policy="dynamic" interface="org.eclipse.kura.asset.Asset" field="assets" field-collection-type="service"/>
+  <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>
   <implementation class="com.yofc.vertx.osgi.VertxActivatorBase"/>
 </scr:component>

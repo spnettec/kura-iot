@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.kura.KuraException;
-import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -83,8 +82,6 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     private WireSupport wireSupport;
     @Reference
     private AssetService assetService;
-    @Reference
-    private volatile List<Asset> assets;
     private Script script;
     private MqttClient mqttClient;
     private VertxMqttPublisherCfg properties;
@@ -92,6 +89,8 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     private CryptoService cryptoService;
     @Reference(target = "(kura.service.pid=org.eclipse.kura.json.marshaller.unmarshaller.provider)")
     private Marshaller jsonMarshaller;
+    @Reference
+    private AssetHelp assetHelp;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -138,7 +137,6 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 webClient.close();
                 webClient = WebClient.create(vertx);
             }
-            AssetHelp assetHelp = new AssetHelp(assets);
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);

@@ -18,6 +18,7 @@ import org.eclipse.kura.wire.WireRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.netty.util.CharsetUtil;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
@@ -192,6 +193,10 @@ public class Utils {
 
     public static List<WireRecord> toWireRecords(JsonObject object) {
         return getWireRecords(toWireRecord(object));
+    }
+
+    public static String utf8ToAscii(String utf8String) {
+        return new String(utf8String.getBytes(CharsetUtil.UTF_8), CharsetUtil.US_ASCII);
     }
 
 }

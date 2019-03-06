@@ -1,198 +1,26 @@
 package com.yofc.vertx.osgi.api;
 
-import static org.eclipse.kura.channel.ChannelType.READ_WRITE;
-import static org.eclipse.kura.channel.ChannelType.WRITE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.eclipse.kura.KuraException;
-import org.eclipse.kura.asset.Asset;
-import org.eclipse.kura.asset.AssetConfiguration;
-import org.eclipse.kura.channel.Channel;
-import org.eclipse.kura.channel.ChannelFlag;
-import org.eclipse.kura.channel.ChannelRecord;
-import org.eclipse.kura.channel.ChannelType;
-import org.eclipse.kura.configuration.SelfConfiguringComponent;
-import org.eclipse.kura.type.DataType;
-import org.eclipse.kura.type.TypedValue;
-import org.eclipse.kura.type.TypedValues;
-import org.eclipse.kura.wire.WireRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.vertx.core.json.JsonObject;
 
-public class AssetHelp {
+public interface AssetHelp {
 
-    private static final Logger logger = LoggerFactory.getLogger(AssetHelp.class);
-    private volatile List<Asset> assets;
+    public JsonObject readTags(String assetPid, String... tagNames) throws KuraException;
 
-    public AssetHelp(List<Asset> assets) {
-        this.assets = assets;
-    }
+    public JsonObject readTags(String assetPid, List<String> tagNames) throws KuraException;
 
-    public Asset getAsset(String assetPid) {
-        Asset asset = null;
-        if (this.assets != null) {
-            Optional<Asset> optAsset = this.assets.stream().filter(v -> {
-                try {
-                    return ((SelfConfiguringComponent) v).getConfiguration().getPid().equals(assetPid);
-                } catch (KuraException e) {
-                    logger.error("can not find asset name:{}", assetPid);
-                }
-                return false;
-            }).findAny();
-            if (optAsset.isPresent())
-                asset = optAsset.get();
+    public void writeTags(String assetPid, JsonObject json) throws KuraException;
 
-        }
-        return asset;
+    public void writeTags(String assetPid, String jsonString) throws KuraException;
 
-    }
+    public void writeTags(String assetPid, Map<String, Object> map) throws KuraException;
 
-    public static List<ChannelRecord> determineWritingChannels(Asset asset, List<WireRecord> records) {
-        final AssetConfiguration assetConfiguration = asset.getAssetConfiguration();
+    public void writeTags(String assetPid, Object bean) throws KuraException;
 
-        final List<ChannelRecord> channelRecordsToWrite = new ArrayList<>();
-        final Map<String, Channel> channels = assetConfiguration.getAssetChannels();
-        for (final Entry<String, Channel> channelEntry : channels.entrySet()) {
-            final Channel channel = channelEntry.getValue();
-            final String channelName = channel.getName();
-            final ChannelType channelType = channel.getType();
+    public void writeTag(String assetPid, String tagName, Object value) throws KuraException;
 
-            if (channelType != WRITE && channelType != READ_WRITE) {
-                continue;
-            }
-            if (!channel.isEnabled())
-                continue;
-            Map<String, TypedValue<?>> wireRecordProperties = records.stream().map(WireRecord::getProperties)
-                    .map(Map::entrySet).flatMap(Set::stream)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            if (wireRecordProperties.containsKey(channelName)) {
-                final TypedValue<?> value = wireRecordProperties.get(channelName);
-                if (channel.getValueType() == value.getType()) {
-                    channelRecordsToWrite.add(channel.createWriteRecord(value));
-                }
-            }
-        }
-        return channelRecordsToWrite;
-
-    }
-
-    public JsonObject readTags(String assetPid, String... tagNames) {
-        JsonObject json = new JsonObject();
-        Asset asset = getAsset(assetPid);
-        if (asset == null) {
-            return null;
-        }
-        List<ChannelRecord> records;
-        try {
-            records = asset.read(Arrays.asList(tagNames).stream().collect(Collectors.toSet()));
-        } catch (KuraException e) {
-            logger.error("read tags:{} failured:{}", tagNames, e);
-            return null;
-        }
-        for (ChannelRecord record : records) {
-            json.put(record.getChannelName(), record.getValue().getValue());
-        }
-        return json;
-    }
-
-    public JsonObject readTags(String assetPid, List<String> tagNames) {
-        JsonObject json = new JsonObject();
-        Asset asset = getAsset(assetPid);
-        if (asset == null) {
-            return null;
-        }
-        List<ChannelRecord> records;
-        try {
-            records = asset.read(tagNames.stream().collect(Collectors.toSet()));
-        } catch (KuraException e) {
-            logger.error("read tags:{} failured:{}", tagNames, e);
-            return null;
-        }
-        for (ChannelRecord record : records) {
-            Object value = null;
-            if (record.getChannelStatus().getChannelFlag() == ChannelFlag.FAILURE)
-                value = "read failured";
-            else
-                value = record.getValue() == null ? null : record.getValue().getValue();
-            json.put(record.getChannelName(), value);
-        }
-        return json;
-    }
-
-    public boolean writeTags(String assetPid, JsonObject json) {
-        List<ChannelRecord> channelRecords = new ArrayList<>();
-        Asset asset = getAsset(assetPid);
-        if (asset == null)
-            return false;
-        for (String tagName : json.fieldNames()) {
-            Map<String, Channel> chennels = asset.getAssetConfiguration().getAssetChannels();
-            Channel channel = chennels.get(tagName);
-            if (channel == null) {
-                logger.error("tag:{} not attatched channel", tagName);
-                return false;
-            }
-            DataType dataType = channel.getValueType();
-            String value = String.valueOf(json.getValue(tagName));
-            TypedValue<?> tValue = TypedValues.parseTypedValue(dataType, value);
-            ChannelRecord writeRecord = ChannelRecord.createWriteRecord(tagName, tValue);
-            channelRecords.add(writeRecord);
-        }
-        try {
-            asset.write(channelRecords);
-        } catch (KuraException e) {
-            logger.error("tags:{} Write error:{}", json.fieldNames(), e);
-            return false;
-        }
-        return true;
-    }
-
-    public boolean writeTags(String assetPid, String jsonString) {
-        JsonObject jsonObject = new JsonObject(jsonString);
-        return writeTags(assetPid, jsonObject);
-    }
-
-    public boolean writeTags(String assetPid, Map<String, Object> map) {
-        JsonObject jsonObject = new JsonObject(map);
-        return writeTags(assetPid, jsonObject);
-    }
-
-    public void writeTags(String assetPid, Object bean) {
-        JsonObject jsonObject = JsonObject.mapFrom(bean);
-        writeTags(assetPid, jsonObject);
-    }
-
-    public boolean writeTag(String assetPid, String tagName, Object value) {
-        List<ChannelRecord> channelRecords = new ArrayList<>();
-        Asset asset = getAsset(assetPid);
-        if (asset == null)
-            return false;
-        Map<String, Channel> chennels = asset.getAssetConfiguration().getAssetChannels();
-        Channel channel = chennels.get(tagName);
-        if (channel == null) {
-            logger.error("tag:{} not attatched channel", tagName);
-            return false;
-        }
-        DataType dataType = channel.getValueType();
-        TypedValue<?> tValue = TypedValues.parseTypedValue(dataType, String.valueOf(value));
-        ChannelRecord writeRecord = ChannelRecord.createWriteRecord(tagName, tValue);
-        channelRecords.add(writeRecord);
-        try {
-            asset.write(channelRecords);
-        } catch (KuraException e) {
-            logger.error("tag:{} Write error:{}", tagName, e);
-            return false;
-        }
-        return true;
-    }
 }

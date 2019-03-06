@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1550962751328
+Bnd-LastModified: 1551813873251
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -72,6 +72,8 @@ Provide-Capability:
 Require-Capability: 
  osgi.extender;filter:="(&(osgi.extender=osgi.component)(version>=1.3.0)
  (!(version>=2.0.0)))",
+ osgi.service;filter:="(objectClass=com.yofc.vertx.osgi.api.AssetHelp)";
+ effective:=active,
  osgi.service;filter:="(objectClass=com.yofc.vertx.osgi.api.ProxyRoute)"
  ;effective:=active,
  osgi.service;filter:="(objectClass=io.vertx.core.Vertx)";effective:=act
@@ -80,8 +82,6 @@ Require-Capability:
  fective:=active,
  osgi.service;filter:="(objectClass=io.vertx.ext.web.Router)";effective:
  =active,
- osgi.service;filter:="(objectClass=org.eclipse.kura.asset.Asset)";effec
- tive:=active;resolution:=optional;cardinality:=multiple,
  osgi.service;filter:="(objectClass=org.eclipse.kura.asset.AssetService)
  ";effective:=active,
  osgi.service;filter:="(objectClass=org.eclipse.kura.crypto.CryptoServic

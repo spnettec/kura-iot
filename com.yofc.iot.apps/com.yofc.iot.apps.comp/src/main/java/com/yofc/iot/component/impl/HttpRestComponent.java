@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEmitter;
@@ -68,13 +67,13 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     private EventBus eventBus;
     @Reference
     private Router router;
-    @Reference
-    private volatile List<Asset> assets;
     private Route route;
     @Reference(policy = ReferencePolicy.STATIC, unbind = "unbindWireHelperService")
     private WireHelperService wireHelperService;
     private WireSupport wireSupport;
     private Script script;
+    @Reference
+    private AssetHelp assetHelp;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -122,7 +121,6 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
             binding.setVariable("wireSupport", wireSupport);
-            AssetHelp assetHelp = new AssetHelp(assets);
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
             binding.setVariable("webClient", webClient);

@@ -2,14 +2,10 @@ package com.yofc.vertx.osgi;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.LoggerContext;
 import org.eclipse.kura.KuraException;
-import org.eclipse.kura.asset.Asset;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
@@ -20,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.vertx.osgi.api.AssetHelp;
+import com.yofc.vertx.osgi.api.Utils;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
@@ -45,10 +42,10 @@ public class VertxActivatorBase {
     private ServiceRegistration<Vertx> vertxRegistration;
     private ServiceRegistration<EventBus> ebRegistration;
     private ServiceRegistration<Router> rtRegistration;
-    @Reference
-    private volatile List<Asset> assets;
     private Vertx vertx;
     private final Set<Route> routes = new HashSet<>();
+    @Reference
+    private AssetHelp assetHelp;
 
     @Activate
     public void start(BundleContext context) {
@@ -64,6 +61,8 @@ public class VertxActivatorBase {
         allowedHeaders.add("Access-Control-Allow-Origin");
         allowedHeaders.add("origin");
         allowedHeaders.add("Content-Type");
+        allowedHeaders.add("lang");
+        allowedHeaders.add("Authorization");
         allowedHeaders.add("accept");
         allowedHeaders.add("X-PINGARUNER");
 
@@ -75,15 +74,15 @@ public class VertxActivatorBase {
                 .allowedMethods(allowedMethods)));
         routes.add(
                 router.route("/static/*").handler(StaticHandler.create("webroot", this.getClass().getClassLoader())));
-        AssetHelp assetHelp = new AssetHelp(assets);
         routes.add(router.post("/api/:method").handler(BodyHandler.create()).blockingHandler(ctx -> {
             String method = ctx.request().getParam("method");
             JsonObject body = null;
             try {
                 body = ctx.getBodyAsJson();
             } catch (Exception e) {
+                String aaa = ctx.getBodyAsString();
                 ctx.response().putHeader("content-type", "text/html; charset=utf-8");
-                ctx.response().setStatusCode(400).setStatusMessage("parameter error").end();
+                ctx.response().setStatusCode(400).setStatusMessage("parameter error" + aaa).end();
                 logger.error("Rest Body Error:{}", e);
                 return;
             }
@@ -100,7 +99,7 @@ public class VertxActivatorBase {
                             .end(result.encodePrettily());
                 } catch (Exception e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
-                    ctx.response().setStatusCode(400).setStatusMessage(e.toString()).end();
+                    ctx.response().setStatusCode(400).setStatusMessage(Utils.utf8ToAscii(e.getMessage())).end();
                     logger.error("Read Tag Error:{}", e);
                 }
                 break;
@@ -108,28 +107,25 @@ public class VertxActivatorBase {
                 try {
                     final JsonObject tagsObj = new JsonObject();
                     Object tags = body.getValue("tagNames");
-                    boolean writesuccess = true;
                     if (tags instanceof JsonArray) {
                         JsonArray jarray = (JsonArray) tags;
                         jarray.stream().forEach(obj -> {
                             JsonObject jo = (JsonObject) obj;
                             tagsObj.getMap().putAll(jo.getMap());
                         });
-                        writesuccess = assetHelp.writeTags(assetPid, tagsObj);
+                        assetHelp.writeTags(assetPid, tagsObj);
 
                     } else if (tags instanceof JsonObject)
-                        writesuccess = assetHelp.writeTags(assetPid, (JsonObject) tags);
+                        assetHelp.writeTags(assetPid, (JsonObject) tags);
                     else {
                         ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                         ctx.response().setStatusCode(400).setStatusMessage("parameter error").end();
                         return;
                     }
-                    if (!writesuccess)
-                        throw KuraException.internalError("写入标签错误");
-                    ctx.response().end();
+                    ctx.response().end((new JsonObject()).encodePrettily());
                 } catch (Exception e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
-                    ctx.response().setStatusCode(400).setStatusMessage(e.toString()).end();
+                    ctx.response().setStatusCode(400).setStatusMessage(e.getMessage()).end();
                     logger.error("Write Tag Error:{}", e);
                 }
                 break;
@@ -149,8 +145,7 @@ public class VertxActivatorBase {
         routes.add(router.route("/bridge/*").handler(sockJSHandler));
 
         rtRegistration = context.registerService(Router.class, router, null);
-        Map<String, Appender> apps = LoggerContext.getContext().getConfiguration().getAppenders();
-        logger.info("Vert.x Event Bus service registered");
+
     }
 
     @Deactivate

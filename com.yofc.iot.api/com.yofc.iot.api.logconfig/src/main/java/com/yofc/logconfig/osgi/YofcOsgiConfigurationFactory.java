@@ -1,19 +1,14 @@
-package com.yofc.log.osgi;
+package com.yofc.logconfig.osgi;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.Order;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.xml.XmlConfiguration;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 
 @Plugin(name = "YofcOsgiConfigurationFactory", category = ConfigurationFactory.CATEGORY)
 @Order(50)
@@ -49,17 +44,8 @@ public class YofcOsgiConfigurationFactory extends ConfigurationFactory {
             super.doConfigure();
             final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
             final Configuration config = ctx.getConfiguration();
-            final Layout<?> layout = PatternLayout.newBuilder()
-                    .withPattern("%d{ISO8601} [%t] %-5p %c{1.} - %m%n%throwable{full}").build();
-            final Appender appender = YofcOsgiAppender.createAppender("YofcOsgiAppender", null, layout, "false");
-            appender.start();
-            addAppender(appender);
-            AppenderRef ref = AppenderRef.createAppenderRef("YofcOsgiAppender", Level.INFO, null);
-            AppenderRef[] refs = new AppenderRef[] { ref };
-            LoggerConfig loggerConfig = LoggerConfig.createLogger(true, Level.ERROR, "org.eclipse", "true", refs, null,
-                    config, null);
-            loggerConfig.addAppender(appender, null, null);
-            addLogger("org.eclipse", loggerConfig);
+            Appender appender = config.getAppender("YofcOsgiAppender");
+            System.out.println(appender);
 
         }
     }

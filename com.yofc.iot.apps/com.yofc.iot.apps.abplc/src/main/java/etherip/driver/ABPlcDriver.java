@@ -112,13 +112,13 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
             }
 
             if (!this.state.client.isConnected()) {
-                logger.debug("Connecting to S7 PLC...");
+                logger.debug("Connecting to AB PLC...");
                 this.state.client.connectTcp();
 
-                logger.debug("Connecting to S7 PLC... Done");
+                logger.debug("Connecting to AB PLC... Done");
             }
         } catch (Exception e) {
-            throw new ConnectionException("Connection failed, unexpected exception", e);
+            throw new ConnectionException("AB PLC Connection failed, unexpected exception", e);
         }
     }
 

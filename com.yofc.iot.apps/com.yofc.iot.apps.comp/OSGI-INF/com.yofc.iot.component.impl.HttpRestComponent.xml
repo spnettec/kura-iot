@@ -10,7 +10,7 @@
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
     <provide interface="org.osgi.service.wireadmin.Producer"/>
   </service>
-  <reference name="assets" cardinality="0..n" policy="dynamic" interface="org.eclipse.kura.asset.Asset" field="assets" field-collection-type="service"/>
+  <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>
   <reference name="eventBus" interface="io.vertx.core.eventbus.EventBus" field="eventBus"/>
   <reference name="router" interface="io.vertx.ext.web.Router" field="router"/>
   <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>

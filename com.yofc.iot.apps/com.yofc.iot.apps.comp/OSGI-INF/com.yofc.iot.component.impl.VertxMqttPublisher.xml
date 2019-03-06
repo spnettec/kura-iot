@@ -18,8 +18,8 @@
     <provide interface="org.eclipse.kura.wire.WireComponent"/>
     <provide interface="org.osgi.service.wireadmin.Consumer"/>
   </service>
+  <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>
   <reference name="assetService" interface="org.eclipse.kura.asset.AssetService" field="assetService"/>
-  <reference name="assets" cardinality="0..n" policy="dynamic" interface="org.eclipse.kura.asset.Asset" field="assets" field-collection-type="service"/>
   <reference name="cryptoService" interface="org.eclipse.kura.crypto.CryptoService" field="cryptoService"/>
   <reference name="jsonMarshaller" interface="org.eclipse.kura.marshalling.Marshaller" target="(kura.service.pid=org.eclipse.kura.json.marshaller.unmarshaller.provider)" field="jsonMarshaller"/>
   <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>
