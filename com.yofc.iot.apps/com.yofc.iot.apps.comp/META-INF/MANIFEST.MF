@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-comp
-Bnd-LastModified: 1551813873251
+Bnd-LastModified: 1552046825015
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -16,8 +16,8 @@ Embed-Directory: lib
 Embed-StripGroup: true
 Embed-StripVersion: false
 Embed-Transitive: false
-Export-Package: com.yofc.iot.component.api;version="0.0.1";uses:="org.ec
- lipse.kura.driver,org.eclipse.kura.wire"
+Export-Package: com.yofc.iot.component.api;uses:="org.eclipse.kura.drive
+ r,org.eclipse.kura.wire";version="0.0.1"
 Import-Package: 
  com.yofc.vertx.osgi.api;version="[0.0,1)",
  groovy.lang;version="[2.5,3)",

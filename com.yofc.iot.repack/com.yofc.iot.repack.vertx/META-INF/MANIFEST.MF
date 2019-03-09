@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-repack-vertx
-Bnd-LastModified: 1550935997927
+Bnd-LastModified: 1552046822275
 Build-Jdk: 1.8.0_202
 Built-By: heyoulin
 Bundle-ActivationPolicy: lazy
@@ -440,15 +440,15 @@ Export-Package:
  tx.codegen.annotations,io.vertx.core,io.vertx.core.buffer,io.vertx.core
  .http,io.vertx.core.json,io.vertx.core.net,io.vertx.mqtt.messages,javax
  .net.ssl",
- io.vertx.mqtt.impl;version="0.0.1";uses:="io.netty.handler.codec.mqtt,i
- o.vertx.core,io.vertx.core.buffer,io.vertx.core.impl,io.vertx.core.net,
- io.vertx.mqtt,io.vertx.mqtt.messages,javax.net.ssl",
+ io.vertx.mqtt.impl;uses:="io.netty.handler.codec.mqtt,io.vertx.core,io.
+ vertx.core.buffer,io.vertx.core.impl,io.vertx.core.net,io.vertx.mqtt,io
+ .vertx.mqtt.messages,javax.net.ssl";version="0.0.1",
  io.vertx.mqtt.messages;version="3.6.3";uses:="io.netty.buffer,io.netty.
  handler.codec.mqtt,io.vertx.codegen.annotations,io.vertx.core.buffer,io
  .vertx.mqtt",
- io.vertx.mqtt.messages.impl;version="0.0.1";uses:="io.netty.buffer,io.n
- etty.handler.codec.mqtt,io.vertx.core.buffer,io.vertx.mqtt,io.vertx.mqt
- t.messages",
+ io.vertx.mqtt.messages.impl;uses:="io.netty.buffer,io.netty.handler.cod
+ ec.mqtt,io.vertx.core.buffer,io.vertx.mqtt,io.vertx.mqtt.messages";vers
+ ion="0.0.1",
  io.vertx.reactivex;version="3.6.3";uses:="com.fasterxml.jackson.core.ty
  pe,com.fasterxml.jackson.databind,io.reactivex,io.reactivex.disposables
  ,io.reactivex.functions,io.vertx.core,io.vertx.core.buffer,io.vertx.cor

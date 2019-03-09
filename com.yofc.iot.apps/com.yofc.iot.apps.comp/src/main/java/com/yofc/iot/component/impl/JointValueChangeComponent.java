@@ -88,7 +88,7 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
 
     public synchronized void updated(final JointValueChangeComponentCfg properties) {
         tagNames = new ArrayList<>();
-
+        this.wiresMap.clear();
         final String[] v = properties.tags();
         tagNames = Arrays.stream(v).filter(tag -> tag != null && !"".equals(tag)).collect(Collectors.toList());
         isOrType = properties.type();
@@ -168,6 +168,7 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
 
     @Override
     public void producersConnected(Wire[] wires) {
+        this.wiresMap.clear();
         if (wires == null)
             this.producersSize = 0;
         else
