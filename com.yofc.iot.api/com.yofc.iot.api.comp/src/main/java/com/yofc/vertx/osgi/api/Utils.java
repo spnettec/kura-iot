@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -170,24 +172,25 @@ public class Utils {
 
     public static List<String> getTagNames(List<WireRecord> records) {
 
-        return records.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::keySet).flatMap(Set::stream)
-                .collect(Collectors.toList());
+        return records.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(functionWrapper(Map::keySet))
+                .flatMap(functionWrapper(Set::stream)).collect(Collectors.toList());
 
     }
 
     public static JsonObject toJson(WireEnvelope wireEnvelope) {
         Stream<Map<String, Object>> properties = wireEnvelope.getRecords().stream()
-                .map(record -> record.getProperties().entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValue())));
+                .map(record -> record.getProperties().entrySet().stream().collect(Collectors.toMap(
+                        functionWrapper(Map.Entry::getKey), functionWrapper(entry -> entry.getValue().getValue()))));
         Map<String, Object> merged = properties.map(Map::entrySet).flatMap(Set::stream)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey), functionWrapper(Map.Entry::getValue)));
         return new JsonObject(merged);
 
     }
 
     public static WireRecord toWireRecord(JsonObject object) {
         Map<String, TypedValue<?>> mapWireRecord = object.getMap().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> TypedValues.newTypedValue(entry.getValue())));
+                .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey),
+                        functionWrapper(entry -> TypedValues.newTypedValue(entry.getValue()))));
         return new WireRecord(mapWireRecord);
     }
 
@@ -197,6 +200,26 @@ public class Utils {
 
     public static String utf8ToAscii(String utf8String) {
         return new String(utf8String.getBytes(CharsetUtil.UTF_8), CharsetUtil.US_ASCII);
+    }
+
+    public static <T, R, E extends Exception> Function<T, R> functionWrapper(FunctionWithException<T, R, E> fe) {
+        return arg -> {
+            try {
+                return fe.apply(arg);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    public static <T> Consumer<T> consumerWrapper(ConsumerWithException<T, Exception> throwingConsumer) {
+        return i -> {
+            try {
+                throwingConsumer.accept(i);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        };
     }
 
 }

@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.component.api.H2MVStoreChannelDescriptor;
 import com.yofc.iot.component.impl.H2MVStoreDriver.Config;
+import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
@@ -136,7 +137,7 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
         if (this.state.client == null || this.state.client.getStore().isClosed()) {
             connect();
         }
-        records.stream().forEach(channelRecord -> {
+        records.stream().forEach(Utils.consumerWrapper(channelRecord -> {
             String tagName = null;
             try {
                 tagName = channelRecord.getChannelConfig().get(H2MVStoreChannelDescriptor.DATA_TAG_NAME_ID).toString();
@@ -164,7 +165,7 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
                 }
             }
 
-        });
+        }));
 
     }
 
@@ -173,7 +174,7 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
         if (this.state.client == null || this.state.client.getStore().isClosed()) {
             connect();
         }
-        records.stream().forEach(channelRecord -> {
+        records.stream().forEach(Utils.consumerWrapper(channelRecord -> {
             String tagName = null;
             try {
                 tagName = channelRecord.getChannelConfig().get(H2MVStoreChannelDescriptor.DATA_TAG_NAME_ID).toString();
@@ -200,7 +201,7 @@ public class H2MVStoreDriver implements Driver, ConfigurableComponent {
                 }
             }
 
-        });
+        }));
     }
 
     @Override

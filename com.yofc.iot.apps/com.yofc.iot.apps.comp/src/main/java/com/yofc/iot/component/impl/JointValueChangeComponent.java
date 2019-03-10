@@ -130,17 +130,18 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
         }
         String pid = wireEnvelope.getEmitterPid();
         List<WireRecord> currentRecords = wiresMap.entrySet().stream()
-                .map(entry -> entry.getValue().getCurrentWireEnvelope().getRecords()).flatMap(Collection::stream)
-                .collect(Collectors.toList());
+                .map(Utils.functionWrapper(entry -> entry.getValue().getCurrentWireEnvelope().getRecords()))
+                .flatMap(Utils.functionWrapper(Collection::stream)).collect(Collectors.toList());
         List<WireRecord> currentRecordsCon = covertWireRecodsProperies(currentRecords);
         if ("none".equals(isOrType)) {
             if (isBarrier)
-                wiresMap.entrySet().stream().forEach(entry -> entry.getValue().setHasElement(false));
+                wiresMap.entrySet().stream()
+                        .forEach(Utils.consumerWrapper(entry -> entry.getValue().setHasElement(false)));
             this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));
         } else {
             List<WireRecord> preRecords = wiresMap.entrySet().stream()
-                    .map(entry -> (entry.getValue().getPreWireEnvelope()).getRecords()).flatMap(Collection::stream)
-                    .collect(Collectors.toList());
+                    .map(Utils.functionWrapper(entry -> (entry.getValue().getPreWireEnvelope()).getRecords()))
+                    .flatMap(Utils.functionWrapper(Collection::stream)).collect(Collectors.toList());
             List<WireRecord> preRecordsCon = covertWireRecodsProperies(preRecords);
 
             boolean changed = true;
@@ -158,10 +159,11 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
 
             if (changed) {
                 if (isBarrier)
-                    wiresMap.entrySet().stream().forEach(entry -> entry.getValue().setHasElement(false));
+                    wiresMap.entrySet().stream()
+                            .forEach(Utils.consumerWrapper(entry -> entry.getValue().setHasElement(false)));
                 this.wireSupport.updated(wire, new WireEnvelope(pid, currentRecordsCon));
-                wiresMap.entrySet().stream().forEach(
-                        entry -> entry.getValue().setPreWireEnvelope(entry.getValue().getCurrentWireEnvelope()));
+                wiresMap.entrySet().stream().forEach(Utils.consumerWrapper(
+                        entry -> entry.getValue().setPreWireEnvelope(entry.getValue().getCurrentWireEnvelope())));
             }
         }
     }
@@ -180,8 +182,8 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
         List<WireRecord> converted = records.stream()
                 .collect(Collectors.mapping(Utils::convertProperies, Collectors.toList()));
         Map<String, TypedValue<?>> properties = converted.stream().map(record -> record.getProperties())
-                .map(Map::entrySet).flatMap(Set::stream)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(Map::entrySet).flatMap(Utils.functionWrapper(Set::stream)).collect(Collectors
+                        .toMap(Utils.functionWrapper(Map.Entry::getKey), Utils.functionWrapper(Map.Entry::getValue)));
         return Utils.getWireRecords(new WireRecord(properties));
     }
 
