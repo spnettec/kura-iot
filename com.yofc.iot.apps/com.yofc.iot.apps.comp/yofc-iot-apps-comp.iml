@@ -9,7 +9,7 @@
           <property key="Embed-Dependency" value="*;scope=compile|runtime" />
           <property key="Embed-Transitive" value="false" />
           <property key="Import-Package" value="org.h2;version=&quot;1.4.197&quot;,org.h2.api;version=&quot;1.4.197&quot;,org.h2.jdbcx;version=&quot;1.4.197&quot;,org.h2.tools;version=&quot;1.4.197&quot;,*" />
-          <property key="Include-Resource" value="$MODULE_DIR$/OSGI-INF/l10n,webroot/assets/page1.html=$MODULE_DIR$/src/main/resources/webroot/assets/page1.html,webroot/assets/index.html=$MODULE_DIR$/src/main/resources/webroot/assets/index.html,webroot/assets/page2.html=$MODULE_DIR$/src/main/resources/webroot/assets/page2.html" />
+          <property key="Include-Resource" value="$MODULE_DIR$/OSGI-INF/l10n,webroot/js/jquery-3.3.1.min.js=$MODULE_DIR$/src/main/resources/webroot/js/jquery-3.3.1.min.js" />
           <property key="Automatic-Module-Name" value="com.yofc.iot.yofc-iot-apps-comp" />
           <property key="Bundle-ActivationPolicy" value="lazy" />
           <property key="Bundle-RequiredExecutionEnvironment" value="JavaSE-1.8" />
@@ -26,7 +26,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_5">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -39,13 +39,15 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.eclipse.kura:org.eclipse.kura.api:2.0.100-SNAPSHOT" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.eclipse.kura:org.eclipse.kura.util:1.1.100-SNAPSHOT" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.eclipse.kura:org.eclipse.kura.core.configuration:2.0.200-SNAPSHOT" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.osgi:org.osgi.service.component.annotations:1.3.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.osgi:org.osgi.service.metatype.annotations:1.3.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.felix:org.apache.felix.framework:6.0.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.mojo:animal-sniffer-annotations:1.9" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.eclipsesource.jaxrs:jersey-min:2.22.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-core:3.6.2" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-core:3.6.3" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-common:4.1.30.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-buffer:4.1.30.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-transport:4.1.30.Final" level="project" />
@@ -58,25 +60,36 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-resolver:4.1.30.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-resolver-dns:4.1.30.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-codec-dns:4.1.30.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.7" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.7" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.8" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.8" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.0" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-web:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-web-common:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-auth-common:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-bridge-common:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.reactivex.rxjava2:rxjava:2.2.4" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.reactivestreams:reactive-streams:1.0.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-rx-java2:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-rx-gen:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-codegen:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.mvel:mvel2:2.3.1.Final" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-jdbc-client:3.6.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-sql-common:3.6.2" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.servicemix.bundles:org.apache.servicemix.bundles.quartz:2.3.0_2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.mchange:c3p0:0.9.5.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.mchange:mchange-commons-java:0.2.11" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.zaxxer:HikariCP-java6:2.3.13" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-web:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-web-common:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-auth-common:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-bridge-common:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-web-client:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.reactivex.rxjava2:rxjava:2.2.4" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.reactivestreams:reactive-streams:1.0.2" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-rx-java2:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-rx-gen:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-codegen:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.mvel:mvel2:2.3.1.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-jdbc-client:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-sql-common:3.6.3" level="project" />
     <orderEntry type="module" module-name="yofc-iot-api-vertx" scope="PROVIDED" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.alibaba:fastjson:1.2.56" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.davidmoten:rxjava2-extras:0.1.31" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.davidmoten:guava-mini:0.1.1" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.vertx:vertx-mqtt:3.6.3" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: io.netty:netty-codec-mqtt:4.1.30.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.osgi:org.osgi.service.wireadmin:1.0.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.osgi:org.osgi.service.component:1.3.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.groovy:groovy:2.5.5" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.groovy:groovy-xml:2.5.5" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: com.h2database:h2:1.4.197" level="project" />
   </component>
 </module>

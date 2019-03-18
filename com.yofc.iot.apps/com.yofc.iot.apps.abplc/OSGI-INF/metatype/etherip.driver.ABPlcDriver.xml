@@ -4,8 +4,9 @@
     <AD id="hostIp" type="String" name="%hostIp" description="%hostIpDesc" default="localhost"/>
     <AD id="port" type="Integer" name="%port" description="%portDesc" default="44818"/>
     <AD id="slot" type="Integer" name="%slot" description="%slotDesc" default="0"/>
-    <AD id="single" type="Boolean" name="%single" description="%singleDesc" default="true"/>
-    <AD id="maxRequestItems" type="Integer" name="%maxRequestItems" description="%maxRequestItemsDesc" default="100"/>
+    <AD id="readSingle" type="Boolean" name="%readSingle" description="%readSingleDesc" default="false"/>
+    <AD id="writeSingle" type="Boolean" name="%writeSingle" description="%writeSingleDesc" default="false"/>
+    <AD id="maxRequestItems" type="Integer" name="%maxRequestItems" description="%maxRequestItemsDesc" default="30"/>
   </OCD>
   <Designate factoryPid="etherip.driver.ABPlcDriver">
     <Object ocdref="etherip.driver.ABPlcDriver"/>

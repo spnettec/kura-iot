@@ -52,7 +52,7 @@ import etherip.driver.request.WriteParams;
 import etherip.types.CIPData;
 
 @Designate(ocd = Config.class, factory = true)
-@Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
+@Component(enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
         "service.pid=etherip.driver.ABPlc" })
 public class ABPlcDriver implements Driver, ConfigurableComponent {
 
@@ -148,51 +148,13 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void read(List<ChannelRecord> records) throws ConnectionException {
-        final String[] result = new String[records.size()];
-        Map<String, ChannelRecord> tagRecordMap = new HashMap<>();
-        for (int i = 0; i < records.size(); i++) {
-            ChannelRecord record = records.get(i);
-            String tagName = null;
-            try {
-                tagName = getStringProperty(record, ABPlcChannelDescriptor.DATA_TAG_NAME_ID, "AB Tag setting error");
-            } catch (KuraException e) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-                continue;
-            }
-            if (tagName == null) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "AB Tag is null",
-                        new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
-                record.setTimestamp(System.currentTimeMillis());
-            } else {
-                result[i] = tagName;
-                tagRecordMap.put(tagName, record);
-            }
-        }
-        final Config abOptions = this.options.get();
-        int maxItemCountPerRequest = abOptions.maxRequestItems();
-        String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
-
         if (this.state.client == null || !this.state.client.isConnected()) {
             connect();
         }
-        try {
-            CIPData[] cipDatas = this.state.client.readTags(maxItemCountPerRequest, tagNames);
-            for (int i = 0; i < tagNames.length; i++) {
-                String tagName = tagNames[i];
-                ChannelRecord record = tagRecordMap.get(tagName);
-                fillRecord(cipDatas[i], record);
-            }
-        } catch (Exception e) {
-            for (int i = 0; i < tagNames.length; i++) {
-                String tagName = tagNames[i];
-                ChannelRecord record = tagRecordMap.get(tagName);
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-            }
-            disconnect();
-            throw new ConnectionException(e);
-        }
+        if (this.state.options.readSingle())
+            readSingle(records);
+        else
+            readMuti(records);
     }
 
     public static void fillRecord(final CIPData value, final ChannelRecord record) {
@@ -207,8 +169,8 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
             record.setValue(map(value, record.getValueType()));
             record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
         } catch (Exception e) {
-            record.setChannelStatus(new ChannelStatus(FAILURE,
-                    "Error while converting the retrieved value to the defined typed", null));
+            record.setChannelStatus(
+                    new ChannelStatus(FAILURE, "Error while converting the retrieved value to the defined typed", e));
         }
 
     }
@@ -253,10 +215,86 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         if (this.state.client == null || !this.state.client.isConnected()) {
             connect();
         }
-        if (this.state.options.single())
+        if (this.state.options.writeSingle())
             writeSingle(records);
         else
             writeMuti(records);
+    }
+
+    private void readSingle(List<ChannelRecord> records) throws ConnectionException {
+        for (int i = 0; i < records.size(); i++) {
+            ChannelRecord record = records.get(i);
+            String tagName = null;
+            try {
+                tagName = getStringProperty(record, ABPlcChannelDescriptor.DATA_TAG_NAME_ID, "AB Tag setting error");
+            } catch (KuraException e) {
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                record.setTimestamp(System.currentTimeMillis());
+                continue;
+            }
+            if (tagName == null) {
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "AB Tag is null",
+                        new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
+                record.setTimestamp(System.currentTimeMillis());
+            } else {
+                try {
+                    CIPData cipData = this.state.client.readTag(tagName);
+                    fillRecord(cipData, record);
+                } catch (Exception e) {
+                    logger.error("AB PLC read error", e);
+                    record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                    record.setTimestamp(System.currentTimeMillis());
+                    disconnect();
+                    connect();
+                }
+
+            }
+        }
+    }
+
+    private void readMuti(List<ChannelRecord> records) throws ConnectionException {
+        final String[] result = new String[records.size()];
+        Map<String, ChannelRecord> tagRecordMap = new HashMap<>();
+        for (int i = 0; i < records.size(); i++) {
+            ChannelRecord record = records.get(i);
+            String tagName = null;
+            try {
+                tagName = getStringProperty(record, ABPlcChannelDescriptor.DATA_TAG_NAME_ID, "AB Tag setting error");
+            } catch (KuraException e) {
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                record.setTimestamp(System.currentTimeMillis());
+                continue;
+            }
+            if (tagName == null) {
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "AB Tag is null",
+                        new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
+                record.setTimestamp(System.currentTimeMillis());
+            } else {
+                result[i] = tagName;
+                tagRecordMap.put(tagName, record);
+            }
+        }
+        final Config abOptions = this.options.get();
+        int maxItemCountPerRequest = abOptions.maxRequestItems();
+        String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
+        try {
+            CIPData[] cipDatas = this.state.client.readTags(maxItemCountPerRequest, tagNames);
+            for (int i = 0; i < tagNames.length; i++) {
+                String tagName = tagNames[i];
+                ChannelRecord record = tagRecordMap.get(tagName);
+                fillRecord(cipDatas[i], record);
+            }
+        } catch (Exception e) {
+            logger.error("AB PLC read error", e);
+            for (int i = 0; i < tagNames.length; i++) {
+                String tagName = tagNames[i];
+                ChannelRecord record = tagRecordMap.get(tagName);
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                record.setTimestamp(System.currentTimeMillis());
+            }
+            disconnect();
+            throw new ConnectionException(e);
+        }
     }
 
     private void writeMuti(List<ChannelRecord> records) throws ConnectionException {
@@ -390,11 +428,14 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         @AttributeDefinition(name = "%slot", description = "%slotDesc")
         int slot() default 0;
 
-        @AttributeDefinition(name = "%single", description = "%singleDesc")
-        boolean single() default true;
+        @AttributeDefinition(name = "%readSingle", description = "%readSingleDesc")
+        boolean readSingle() default false;
+
+        @AttributeDefinition(name = "%writeSingle", description = "%writeSingleDesc")
+        boolean writeSingle() default false;
 
         @AttributeDefinition(name = "%maxRequestItems", description = "%maxRequestItemsDesc")
-        int maxRequestItems() default 100;
+        int maxRequestItems() default 30;
     }
 
 }

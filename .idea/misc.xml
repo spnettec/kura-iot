@@ -3,9 +3,11 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp" />
     <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j" />
+    <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.logconfig" />
     <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc" />
     <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp" />
     <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl" />
+    <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia" />
     <file type="Osmorc" url="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.vertx" />
   </component>
   <component name="MavenProjectsManager">

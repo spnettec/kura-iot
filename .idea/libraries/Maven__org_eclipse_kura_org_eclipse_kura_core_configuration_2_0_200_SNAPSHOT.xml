@@ -1,13 +1,13 @@
 <component name="libraryTable">
   <library name="Maven: org.eclipse.kura:org.eclipse.kura.core.configuration:2.0.200-SNAPSHOT">
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.core.configuration/2.0.200-SNAPSHOT/org.eclipse.kura.core.configuration-2.0.200-SNAPSHOT.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.core.configuration/2.0.200-SNAPSHOT/org.eclipse.kura.core.configuration-2.0.200-20190311.101531-69.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.core.configuration/2.0.200-SNAPSHOT/org.eclipse.kura.core.configuration-2.0.200-SNAPSHOT-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.core.configuration/2.0.200-SNAPSHOT/org.eclipse.kura.core.configuration-2.0.200-20190311.101531-69-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.core.configuration/2.0.200-SNAPSHOT/org.eclipse.kura.core.configuration-2.0.200-SNAPSHOT-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/kura/org.eclipse.kura.core.configuration/2.0.200-SNAPSHOT/org.eclipse.kura.core.configuration-2.0.200-20190311.101531-69-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

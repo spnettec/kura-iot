@@ -7,11 +7,17 @@
       <module fileurl="file://$PROJECT_DIR$/yofc-iot.iml" filepath="$PROJECT_DIR$/yofc-iot.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/yofc-iot-api.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/yofc-iot-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j/yofc-iot-api-log4j.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j/yofc-iot-api-log4j.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.logconfig/yofc-iot-api-logconfig.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.logconfig/yofc-iot-api-logconfig.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp/yofc-iot-api-vertx.iml" filepath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp/yofc-iot-api-vertx.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/yofc-iot-apps.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/yofc-iot-apps.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/yofc-iot-apps-abplc.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/yofc-iot-apps-abplc.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/yofc-iot-apps-comp.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/yofc-iot-apps-comp.iml" />
       <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/yofc-iot-apps-hsl.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/yofc-iot-apps-hsl.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia/yofc-iot-apps-jolokia.iml" filepath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia/yofc-iot-apps-jolokia.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.docker/yofc-iot-docker.iml" filepath="$PROJECT_DIR$/com.yofc.iot.docker/yofc-iot-docker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.docker/com.yofc.iot.docker.oracle/yofc-iot-docker-oracle.iml" filepath="$PROJECT_DIR$/com.yofc.iot.docker/com.yofc.iot.docker.oracle/yofc-iot-docker-oracle.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.cmc/yofc-iot-repack-cmc.iml" filepath="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.cmc/yofc-iot-repack-cmc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.paxcdi/yofc-iot-repack-paxcdi.iml" filepath="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.paxcdi/yofc-iot-repack-paxcdi.iml" />
     </modules>
   </component>
 </project>

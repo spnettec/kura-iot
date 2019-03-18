@@ -1,7 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b9dba152-9fa6-44bb-a693-c412f409adf6" name="Default Changelist" comment="" />
+    <list default="true" id="b9dba152-9fa6-44bb-a693-c412f409adf6" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_core_2_9_7.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_fasterxml_jackson_core_jackson_databind_2_9_7.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_auth_common_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_auth_jwt_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_auth_shiro_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_bridge_common_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_codegen_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_core_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_jdbc_client_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_jwt_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_rx_gen_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_rx_java2_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_rx_java2_gen_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_sql_common_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_tcp_eventbus_bridge_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_web_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_web_client_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__io_vertx_vertx_web_common_3_6_2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_api_2_0_100_SNAPSHOT.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_api_2_0_100_SNAPSHOT.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_core_configuration_2_0_200_SNAPSHOT.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_core_configuration_2_0_200_SNAPSHOT.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_driver_block_1_0_300_SNAPSHOT.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_driver_block_1_0_300_SNAPSHOT.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_util_1_1_100_SNAPSHOT.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_eclipse_kura_org_eclipse_kura_util_1_1_100_SNAPSHOT.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp/yofc-iot-api-vertx.iml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp/yofc-iot-api-vertx.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j/yofc-iot-api-log4j.iml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j/yofc-iot-api-log4j.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/etherip.driver.ABPlcDriver.xml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/etherip.driver.ABPlcDriver.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/l10n/etherip.driver.Config_en.properties" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/l10n/etherip.driver.Config_en.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/l10n/etherip.driver.Config_zh.properties" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/l10n/etherip.driver.Config_zh.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/metatype/etherip.driver.ABPlcDriver.xml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/OSGI-INF/metatype/etherip.driver.ABPlcDriver.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/src/main/java/etherip/EtherNetIP.java" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/src/main/java/etherip/EtherNetIP.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/src/main/java/etherip/driver/ABPlcDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/src/main/java/etherip/driver/ABPlcDriver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/yofc-iot-apps-abplc.iml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/yofc-iot-apps-abplc.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/yofc-iot-apps-comp.iml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/yofc-iot-apps-comp.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/yofc-iot-apps-hsl.iml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl/yofc-iot-apps-hsl.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.vertx/com.yofc.iot.repack.vertx.iml" beforeDir="false" afterPath="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.vertx/com.yofc.iot.repack.vertx.iml" afterDir="false" />
+    </list>
     <ignored path="$PROJECT_DIR$/com.yofc.iot.api/target/" />
     <ignored path="$PROJECT_DIR$/target/" />
     <ignored path="$PROJECT_DIR$/com.yofc.iot.apps/target/" />
@@ -12,6 +56,12 @@
     <ignored path="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc/target/" />
     <ignored path="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp/target/" />
     <ignored path="$PROJECT_DIR$/com.yofc.iot.repack/target/" />
+    <ignored path="$PROJECT_DIR$/com.yofc.iot.docker/com.yofc.iot.docker.oracle/target/" />
+    <ignored path="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.paxcdi/target/" />
+    <ignored path="$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.cmc/target/" />
+    <ignored path="$PROJECT_DIR$/com.yofc.iot.docker/target/" />
+    <ignored path="$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia/target/" />
+    <ignored path="$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.logconfig/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,17 +69,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/pom.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="705">
-              <caret line="47" column="21" lean-forward="true" selection-start-line="47" selection-start-column="21" selection-end-line="47" selection-end-column="21" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -41,10 +81,10 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
     <option name="width" value="1920" />
-    <option name="height" value="1013" />
+    <option name="height" value="999" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -52,37 +92,9 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="yofc-iot" type="b2602c69:ProjectViewProjectNode" />
-              <item name="yofc-iot" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="yofc-iot" type="b2602c69:ProjectViewProjectNode" />
-              <item name="yofc-iot" type="462c0819:PsiDirectoryNode" />
-              <item name="com.yofc.iot.api" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="yofc-iot" type="b2602c69:ProjectViewProjectNode" />
-              <item name="yofc-iot" type="462c0819:PsiDirectoryNode" />
-              <item name="com.yofc.iot.api" type="462c0819:PsiDirectoryNode" />
-              <item name="com.yofc.iot.api.comp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="yofc-iot" type="b2602c69:ProjectViewProjectNode" />
-              <item name="yofc-iot" type="462c0819:PsiDirectoryNode" />
-              <item name="com.yofc.iot.api" type="462c0819:PsiDirectoryNode" />
-              <item name="com.yofc.iot.api.comp" type="462c0819:PsiDirectoryNode" />
-              <item name="META-INF" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
       <pane id="PackagesPane" />
+      <pane id="Scope" />
+      <pane id="ProjectPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -117,6 +129,7 @@
       <updated>1547387134806</updated>
       <workItem from="1547387136083" duration="155000" />
       <workItem from="1547388278341" duration="54000" />
+      <workItem from="1552816102673" duration="168000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <created>1547387265428</created>
@@ -129,12 +142,12 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="209000" />
+    <option name="totallyTimeSpent" value="377000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1920" height="1010" extended-state="6" />
+    <frame x="0" y="23" width="1920" height="999" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25239617" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2550586" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -150,10 +163,11 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info anchor="bottom" id="Docker" order="8" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" visible="true" weight="0.3296582" />
       <window_info anchor="bottom" id="Java Enterprise" order="10" />
       <window_info anchor="bottom" id="Database Changes" order="11" />
       <window_info anchor="bottom" id="Version Control" order="12" />
+      <window_info anchor="right" id="CDI" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -176,8 +190,8 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="47" column="21" lean-forward="true" selection-start-line="47" selection-start-column="21" selection-end-line="47" selection-end-column="21" />
+        <state relative-caret-position="187">
+          <caret line="38" column="23" selection-start-line="38" selection-start-column="23" selection-end-line="38" selection-end-column="23" />
         </state>
       </provider>
     </entry>

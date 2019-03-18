@@ -5,11 +5,17 @@
     <file url="file://$PROJECT_DIR$/com.yofc.iot.api" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.comp" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.log4j" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/com.yofc.iot.api/com.yofc.iot.api.logconfig" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.apps" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.abplc" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.comp" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.hsl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/com.yofc.iot.apps/com.yofc.iot.apps.jolokia" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/com.yofc.iot.docker" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/com.yofc.iot.docker/com.yofc.iot.docker.oracle" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.repack" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.cmc" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.paxcdi" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/com.yofc.iot.repack/com.yofc.iot.repack.vertx" charset="UTF-8" />
   </component>
 </project>
