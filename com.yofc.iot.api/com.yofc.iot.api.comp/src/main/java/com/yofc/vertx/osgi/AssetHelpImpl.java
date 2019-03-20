@@ -109,6 +109,11 @@ public class AssetHelpImpl implements AssetHelp {
         return json;
     }
 
+    public Object readTag(String assetPid, String tagName) throws KuraException {
+        JsonObject json = readTags(assetPid, tagName);
+        return json.getValue(tagName);
+    }
+
     public JsonObject readTags(String assetPid, List<String> tagNames) throws KuraException {
         JsonObject json = new JsonObject();
         Asset asset = getAsset(assetPid);

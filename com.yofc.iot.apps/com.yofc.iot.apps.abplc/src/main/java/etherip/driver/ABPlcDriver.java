@@ -78,13 +78,6 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
 
         extractProperties(properties);
 
-        try {
-            disconnect();
-            connect();
-        } catch (ConnectionException e) {
-            logger.warn("Unable to Disconnect...");
-        }
-
         logger.info("Updating AB-PLC Driver... Done");
     }
 
@@ -95,6 +88,7 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
             disconnect();
         } catch (final ConnectionException e) {
             logger.error("Error while disconnecting...", e);
+            return;
         }
         logger.debug("Deactivating AB PLC Driver.....Done");
     }
