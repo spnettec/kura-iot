@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 
 public interface AssetHelp {
 
+    public Object readTag(String assetPid, String tagName) throws KuraException;
+
     public JsonObject readTags(String assetPid, String... tagNames) throws KuraException;
 
     public JsonObject readTags(String assetPid, List<String> tagNames) throws KuraException;

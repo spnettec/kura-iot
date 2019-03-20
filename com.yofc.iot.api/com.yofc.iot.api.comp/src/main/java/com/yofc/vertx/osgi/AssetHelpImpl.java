@@ -4,7 +4,6 @@ import static org.eclipse.kura.channel.ChannelType.READ_WRITE;
 import static org.eclipse.kura.channel.ChannelType.WRITE;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,6 +28,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.util.tracker.ServiceTracker;
 
+import com.github.davidmoten.guavamini.Sets;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.AssetTrackerCustomizer;
 
@@ -102,7 +102,7 @@ public class AssetHelpImpl implements AssetHelp {
         Asset asset = getAsset(assetPid);
         Objects.nonNull(asset);
         List<ChannelRecord> records;
-        records = asset.read(Arrays.asList(tagNames).stream().collect(Collectors.toSet()));
+        records = asset.read(Sets.newHashSet(tagNames));
         for (ChannelRecord record : records) {
             json.put(record.getChannelName(), record.getValue().getValue());
         }
@@ -119,7 +119,7 @@ public class AssetHelpImpl implements AssetHelp {
         Asset asset = getAsset(assetPid);
 
         List<ChannelRecord> records;
-        records = asset.read(tagNames.stream().collect(Collectors.toSet()));
+        records = asset.read(Sets.newHashSet(tagNames));
 
         for (ChannelRecord record : records) {
             Object value = null;
