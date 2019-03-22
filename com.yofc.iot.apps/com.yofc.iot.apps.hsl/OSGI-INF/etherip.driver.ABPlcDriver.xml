@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="etherip.driver.ABPlcDriver" configuration-policy="require" enabled="true" activate="activate" deactivate="deactivate" modified="updated">
-  <property name="service.pid" type="String" value="etherip.driver.ABPlc"/>
-  <service>
-    <provide interface="org.eclipse.kura.driver.Driver"/>
-    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
-  </service>
-  <implementation class="etherip.driver.ABPlcDriver"/>
-</scr:component>

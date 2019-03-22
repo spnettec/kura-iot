@@ -9,7 +9,5 @@
   <packaging>pom</packaging>
   <modules>
       <module>com.yofc.iot.repack.vertx</module>
-      <module>com.yofc.iot.repack.cmc</module>
-      <module>com.yofc.iot.repack.paxcdi</module>
   </modules>
 </project>

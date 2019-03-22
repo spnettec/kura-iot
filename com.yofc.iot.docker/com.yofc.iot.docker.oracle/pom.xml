@@ -60,6 +60,18 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.12</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>io.vertx</groupId>
+          <artifactId>vertx-unit</artifactId>
+          <version>${vertx.version}</version>
+          <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -67,7 +79,7 @@
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>docker-maven-plugin</artifactId>
-        <version>0.2.8</version>
+        <version>1.2.0</version>
         <executions>
           <execution>
             <id>docker</id>

@@ -9,7 +9,6 @@
   <packaging>pom</packaging>
   <modules>
       <module>com.yofc.iot.apps.abplc</module>
-      <module>com.yofc.iot.apps.hsl</module>
       <module>com.yofc.iot.apps.comp</module>
       <module>com.yofc.iot.apps.jolokia</module>
   </modules>
