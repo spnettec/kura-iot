@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
@@ -18,7 +17,6 @@ public class VerticleTest {
     @Before
     public void setUp(TestContext context) {
         vertx = Vertx.vertx();
-        vertx.deployVerticle(VerticleTest.class.getName(), context.asyncAssertSuccess());
     }
 
     @After
@@ -28,13 +26,6 @@ public class VerticleTest {
 
     @Test
     public void testMyApplication(TestContext context) {
-        final Async async = context.async();
 
-        vertx.createHttpClient().getNow(8080, "localhost", "/", response -> {
-            response.handler(body -> {
-                context.assertTrue(body.toString().contains("Hello"));
-                async.complete();
-            });
-        });
     }
 }
