@@ -19,7 +19,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
-@Plugin(name = "YofcOsgi", category = "Core", elementType = "appender", printObject = true)
+@Plugin(name = "YofcOsgiAppender", category = "Core", elementType = "appender", printObject = true)
 public class YofcOsgiAppender extends AbstractAppender {
 
     protected YofcOsgiAppender(final String name, final Filter filter, final Layout<? extends Serializable> layout,
@@ -59,7 +59,7 @@ public class YofcOsgiAppender extends AbstractAppender {
             bundleContext = bundle.getBundleContext();
         }
         if (bundleContext == null) {
-            throw new IllegalArgumentException("missing BundleContext");
+            return;
         }
 
         Map<String, Appender> apps = LoggerContext.getContext().getConfiguration().getAppenders();
