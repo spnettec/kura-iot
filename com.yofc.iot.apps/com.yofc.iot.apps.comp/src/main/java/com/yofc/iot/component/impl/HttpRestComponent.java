@@ -96,7 +96,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         if (webClient != null) {
             webClient.close();
             webClient = WebClient.create(vertx);
-        }
+        } else
+            webClient = WebClient.create(vertx);
 
     }
 

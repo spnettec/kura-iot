@@ -136,7 +136,8 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             if (webClient != null) {
                 webClient.close();
                 webClient = WebClient.create(vertx);
-            }
+            } else
+                webClient = WebClient.create(vertx);
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
