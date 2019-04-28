@@ -10,7 +10,6 @@
     <description>YOFC Applications for Component API</description>
   <packaging>bundle</packaging>
     <properties>
-        <vertx.version>3.6.3</vertx.version>
         <rxjava2.extras.version>0.1.31</rxjava2.extras.version>
     </properties>
     <dependencies>

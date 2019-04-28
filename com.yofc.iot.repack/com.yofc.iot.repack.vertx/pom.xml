@@ -9,9 +9,6 @@
   <name>YOFC-Applications::Repack Vertx</name>
     <description>YOFC Applications for Repack Vertx</description>
   <packaging>bundle</packaging>
-    <properties>
-        <vertx.version>3.6.3</vertx.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.eclipse.kura</groupId>

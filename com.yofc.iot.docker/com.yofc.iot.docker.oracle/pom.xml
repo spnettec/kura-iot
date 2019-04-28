@@ -9,9 +9,6 @@
     <artifactId>yofc-iot-docker-oracle</artifactId>
     <name>YOFC-Applications::Docker for Oracle</name>
     <description>YOFC Applications for Docker Oracle</description>
-    <properties>
-        <vertx.version>3.6.3</vertx.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>io.vertx</groupId>
