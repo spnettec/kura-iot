@@ -121,13 +121,12 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
         } else
             wiresMap.put(wire, new WireEnvelopePair((WireEnvelope) wire.getLastValue(), wireEnvelope, true));
         long barrierSize = wiresMap.entrySet().stream().filter(entry -> entry.getValue().isHasElement()).count();
-        if (isBarrier && barrierSize < this.producersSize)
-            return;
-        else {
-            int realSize = wiresMap.size();
-            if (realSize < this.producersSize)
+        int realSize = wiresMap.size();
+        if (isBarrier) {
+            if (barrierSize < this.producersSize || realSize < this.producersSize)
                 return;
-        }
+        } else if (realSize == 0)
+            return;
         String pid = wireEnvelope.getEmitterPid();
         List<WireRecord> currentRecords = wiresMap.entrySet().stream()
                 .map(Utils.functionWrapper(entry -> entry.getValue().getCurrentWireEnvelope().getRecords()))
