@@ -43,11 +43,11 @@ public class VerticleTest {
         options.setReconnectInterval(500);// 每一次尝试间隔
         options.setLogActivity(true);
         NetClient tcpClient = vertx.createNetClient(options);
-        System.out.println("启动...");
+        logger.info("启动...");
         tcpClient.connect(3000, "10.211.55.4", result -> {
 
             if (result.failed()) {
-                System.out.println("连接失败...");
+                logger.error("连接失败...",result.cause());
                 async.complete();
                 return;
             }
