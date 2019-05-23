@@ -86,7 +86,7 @@ public final class AssetTrackerCustomizer implements ServiceTrackerCustomizer<As
      * @return the map of assets
      */
     public Map<String, Asset> getRegisteredAssets() {
-        return this.assets;
+        return CollectionUtil.newConcurrentHashMap(this.assets);
     }
 
     /** {@inheritDoc} */

@@ -46,8 +46,6 @@ public class AssetHelpImpl implements AssetHelp {
         this.assetTrackerCustomizer = new AssetTrackerCustomizer(context);
         this.assetServiceTracker = new ServiceTracker<>(context, Asset.class.getName(), this.assetTrackerCustomizer);
         this.assetServiceTracker.open();
-        findAssets();
-
     }
 
     @Deactivate
@@ -60,7 +58,7 @@ public class AssetHelpImpl implements AssetHelp {
     }
 
     public Asset getAsset(String assetPid) throws KuraException {
-
+        findAssets();
         Asset asset = this.assets.get(assetPid);
         if (asset == null)
             throw KuraException.internalError("can not find asset name:" + assetPid);
@@ -77,11 +75,10 @@ public class AssetHelpImpl implements AssetHelp {
             final String channelName = channel.getName();
             final ChannelType channelType = channel.getType();
 
-            if (channelType != WRITE && channelType != READ_WRITE) {
+            if (!channel.isEnabled() || (channelType != WRITE && channelType != READ_WRITE)) {
                 continue;
             }
-            if (!channel.isEnabled())
-                continue;
+
             Map<String, TypedValue<?>> wireRecordProperties = records.stream().map(WireRecord::getProperties)
                     .map(Map::entrySet).flatMap(Set::stream)
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
