@@ -1,6 +1,7 @@
 package com.yofc.test;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.netty.bootstrap.Bootstrap;
@@ -59,11 +60,11 @@ public class TcpClient {
         this.handler = handler;
     }
 
-    public ByteBuf sendAndReply(ByteBuf message) throws InterruptedException {
+    public ByteBuf sendAndReply(ByteBuf message) throws InterruptedException, TimeoutException {
         ChannelPromise promise = clientHandler.sendAndGetMessage(message);
         boolean result = promise.await(2000, TimeUnit.MILLISECONDS);
         if (!result)
-            throw new InterruptedException();
+            throw new TimeoutException();
         return clientHandler.getData();
     }
 

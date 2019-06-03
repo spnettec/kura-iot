@@ -31,8 +31,8 @@ public class TcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     public ChannelPromise sendAndGetMessage(ByteBuf message) {
         if (ctx == null)
             throw new IllegalStateException();
-        promise = ctx.writeAndFlush(message).channel().newPromise();
-        return promise;
+        this.promise = ctx.writeAndFlush(message).channel().newPromise();
+        return this.promise;
     }
 
     public void sendMessage(ByteBuf message) {
@@ -47,8 +47,6 @@ public class TcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        logger.info("客户端读取到数据");
-
         if (promise != null && !promise.isDone()) {
             data = msg.copy();
             promise.setSuccess();

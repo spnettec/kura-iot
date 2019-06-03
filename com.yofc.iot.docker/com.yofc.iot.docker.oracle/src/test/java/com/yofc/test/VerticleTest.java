@@ -25,7 +25,7 @@ public class VerticleTest {
     @BeforeEach
     @DisplayName("开始")
     public void setUp(Vertx vertx, VertxTestContext context) {
-        agv = new AgvVerticle("10.211.55.3");
+        agv = new AgvVerticle("10.211.55.4");
         vertx.deployVerticle(agv, context.succeeding(id -> {
             context.completeNow();
         }));
@@ -60,7 +60,28 @@ public class VerticleTest {
                 System.out.println("订单: " + buffer.getIntLE(2));
         });
         Buffer buf = agv.get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
-        agv.write(buf);
+        agv.sendAndReply(buf, 2000, handler -> {
+            if (handler.failed()) {
+                logger.error("error", handler.cause());
+                return;
+            }
+            Buffer receive = handler.result();
+            int head = receive.getUnsignedShortLE(0);
+            logger.debug("返回头: {}", head);
+            if (head == 10011) {
+                System.out.print("是否回复: " + receive.getUnsignedShortLE(2) + "   ");
+                int nums = receive.getUnsignedShortLE(4);
+                if (nums > 0) {
+                    System.out.print("数据个数: " + nums + "   ");
+                    for (int i = 1; i <= nums; i++) {
+                        System.out.print("第" + i + "个数: " + receive.getUnsignedShortLE(4 + i * 2) + "   ");
+                    }
+                }
+                System.out.println();
+                // context.completeNow();
+            } else
+                System.out.println("订单: " + receive.getIntLE(2));
+        });
     }
 
 }

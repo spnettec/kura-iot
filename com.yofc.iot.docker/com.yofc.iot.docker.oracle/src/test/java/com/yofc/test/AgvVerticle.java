@@ -1,9 +1,12 @@
 package com.yofc.test;
 
+import java.util.concurrent.TimeoutException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -18,6 +21,7 @@ public class AgvVerticle extends AbstractVerticle {
     private Handler<Buffer> handler;
     private String host = "127.0.0.1";
     private int port = 3000;
+    Future<Buffer> future;
 
     public AgvVerticle() {
 
@@ -61,6 +65,8 @@ public class AgvVerticle extends AbstractVerticle {
     }
 
     private void handlerBuffer(Buffer buffer) {
+        if (future != null && !future.isComplete())
+            future.complete(buffer);
         int head = buffer.getUnsignedShortLE(0);
         if (head == 10011) {
             write(buffer);
@@ -75,6 +81,16 @@ public class AgvVerticle extends AbstractVerticle {
 
     public void write(Buffer buffer) {
         socket.write(buffer);
+    }
+
+    public void sendAndReply(Buffer message, long timeOut, Handler<AsyncResult<Buffer>> handler) {
+        future = Future.future();
+        future.setHandler(handler);
+        write(message);
+        vertx.setTimer(timeOut, l -> {
+            if (!future.isComplete())
+                future.fail(new TimeoutException());
+        });
     }
 
     public Buffer get10003DataBuf(int orderNo, int orderStep, int taskType, int productType, int priority,

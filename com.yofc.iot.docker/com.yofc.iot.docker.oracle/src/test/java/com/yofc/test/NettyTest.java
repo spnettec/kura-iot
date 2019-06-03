@@ -1,6 +1,7 @@
 package com.yofc.test;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,7 @@ public class NettyTest {
     @Test
     @Timeout(value = 100, timeUnit = TimeUnit.SECONDS)
     @DisplayName("Netty测试")
-    public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException {
+    public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException, TimeoutException {
         TcpClient client = new TcpClient();
         client.connect("10.211.55.4", 3000);
 
