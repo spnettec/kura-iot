@@ -25,7 +25,7 @@ public class VerticleTest {
     @BeforeEach
     @DisplayName("开始")
     public void setUp(Vertx vertx, VertxTestContext context) {
-        agv = new AgvVerticle("10.211.55.4");
+        agv = new AgvVerticle("10.211.55.3");
         vertx.deployVerticle(agv, context.succeeding(id -> {
             context.completeNow();
         }));

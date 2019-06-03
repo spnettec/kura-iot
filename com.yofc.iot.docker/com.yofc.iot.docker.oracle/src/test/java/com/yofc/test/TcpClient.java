@@ -1,8 +1,10 @@
 package com.yofc.test;
 
+import java.util.concurrent.TimeUnit;
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPromise;
@@ -10,6 +12,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.ReferenceCountUtil;
 import io.vertx.core.Handler;
 
 public class TcpClient {
@@ -32,10 +35,7 @@ public class TcpClient {
                 }
             });
             clientHandler.setHandler(this::handlerBuffer);
-            Channel channel = bootstrap.connect(host, port).sync().channel();
-            while (!channel.isActive()) {
-                Thread.sleep(1000);
-            }
+            bootstrap.connect(host, port).sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -46,13 +46,16 @@ public class TcpClient {
         int head = buffer.getUnsignedShortLE(0);
         if (head == 10011) {
             try {
-                write(buffer);
+                ByteBuf buf = Unpooled.buffer();
+                buf.writeBytes(buffer);
+                write(buf);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         if (handler != null)
             handler.handle(buffer);
+        ReferenceCountUtil.release(buffer);
     }
 
     public void addHandle(Handler<ByteBuf> handler) {
@@ -61,7 +64,7 @@ public class TcpClient {
 
     public ByteBuf sendAndReply(ByteBuf message) throws InterruptedException {
         ChannelPromise promise = clientHandler.sendAndGetMessage(message);
-        promise.await();
+        promise.await(2000, TimeUnit.MILLISECONDS);
         return clientHandler.getData();
     }
 

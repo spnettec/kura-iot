@@ -39,7 +39,7 @@ public class NettyTest {
     @DisplayName("Netty测试")
     public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException {
         TcpClient client = new TcpClient();
-        client.connect("10.211.55.4", 3000);
+        client.connect("10.211.55.3", 3000);
 
         client.addHandle(buffer -> {
             int head = buffer.getUnsignedShortLE(0);
@@ -61,10 +61,22 @@ public class NettyTest {
 
         ByteBuf buf = get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
 
-        Object receive = client.sendAndReply(buf);
-        ByteBuf byteBuf = (ByteBuf) receive;
-        int head = byteBuf.getUnsignedShortLE(0);
+        ByteBuf receive = client.sendAndReply(buf);
+        int head = receive.getUnsignedShortLE(0);
         logger.debug("返回头: {}", head);
+        if (head == 10011) {
+            System.out.print("是否回复: " + receive.getUnsignedShortLE(2) + "   ");
+            int nums = receive.getUnsignedShortLE(4);
+            if (nums > 0) {
+                System.out.print("数据个数: " + nums + "   ");
+                for (int i = 1; i <= nums; i++) {
+                    System.out.print("第" + i + "个数: " + receive.getUnsignedShortLE(4 + i * 2) + "   ");
+                }
+            }
+            System.out.println();
+            // context.completeNow();
+        } else
+            System.out.println("订单: " + receive.getIntLE(2));
     }
 
     private ByteBuf get10003DataBuf(int orderNo, int orderStep, int taskType, int productType, int priority,
