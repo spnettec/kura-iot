@@ -1,5 +1,7 @@
 package com.yofc.test;
 
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,17 +9,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.vertx.core.Handler;
 
 public class TcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private ChannelHandlerContext ctx;
     private ChannelPromise promise;
     private ByteBuf data;
-    private Handler<ByteBuf> handler;
+    private Consumer<ByteBuf> handler;
     private static final Logger logger = LoggerFactory.getLogger(SimpleChannelInboundHandler.class);
 
-    public void setHandler(Handler<ByteBuf> handler) {
+    public void setHandler(Consumer<ByteBuf> handler) {
         this.handler = handler;
     }
 
@@ -53,7 +54,7 @@ public class TcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
             promise.setSuccess();
         }
         if (this.handler != null) {
-            this.handler.handle(msg.copy());
+            this.handler.accept(msg);
         }
     }
 

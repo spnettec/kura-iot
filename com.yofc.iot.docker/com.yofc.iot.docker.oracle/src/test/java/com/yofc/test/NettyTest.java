@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import io.netty.buffer.ByteBuf;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -39,7 +38,7 @@ public class NettyTest {
     @DisplayName("Netty测试")
     public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException {
         TcpClient client = new TcpClient();
-        client.connect("10.211.55.3", 3000);
+        client.connect("10.211.55.4", 3000);
 
         client.addHandle(buffer -> {
             int head = buffer.getUnsignedShortLE(0);
@@ -59,7 +58,7 @@ public class NettyTest {
                 System.out.println("订单: " + buffer.getIntLE(2));
         });
 
-        ByteBuf buf = get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
+        ByteBuf buf = client.get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
 
         ByteBuf receive = client.sendAndReply(buf);
         int head = receive.getUnsignedShortLE(0);
@@ -79,35 +78,4 @@ public class NettyTest {
             System.out.println("订单: " + receive.getIntLE(2));
     }
 
-    private ByteBuf get10003DataBuf(int orderNo, int orderStep, int taskType, int productType, int priority,
-            int vehicleType, int vehicleNo, int nextTag, int paraNum, int paraPosRecv, int paraOpRecv, int paraPosSend,
-            int paraOpSend) {
-        Buffer buf = Buffer.buffer();
-        buf.appendUnsignedShortLE(10003);
-        buf.appendUnsignedIntLE(orderNo);
-        buf.appendUnsignedShortLE(orderStep);
-        buf.appendUnsignedShortLE(taskType);
-        buf.appendUnsignedShortLE(productType);
-        buf.appendUnsignedShortLE(priority);
-        buf.appendUnsignedShortLE(vehicleType);
-        buf.appendUnsignedShortLE(vehicleNo);
-        buf.appendUnsignedShortLE(nextTag);
-        buf.appendUnsignedShortLE(paraNum);
-        buf.appendUnsignedShortLE(paraPosRecv);
-        buf.appendUnsignedShortLE(paraOpRecv);
-        buf.appendUnsignedShortLE(paraPosSend);
-        buf.appendUnsignedShortLE(paraOpSend);
-        buf.appendUnsignedShortLE(checkSum(buf));
-        return buf.getByteBuf();
-    }
-
-    private static int checkSum(Buffer buf) {
-        int sum = 0;
-        if (buf != null) {
-            for (int i = 0; i < buf.length(); i++) {
-                sum += buf.getByte(i);
-            }
-        }
-        return sum & 0xff;
-    }
 }

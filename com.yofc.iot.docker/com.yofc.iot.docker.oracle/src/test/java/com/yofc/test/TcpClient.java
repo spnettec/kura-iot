@@ -1,6 +1,7 @@
 package com.yofc.test;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -12,13 +13,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.ReferenceCountUtil;
-import io.vertx.core.Handler;
 
 public class TcpClient {
 
     private TcpClientHandler clientHandler = new TcpClientHandler();
-    private Handler<ByteBuf> handler;
+    private Consumer<ByteBuf> handler;
 
     public void connect(String host, int port) {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -44,31 +43,63 @@ public class TcpClient {
 
     private void handlerBuffer(ByteBuf buffer) {
         int head = buffer.getUnsignedShortLE(0);
+        buffer.resetReaderIndex();
         if (head == 10011) {
             try {
-                ByteBuf buf = Unpooled.buffer();
-                buf.writeBytes(buffer);
-                write(buf);
+                write(buffer.copy());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
         if (handler != null)
-            handler.handle(buffer);
-        ReferenceCountUtil.release(buffer);
+            handler.accept(buffer);
     }
 
-    public void addHandle(Handler<ByteBuf> handler) {
+    public void addHandle(Consumer<ByteBuf> handler) {
         this.handler = handler;
     }
 
     public ByteBuf sendAndReply(ByteBuf message) throws InterruptedException {
         ChannelPromise promise = clientHandler.sendAndGetMessage(message);
-        promise.await(2000, TimeUnit.MILLISECONDS);
+        boolean result = promise.await(2000, TimeUnit.MILLISECONDS);
+        if (!result)
+            throw new InterruptedException();
         return clientHandler.getData();
     }
 
     public void write(ByteBuf message) throws InterruptedException {
         clientHandler.sendMessage(message);
+    }
+
+    public ByteBuf get10003DataBuf(int orderNo, int orderStep, int taskType, int productType, int priority,
+            int vehicleType, int vehicleNo, int nextTag, int paraNum, int paraPosRecv, int paraOpRecv, int paraPosSend,
+            int paraOpSend) {
+        ByteBuf buf = Unpooled.buffer();
+        buf.writeShortLE(10003);
+        buf.writeIntLE(orderNo);
+        buf.writeShortLE(orderStep);
+        buf.writeShortLE(taskType);
+        buf.writeShortLE(productType);
+        buf.writeShortLE(priority);
+        buf.writeShortLE(vehicleType);
+        buf.writeShortLE(vehicleNo);
+        buf.writeShortLE(nextTag);
+        buf.writeShortLE(paraNum);
+        buf.writeShortLE(paraPosRecv);
+        buf.writeShortLE(paraOpRecv);
+        buf.writeShortLE(paraPosSend);
+        buf.writeShortLE(paraOpSend);
+        buf.writeShortLE(checkSum(buf));
+        return buf;
+    }
+
+    private static int checkSum(ByteBuf buf) {
+        int sum = 0;
+        if (buf != null) {
+            for (int i = 0; i < buf.writerIndex(); i++) {
+                sum += buf.getByte(i);
+            }
+        }
+        return sum & 0xff;
     }
 }
