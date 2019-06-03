@@ -15,6 +15,7 @@ public class AgvVerticle extends AbstractVerticle {
 
     private static final Logger logger = LoggerFactory.getLogger(AgvVerticle.class);
     private NetSocket socket;
+    private Handler<Buffer> handler;
     private String host = "127.0.0.1";
     private int port = 3000;
 
@@ -51,23 +52,34 @@ public class AgvVerticle extends AbstractVerticle {
                 startFuture.fail(result.cause());
                 return;
             } else {
-                logger.error("连接到服务器:{},端口:{} 成功", this.host, this.port);
+                logger.info("连接到服务器:{},端口:{} 成功", this.host, this.port);
                 socket = result.result();
                 startFuture.complete();
+                socket.handler(this::handlerBuffer);
             }
         });
     }
 
-    public void addHandle(Handler<Buffer> handler) {
-        socket.handler(handler);
+    private void handlerBuffer(Buffer buffer) {
+        int head = buffer.getUnsignedShortLE(0);
+        if (head == 10011) {
+            write(buffer);
+        }
+        if (handler != null)
+            handler.handle(buffer);
     }
 
-    public void sendData(Buffer buffer) {
+    public void addHandle(Handler<Buffer> handler) {
+        this.handler = handler;
+    }
+
+    public void write(Buffer buffer) {
         socket.write(buffer);
     }
 
-    public void send10003Data(int orderNo, int orderStep, int taskType, int productType, int priority, int vehicleType,
-            int vehicleNo, int nextTag, int paraNum, int paraPosRecv, int paraOpRecv, int paraPosSend, int paraOpSend) {
+    public Buffer get10003DataBuf(int orderNo, int orderStep, int taskType, int productType, int priority,
+            int vehicleType, int vehicleNo, int nextTag, int paraNum, int paraPosRecv, int paraOpRecv, int paraPosSend,
+            int paraOpSend) {
         Buffer buf = Buffer.buffer();
         buf.appendUnsignedShortLE(10003);
         buf.appendUnsignedIntLE(orderNo);
@@ -83,15 +95,15 @@ public class AgvVerticle extends AbstractVerticle {
         buf.appendUnsignedShortLE(paraOpRecv);
         buf.appendUnsignedShortLE(paraPosSend);
         buf.appendUnsignedShortLE(paraOpSend);
-        buf.appendUnsignedShortLE(checkSum(buf.getBytes()));
-        socket.write(buf);
+        buf.appendUnsignedShortLE(checkSum(buf));
+        return buf;
     }
 
-    private static int checkSum(byte[] src) {
+    private static int checkSum(Buffer buf) {
         int sum = 0;
-        if (src != null) {
-            for (int i = 0; i < src.length; i++) {
-                sum += src[i];
+        if (buf != null) {
+            for (int i = 0; i < buf.length(); i++) {
+                sum += buf.getByte(i);
             }
         }
         return sum & 0xff;

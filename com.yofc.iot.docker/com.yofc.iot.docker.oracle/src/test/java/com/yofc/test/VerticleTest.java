@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -54,12 +55,12 @@ public class VerticleTest {
                     }
                 }
                 System.out.println();
-                agv.sendData(buffer);
                 // context.completeNow();
             } else
                 System.out.println("订单: " + buffer.getIntLE(2));
         });
-        agv.send10003Data(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
+        Buffer buf = agv.get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
+        agv.write(buf);
     }
 
 }
