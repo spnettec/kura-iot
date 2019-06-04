@@ -1,5 +1,6 @@
 package com.yofc.test;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -9,11 +10,17 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.ReferenceCountUtil;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
+import io.netty.util.concurrent.DefaultPromise;
+import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.concurrent.Promise;
 
 public class NettyTcpClient {
 
@@ -60,12 +67,29 @@ public class NettyTcpClient {
         this.handler = handler;
     }
 
-    public ByteBuf sendAndReply(ByteBuf message) throws InterruptedException, TimeoutException {
-        ChannelPromise promise = clientHandler.sendAndGetMessage(message);
-        boolean result = promise.await(2000, TimeUnit.MILLISECONDS);
-        if (!result)
-            throw new TimeoutException();
-        return clientHandler.getData();
+    public void sendAndReply(ByteBuf message, long timeOut, Consumer<Promise<ByteBuf>> handler)
+            throws InterruptedException, TimeoutException {
+        CompletableFuture<ByteBuf> future = clientHandler.sendAndGetMessage(message);
+        new HashedWheelTimer().newTimeout(new TimerTask() {
+
+            public void run(Timeout timeout) throws Exception {
+                if (!future.isDone())
+                    future.completeExceptionally(new TimeoutException());
+            }
+        }, timeOut, TimeUnit.MILLISECONDS);
+        future.whenComplete((msg, ex) -> {
+            DefaultPromise<ByteBuf> pomis = new DefaultPromise<ByteBuf>(GlobalEventExecutor.INSTANCE);
+            if (ex == null)
+                pomis.setSuccess(msg);
+            else
+                pomis.setFailure(ex);
+            try {
+                handler.accept(pomis);
+            } finally {
+                ReferenceCountUtil.release(msg);
+            }
+        });
+
     }
 
     public void write(ByteBuf message) throws InterruptedException {

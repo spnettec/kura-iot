@@ -61,22 +61,27 @@ public class NettyTest {
 
         ByteBuf buf = client.get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
 
-        ByteBuf receive = client.sendAndReply(buf);
-        int head = receive.getUnsignedShortLE(0);
-        logger.debug("返回头: {}", head);
-        if (head == 10011) {
-            System.out.print("是否回复: " + receive.getUnsignedShortLE(2) + "   ");
-            int nums = receive.getUnsignedShortLE(4);
-            if (nums > 0) {
-                System.out.print("数据个数: " + nums + "   ");
-                for (int i = 1; i <= nums; i++) {
-                    System.out.print("第" + i + "个数: " + receive.getUnsignedShortLE(4 + i * 2) + "   ");
-                }
+        client.sendAndReply(buf, 2000, handler -> {
+            if (!handler.isSuccess()) {
+                logger.error("error", handler.cause());
+                return;
             }
-            System.out.println();
-            // context.completeNow();
-        } else
-            System.out.println("订单: " + receive.getIntLE(2));
+            ByteBuf receive = handler.getNow();
+            int head = receive.getUnsignedShortLE(0);
+            logger.debug("返回头: {}", head);
+            if (head == 10011) {
+                System.out.print("是否回复: " + receive.getUnsignedShortLE(2) + "   ");
+                int nums = receive.getUnsignedShortLE(4);
+                if (nums > 0) {
+                    System.out.print("数据个数: " + nums + "   ");
+                    for (int i = 1; i <= nums; i++) {
+                        System.out.print("第" + i + "个数: " + receive.getUnsignedShortLE(4 + i * 2) + "   ");
+                    }
+                }
+                System.out.println();
+                // context.completeNow();
+            } else
+                System.out.println("订单: " + receive.getIntLE(2));
+        });
     }
-
 }

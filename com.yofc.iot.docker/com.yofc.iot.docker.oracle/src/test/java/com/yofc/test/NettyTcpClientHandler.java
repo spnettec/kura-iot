@@ -1,5 +1,6 @@
 package com.yofc.test;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -7,14 +8,12 @@ import org.slf4j.LoggerFactory;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private ChannelHandlerContext ctx;
-    private ChannelPromise promise;
-    private ByteBuf data;
+    private CompletableFuture<ByteBuf> future;
     private Consumer<ByteBuf> handler;
     private static final Logger logger = LoggerFactory.getLogger(SimpleChannelInboundHandler.class);
 
@@ -28,11 +27,12 @@ public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
         this.ctx = ctx;
     }
 
-    public ChannelPromise sendAndGetMessage(ByteBuf message) {
+    public CompletableFuture<ByteBuf> sendAndGetMessage(ByteBuf message) {
         if (ctx == null)
             throw new IllegalStateException();
-        this.promise = ctx.writeAndFlush(message).channel().newPromise();
-        return this.promise;
+        future = new CompletableFuture<>();
+        ctx.writeAndFlush(message);
+        return this.future;
     }
 
     public void sendMessage(ByteBuf message) {
@@ -41,15 +41,10 @@ public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
         ctx.writeAndFlush(message);
     }
 
-    public ByteBuf getData() {
-        return data;
-    }
-
     @Override
     public void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        if (promise != null && !promise.isDone()) {
-            data = msg.copy();
-            promise.setSuccess();
+        if (future != null && !future.isDone()) {
+            future.complete(msg.copy());
         }
         if (this.handler != null) {
             this.handler.accept(msg);
