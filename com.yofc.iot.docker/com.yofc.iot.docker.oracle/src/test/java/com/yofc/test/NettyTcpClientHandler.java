@@ -10,7 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-public class TcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private ChannelHandlerContext ctx;
     private ChannelPromise promise;

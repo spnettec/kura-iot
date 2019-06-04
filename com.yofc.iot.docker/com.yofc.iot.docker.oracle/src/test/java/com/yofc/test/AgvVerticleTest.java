@@ -17,9 +17,9 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)
-public class VerticleTest {
+public class AgvVerticleTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(VerticleTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(AgvVerticleTest.class);
     private AgvVerticle agv;
 
     @BeforeEach

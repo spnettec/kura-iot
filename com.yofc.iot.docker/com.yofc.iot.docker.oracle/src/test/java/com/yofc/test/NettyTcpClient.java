@@ -15,9 +15,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-public class TcpClient {
+public class NettyTcpClient {
 
-    private TcpClientHandler clientHandler = new TcpClientHandler();
+    private NettyTcpClientHandler clientHandler = new NettyTcpClientHandler();
     private Consumer<ByteBuf> handler;
 
     public void connect(String host, int port) {

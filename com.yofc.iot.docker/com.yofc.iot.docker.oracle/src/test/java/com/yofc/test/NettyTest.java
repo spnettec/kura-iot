@@ -38,7 +38,7 @@ public class NettyTest {
     @Timeout(value = 100, timeUnit = TimeUnit.SECONDS)
     @DisplayName("Netty测试")
     public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException, TimeoutException {
-        TcpClient client = new TcpClient();
+        NettyTcpClient client = new NettyTcpClient();
         client.connect("10.211.55.4", 3000);
 
         client.addHandle(buffer -> {
