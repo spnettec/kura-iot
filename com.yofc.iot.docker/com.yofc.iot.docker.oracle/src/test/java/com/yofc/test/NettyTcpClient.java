@@ -26,6 +26,7 @@ public class NettyTcpClient {
 
     private NettyTcpClientHandler clientHandler = new NettyTcpClientHandler();
     private Consumer<ByteBuf> handler;
+    private HashedWheelTimer timer = new HashedWheelTimer();
 
     public void connect(String host, int port) {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -70,7 +71,7 @@ public class NettyTcpClient {
     public void sendAndReply(ByteBuf message, long timeOut, Consumer<Promise<ByteBuf>> handler)
             throws InterruptedException, TimeoutException {
         CompletableFuture<ByteBuf> future = clientHandler.sendAndGetMessage(message);
-        new HashedWheelTimer().newTimeout(new TimerTask() {
+        timer.newTimeout(new TimerTask() {
 
             public void run(Timeout timeout) throws Exception {
                 if (!future.isDone())
