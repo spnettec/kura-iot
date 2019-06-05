@@ -180,19 +180,21 @@ public class EventBusBridge {
             HttpClientOptions options, Optional<Vertx> aVertx) {
 
         vertx = aVertx.orElse(Vertx.vertx());
-        vertx.createHttpClient(options).websocket(port, host, endPoint.toString() + "/websocket", ws -> {
-            webSocket = ws;
-            ws.handler(this::bufferReceived);
-            ws.closeHandler(it -> {
-                if (pingTimerID != 0) {
-                    vertx.cancelTimer(pingTimerID);
-                }
-                handlers.clear();
-                replyHandlers.clear();
-            });
-            onOpenHandler.handle(EventBusBridge.this);
-            sendPing();
-            pingTimerID = vertx.setPeriodic(5000L, time -> sendPing());
+        vertx.createHttpClient(options).webSocket(port, host, endPoint.toString() + "/websocket", ar -> {
+            if (ar.succeeded()) {
+                webSocket = ar.result();
+                webSocket.handler(this::bufferReceived);
+                webSocket.closeHandler(it -> {
+                    if (pingTimerID != 0) {
+                        vertx.cancelTimer(pingTimerID);
+                    }
+                    handlers.clear();
+                    replyHandlers.clear();
+                });
+                onOpenHandler.handle(EventBusBridge.this);
+                sendPing();
+                pingTimerID = vertx.setPeriodic(5000L, time -> sendPing());
+            }
 
         });
     }
