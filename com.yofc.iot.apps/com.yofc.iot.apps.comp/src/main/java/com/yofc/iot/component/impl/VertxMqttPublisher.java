@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.AssetService;
@@ -71,7 +73,9 @@ import io.vertx.mqtt.MqttClientOptions;
 public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(VertxMqttPublisher.class);
-
+    private static final String TOPIC_PATTERN_STRING = "\\$([^\\s/]+)";
+    private static final Pattern TOPIC_PATTERN = Pattern.compile(TOPIC_PATTERN_STRING);
+    private static final String ASSET_NAME_PROPERTY_KEY = "assetName";
     private String scriptSource = "";
     @Reference(unbind = "unbindWireHelperService")
     private WireHelperService wireHelperService;
@@ -90,6 +94,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     private Marshaller jsonMarshaller;
     @Reference
     private AssetHelp assetHelp;
+    private long timerId = 0;
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -117,10 +122,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             webClient.close();
             webClient = null;
         }
-        if (mqttClient != null && mqttClient.isConnected()) {
-            mqttClient.disconnect();
-            mqttClient = null;
-        }
+        closeMqttClient();
         logger.info("Deactivating Script Filter... Done");
     }
 
@@ -151,10 +153,10 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             }
             logger.info("Updating Script Filter... Done");
         }
-        if (mqttClient != null && mqttClient.isConnected()) {
-            mqttClient.disconnect();
+        if (mqttClient != null) {
+            closeMqttClient();
+            mqttConnect();
         }
-        mqttClient = null;
     }
 
     @Override
@@ -164,11 +166,10 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             return;
         }
         if (mqttClient == null || !mqttClient.isConnected()) {
-
-            logger.error("Mqtt server disconnected!! . Topic{}", this.properties.mqttTopic());
+            logger.error("Mqtt client is not connected. Topic{}", this.properties.mqttTopic());
             return;
-
         }
+
         if (!this.scriptSource.equals("")) {
             try {
                 script.setProperty("input", wireEnvelope);
@@ -188,17 +189,21 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                         return;
                     if (outputList.get(0) instanceof WireRecord) {
                         for (Object record : outputList) {
-                            KuraPayload payload = buildKuraPayload((WireRecord) record);
-                            mqttClient.publish(this.properties.mqttTopic(),
-                                    Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE, false, false);
-                            logger.info("Publish MQTT {}", this.properties.mqttTopic());
+                            WireRecord wireRecord = (WireRecord) record;
+                            String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
+                            KuraPayload payload = buildKuraPayload(wireRecord);
+                            mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
+                                    MqttQoS.AT_MOST_ONCE, false, false);
+                            logger.info("Publish MQTT {}", topic);
                         }
                     }
                 } else if (output instanceof JsonObject) {
-                    KuraPayload payload = buildKuraPayload(Utils.toWireRecord((JsonObject) output));
-                    mqttClient.publish(this.properties.mqttTopic(), Buffer.buffer(jsonMarshaller.marshal(payload)),
-                            MqttQoS.AT_MOST_ONCE, false, false);
-                    logger.info("Publish MQTT {}", this.properties.mqttTopic());
+                    WireRecord wireRecord = Utils.toWireRecord((JsonObject) output);
+                    String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
+                    KuraPayload payload = buildKuraPayload(wireRecord);
+                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
+                            false, false);
+                    logger.info("Publish MQTT {}", topic);
                 }
 
             } catch (Exception e) {
@@ -207,13 +212,14 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         } else {
             for (WireRecord record : wireEnvelope.getRecords()) {
                 KuraPayload payload = buildKuraPayload(record);
+                String topic = fillTopicPlaceholders(this.properties.mqttTopic(), record);
                 try {
-                    mqttClient.publish(this.properties.mqttTopic(), Buffer.buffer(jsonMarshaller.marshal(payload)),
-                            MqttQoS.AT_MOST_ONCE, false, false);
+                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
+                            false, false);
                 } catch (KuraException e) {
                     logger.error("Failed to marshal payload", e);
                 }
-                logger.info("Publish MQTT {}", this.properties.mqttTopic());
+                logger.info("Publish MQTT {}", topic);
             }
         }
     }
@@ -226,17 +232,34 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     @Override
     public void producersConnected(Wire[] wires) {
         if (wires == null) {
-            if (mqttClient != null && mqttClient.isConnected()) {
-                mqttClient.disconnect();
-            }
+            closeMqttClient();
         } else
             mqttConnect();
         this.wireSupport.producersConnected(wires);
     }
 
+    private void closeMqttClient() {
+        vertx.cancelTimer(timerId);
+        if (mqttClient != null) {
+            mqttClient.closeHandler(null);
+            mqttClient.exceptionHandler(null);
+            mqttClient.publishCompletionHandler(null);
+            if (mqttClient.isConnected())
+                mqttClient.disconnect();
+        }
+        mqttClient = null;
+    }
+
+    private void reConnect() {
+        closeMqttClient();
+        vertx.setTimer(10000, v -> {
+            mqttConnect();
+        });
+    }
+
     private void mqttConnect() {
-        if (mqttClient != null && mqttClient.isConnected()) {
-            mqttClient.disconnect();
+        if (mqttClient != null) {
+            closeMqttClient();
         }
         if (mqttClient == null) {
             MqttClientOptions options = new MqttClientOptions();
@@ -256,17 +279,17 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 }
             mqttClient = ModifyMqttClient.create(vertx, options);
         }
+
         mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost(), ackMes -> {
             if (ackMes.succeeded()) {
                 logger.info("Connect to Server");
             } else {
                 logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
-                mqttConnect();
             }
         });
         mqttClient.closeHandler(h -> {
             try {
-                mqttConnect();
+                reConnect();
             } catch (Exception e1) {
                 logger.error("Failured to execute script", e1);
             }
@@ -290,6 +313,24 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         }
 
         return kuraPayload;
+    }
+
+    private String fillTopicPlaceholders(String topic, WireRecord wireRecord) {
+        Matcher matcher = TOPIC_PATTERN.matcher(topic);
+        StringBuffer buffer = new StringBuffer();
+        Map<String, TypedValue<?>> properties = wireRecord.getProperties();
+        TypedValue<?> value = properties.get(ASSET_NAME_PROPERTY_KEY);
+        if (value == null)
+            return topic;
+        String value0 = value.getValue().toString();
+        while (matcher.find()) {
+            String replacement = matcher.group(0);
+            if (replacement != null) {
+                matcher.appendReplacement(buffer, value0);
+            }
+        }
+        matcher.appendTail(buffer);
+        return buffer.toString();
     }
 
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.VertxMqttPublisher", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.VertxMqttPublisherCfg")

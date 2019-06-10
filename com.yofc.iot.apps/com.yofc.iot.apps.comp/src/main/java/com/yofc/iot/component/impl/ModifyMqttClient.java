@@ -644,7 +644,7 @@ public class ModifyMqttClient implements MqttClient {
 
         if (this.options.isAutoKeepAlive() && this.options.getKeepAliveTimeSeconds() != 0) {
 
-            pipeline.addBefore("handler", "idle", new IdleStateHandler(this.options.getKeepAliveTimeSeconds(), 0, 0));
+            pipeline.addBefore("handler", "idle", new IdleStateHandler(0, 0, this.options.getKeepAliveTimeSeconds()));
             pipeline.addBefore("handler", "keepAliveHandler", new ChannelDuplexHandler() {
 
                 @Override
@@ -652,7 +652,7 @@ public class ModifyMqttClient implements MqttClient {
 
                     if (evt instanceof IdleStateEvent) {
                         final IdleStateEvent e = (IdleStateEvent) evt;
-                        if (e.state() == IdleState.READER_IDLE) {
+                        if (e.state() == IdleState.ALL_IDLE) {
                             log.info("Sending ping: " + ctx);
                             ping();
                         }
@@ -694,7 +694,7 @@ public class ModifyMqttClient implements MqttClient {
             // ctron: always call close handler,
             /*
              * if (!isConnected) {
-             * return;
+             *   return;
              * }
              */
         }
