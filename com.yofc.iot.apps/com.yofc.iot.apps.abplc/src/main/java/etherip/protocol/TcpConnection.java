@@ -70,12 +70,10 @@ public class TcpConnection extends Connection {
         if (log != null) {
             logger.debug("Protocol Encoding\n{}", log);
         }
-
         this.buffer.flip();
         if (logger.isDebugEnabled()) {
             logger.debug("Data sent ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
         }
-
         int toWrite = this.buffer.limit();
         while (toWrite > 0) {
             final int written = this.channel.write(this.buffer).get(this.timeoutMs, MILLISECONDS);
