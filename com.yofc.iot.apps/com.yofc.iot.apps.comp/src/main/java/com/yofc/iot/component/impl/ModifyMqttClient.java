@@ -124,9 +124,9 @@ public class ModifyMqttClient implements MqttClient {
      * Constructor
      *
      * @param vertx
-     *                    Vert.x instance
+     *            Vert.x instance
      * @param options
-     *                    MQTT client options
+     *            MQTT client options
      */
     public ModifyMqttClient(final Vertx vertx, final MqttClientOptions options) {
 
@@ -555,7 +555,7 @@ public class ModifyMqttClient implements MqttClient {
      * Sends PUBACK packet to server
      *
      * @param publishMessageId
-     *                             identifier of the PUBLISH message to acknowledge
+     *            identifier of the PUBLISH message to acknowledge
      */
     private void publishAcknowledge(final int publishMessageId) {
 
@@ -573,7 +573,7 @@ public class ModifyMqttClient implements MqttClient {
      * Sends PUBREC packet to server
      *
      * @param publishMessage
-     *                           a PUBLISH message to acknowledge
+     *            a PUBLISH message to acknowledge
      */
     private void publishReceived(final MqttPublishMessage publishMessage) {
 
@@ -594,7 +594,7 @@ public class ModifyMqttClient implements MqttClient {
      * Sends PUBCOMP packet to server
      *
      * @param publishMessageId
-     *                             identifier of the PUBLISH message to acknowledge
+     *            identifier of the PUBLISH message to acknowledge
      */
     private void publishComplete(final int publishMessageId) {
 
@@ -612,7 +612,7 @@ public class ModifyMqttClient implements MqttClient {
      * Sends the PUBREL message to server
      *
      * @param publishMessageId
-     *                             identifier of the PUBLISH message to acknowledge
+     *            identifier of the PUBLISH message to acknowledge
      */
     private void publishRelease(final int publishMessageId) {
 
@@ -708,7 +708,7 @@ public class ModifyMqttClient implements MqttClient {
      * Handle the MQTT message received from the remote MQTT server
      *
      * @param msg
-     *                Incoming Packet
+     *            Incoming Packet
      */
     private void handleMessage(final ChannelHandlerContext chctx, final Object msg) {
 
@@ -812,7 +812,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the unsuback handler when the server acks an unsubscribe
      *
      * @param unsubackMessageId
-     *                              identifier of the subscribe acknowledged by the server
+     *            identifier of the subscribe acknowledged by the server
      */
     private void handleUnsuback(final int unsubackMessageId) {
 
@@ -826,7 +826,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the puback handler when the server acknowledge a QoS 1 message with puback
      *
      * @param pubackMessageId
-     *                            identifier of the message acknowledged by the server
+     *            identifier of the message acknowledged by the server
      */
     private void handlePuback(final int pubackMessageId) {
 
@@ -851,7 +851,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the pubcomp handler when the server client acknowledge a QoS 2 message with pubcomp
      *
      * @param pubcompMessageId
-     *                             identifier of the message acknowledged by the server
+     *            identifier of the message acknowledged by the server
      */
     private void handlePubcomp(final int pubcompMessageId) {
 
@@ -875,7 +875,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for sending the pubrel when a pubrec is received from the server
      *
      * @param pubrecMessageId
-     *                            identifier of the message acknowledged by server
+     *            identifier of the message acknowledged by server
      */
     private void handlePubrec(final int pubrecMessageId) {
 
@@ -886,7 +886,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the suback handler when the server acknoweldge subscribe to topics
      *
      * @param msg
-     *                message with suback information
+     *            message with suback information
      */
     private void handleSuback(final MqttSubAckMessage msg) {
 
@@ -900,7 +900,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the publish handler when the server publishes a message
      *
      * @param msg
-     *                published message
+     *            published message
      */
     private void handlePublish(final MqttPublishMessage msg) {
 
@@ -935,7 +935,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the pubrel handler when the server acknowledge a QoS 2 message with pubrel
      *
      * @param pubrelMessageId
-     *                            identifier of the message acknowledged by the server
+     *            identifier of the message acknowledged by the server
      */
     private void handlePubrel(final int pubrelMessageId) {
         MqttMessage message;
@@ -958,7 +958,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the connect handler when the server replies to the request
      *
      * @param msg
-     *                connection response message
+     *            connection response message
      */
     private void handleConnack(final MqttConnAckMessage msg) {
 
@@ -983,7 +983,7 @@ public class ModifyMqttClient implements MqttClient {
      * Used for calling the exception handler when an error at connection level
      *
      * @param t
-     *              exception raised
+     *            exception raised
      */
     private void handleException(final Throwable t) {
 
@@ -1004,7 +1004,7 @@ public class ModifyMqttClient implements MqttClient {
      * Check either given Topic Name valid of not
      *
      * @param topicName
-     *                      given Topic Name
+     *            given Topic Name
      * @return true - valid, otherwise - false
      */
     private boolean isValidTopicName(final String topicName) {
@@ -1020,7 +1020,7 @@ public class ModifyMqttClient implements MqttClient {
      * Check either given Topic Filter valid of not
      *
      * @param topicFilter
-     *                        given Topic Filter
+     *            given Topic Filter
      * @return true - valid, otherwise - false
      */
     private boolean isValidTopicFilter(final String topicFilter) {
@@ -1036,7 +1036,7 @@ public class ModifyMqttClient implements MqttClient {
      * Check either given string has size more then 65535 bytes in UTF-8 Encoding
      * 
      * @param string
-     *                   given string
+     *            given string
      * @return true - size is lower or equal than 65535, otherwise - false
      */
     private boolean isValidStringSizeInUTF8(final String string) {
