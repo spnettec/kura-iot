@@ -73,9 +73,9 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
     }
 
     @Modified
-    public synchronized void updated(final Config properties) {
+    public synchronized void updated(final Config properties) throws ConnectionException {
         logger.info("Updating AB-PLC Driver...");
-
+        disconnect();
         extractProperties(properties);
 
         logger.info("Updating AB-PLC Driver... Done");
@@ -108,6 +108,7 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
             if (!this.state.client.isConnected()) {
                 logger.debug("Connecting to AB PLC...");
                 this.state.client.connectTcp();
+                this.state.client.setTimeoutMs(this.state.options.timeout());
 
                 logger.debug("Connecting to AB PLC... Done");
             }
@@ -421,6 +422,9 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%slot", description = "%slotDesc")
         int slot() default 0;
+
+        @AttributeDefinition(name = "%timeout", description = "%timeoutDesc")
+        int timeout() default 2000;
 
         @AttributeDefinition(name = "%readSingle", description = "%readSingleDesc")
         boolean readSingle() default false;

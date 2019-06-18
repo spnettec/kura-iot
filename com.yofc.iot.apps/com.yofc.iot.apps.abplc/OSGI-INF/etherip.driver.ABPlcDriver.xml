@@ -6,6 +6,7 @@
   <property name="writeSingle" type="Boolean" value="false"/>
   <property name="slot" type="Integer" value="0"/>
   <property name="readSingle" type="Boolean" value="false"/>
+  <property name="timeout" type="Integer" value="2000"/>
   <property name="service.pid" type="String" value="etherip.driver.ABPlc"/>
   <service>
     <provide interface="org.eclipse.kura.driver.Driver"/>

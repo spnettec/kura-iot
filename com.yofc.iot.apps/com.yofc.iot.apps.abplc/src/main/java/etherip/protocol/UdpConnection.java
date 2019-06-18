@@ -27,16 +27,16 @@ public class UdpConnection extends Connection {
 
     public static final Logger logger = LoggerFactory.getLogger(UdpConnection.class);
 
-    private final DatagramChannel receiveChannel;
+    // private final DatagramChannel receiveChannel;
     private final DatagramChannel channel;
 
     /**
      * Initialize
      *
      * @param address
-     *            IP address of device
+     *                    IP address of device
      * @param slot
-     *            Slot number 0, 1, .. of the controller within PLC crate
+     *                    Slot number 0, 1, .. of the controller within PLC crate
      * @throws Exception
      */
     public UdpConnection(final String address, final int slot) throws Exception {
@@ -45,9 +45,6 @@ public class UdpConnection extends Connection {
         this.channel = DatagramChannel.open();
 
         this.channel.connect(new InetSocketAddress(address, this.port));
-
-        this.receiveChannel = DatagramChannel.open();
-        this.receiveChannel.socket().bind(new InetSocketAddress(this.port));
     }
 
     public UdpConnection(final String address, final int slot, final int port) throws Exception {
@@ -56,9 +53,6 @@ public class UdpConnection extends Connection {
         this.channel = DatagramChannel.open();
 
         this.channel.connect(new InetSocketAddress(address, this.port));
-
-        this.receiveChannel = DatagramChannel.open();
-        this.receiveChannel.socket().bind(new InetSocketAddress(this.port));
     }
 
     /** @return Slot number 0, 1, .. of the controller within PLC crate */
@@ -77,9 +71,9 @@ public class UdpConnection extends Connection {
      * Write protocol data
      *
      * @param encoder
-     *            {@link ProtocolEncoder} used to <code>encode</code> buffer
+     *                    {@link ProtocolEncoder} used to <code>encode</code> buffer
      * @throws Exception
-     *             on error
+     *                       on error
      */
     @Override
     public void write(final ProtocolEncoder encoder) throws Exception {
@@ -107,19 +101,19 @@ public class UdpConnection extends Connection {
      * Read protocol data
      *
      * @param decoder
-     *            {@link ProtocolDecoder} used to <code>decode</code> buffer
+     *                    {@link ProtocolDecoder} used to <code>decode</code> buffer
      * @throws Exception
-     *             on error
+     *                       on error
      */
     @Override
     public void read(final ProtocolDecoder decoder) throws Exception {
         // Read until protocol has enough data to decode
         this.buffer.clear();
-        if (this.receiveChannel.isBlocking()) {
-            this.receiveChannel.socket().setSoTimeout((int) this.timeoutMs);
+        if (this.channel.isBlocking()) {
+            this.channel.socket().setSoTimeout((int) this.timeoutMs);
         }
         do {
-            this.receiveChannel.receive(this.buffer);
+            this.channel.receive(this.buffer);
         } while (this.buffer.position() < decoder.getResponseSize(this.buffer));
         // Prepare to decode
         this.buffer.flip();

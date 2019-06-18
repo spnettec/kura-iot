@@ -9,6 +9,7 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -37,7 +38,7 @@ public abstract class Connection implements AutoCloseable {
 
     private int session = 0;
 
-    protected long timeoutMs = 2000;
+    protected long timeoutMs = 10000;
     protected int port = 44818;
     private Lock lock = new ReentrantLock();
 
@@ -71,6 +72,10 @@ public abstract class Connection implements AutoCloseable {
     /** @return Slot number 0, 1, .. of the controller within PLC crate */
     public int getSlot() {
         return this.slot;
+    }
+
+    public void setTimeoutMs(long timeoutMs) {
+        this.timeoutMs = timeoutMs;
     }
 
     /**
@@ -123,7 +128,7 @@ public abstract class Connection implements AutoCloseable {
      */
     public synchronized void execute(final Protocol protocol) throws Exception {
         try {
-            lock.lockInterruptibly();
+            lock.tryLock(this.timeoutMs, TimeUnit.MILLISECONDS);
             this.write(protocol);
             this.read(protocol);
         } finally {
