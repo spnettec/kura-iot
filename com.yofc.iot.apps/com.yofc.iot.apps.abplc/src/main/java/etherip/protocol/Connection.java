@@ -9,9 +9,6 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +37,6 @@ public abstract class Connection implements AutoCloseable {
 
     protected long timeoutMs = 10000;
     protected int port = 44818;
-    private Lock lock = new ReentrantLock();
 
     /**
      * Initialize
@@ -127,13 +123,8 @@ public abstract class Connection implements AutoCloseable {
      *                       on error
      */
     public synchronized void execute(final Protocol protocol) throws Exception {
-        try {
-            lock.tryLock(this.timeoutMs, TimeUnit.MILLISECONDS);
-            this.write(protocol);
-            this.read(protocol);
-        } finally {
-            lock.unlock();
-        }
+        this.write(protocol);
+        this.read(protocol);
     }
 
 }
