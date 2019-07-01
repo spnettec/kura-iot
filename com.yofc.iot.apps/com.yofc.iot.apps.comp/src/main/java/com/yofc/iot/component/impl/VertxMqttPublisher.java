@@ -166,7 +166,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             return;
         }
         if (mqttClient == null || !mqttClient.isConnected()) {
-            logger.error("Mqtt client is not connected. Topic{}", this.properties.mqttTopic());
+            logger.error("Mqtt client is not connected. Topic: {}", this.properties.mqttTopic());
             return;
         }
 
