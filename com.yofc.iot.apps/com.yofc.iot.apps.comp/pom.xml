@@ -132,7 +132,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.197</version>
+            <version>1.4.199</version>
             <scope>provided</scope>
         </dependency>
         
@@ -153,10 +153,10 @@
                         <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <Import-Package>
-                             org.h2;version="1.4.197",
-                             org.h2.api;version="1.4.197",
-                             org.h2.jdbcx;version="1.4.197",
-                             org.h2.tools;version="1.4.197",
+                             org.h2;version="1.4.199",
+                             org.h2.api;version="1.4.199",
+                             org.h2.jdbcx;version="1.4.199",
+                             org.h2.tools;version="1.4.199",
                              *
                         </Import-Package>
                         <Include-Resource>
