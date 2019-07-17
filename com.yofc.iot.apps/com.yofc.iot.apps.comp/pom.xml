@@ -153,10 +153,10 @@
                         <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <Import-Package>
-                             org.h2;version="1.4.199",
-                             org.h2.api;version="1.4.199",
-                             org.h2.jdbcx;version="1.4.199",
-                             org.h2.tools;version="1.4.199",
+                             org.h2;version="[1.4.197,1.4.200)",
+                             org.h2.api;version="[1.4.197,1.4.200)",
+                             org.h2.jdbcx;version="[1.4.197,1.4.200)",
+                             org.h2.tools;version="[1.4.197,1.4.200)",
                              *
                         </Import-Package>
                         <Include-Resource>
