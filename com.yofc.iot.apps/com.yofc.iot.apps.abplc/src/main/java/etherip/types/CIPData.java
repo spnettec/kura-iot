@@ -106,11 +106,11 @@ public final class CIPData {
      * Initialize empty CIP data
      *
      * @param type
-     *                     Data {@link Type}
+     *            Data {@link Type}
      * @param elements
-     *                     Number of elements
+     *            Number of elements
      * @throws Exception
-     *                       when type is not handled
+     *             when type is not handled
      */
     public CIPData(final Type type, final int elements) throws Exception {
         switch (type) {
@@ -167,11 +167,11 @@ public final class CIPData {
      * Initialize
      *
      * @param type
-     *                 Data type
+     *            Data type
      * @param data
-     *                 Bytes that contain the raw CIP data
+     *            Bytes that contain the raw CIP data
      * @throws Exception
-     *                       when data is invalid
+     *             when data is invalid
      */
     public CIPData(final Type type, final byte[] data) throws Exception {
         this.type = type;
@@ -220,12 +220,12 @@ public final class CIPData {
      * Read CIP data as number
      *
      * @param index
-     *                  Element index 0, 1, ...
+     *            Element index 0, 1, ...
      * @return Numeric value of requested element
      * @throws Exception
-     *                                       on error, if data is not numeric
+     *             on error, if data is not numeric
      * @throws IndexOutOfBoundsException
-     *                                       if index is invalid
+     *             if index is invalid
      */
     public final synchronized Number getNumber(final int index) throws Exception, IndexOutOfBoundsException {
         switch (this.type) {
@@ -258,16 +258,28 @@ public final class CIPData {
             return Float.valueOf(this.data.getFloat(0));
         case STRUCT: {
             final int len = this.data.getInt(2);
-            final byte[] chars = new byte[len];
-            for (int i = 0; i < len; ++i) {
-                chars[i] = this.data.get(6 + i);
-            }
+
             final short code = this.data.getShort(0);
             final Type elType = Type.forCode(code);
-            if (elType == Type.STRUCT_STRING)
-                return new String(chars);
-            else
-                return chars;
+            if (len > 0) {
+                final byte[] chars = new byte[len];
+                for (int i = 0; i < len; ++i) {
+                    chars[i] = this.data.get(6 + i);
+                }
+                if (elType == Type.STRUCT_STRING)
+                    return new String(chars);
+                else
+                    return chars;
+            } else {
+                if (elType == Type.STRUCT_STRING)
+                    return "";
+                else {
+                    final byte[] chars = new byte[1];
+                    chars[0] = '\0';
+                    return chars;
+                }
+            }
+
         }
         default:
             throw new Exception("Cannot retrieve value from " + this.type);
@@ -279,7 +291,7 @@ public final class CIPData {
      *
      * @return {@link String}
      * @throws Exception
-     *                       if data does not contain a string
+     *             if data does not contain a string
      */
     public final synchronized String getString() throws Exception {
         if (this.type != Type.STRUCT) {
@@ -302,13 +314,13 @@ public final class CIPData {
      * Set CIP data
      *
      * @param index
-     *                  Element index 0, 1, ...
+     *            Element index 0, 1, ...
      * @param value
-     *                  Numeric value to write to that element
+     *            Numeric value to write to that element
      * @throws Exception
-     *                                       on invalid data type
+     *             on invalid data type
      * @throws IndexOutOfBoundsException
-     *                                       if index is invalid
+     *             if index is invalid
      */
     public final synchronized void set(final int index, final Number value)
             throws Exception, IndexOutOfBoundsException {
@@ -336,9 +348,9 @@ public final class CIPData {
      * Write CIP data as string
      *
      * @param text
-     *                 {@link String}
+     *            {@link String}
      * @throws Exception
-     *                       if data does not contain a string
+     *             if data does not contain a string
      */
     public final synchronized void setString(final String text) throws Exception {
         if (this.type != Type.STRUCT) {
@@ -372,9 +384,9 @@ public final class CIPData {
      * Encode CIP data bytes into buffer
      *
      * @param buf
-     *                {@link ByteBuffer} where data should be placed
+     *            {@link ByteBuffer} where data should be placed
      * @throws Exception
-     *                       on error
+     *             on error
      */
 
     /*
