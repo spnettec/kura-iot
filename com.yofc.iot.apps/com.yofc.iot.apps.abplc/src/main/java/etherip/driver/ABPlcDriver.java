@@ -182,7 +182,7 @@ public class ABPlcDriver implements Driver, ConfigurableComponent {
         case INTEGER:
             return TypedValues.newIntegerValue(((Number) valueObj).intValue());
         case BOOLEAN:
-            return TypedValues.newBooleanValue(((Number) valueObj).intValue() > 0);
+            return TypedValues.newBooleanValue(((Number) valueObj).intValue() != 0);
         case STRING:
             return TypedValues.newStringValue(valueObj == null ? "" : (String) valueObj);
         case BYTE_ARRAY:
