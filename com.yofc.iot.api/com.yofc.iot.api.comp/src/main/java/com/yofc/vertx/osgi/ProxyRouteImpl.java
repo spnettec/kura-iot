@@ -94,7 +94,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         this.route = this.router.route(this.context + routeUrl);
         if (order >= 0)
             this.route.order(order);
-        this.route.blockingHandler(this::doProxyRequest).failureHandler(this::doProxyRequestFailure);
+        this.route.handler(this::doProxyRequest).failureHandler(this::doProxyRequestFailure);
         return this;
     }
 
