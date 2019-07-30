@@ -153,10 +153,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             }
             logger.info("Updating Script Filter... Done");
         }
-        if (mqttClient != null) {
-            closeMqttClient();
-            mqttConnect();
-        }
+        mqttConnect();
     }
 
     @Override
@@ -165,7 +162,11 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             logger.error("Script parse error.Please input correct groovy script");
             return;
         }
-        if (mqttClient == null || !mqttClient.isConnected()) {
+        if (mqttClient == null) {
+            this.reConnect();
+            return;
+        }
+        if (!mqttClient.isConnected()) {
             logger.error("Mqtt client is not connected. Topic: {}", this.properties.mqttTopic());
             return;
         }
@@ -239,7 +240,8 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     }
 
     private void closeMqttClient() {
-        vertx.cancelTimer(timerId);
+        if (timerId != 0)
+            vertx.cancelTimer(timerId);
         if (mqttClient != null) {
             mqttClient.closeHandler(null);
             mqttClient.exceptionHandler(null);
