@@ -237,8 +237,10 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     }
 
     private void closeMqttClient() {
-        if (timerId != 0)
+        if (timerId != 0) {
             vertx.cancelTimer(timerId);
+            timerId = 0;
+        }
         if (mqttClient != null) {
             mqttClient.closeHandler(null);
             mqttClient.exceptionHandler(null);
@@ -281,6 +283,10 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
 
         mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost(), ackMes -> {
             if (ackMes.succeeded()) {
+                if (timerId != 0) {
+                    vertx.cancelTimer(timerId);
+                    timerId = 0;
+                }
                 logger.info("Connect to Server");
             } else {
                 try {
