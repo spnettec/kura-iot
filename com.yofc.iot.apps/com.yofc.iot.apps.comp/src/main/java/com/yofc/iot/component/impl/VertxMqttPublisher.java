@@ -162,11 +162,8 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             logger.error("Script parse error.Please input correct groovy script");
             return;
         }
-        if (mqttClient == null) {
-            this.reConnect();
-            return;
-        }
-        if (!mqttClient.isConnected()) {
+
+        if (mqttClient == null || !mqttClient.isConnected()) {
             logger.error("Mqtt client is not connected. Topic: {}", this.properties.mqttTopic());
             return;
         }
@@ -252,9 +249,9 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         mqttClient = null;
     }
 
-    private void reConnect() {
+    private synchronized void reConnect() {
         closeMqttClient();
-        vertx.setTimer(10000, v -> {
+        timerId = vertx.setTimer(10000, v -> {
             mqttConnect();
         });
     }
@@ -286,6 +283,11 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             if (ackMes.succeeded()) {
                 logger.info("Connect to Server");
             } else {
+                try {
+                    reConnect();
+                } catch (Exception e1) {
+                    logger.error("Failured to reConnect on ackMessage", e1);
+                }
                 logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
             }
         });
@@ -293,10 +295,15 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             try {
                 reConnect();
             } catch (Exception e1) {
-                logger.error("Failured to execute script", e1);
+                logger.error("Failured to reConnect on close", e1);
             }
         });
         mqttClient.exceptionHandler(e -> {
+            try {
+                reConnect();
+            } catch (Exception e1) {
+                logger.error("Failured to reConnect on exception", e1);
+            }
             logger.error("Mqtt error\n", e);
         });
         mqttClient.publishCompletionHandler(h -> {
