@@ -276,7 +276,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 try {
                     options.setPassword(String.valueOf(cryptoService.decryptAes(properties.password().toCharArray())));
                 } catch (KuraException e1) {
-                    logger.error("password decrypt failured\n{}", e1);
+                    options.setPassword(properties.password());
                     return;
                 }
             mqttClient = ModifyMqttClient.create(vertx, options);
