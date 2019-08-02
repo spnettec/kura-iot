@@ -102,6 +102,12 @@
                 <version>1.2.3</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>1.7.26</version>
+                <scope>test</scope>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -158,6 +164,14 @@
                     </supportedProjectTypes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                  <skipTests>true</skipTests>
+                </configuration>
+             </plugin>
             <!-- 
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>

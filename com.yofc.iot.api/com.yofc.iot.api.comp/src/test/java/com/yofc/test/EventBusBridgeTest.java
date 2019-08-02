@@ -1,19 +1,21 @@
 package com.yofc.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import com.yofc.vertx.osgi.api.EventBusBridge;
 import com.yofc.vertx.osgi.api.EventHandler;
@@ -27,13 +29,15 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 
+@Disabled
 public class EventBusBridgeTest {
 
     static Vertx vertx;
     LongAdder counter = new LongAdder();
     EventBusBridge bridge;
 
-    @BeforeClass
+    @BeforeAll
+    @DisplayName("create server")
     public static void createServer() throws InterruptedException {
         vertx = Vertx.vertx();
         CountDownLatch latch = new CountDownLatch(1);
@@ -71,12 +75,13 @@ public class EventBusBridgeTest {
         System.out.println("Server listening on port 8765");
     }
 
-    @AfterClass
+    @AfterAll
     public static void stopServer() {
         vertx.close();
     }
 
-    @After
+    @AfterEach
+    @DisplayName("close")
     public void cleanUp() {
         if (bridge != null)
             bridge.close();
