@@ -1,5 +1,6 @@
 package com.yofc.test;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -11,7 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.netty.buffer.ByteBuf;
+import com.yofc.netty.fsm.tcp.NettyTcpClient;
+import com.yofc.netty.fsm.tcp.TcpNetIpClientConfig;
+
 import io.vertx.core.Vertx;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
@@ -35,53 +38,15 @@ public class NettyTest {
     }
 
     @Test
-    @Timeout(value = 100, timeUnit = TimeUnit.SECONDS)
+    @Timeout(value = 1000, timeUnit = TimeUnit.SECONDS)
     @DisplayName("Netty测试")
     public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException, TimeoutException {
-        NettyTcpClient client = new NettyTcpClient();
-        client.connect("10.211.55.4", 3000);
-
-        client.addHandle(buffer -> {
-            int head = buffer.getUnsignedShortLE(0);
-            System.out.print("头: " + head + "  ");
-            if (head == 10011) {
-                System.out.print("是否回复: " + buffer.getUnsignedShortLE(2) + "   ");
-                int nums = buffer.getUnsignedShortLE(4);
-                if (nums > 0) {
-                    System.out.print("数据个数: " + nums + "   ");
-                    for (int i = 1; i <= nums; i++) {
-                        System.out.print("第" + i + "个数: " + buffer.getUnsignedShortLE(4 + i * 2) + "   ");
-                    }
-                }
-                System.out.println();
-                // context.completeNow();
-            } else
-                System.out.println("订单: " + buffer.getIntLE(2));
+        NettyTcpClient client = new NettyTcpClient(
+                TcpNetIpClientConfig.builder("10.211.55.3", 3000).setLazy(true).build());
+        CompletableFuture<NettyTcpClient> future = client.connect();
+        future.thenAccept(action -> {
+            logger.debug(action.getState());
         });
 
-        ByteBuf buf = client.get10003DataBuf(506, 0, 0, 0, 1, 255, 0, 1, 4, 1001, 28902, 1002, 28902);
-
-        client.sendAndReply(buf, 2000, handler -> {
-            if (!handler.isSuccess()) {
-                logger.error("error", handler.cause());
-                return;
-            }
-            ByteBuf receive = handler.getNow();
-            int head = receive.getUnsignedShortLE(0);
-            logger.debug("返回头: {}", head);
-            if (head == 10011) {
-                System.out.print("是否回复: " + receive.getUnsignedShortLE(2) + "   ");
-                int nums = receive.getUnsignedShortLE(4);
-                if (nums > 0) {
-                    System.out.print("数据个数: " + nums + "   ");
-                    for (int i = 1; i <= nums; i++) {
-                        System.out.print("第" + i + "个数: " + receive.getUnsignedShortLE(4 + i * 2) + "   ");
-                    }
-                }
-                System.out.println();
-                // context.completeNow();
-            } else
-                System.out.println("订单: " + receive.getIntLE(2));
-        });
     }
 }

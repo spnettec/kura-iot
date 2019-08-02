@@ -296,24 +296,19 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                 }
                 logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
             }
-        });
-        mqttClient.closeHandler(h -> {
+        }).closeHandler(h -> {
             try {
                 reConnect();
             } catch (Exception e1) {
                 logger.error("Failured to reConnect on close", e1);
             }
-        });
-        mqttClient.exceptionHandler(e -> {
+        }).exceptionHandler(e -> {
             try {
                 reConnect();
             } catch (Exception e1) {
                 logger.error("Failured to reConnect on exception", e1);
             }
             logger.error("Mqtt error\n", e);
-        });
-        mqttClient.publishCompletionHandler(h -> {
-            logger.info("info:{}", h);
         });
     }
 

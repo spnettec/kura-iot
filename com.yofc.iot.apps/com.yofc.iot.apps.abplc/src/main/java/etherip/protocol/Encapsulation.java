@@ -8,16 +8,13 @@
 package etherip.protocol;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-
-import etherip.util.Hexdump;
 
 /**
  * Encapsulation commands
  * <p>
  * Spec 4 p. 164
  *
- * @author Kay Kasemir, László Pataki
+ * @author heyoulin
  */
 public class Encapsulation implements Protocol {
 
@@ -66,7 +63,12 @@ public class Encapsulation implements Protocol {
         }
     }
 
-    private final byte[] context = Transaction.format(Transaction.nextTransaction());;
+    private final long senderContext = Transaction.nextTransaction();
+
+    public long getSenderContext() {
+        return senderContext;
+    }
+
     private final Command command;
     private int session;
     private final Protocol body;
@@ -93,7 +95,7 @@ public class Encapsulation implements Protocol {
         buf.putShort((short) this.body.getRequestSize());
         buf.putInt(this.session);
         buf.putInt(status);
-        buf.put(context);
+        buf.putLong(senderContext);
         buf.putInt(options);
 
         if (log != null) {
@@ -102,7 +104,7 @@ public class Encapsulation implements Protocol {
             log.append("UINT  length            : ").append(this.body.getRequestSize()).append("\n");
             log.append(String.format("UDINT session           : 0x%08X%n", this.session));
             log.append(String.format("UDINT status            : 0x%08X%n", status));
-            log.append("USINT context[8]        : '").append(Hexdump.escapeChars(context)).append("'\n");
+            log.append(String.format("USINT context[8]        : 0x%08X%n", senderContext));
             log.append(String.format("UDINT options           : 0x%08X%n", options));
         }
 
@@ -160,11 +162,9 @@ public class Encapsulation implements Protocol {
 
         final int status = buf.getInt();
 
-        final byte[] recvdContext = new byte[8];
-        buf.get(recvdContext);
-        if (!Arrays.equals(recvdContext, context))
-            throw new Exception(
-                    "Received context " + Hexdump.toAscii(recvdContext) + ", expected " + Hexdump.toAscii(context));
+        final long recvdContext = buf.getLong();
+        if (recvdContext != senderContext)
+            throw new Exception("Received context " + recvdContext + ", expected " + senderContext);
 
         final int options = buf.getInt();
 
@@ -174,7 +174,7 @@ public class Encapsulation implements Protocol {
             log.append("UINT  length            : ").append(body_size).append("\n");
             log.append(String.format("UDINT session           : 0x%08X%n", session));
             log.append(String.format("UDINT status            : 0x%08X (%s)%n", status, this.getStatusMessage(status)));
-            log.append("USINT context[8]        : '").append(Hexdump.escapeChars(context)).append("'\n");
+            log.append(String.format("USINT context[8]        : 0x%08X%n", senderContext));
             log.append(String.format("UDINT options           : 0x%08X%n", options));
         }
 

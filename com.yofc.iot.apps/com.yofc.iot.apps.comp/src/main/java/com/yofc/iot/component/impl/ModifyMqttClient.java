@@ -694,7 +694,7 @@ public class ModifyMqttClient implements MqttClient {
             // ctron: always call close handler,
             /*
              * if (!isConnected) {
-             *   return;
+             * return;
              * }
              */
         }
@@ -924,6 +924,8 @@ public class ModifyMqttClient implements MqttClient {
         case EXACTLY_ONCE:
             this.publishReceived(msg);
             // we will handle the PUBLISH when a PUBREL comes
+            break;
+        default:
             break;
         }
     }

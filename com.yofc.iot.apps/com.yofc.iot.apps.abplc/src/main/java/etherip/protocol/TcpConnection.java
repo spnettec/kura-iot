@@ -35,9 +35,9 @@ public class TcpConnection extends Connection {
      * Initialize
      *
      * @param address
-     *            IP address of device
+     *                    IP address of device
      * @param slot
-     *            Slot number 0, 1, .. of the controller within PLC crate
+     *                    Slot number 0, 1, .. of the controller within PLC crate
      * @throws Exception
      */
     public TcpConnection(final String address, final int slot) throws Exception {
@@ -58,9 +58,9 @@ public class TcpConnection extends Connection {
      * Write protocol data
      *
      * @param encoder
-     *            {@link ProtocolEncoder} used to <code>encode</code> buffer
+     *                    {@link ProtocolEncoder} used to <code>encode</code> buffer
      * @throws Exception
-     *             on error
+     *                       on error
      */
     @Override
     public void write(final ProtocolEncoder encoder) throws Exception {
@@ -88,9 +88,9 @@ public class TcpConnection extends Connection {
      * Read protocol data
      *
      * @param decoder
-     *            {@link ProtocolDecoder} used to <code>decode</code> buffer
+     *                    {@link ProtocolDecoder} used to <code>decode</code> buffer
      * @throws Exception
-     *             on error
+     *                       on error
      */
     @Override
     public void read(final ProtocolDecoder decoder) throws Exception {

@@ -29,7 +29,7 @@ public class EtherIPDemo {
 
     @Test
     public void testConnectTcp() throws Exception {
-        try (EtherNetIP plc = new EtherNetIP("10.166.0.44", 0);) {
+        try (EtherNetIP plc = new EtherNetIP("10.166.11.181", 0);) {
             plc.connectTcp();
 
             System.out.println("\n*\n* Connected:\n*\n");
@@ -48,18 +48,16 @@ public class EtherIPDemo {
 
     @Test
     public void testFloat() throws Exception {
-        try (EtherNetIP plc = new EtherNetIP("10.166.0.44", 0)) {
+        try (EtherNetIP plc = new EtherNetIP("10.166.11.181", 0)) {
             plc.connectTcp();
 
-            final String tag = "RECIPE";
+            final String tag = "HSTOCK_ROT_MOTOR_SPD_ACT";
 
             System.out.println("\n*\n* float '" + tag + "':\n*\n");
-            CIPData value = plc.readTag(tag, 0, (short) 400);
+            CIPData value = plc.readTag(tag);
             System.out.println(value);
-            value = new CIPData(Type.REAL, 300);
-            for (int i = 0; i < value.getElementCount(); i++) {
-                value.set(i, i);
-            }
+            value.set(0, 48.12);
+
             // assertThat(value, not(nullValue()));
             // value.set(1, 47.11);
             // plc.writeTag(tag, 0, value);
@@ -70,9 +68,9 @@ public class EtherIPDemo {
             // assertEquals(47.11, value.getNumber(1).doubleValue(), 0.01);
 
             // value.set(1, 48.12);
-            plc.writeTag(tag, 3, value);
+            plc.writeTag(tag, value);
 
-            value = plc.readTag(tag, 0, (short) 400);
+            value = plc.readTag(tag);
             System.out.println(value);
             // assertThat(value, not(nullValue()));
             // System.out.println("Changed to " + value);
@@ -82,10 +80,10 @@ public class EtherIPDemo {
 
     @Test
     public void testInt() throws Exception {
-        try (EtherNetIP plc = new EtherNetIP("10.166.0.44", 0);) {
+        try (EtherNetIP plc = new EtherNetIP("10.166.11.181", 0);) {
             plc.connectTcp();
 
-            final String tag = "COUNTER.ACC";
+            final String tag = "FURNACE_MOTOR_MODE_SELECT_HMI";
 
             System.out.println("\n*\n* int '" + tag + "':\n*\n");
             CIPData value = plc.readTag(tag);
@@ -112,10 +110,10 @@ public class EtherIPDemo {
 
     @Test
     public void testBool() throws Exception {
-        try (EtherNetIP plc = new EtherNetIP("10.166.0.44", 0)) {
+        try (EtherNetIP plc = new EtherNetIP("10.166.11.181", 0)) {
             plc.connectTcp();
 
-            final String tag = "FURNACE_HEAT_PRE_HMI";
+            final String tag = "ALAM_RESET";
             System.out.println("\n*\n* bool '" + tag + "':\n*\n");
 
             CIPData value = plc.readTag(tag);
@@ -150,7 +148,7 @@ public class EtherIPDemo {
 
     @Test
     public void testString() throws Exception {
-        try (EtherNetIP plc = new EtherNetIP("10.166.0.44", 0);) {
+        try (EtherNetIP plc = new EtherNetIP("10.166.11.181", 0);) {
             plc.connectTcp();
 
             final String tag = "SYSTEM_BAR_NO";
@@ -177,12 +175,11 @@ public class EtherIPDemo {
 
     @Test
     public void testMultiRead() throws Exception {
-        try (EtherNetIP plc = new EtherNetIP("10.166.0.44", 0);) {
+        try (EtherNetIP plc = new EtherNetIP("10.166.11.181", 0);) {
             plc.connectTcp();
 
             System.out.println("\n*\n* Multi read:\n*\n");
-            final String[] tags = new String[] { "RECIPE[3,3]", "FURNACE_HEAT_PRE_HMI", "COUNTER.ACC",
-                    "SYSTEM_BAR_NO" };
+            final String[] tags = new String[] { "ALARM1", "ALARM2", "ALARM3", "SYSTEM_BAR_NO" };
             final CIPData[] results = plc.readTags(tags);
             assertThat(results, not(nullValue()));
             assertThat(results.length, equalTo(tags.length));

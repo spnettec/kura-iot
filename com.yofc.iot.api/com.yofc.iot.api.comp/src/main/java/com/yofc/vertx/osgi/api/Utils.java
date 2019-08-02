@@ -176,6 +176,7 @@ public class Utils {
                 .flatMap(functionWrapper(Set::stream)).collect(Collectors.toList());
 
     }
+
     public static JsonObject toJson(List<WireRecord> list) {
         Stream<Map<String, Object>> properties = list.stream()
                 .map(record -> record.getProperties().entrySet().stream().collect(Collectors.toMap(
@@ -185,6 +186,7 @@ public class Utils {
         return new JsonObject(merged);
 
     }
+
     public static JsonObject toJson(WireEnvelope wireEnvelope) {
         return toJson(wireEnvelope.getRecords());
     }
@@ -222,6 +224,16 @@ public class Utils {
                 throw new RuntimeException(ex);
             }
         };
+    }
+
+    public static int saturatedCast(long value) {
+        if (value > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        if (value < Integer.MIN_VALUE) {
+            return Integer.MIN_VALUE;
+        }
+        return (int) value;
     }
 
 }

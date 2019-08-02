@@ -82,6 +82,12 @@
             <version>2.11.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.yofc.iot</groupId>
+            <artifactId>yofc-iot-api-comp</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
