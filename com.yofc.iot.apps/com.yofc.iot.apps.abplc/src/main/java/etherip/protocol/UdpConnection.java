@@ -34,9 +34,9 @@ public class UdpConnection extends Connection {
      * Initialize
      *
      * @param address
-     *                    IP address of device
+     *            IP address of device
      * @param slot
-     *                    Slot number 0, 1, .. of the controller within PLC crate
+     *            Slot number 0, 1, .. of the controller within PLC crate
      * @throws Exception
      */
     public UdpConnection(final String address, final int slot) throws Exception {
@@ -71,18 +71,15 @@ public class UdpConnection extends Connection {
      * Write protocol data
      *
      * @param encoder
-     *                    {@link ProtocolEncoder} used to <code>encode</code> buffer
+     *            {@link ProtocolEncoder} used to <code>encode</code> buffer
      * @throws Exception
-     *                       on error
+     *             on error
      */
     @Override
     public void write(final ProtocolEncoder encoder) throws Exception {
-        final StringBuilder log = logger.isInfoEnabled() ? new StringBuilder() : null;
         this.buffer.clear();
-        encoder.encode(this.buffer, log);
-        if (log != null) {
-            logger.info("Protocol Encoding\n{}", log);
-        }
+        encoder.encode(this.buffer);
+
         this.buffer.flip();
         if (logger.isInfoEnabled()) {
             logger.info("Data sent ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
@@ -101,9 +98,9 @@ public class UdpConnection extends Connection {
      * Read protocol data
      *
      * @param decoder
-     *                    {@link ProtocolDecoder} used to <code>decode</code> buffer
+     *            {@link ProtocolDecoder} used to <code>decode</code> buffer
      * @throws Exception
-     *                       on error
+     *             on error
      */
     @Override
     public void read(final ProtocolDecoder decoder) throws Exception {
@@ -120,14 +117,9 @@ public class UdpConnection extends Connection {
         if (logger.isInfoEnabled()) {
             logger.info("Data read ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
         }
-        final StringBuilder log = logger.isInfoEnabled() ? new StringBuilder() : null;
-        try {
-            decoder.decode(this.buffer, this.buffer.remaining(), log);
-        } finally { // Show log even on error
-            if (log != null) {
-                logger.info("Protocol Decoding\n{}", log);
-            }
-        }
+
+        decoder.decode(this.buffer, this.buffer.remaining());
+
     }
 
     @Override

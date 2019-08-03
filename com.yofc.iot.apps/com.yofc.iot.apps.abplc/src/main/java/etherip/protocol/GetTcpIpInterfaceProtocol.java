@@ -29,7 +29,7 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetTcpIpInterfaceProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf, int available, final StringBuilder oldLog) throws Exception {
+    public void decode(final ByteBuffer buf, int available) throws Exception {
         this.tcpIpnterface = new TcpIpInterface();
         short hostNameLength;
         byte[] raw;
@@ -48,12 +48,12 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
         available -= 4;
 
         final CNClassPath physicalLinkObject = new CNClassPath();
-        physicalLinkObject.decode(buf, available, oldLog);
+        physicalLinkObject.decode(buf, available);
         this.tcpIpnterface.setPhysicalLinkObject(physicalLinkObject);
         available -= this.tcpIpnterface.getPhysicalLinkObject().getResponseSize(buf);
 
         final GetInterfaceConfigurationProtocol getInterfaceConfigurationProtocol = new GetInterfaceConfigurationProtocol();
-        getInterfaceConfigurationProtocol.decode(buf, available, oldLog);
+        getInterfaceConfigurationProtocol.decode(buf, available);
         this.tcpIpnterface.setInterfaceConfiguration(getInterfaceConfigurationProtocol.getValue());
         available -= getInterfaceConfigurationProtocol.getResponseSize(buf);
 

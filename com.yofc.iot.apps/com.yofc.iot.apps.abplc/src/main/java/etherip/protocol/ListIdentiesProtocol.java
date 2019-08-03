@@ -21,13 +21,9 @@ public class ListIdentiesProtocol extends ProtocolAdapter {
     private Identity[] identities;
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         // Decode reply to ListIdentity
         final int count = buf.getShort();
-        if (log != null) {
-            log.append("ListIdentities Reply\n");
-            log.append("UINT count      : ").append(count).append("\n");
-        }
 
         this.identities = new Identity[count];
         for (int i = 0; i < count; ++i) {
@@ -35,12 +31,10 @@ public class ListIdentiesProtocol extends ProtocolAdapter {
             buf.get(raw);
 
             final GetIdentityProtocol getIdentityProtocol = new GetIdentityProtocol();
-            getIdentityProtocol.decode(buf, buf.remaining(), log);
+            getIdentityProtocol.decode(buf, buf.remaining());
 
             final Identity identity = getIdentityProtocol.getValue();
-            if (log != null) {
-                log.append("Identity ").append(i).append(":\n").append(identity.toString()).append("\n");
-            }
+
             this.identities[i] = identity;
         }
     }

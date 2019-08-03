@@ -21,13 +21,10 @@ public class ListServicesProtocol extends ProtocolAdapter {
     private Service[] services;
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         // Decode reply to ListServices
         final int count = buf.getShort();
-        if (log != null) {
-            log.append("ListServices Reply\n");
-            log.append("UINT count      : ").append(count).append("\n");
-        }
+
         this.services = new Service[count];
         for (int i = 0; i < count; ++i) {
             final short type = buf.getShort();
@@ -38,9 +35,7 @@ public class ListServicesProtocol extends ProtocolAdapter {
             buf.get(name);
 
             final Service service = new Service(type, length, version, flags, name);
-            if (log != null) {
-                log.append("Service ").append(i).append(":\n").append(service.toString()).append("\n");
-            }
+
             this.services[i] = service;
         }
     }

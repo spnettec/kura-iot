@@ -42,11 +42,11 @@ public class MessageRouterProtocol extends ProtocolAdapter {
      * Initialize
      *
      * @param service
-     *                    Service for request
+     *            Service for request
      * @param path
-     *                    Path for request
+     *            Path for request
      * @param body
-     *                    Protocol embedded in the message request/response
+     *            Protocol embedded in the message request/response
      */
     public MessageRouterProtocol(final CNService service, final CNPath path, final Protocol body) {
         this.service = service;
@@ -66,15 +66,11 @@ public class MessageRouterProtocol extends ProtocolAdapter {
      * @throws Exception
      */
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) throws Exception {
+    public void encode(final ByteBuffer buf) throws Exception {
         buf.put(this.service.getCode());
-        this.path.encode(buf, log);
-        if (log != null) {
-            log.append("MR Request\n");
-            log.append("USINT service           : ").append(this.service).append("\n");
-            log.append("USINT path              : ").append(this.path).append("\n");
-        }
-        this.body.encode(buf, log);
+        this.path.encode(buf);
+
+        this.body.encode(buf);
     }
 
     /** {@inheritDoc} */
@@ -85,7 +81,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         final byte service_code = buf.get();
         final CNService reply = CNService.forCode(service_code);
         if (reply == null) {
@@ -104,17 +100,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         }
 
         // Followed by data...
-        if (log != null) {
-            log.append("MR Response\n");
-            log.append("USINT service           : ").append(reply).append("\n");
-            log.append("USINT reserved          : 0x").append(Integer.toHexString(reserved)).append("\n");
-            log.append("USINT status            : 0x").append(Integer.toHexString(this.status)).append(" (")
-                    .append(")\n");
-            log.append("USINT ext. stat. size   : 0x").append(Integer.toHexString(ext_status_size)).append("\n");
-            for (final int ext : this.extStatus) {
-                log.append("USINT ext status        : 0x").append(Integer.toHexString(ext)).append(" (").append(")\n");
-            }
-        }
+
         final CNService expected_reply = this.service.getReply();
         if (this.status != 0) {
             if (this.status == 6) { // Not an error, we need to ask for remaining
@@ -133,7 +119,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         }
         int bodySize = available - 4 - 2 * ext_status_size;
         this.payLoad = bodySize - 2;
-        this.body.decode(buf, available - 4 - 2 * ext_status_size, log);
+        this.body.decode(buf, available - 4 - 2 * ext_status_size);
     }
 
     public boolean isPartialTransfert() {

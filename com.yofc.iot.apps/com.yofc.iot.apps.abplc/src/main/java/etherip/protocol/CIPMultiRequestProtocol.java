@@ -38,15 +38,12 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) throws Exception {
-        final int start = buf.position();
+    public void encode(final ByteBuffer buf) throws Exception {
+        // final int start = buf.position();
 
         final short count = (short) this.services.length;
         // Encode service count
         buf.putShort(count);
-        if (log != null) {
-            log.append("UINT count              : ").append(count).append("\n");
-        }
 
         // Encode offsets to individual requests
         // Offset to 1st item:
@@ -54,22 +51,15 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
         short offset = (short) (2 + 2 * count);
         for (int i = 0; i < count; ++i) {
             buf.putShort(offset);
-            if (log != null) {
-                log.append("UINT offset             : ").append(offset).append("\n");
-            }
+
             // Next offset: After bytes for this request
             offset += this.services[i].getRequestSize();
         }
 
         for (int i = 0; i < count; ++i) {
-            if (log != null) {
-                log.append("    \\/\\/ request ").append(i + 1).append(" \\/\\/ (offset ")
-                        .append(buf.position() - start).append(" bytes)\n");
-            }
-            this.services[i].encode(buf, log);
-            if (log != null) {
-                log.append("    /\\/\\ request ").append(i + 1).append(" /\\/\\\n");
-            }
+
+            this.services[i].encode(buf);
+
         }
     }
 
@@ -83,22 +73,17 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         final int start = buf.position();
 
         // Count
         final short count = buf.getShort();
-        if (log != null) {
-            log.append("UINT count              : ").append(count).append("\n");
-        }
 
         // Offset table
         final short[] offset = new short[count];
         for (int i = 0; i < count; ++i) {
             offset[i] = buf.getShort();
-            if (log != null) {
-                log.append("UINT offset             : ").append(offset[i]).append("\n");
-            }
+
         }
 
         // Individual replies
@@ -116,14 +101,8 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
                 section_length = available - offset[i]; // .. from distance to end for last section
             }
 
-            if (log != null) {
-                log.append("    \\/\\/ response ").append(i + 1).append(" \\/\\/ (offset ").append(off)
-                        .append(" bytes)\n");
-            }
-            this.services[i].decode(buf, section_length, log);
-            if (log != null) {
-                log.append("    /\\/\\ response ").append(i + 1).append(" /\\/\\\n");
-            }
+            this.services[i].decode(buf, section_length);
+
         }
     }
 }

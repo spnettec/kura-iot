@@ -68,7 +68,7 @@ public class CNClassPath extends CNPath {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) {
+    public void encode(final ByteBuffer buf) {
         buf.put(this.getPathLength());
         buf.put((byte) classSegmentType());
         if (shortClassId()) {
@@ -163,7 +163,7 @@ public class CNClassPath extends CNPath {
     }
 
     @Override
-    public void decode(final ByteBuffer buf, int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, int available) throws Exception {
         final byte[] raw = new byte[2];
         buf.get(raw);
         available = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();

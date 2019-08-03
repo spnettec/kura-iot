@@ -159,7 +159,7 @@ public class CNSymbolPath extends CNPath {
      * Initialize
      *
      * @param symbol
-     *                   Name of symbol
+     *            Name of symbol
      */
     protected CNSymbolPath(final String symbol) {
         boolean firstElement = true;
@@ -197,7 +197,7 @@ public class CNSymbolPath extends CNPath {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) {
+    public void encode(final ByteBuffer buf) {
         buf.put((byte) (this.getRequestSize() / 2));
         for (final PathElement pi : this.elements) {
             pi.encode(buf);
@@ -227,7 +227,7 @@ public class CNSymbolPath extends CNPath {
     }
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         // TODO Auto-generated method stub
 
     }

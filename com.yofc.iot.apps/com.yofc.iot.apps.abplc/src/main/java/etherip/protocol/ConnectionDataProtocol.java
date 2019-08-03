@@ -41,8 +41,8 @@ public class ConnectionDataProtocol extends ProtocolAdapter {
      * @throws Exception
      */
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) throws Exception {
-        this.encoder.encode(buf, log);
+    public void encode(final ByteBuffer buf) throws Exception {
+        this.encoder.encode(buf);
 
         final short connectionNumber = (short) 1;
         buf.putShort(connectionNumber);
@@ -50,7 +50,7 @@ public class ConnectionDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
-        this.body.decode(buf, available, log);
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
+        this.body.decode(buf, available);
     }
 }

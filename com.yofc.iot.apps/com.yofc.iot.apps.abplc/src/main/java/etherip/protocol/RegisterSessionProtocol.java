@@ -22,12 +22,9 @@ public class RegisterSessionProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) {
+    public void encode(final ByteBuffer buf) {
         buf.putShort((short) 1); // protocol
         buf.putShort((short) 0); // options
-        if (log != null) {
-            log.append("USINT protocol  : 1\n");
-            log.append("USINT options   : 0\n");
-        }
+
     }
 }

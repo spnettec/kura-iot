@@ -28,7 +28,7 @@ public class GetIdentityProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetIdentityProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder oldLog) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         this.identity = new Identity();
 
         byte[] raw = new byte[2];

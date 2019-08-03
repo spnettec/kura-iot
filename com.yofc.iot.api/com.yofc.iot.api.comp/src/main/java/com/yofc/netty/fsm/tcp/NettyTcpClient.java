@@ -18,7 +18,6 @@ import com.yofc.vertx.osgi.api.Utils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.util.Timeout;
 
 public class NettyTcpClient {
@@ -45,12 +44,12 @@ public class NettyTcpClient {
     }
 
     public CompletableFuture<NettyTcpClient> connect() {
-        return complete(new CompletableFuture<NettyTcpClient>())
+        return complete(new CompletableFuture<NettyTcpClient>()).async(config.getExecutor())
                 .with(channelFsm.connect().thenApply(c -> NettyTcpClient.this));
     }
 
     public CompletableFuture<NettyTcpClient> disconnect() {
-        return complete(new CompletableFuture<NettyTcpClient>())
+        return complete(new CompletableFuture<NettyTcpClient>()).async(config.getExecutor())
                 .with(channelFsm.disconnect().thenApply(c -> NettyTcpClient.this));
     }
 
@@ -74,7 +73,7 @@ public class NettyTcpClient {
         logger.debug("onChannelInactive() {} <-> {}", ctx.channel().localAddress(), ctx.channel().remoteAddress());
     }
 
-    public void onInitChannel(SocketChannel ch) {
+    public void onInitChannel(Channel ch) {
         // TODO Auto-generated method stub
 
     }

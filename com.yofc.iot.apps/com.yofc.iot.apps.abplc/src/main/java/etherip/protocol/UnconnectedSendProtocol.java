@@ -45,8 +45,8 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) throws Exception {
-        this.encoder.encode(buf, log);
+    public void encode(final ByteBuffer buf) throws Exception {
+        this.encoder.encode(buf);
 
         final byte tick_time = (byte) 10;
         final byte ticks = (byte) 240;
@@ -57,15 +57,7 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
         final boolean pad = this.needPad();
 
-        if (log != null) {
-            log.append("CM_Unconnected_Send\n");
-            log.append("USINT tick_time         : ").append(tick_time).append("\n");
-            log.append("USINT ticks             : ").append(ticks).append("\n");
-            log.append("UINT message size       : ").append(this.body.getRequestSize()).append("\n");
-            log.append("  \\/\\/\\/ embedded message \\/\\/\\/ (").append(body_size).append(" bytes)\n");
-        }
-
-        this.body.encode(buf, log);
+        this.body.encode(buf);
         if (pad) {
             buf.put((byte) 0);
         }
@@ -74,24 +66,16 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
         buf.put((byte) 0); // reserved
         buf.put((byte) 1); // Port 1 = backplane
         buf.put((byte) this.slot);
-        if (log != null) {
-            log.append("  /\\/\\/\\ embedded message /\\/\\/\\\n");
-            if (pad) {
-                log.append("USINT pad               : 0 (odd length message)\n");
-            }
-            log.append("USINT path size         : ").append(1).append(" words\n");
-            log.append("USINT reserved          : 0\n");
-            log.append("USINT port 1, slot ").append(this.slot).append("\n");
-        }
+
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         // CM_Unconnected_Send wraps a request.
         // The response then arrives without CM_Unconnected_Send wrapper,
         // so pass decoding on to the body.
-        this.body.decode(buf, available, log);
+        this.body.decode(buf, available);
     }
 
     /** @return Is path of odd length, requiring a pad byte? */

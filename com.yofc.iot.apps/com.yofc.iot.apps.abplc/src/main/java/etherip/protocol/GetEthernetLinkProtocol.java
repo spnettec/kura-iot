@@ -25,7 +25,7 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
     private EthernetLink ethernetLink;
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         this.ethernetLink = new EthernetLink();
 
         byte[] raw = new byte[4];
@@ -50,10 +50,6 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
         this.ethernetLink.setPhysicalAddress(String.format("%02X", raw[0]) + String.format(formatStr, raw[1])
                 + String.format(formatStr, raw[2]) + String.format(":%02X", raw[3]) + String.format(formatStr, raw[4])
                 + String.format(formatStr, raw[5]));
-
-        if (log != null) {
-            log.append("EthernetLink value      : " + this.ethernetLink);
-        }
 
         // Skip remaining bytes
         final int rest = available - 4 - 4 - 6;

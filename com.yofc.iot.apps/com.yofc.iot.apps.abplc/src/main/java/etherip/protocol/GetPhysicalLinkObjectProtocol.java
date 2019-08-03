@@ -17,17 +17,15 @@ import etherip.types.CNClassPath;
  *
  * @author László Pataki
  */
-public class GetPhysicalLinkObjectProtocol extends CNClassPath
-{
+public class GetPhysicalLinkObjectProtocol extends CNClassPath {
+
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log)
-    {
+    public void encode(final ByteBuffer buf) {
         // NOP
     }
 
     @Override
-    public int getRequestSize()
-    {
+    public int getRequestSize() {
         return 0;
     }
 }

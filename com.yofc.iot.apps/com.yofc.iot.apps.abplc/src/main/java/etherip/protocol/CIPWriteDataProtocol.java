@@ -62,7 +62,7 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) throws Exception {
+    public void encode(final ByteBuffer buf) throws Exception {
         int witeCountNum = writeCount;
         if (witeCountNum <= 0)
             witeCountNum = this.data.getElementCount();
@@ -98,8 +98,6 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
 
             buf.put(this.data.getData().array(), position, length);
         }
-        if (log != null) {
-            log.append("USINT type, data        : ").append(this.data).append("\n");
-        }
+
     }
 }

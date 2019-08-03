@@ -13,9 +13,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.AsynchronousSocketChannel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import etherip.util.Hexdump;
 
 /**
@@ -27,17 +24,15 @@ import etherip.util.Hexdump;
  */
 public class TcpConnection extends Connection {
 
-    public static final Logger logger = LoggerFactory.getLogger(TcpConnection.class);
-
     private final AsynchronousSocketChannel channel;
 
     /**
      * Initialize
      *
      * @param address
-     *                    IP address of device
+     *            IP address of device
      * @param slot
-     *                    Slot number 0, 1, .. of the controller within PLC crate
+     *            Slot number 0, 1, .. of the controller within PLC crate
      * @throws Exception
      */
     public TcpConnection(final String address, final int slot) throws Exception {
@@ -58,18 +53,15 @@ public class TcpConnection extends Connection {
      * Write protocol data
      *
      * @param encoder
-     *                    {@link ProtocolEncoder} used to <code>encode</code> buffer
+     *            {@link ProtocolEncoder} used to <code>encode</code> buffer
      * @throws Exception
-     *                       on error
+     *             on error
      */
     @Override
     public void write(final ProtocolEncoder encoder) throws Exception {
-        final StringBuilder log = logger.isDebugEnabled() ? new StringBuilder() : null;
         this.buffer.clear();
-        encoder.encode(this.buffer, log);
-        if (log != null) {
-            logger.debug("Protocol Encoding\n{}", log);
-        }
+        encoder.encode(this.buffer);
+
         this.buffer.flip();
         if (logger.isDebugEnabled()) {
             logger.debug("Data sent ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
@@ -88,9 +80,9 @@ public class TcpConnection extends Connection {
      * Read protocol data
      *
      * @param decoder
-     *                    {@link ProtocolDecoder} used to <code>decode</code> buffer
+     *            {@link ProtocolDecoder} used to <code>decode</code> buffer
      * @throws Exception
-     *                       on error
+     *             on error
      */
     @Override
     public void read(final ProtocolDecoder decoder) throws Exception {
@@ -103,18 +95,8 @@ public class TcpConnection extends Connection {
         // Prepare to decode
         this.buffer.flip();
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Data read ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
-        }
+        decoder.decode(this.buffer, this.buffer.remaining());
 
-        final StringBuilder log = logger.isDebugEnabled() ? new StringBuilder() : null;
-        try {
-            decoder.decode(this.buffer, this.buffer.remaining(), log);
-        } finally { // Show log even on error
-            if (log != null) {
-                logger.debug("Protocol Decoding\n{}", log);
-            }
-        }
     }
 
     @Override

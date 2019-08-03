@@ -22,12 +22,8 @@ public class GetIntAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         this.value = buf.getInt();
-
-        if (log != null) {
-            log.append("ULONG value      : ").append(this.value).append("\n");
-        }
     }
 
     /** @return Value read from response */

@@ -87,7 +87,7 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) throws Exception {
+    public void encode(final ByteBuffer buf) throws Exception {
         final int status = 0;
         final int options = 0;
 
@@ -98,17 +98,7 @@ public class Encapsulation implements Protocol {
         buf.putLong(senderContext);
         buf.putInt(options);
 
-        if (log != null) {
-            log.append("Encapsulation Header\n");
-            log.append("UINT  command           : ").append(this.command).append("\n");
-            log.append("UINT  length            : ").append(this.body.getRequestSize()).append("\n");
-            log.append(String.format("UDINT session           : 0x%08X%n", this.session));
-            log.append(String.format("UDINT status            : 0x%08X%n", status));
-            log.append(String.format("USINT context[8]        : 0x%08X%n", senderContext));
-            log.append(String.format("UDINT options           : 0x%08X%n", options));
-        }
-
-        this.body.encode(buf, log);
+        this.body.encode(buf);
     }
 
     /** {@inheritDoc} */
@@ -137,7 +127,7 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         // Start decoding
         final short command_code = buf.getShort();
         final Command cmd = Command.forCode(command_code);
@@ -166,17 +156,7 @@ public class Encapsulation implements Protocol {
         if (recvdContext != senderContext)
             throw new Exception("Received context " + recvdContext + ", expected " + senderContext);
 
-        final int options = buf.getInt();
-
-        if (log != null) {
-            log.append("Encapsulation Header\n");
-            log.append("UINT  command           : ").append(command).append("\n");
-            log.append("UINT  length            : ").append(body_size).append("\n");
-            log.append(String.format("UDINT session           : 0x%08X%n", session));
-            log.append(String.format("UDINT status            : 0x%08X (%s)%n", status, this.getStatusMessage(status)));
-            log.append(String.format("USINT context[8]        : 0x%08X%n", senderContext));
-            log.append(String.format("UDINT options           : 0x%08X%n", options));
-        }
+        // final int options = buf.getInt();
 
         if (status != 0) {
             throw new Exception(String.format("Received status 0x%08X (%s)%n", status, this.getStatusMessage(status)));
@@ -185,7 +165,7 @@ public class Encapsulation implements Protocol {
             throw new Exception("Need " + body_size + " more bytes, have " + buf.remaining());
         }
 
-        this.body.decode(buf, body_size, log);
+        this.body.decode(buf, body_size);
     }
 
     private String getStatusMessage(final int status) {

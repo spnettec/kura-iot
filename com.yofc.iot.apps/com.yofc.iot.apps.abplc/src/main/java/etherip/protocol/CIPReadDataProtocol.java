@@ -50,31 +50,25 @@ public class CIPReadDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf, final StringBuilder log) {
+    public void encode(final ByteBuffer buf) {
         buf.putShort(this.count); // elements
         if (this.startBytes > 0)
             buf.putInt(this.startBytes);
-        if (log != null) {
-            log.append("USINT elements          : ").append(this.count).append("\n");
-        }
+
     }
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder log) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         if (available <= 0) {
             this.data = null;
-            if (log != null) {
-                log.append("USINT type, data        : - nothing-\n");
-            }
+
             return;
         }
         final CIPData.Type type = CIPData.Type.forCode(buf.getShort());
         final byte[] raw = new byte[available - 2];
         buf.get(raw);
         this.data = new CIPData(type, raw);
-        if (log != null) {
-            log.append("USINT type, data        : ").append(this.data).append("\n");
-        }
+
     }
 
     public final CIPData getData() {

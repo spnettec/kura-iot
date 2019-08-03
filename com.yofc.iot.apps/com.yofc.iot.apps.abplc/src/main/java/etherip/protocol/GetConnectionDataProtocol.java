@@ -28,7 +28,7 @@ public class GetConnectionDataProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetConnectionDataProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf, final int available, final StringBuilder oldLog) throws Exception {
+    public void decode(final ByteBuffer buf, final int available) throws Exception {
         this.connectionData = new ConnectionData();
 
         // Service
