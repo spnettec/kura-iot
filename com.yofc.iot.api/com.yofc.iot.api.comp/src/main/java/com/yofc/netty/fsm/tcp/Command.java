@@ -1,8 +1,10 @@
 package com.yofc.netty.fsm.tcp;
 
-public abstract class Command {
+import io.netty.buffer.ByteBuf;
 
-    private final int commandCode;
+public class Command {
+
+    private final ByteBuf payload;
     private long senderContext = 0l;
 
     public long getSenderContext() {
@@ -13,12 +15,11 @@ public abstract class Command {
         this.senderContext = senderContext;
     }
 
-    protected Command(int commandCode) {
-        this.commandCode = commandCode;
+    protected Command(ByteBuf payload) {
+        this.payload = payload;
     }
 
-    public int getCommandCode() {
-        return commandCode;
+    public ByteBuf getPayload() {
+        return payload;
     }
-
 }

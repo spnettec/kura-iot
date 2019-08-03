@@ -1,12 +1,13 @@
 package com.yofc.netty.fsm.tcp;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.ByteToMessageCodec;
 
-public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class NettyTcpClientHandler extends ByteToMessageCodec<Command> {
 
     private final ExecutorService executor;
 
@@ -16,11 +17,6 @@ public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
         this.client = client;
 
         executor = client.getConfig().getExecutor();
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, ByteBuf packet) {
-        executor.execute(() -> client.onChannelRead(packet));
     }
 
     @Override
@@ -35,6 +31,16 @@ public class NettyTcpClientHandler extends SimpleChannelInboundHandler<ByteBuf> 
         client.onExceptionCaught(ctx, cause);
 
         super.exceptionCaught(ctx, cause);
+    }
+
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Command msg, ByteBuf out) throws Exception {
+        out.writeBytes(msg.getPayload());
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        out.add(new Command(in));
     }
 
 }

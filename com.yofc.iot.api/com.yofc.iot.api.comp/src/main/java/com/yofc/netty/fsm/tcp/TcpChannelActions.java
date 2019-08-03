@@ -8,7 +8,6 @@ import com.yofc.netty.fsm.State;
 import com.yofc.state.machine.FsmContext;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -49,8 +48,8 @@ public class TcpChannelActions implements ChannelActions {
             }
         });
 
-        CompletableFuture<ByteBuf> future = new CompletableFuture<>();
-
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        client.onDisConnected(future);
         future.whenComplete((cmd, ex2) -> {
             channel.close();
             disconnectFuture.complete(null);
@@ -72,6 +71,7 @@ public class TcpChannelActions implements ChannelActions {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ch.pipeline().addLast(new NettyTcpClientHandler(client));
+                        client.onInitChannel(ch);
                     }
                 });
         config.getBootstrapConsumer().accept(bootstrap);

@@ -18,6 +18,7 @@ import com.yofc.vertx.osgi.api.Utils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.util.Timeout;
 
 public class NettyTcpClient {
@@ -65,8 +66,17 @@ public class NettyTcpClient {
         future.complete(null);
     }
 
+    public void onDisConnected(CompletableFuture<Void> future) {
+        future.complete(null);
+    }
+
     public void onChannelInactive(ChannelHandlerContext ctx) {
         logger.debug("onChannelInactive() {} <-> {}", ctx.channel().localAddress(), ctx.channel().remoteAddress());
+    }
+
+    public void onInitChannel(SocketChannel ch) {
+        // TODO Auto-generated method stub
+
     }
 
     public void onExceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
@@ -89,7 +99,7 @@ public class NettyTcpClient {
         return future;
     }
 
-    public <T extends Command> void writeCommand(Channel channel, Command command, CompletableFuture<T> future) {
+    private <T extends Command> void writeCommand(Channel channel, Command command, CompletableFuture<T> future) {
         Timeout timeout = config.getWheelTimer().newTimeout(tt -> {
             if (tt.isCancelled())
                 return;
@@ -138,4 +148,5 @@ public class NettyTcpClient {
         }
 
     }
+
 }
