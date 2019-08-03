@@ -170,12 +170,12 @@ public class CNClassPath extends CNPath {
         if (raw[0] == 0x02) {
             buf.get(raw);
             if (raw[0] == 0x20) {
-                this.class_code = new Integer(raw[1]);
+                this.class_code = raw[1];
                 this.class_name = "Ethernet Link";
             }
             buf.get(raw);
             if (raw[0] == 0x24) {
-                this.instance(new Integer(raw[1]));
+                this.instance(raw[1]);
             }
         }
     }
