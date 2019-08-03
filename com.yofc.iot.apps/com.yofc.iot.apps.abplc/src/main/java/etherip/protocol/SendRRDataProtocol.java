@@ -25,7 +25,7 @@ public class SendRRDataProtocol extends ProtocolAdapter {
      * Initialize
      *
      * @param body
-     *            Protocol to place in body of RRData
+     *                 Protocol to place in body of RRData
      */
     public SendRRDataProtocol(final Protocol body) {
         this.body = body;
@@ -60,14 +60,18 @@ public class SendRRDataProtocol extends ProtocolAdapter {
         if (iface != 0) {
             throw new Exception("Received interface " + iface + " instead of 0");
         }
-        // final short timeout = buf.getShort();
+        // short timeout
+        buf.getShort();
         final short count = buf.getShort();
         if (count != 2) {
             throw new Exception("Received count " + count + " instead of 2");
         }
-        // final short addr_type = buf.getShort();
-        // final short addr_length = buf.getShort();
-        // final short data_type = buf.getShort();
+        // short addr_type
+        buf.getShort();
+        // short addr_length
+        buf.getShort();
+        // short data_type
+        buf.getShort();
         final short received_data_length = buf.getShort();
 
         // Followed by data...

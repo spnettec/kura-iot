@@ -155,8 +155,8 @@ public class Encapsulation implements Protocol {
         final long recvdContext = buf.getLong();
         if (recvdContext != senderContext)
             throw new Exception("Received context " + recvdContext + ", expected " + senderContext);
-
-        // final int options = buf.getInt();
+        // int options
+        buf.getInt();
 
         if (status != 0) {
             throw new Exception(String.format("Received status 0x%08X (%s)%n", status, this.getStatusMessage(status)));
