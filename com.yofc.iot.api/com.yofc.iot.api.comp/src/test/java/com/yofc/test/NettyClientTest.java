@@ -42,7 +42,7 @@ public class NettyClientTest {
     @DisplayName("Netty测试")
     public void testNetty(Vertx vertx, VertxTestContext context) throws InterruptedException, TimeoutException {
         NettyTcpClient client = new NettyTcpClient(
-                TcpNetIpClientConfig.builder("10.211.55.3", 3000).setLazy(true).build());
+                TcpNetIpClientConfig.builder("10.211.55.11", 3000).setLazy(true).build());
         CompletableFuture<NettyTcpClient> future = client.connect();
         future.thenAccept(action -> {
             logger.debug(action.getState());

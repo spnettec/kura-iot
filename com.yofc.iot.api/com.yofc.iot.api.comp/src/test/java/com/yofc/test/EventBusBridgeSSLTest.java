@@ -61,9 +61,9 @@ public class EventBusBridgeSSLTest {
         router.route("/bridge/*").handler(sockJSHandler);
         // for reply test
         vertx.eventBus().consumer("reply", msg -> {
-            vertx.eventBus().send("replyTest", "replyToMe", reply -> {
+            vertx.eventBus().request("replyTest", "replyToMe", reply -> {
                 assertEquals("bubu", reply.result().body().toString());
-                reply.result().reply("ok", replyOfreply -> {
+                reply.result().replyAndRequest("ok", replyOfreply -> {
                     assertEquals("roger", replyOfreply.result().body().toString());
                 });
                 msg.reply("ok");
