@@ -33,7 +33,15 @@ public class EtherIPDemo {
             plc.connectTcp();
 
             System.out.println("\n*\n* Connected:\n*\n");
+            System.out.println(plc.listServices());
             System.out.println(plc.getIdentity());
+            System.out.println(plc.getSlotIdentity(0));
+            // System.out.println(plc.getConnectionData());
+            System.out.println(plc.getTcpIpInterface(1));
+            System.out.println(plc.getTcpIpInterfaceWithGetAttributeSingle(1));
+            System.out.println(plc.getPhysicalLinkObject(1));
+            System.out.println(plc.getInterfaceConfiguration(1));
+            System.out.println(plc.getEthernetLink(1));
         } catch (final CipException e) {
             // It is possible to ask some individual field of the ExceptionCip, but these are included in the
             // getMessage().

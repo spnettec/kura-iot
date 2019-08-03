@@ -67,10 +67,10 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
         log.info("TcpIpInterface value      : {}", this.tcpIpnterface);
 
         // Skip remaining bytes
-        final int rest = available - 1 - 2 - hostNameLength;
-        if (rest > 0) {
-            buf.position(buf.position() + rest);
-        }
+        // final int rest = available - 1 - 2 - hostNameLength;
+        // if (rest > 0) {
+        // buf.position(buf.position() + rest);
+        // }
     }
 
     /** @return Value read from response */
