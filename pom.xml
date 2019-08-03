@@ -11,7 +11,6 @@
         <module>com.yofc.iot.apps</module>
         <module>com.yofc.iot.repack</module>
 	    <module>com.yofc.iot.api</module>
-        <module>com.yofc.iot.docker</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
