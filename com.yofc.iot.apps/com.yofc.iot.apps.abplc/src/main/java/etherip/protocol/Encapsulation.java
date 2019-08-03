@@ -127,7 +127,7 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         // Start decoding
         final short command_code = buf.getShort();
         final Command cmd = Command.forCode(command_code);
@@ -165,7 +165,7 @@ public class Encapsulation implements Protocol {
             throw new Exception("Need " + body_size + " more bytes, have " + buf.remaining());
         }
 
-        this.body.decode(buf, body_size);
+        this.body.decode(buf);
     }
 
     private String getStatusMessage(final int status) {

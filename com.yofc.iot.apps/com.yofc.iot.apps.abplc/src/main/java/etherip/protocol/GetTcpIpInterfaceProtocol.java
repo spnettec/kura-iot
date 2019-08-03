@@ -29,7 +29,7 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetTcpIpInterfaceProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf, int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         this.tcpIpnterface = new TcpIpInterface();
         short hostNameLength;
         byte[] raw;
@@ -37,25 +37,25 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
         raw = new byte[4];
         buf.get(raw);
         this.tcpIpnterface.setStatus(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
-        available -= 4;
+        // available -= 4;
 
         buf.get(raw);
         this.tcpIpnterface.setConfigurationCapability(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
-        available -= 4;
+        // available -= 4;
 
         buf.get(raw);
         this.tcpIpnterface.setConfigurationControl(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
-        available -= 4;
+        // available -= 4;
 
         final CNClassPath physicalLinkObject = new CNClassPath();
-        physicalLinkObject.decode(buf, available);
+        physicalLinkObject.decode(buf);
         this.tcpIpnterface.setPhysicalLinkObject(physicalLinkObject);
-        available -= this.tcpIpnterface.getPhysicalLinkObject().getResponseSize(buf);
+        // available -= this.tcpIpnterface.getPhysicalLinkObject().getResponseSize(buf);
 
         final GetInterfaceConfigurationProtocol getInterfaceConfigurationProtocol = new GetInterfaceConfigurationProtocol();
-        getInterfaceConfigurationProtocol.decode(buf, available);
+        getInterfaceConfigurationProtocol.decode(buf);
         this.tcpIpnterface.setInterfaceConfiguration(getInterfaceConfigurationProtocol.getValue());
-        available -= getInterfaceConfigurationProtocol.getResponseSize(buf);
+        // available -= getInterfaceConfigurationProtocol.getResponseSize(buf);
 
         raw = new byte[2];
         buf.get(raw);

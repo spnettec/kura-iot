@@ -52,5 +52,5 @@ public interface ProtocolDecoder {
      *            If not-<code>null</code>, {@link StringBuilder} where protocol detail for log should be
      *            written
      */
-    public void decode(ByteBuffer buf, int available) throws Exception;
+    public void decode(ByteBuffer buf) throws Exception;
 }

@@ -28,7 +28,7 @@ public class GetConnectionDataProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetConnectionDataProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         this.connectionData = new ConnectionData();
 
         // Service
@@ -45,16 +45,17 @@ public class GetConnectionDataProtocol extends ProtocolAdapter {
         log.debug("ConnectionData value      : {}", this.connectionData);
 
         // Skip remaining bytes
-        final int rest = available - 1 - 1 - 1 - 1;
-        if (rest > 0) {
-            if (log.isWarnEnabled()) {
-                final byte[] arr = new byte[buf.remaining()];
-                buf.get(arr);
-                log.warn("\nRemaining bytes: {}", bytesToHex(arr));
-            }
-            buf.position(buf.position() + rest);
-        }
-
+        /*
+         * final int rest = available - 1 - 1 - 1 - 1;
+         * if (rest > 0) {
+         * if (log.isWarnEnabled()) {
+         * final byte[] arr = new byte[buf.remaining()];
+         * buf.get(arr);
+         * log.warn("\nRemaining bytes: {}", bytesToHex(arr));
+         * }
+         * buf.position(buf.position() + rest);
+         * }
+         */
         if (this.connectionData.getConnectionGeneralStatus() != 0) {
             throw new CipException(this.connectionData.getConnectionGeneralStatus(), (byte) 0);
         }

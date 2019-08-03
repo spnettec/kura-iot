@@ -81,7 +81,8 @@ public class MessageRouterProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
+        int available = buf.remaining();
         final byte service_code = buf.get();
         final CNService reply = CNService.forCode(service_code);
         if (reply == null) {
@@ -90,8 +91,8 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         if (!reply.isReply()) {
             throw new Exception("Expected reply, got " + reply);
         }
-
-        final int reserved = buf.get();
+        // int reserved
+        buf.get();
         this.status = buf.get();
         final int ext_status_size = buf.get();
         this.extStatus = new int[ext_status_size];
@@ -119,7 +120,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         }
         int bodySize = available - 4 - 2 * ext_status_size;
         this.payLoad = bodySize - 2;
-        this.body.decode(buf, available - 4 - 2 * ext_status_size);
+        this.body.decode(buf);
     }
 
     public boolean isPartialTransfert() {

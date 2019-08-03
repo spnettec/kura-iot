@@ -21,7 +21,7 @@ public class ListServicesProtocol extends ProtocolAdapter {
     private Service[] services;
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         // Decode reply to ListServices
         final int count = buf.getShort();
 

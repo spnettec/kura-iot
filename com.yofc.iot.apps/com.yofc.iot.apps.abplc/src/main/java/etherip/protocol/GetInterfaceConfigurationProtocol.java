@@ -33,7 +33,7 @@ public class GetInterfaceConfigurationProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         this.responseSize = buf.position();
         this.interfaceConfiguration = new InterfaceConfiguration();
 

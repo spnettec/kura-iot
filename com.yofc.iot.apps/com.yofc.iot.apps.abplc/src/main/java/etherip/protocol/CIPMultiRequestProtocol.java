@@ -73,7 +73,8 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
+        int available = buf.remaining();
         final int start = buf.position();
 
         // Count
@@ -87,6 +88,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
         }
 
         // Individual replies
+        int originLimit = buf.limit();
         for (int i = 0; i < count; ++i) { // Track buffer offset from start
             final int off = buf.position() - start;
             if (off != offset[i]) {
@@ -100,9 +102,9 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
             } else {
                 section_length = available - offset[i]; // .. from distance to end for last section
             }
-
-            this.services[i].decode(buf, section_length);
-
+            buf.limit(buf.position() + section_length);
+            this.services[i].decode(buf);
         }
+        buf.limit(originLimit);
     }
 }

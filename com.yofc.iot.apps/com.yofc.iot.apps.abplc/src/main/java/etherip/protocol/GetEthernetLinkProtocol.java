@@ -25,7 +25,7 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
     private EthernetLink ethernetLink;
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         this.ethernetLink = new EthernetLink();
 
         byte[] raw = new byte[4];
@@ -52,10 +52,12 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
                 + String.format(formatStr, raw[5]));
 
         // Skip remaining bytes
-        final int rest = available - 4 - 4 - 6;
-        if (rest > 0) {
-            buf.position(buf.position() + rest);
-        }
+        /*
+         * final int rest = available - 4 - 4 - 6;
+         * if (rest > 0) {
+         * buf.position(buf.position() + rest);
+         * }
+         */
     }
 
     /** @return Value read from response */

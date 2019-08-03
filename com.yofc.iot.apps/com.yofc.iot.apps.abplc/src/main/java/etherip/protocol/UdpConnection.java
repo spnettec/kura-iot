@@ -118,7 +118,7 @@ public class UdpConnection extends Connection {
             logger.info("Data read ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
         }
 
-        decoder.decode(this.buffer, this.buffer.remaining());
+        decoder.decode(this.buffer);
 
     }
 

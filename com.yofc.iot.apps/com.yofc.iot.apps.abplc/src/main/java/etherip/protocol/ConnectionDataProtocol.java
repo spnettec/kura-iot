@@ -50,7 +50,7 @@ public class ConnectionDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
-        this.body.decode(buf, available);
+    public void decode(final ByteBuffer buf) throws Exception {
+        this.body.decode(buf);
     }
 }

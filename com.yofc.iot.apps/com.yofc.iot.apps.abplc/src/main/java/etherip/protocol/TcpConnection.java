@@ -95,7 +95,7 @@ public class TcpConnection extends Connection {
         // Prepare to decode
         this.buffer.flip();
 
-        decoder.decode(this.buffer, this.buffer.remaining());
+        decoder.decode(this.buffer);
 
     }
 

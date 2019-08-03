@@ -21,7 +21,7 @@ public class ListIdentiesProtocol extends ProtocolAdapter {
     private Identity[] identities;
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         // Decode reply to ListIdentity
         final int count = buf.getShort();
 
@@ -31,7 +31,7 @@ public class ListIdentiesProtocol extends ProtocolAdapter {
             buf.get(raw);
 
             final GetIdentityProtocol getIdentityProtocol = new GetIdentityProtocol();
-            getIdentityProtocol.decode(buf, buf.remaining());
+            getIdentityProtocol.decode(buf);
 
             final Identity identity = getIdentityProtocol.getValue();
 

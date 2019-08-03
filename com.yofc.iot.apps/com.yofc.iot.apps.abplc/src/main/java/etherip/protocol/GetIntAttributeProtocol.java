@@ -22,7 +22,7 @@ public class GetIntAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         this.value = buf.getInt();
     }
 

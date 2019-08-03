@@ -227,7 +227,7 @@ public class CNSymbolPath extends CNPath {
     }
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         // TODO Auto-generated method stub
 
     }

@@ -28,7 +28,7 @@ public class GetIdentityProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetIdentityProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         this.identity = new Identity();
 
         byte[] raw = new byte[2];
@@ -65,10 +65,12 @@ public class GetIdentityProtocol extends ProtocolAdapter {
         log.debug("Identity value      : {}", this.identity);
 
         // Skip remaining bytes
-        final int rest = available - 1 - 2 - 2 - 2 - 2 - 2 - 4 - 1 - len;
-        if (rest > 0) {
-            buf.position(buf.position() + rest);
-        }
+        /*
+         * final int rest = available - 1 - 2 - 2 - 2 - 2 - 2 - 4 - 1 - len;
+         * if (rest > 0) {
+         * buf.position(buf.position() + rest);
+         * }
+         */
     }
 
     /** @return Value read from response */

@@ -71,11 +71,11 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         // CM_Unconnected_Send wraps a request.
         // The response then arrives without CM_Unconnected_Send wrapper,
         // so pass decoding on to the body.
-        this.body.decode(buf, available);
+        this.body.decode(buf);
     }
 
     /** @return Is path of odd length, requiring a pad byte? */

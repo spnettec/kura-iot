@@ -36,7 +36,7 @@ public class ProtocolAdapter implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         // NOP
     }
 }

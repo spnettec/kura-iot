@@ -189,6 +189,8 @@ public class EtherIPDemo {
             System.out.println("\n*\n* Multi read:\n*\n");
             final String[] tags = new String[] { "ALARM1", "ALARM2", "ALARM3", "SYSTEM_BAR_NO" };
             final CIPData[] results = plc.readTags(tags);
+            results[3].setString("test2");
+            plc.writeTags(tags, results);
             assertThat(results, not(nullValue()));
             assertThat(results.length, equalTo(tags.length));
 

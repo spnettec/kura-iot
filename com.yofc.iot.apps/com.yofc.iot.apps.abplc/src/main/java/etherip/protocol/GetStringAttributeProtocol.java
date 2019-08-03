@@ -20,20 +20,23 @@ public class GetStringAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         final int len = buf.get() & 0x7F;
-        if (len > available - 1) {
-            throw new Exception("String length of " + len + " exceeds remaining data (" + (available - 1) + " bytes)");
+        if (len > buf.remaining()) {
+            throw new Exception(
+                    "String length of " + len + " exceeds remaining data (" + (buf.remaining()) + " bytes)");
         }
         final byte[] raw = new byte[len];
         buf.get(raw);
         this.value = new String(raw);
 
         // Skip remaining bytes
-        final int rest = available - 1 - len;
-        if (rest > 0) {
-            buf.position(buf.position() + rest);
-        }
+        /*
+         * final int rest = available - 1 - len;
+         * if (rest > 0) {
+         * buf.position(buf.position() + rest);
+         * }
+         */
     }
 
     /** @return Value read from response */

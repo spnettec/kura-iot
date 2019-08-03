@@ -25,7 +25,7 @@ public class SendRRDataProtocol extends ProtocolAdapter {
      * Initialize
      *
      * @param body
-     *                 Protocol to place in body of RRData
+     *            Protocol to place in body of RRData
      */
     public SendRRDataProtocol(final Protocol body) {
         this.body = body;
@@ -55,7 +55,7 @@ public class SendRRDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf, final int available) throws Exception {
+    public void decode(final ByteBuffer buf) throws Exception {
         final int iface = buf.getInt();
         if (iface != 0) {
             throw new Exception("Received interface " + iface + " instead of 0");
@@ -72,10 +72,11 @@ public class SendRRDataProtocol extends ProtocolAdapter {
         buf.getShort();
         // short data_type
         buf.getShort();
-        final short received_data_length = buf.getShort();
+        // short received_data_length
+        buf.getShort();
 
         // Followed by data...
-        this.body.decode(buf, received_data_length);
+        this.body.decode(buf);
     }
 
     /**
