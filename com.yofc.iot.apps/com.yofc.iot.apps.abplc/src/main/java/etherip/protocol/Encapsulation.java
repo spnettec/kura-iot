@@ -8,6 +8,7 @@
 package etherip.protocol;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Encapsulation commands
@@ -63,9 +64,11 @@ public class Encapsulation implements Protocol {
         }
     }
 
-    private final long senderContext = Transaction.nextTransaction();
+    private static AtomicLong sequenceId = new AtomicLong(0);
 
-    public long getSenderContext() {
+    private long senderContext = 0;
+
+    public long getSenderContextId() {
         return senderContext;
     }
 
@@ -95,7 +98,8 @@ public class Encapsulation implements Protocol {
         buf.putShort((short) this.body.getRequestSize());
         buf.putInt(this.session);
         buf.putInt(status);
-        buf.putLong(senderContext);
+        this.senderContext = sequenceId.getAndIncrement();
+        buf.putLong(this.senderContext);
         buf.putInt(options);
 
         this.body.encode(buf);
@@ -153,8 +157,8 @@ public class Encapsulation implements Protocol {
         final int status = buf.getInt();
 
         final long recvdContext = buf.getLong();
-        if (recvdContext != senderContext)
-            throw new Exception("Received context " + recvdContext + ", expected " + senderContext);
+        if (recvdContext != this.senderContext)
+            throw new Exception("Received context " + recvdContext + ", expected " + this.senderContext);
         // int options
         buf.getInt();
 
