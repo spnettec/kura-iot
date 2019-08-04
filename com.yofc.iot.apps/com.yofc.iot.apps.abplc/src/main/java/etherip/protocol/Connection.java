@@ -9,6 +9,7 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public abstract class Connection implements AutoCloseable {
 
     public static final Logger logger = LoggerFactory.getLogger(Connection.class);
-
+    private LongAdder sequenceId = new LongAdder();
     /** EtherIP uses little endian */
     public static final ByteOrder BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
 
@@ -42,11 +43,11 @@ public abstract class Connection implements AutoCloseable {
      * Initialize
      *
      * @param address
-     *                    IP address of device
+     *            IP address of device
      * @param slot
-     *                    Slot number 0, 1, .. of the controller within PLC crate
+     *            Slot number 0, 1, .. of the controller within PLC crate
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public Connection(final String address, final int slot) throws Exception {
         logger.info("Connecting to {}:{}", address, this.port);
@@ -76,7 +77,7 @@ public abstract class Connection implements AutoCloseable {
 
     /**
      * @param session
-     *                    Session ID to be identified with this connection
+     *            Session ID to be identified with this connection
      */
     public void setSession(final int session) {
         this.session = session;
@@ -98,9 +99,9 @@ public abstract class Connection implements AutoCloseable {
      * Write protocol data
      *
      * @param encoder
-     *                    {@link ProtocolEncoder} used to <code>encode</code> buffer
+     *            {@link ProtocolEncoder} used to <code>encode</code> buffer
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public abstract void write(final ProtocolEncoder encoder) throws Exception;
 
@@ -108,9 +109,9 @@ public abstract class Connection implements AutoCloseable {
      * Read protocol data
      *
      * @param decoder
-     *                    {@link ProtocolDecoder} used to <code>decode</code> buffer
+     *            {@link ProtocolDecoder} used to <code>decode</code> buffer
      * @throws Exception
-     *                       on error
+     *             on error
      */
     protected abstract void read(final ProtocolDecoder decoder) throws Exception;
 
@@ -118,11 +119,20 @@ public abstract class Connection implements AutoCloseable {
      * Write protocol request and handle response
      *
      * @param protocol
-     *                     {@link Protocol}
+     *            {@link Protocol}
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public synchronized void execute(final Protocol protocol) throws Exception {
+        if (protocol instanceof Encapsulation) {
+            sequenceId.increment();
+            long senderContext = sequenceId.longValue();
+            if (senderContext < 0) {
+                sequenceId.reset();
+                senderContext = 0;
+            }
+            ((Encapsulation) protocol).setSenderContext(senderContext);
+        }
         this.write(protocol);
         this.read(protocol);
     }
