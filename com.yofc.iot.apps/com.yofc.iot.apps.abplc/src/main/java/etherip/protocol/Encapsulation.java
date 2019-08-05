@@ -9,6 +9,8 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 
+import etherip.util.CodedcException;
+
 /**
  * Encapsulation commands
  * <p>
@@ -91,7 +93,7 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         final int status = 0;
         final int options = 0;
 
@@ -107,21 +109,21 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public int getResponseSize() throws Exception {
+    public int getResponseSize() {
         return 0;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         // Start decoding
         final short command_code = buf.getShort();
         final Command cmd = Command.forCode(command_code);
         if (cmd == null) {
-            throw new Exception("Received unknown command code " + command_code);
+            throw new CodedcException("Received unknown command code " + command_code);
         }
         if (cmd != this.command) {
-            throw new Exception("Received command " + command + " instead of " + this.command);
+            throw new CodedcException("Received command " + command + " instead of " + this.command);
         }
 
         final short body_size = buf.getShort();
@@ -132,7 +134,7 @@ public class Encapsulation implements Protocol {
             if (this.session == 0) {
                 this.session = ses;
             } else {
-                throw new Exception("Received session " + session + " instead of " + this.session);
+                throw new CodedcException("Received session " + session + " instead of " + this.session);
             }
         }
 
@@ -140,15 +142,16 @@ public class Encapsulation implements Protocol {
 
         final long recvdContext = buf.getLong();
         if (recvdContext != this.senderContext)
-            throw new Exception("Received context " + recvdContext + ", expected " + this.senderContext);
+            throw new CodedcException("Received context " + recvdContext + ", expected " + this.senderContext);
         // int options
         buf.getInt();
 
         if (status != 0) {
-            throw new Exception(String.format("Received status 0x%08X (%s)%n", status, this.getStatusMessage(status)));
+            throw new CodedcException(
+                    String.format("Received status 0x%08X (%s)%n", status, this.getStatusMessage(status)));
         }
         if (buf.remaining() < body_size) {
-            throw new Exception("Need " + body_size + " more bytes, have " + buf.remaining());
+            throw new CodedcException("Need " + body_size + " more bytes, have " + buf.remaining());
         }
 
         this.body.decode(buf);

@@ -10,6 +10,7 @@ package etherip.protocol;
 import java.nio.ByteBuffer;
 
 import etherip.types.CNService;
+import etherip.util.CodedcException;
 
 /**
  * Protocol for {@link CNService#CIP_MultiRequest}
@@ -38,7 +39,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         // final int start = buf.position();
 
         final short count = (short) this.services.length;
@@ -64,7 +65,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public int getResponseSize() throws Exception {
+    public int getResponseSize() {
         int total = 0;
         for (final ProtocolAdapter service : this.services) {
             total += service.getResponseSize();
@@ -73,7 +74,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         int available = buf.remaining();
         final int start = buf.position();
 
@@ -92,7 +93,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
         for (int i = 0; i < count; ++i) { // Track buffer offset from start
             final int off = buf.position() - start;
             if (off != offset[i]) {
-                throw new Exception("Expected response #" + (i + 1) + " at offset " + offset[i] + ", not " + off);
+                throw new CodedcException("Expected response #" + (i + 1) + " at offset " + offset[i] + ", not " + off);
             }
 
             // Determine length of this section

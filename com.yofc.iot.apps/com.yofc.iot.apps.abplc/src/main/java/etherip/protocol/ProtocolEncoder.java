@@ -33,5 +33,5 @@ public interface ProtocolEncoder {
      * @param log
      *            If not-<code>null</code>, {@link StringBuilder} where protocol detail for log should be written
      */
-    public void encode(ByteBuffer buf) throws Exception;
+    public void encode(ByteBuffer buf);
 }

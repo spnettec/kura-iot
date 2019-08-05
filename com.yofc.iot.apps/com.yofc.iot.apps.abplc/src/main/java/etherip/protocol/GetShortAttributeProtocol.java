@@ -20,7 +20,7 @@ public class GetShortAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         this.value = buf.getShort();
     }
 

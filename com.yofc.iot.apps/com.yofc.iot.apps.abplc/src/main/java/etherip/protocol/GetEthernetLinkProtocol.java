@@ -25,7 +25,7 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
     private EthernetLink ethernetLink;
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         this.ethernetLink = new EthernetLink();
 
         byte[] raw = new byte[4];

@@ -221,13 +221,13 @@ public class CNSymbolPath extends CNPath {
     }
 
     @Override
-    public int getResponseSize() throws Exception {
+    public int getResponseSize() {
         // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         // TODO Auto-generated method stub
 
     }

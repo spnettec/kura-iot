@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import etherip.types.CIPData;
 import etherip.types.CIPData.Type;
 import etherip.types.CNService;
+import etherip.util.CodedcException;
 
 /**
  * Protocol body for {@link CNService#CIP_WriteData}
@@ -62,7 +63,7 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         int witeCountNum = writeCount;
         if (witeCountNum <= 0)
             witeCountNum = this.data.getElementCount();
@@ -73,7 +74,7 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
             this.data.getData().clear();
             final short struct_detail = this.data.getData().getShort();
             if (struct_detail != Type.STRUCT_STRING.getCode()) {
-                throw new Exception("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
+                throw new CodedcException("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
             }
             // The data buffer contains the string as _read_:
             // STRUCT, STRUCT_STRING, length, chars.

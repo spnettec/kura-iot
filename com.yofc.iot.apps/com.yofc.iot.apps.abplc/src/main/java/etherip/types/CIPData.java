@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import etherip.protocol.Connection;
+import etherip.util.CodedcException;
 
 /**
  * ControlNet data types
@@ -70,9 +71,9 @@ public final class CIPData {
             }
         }
 
-        public static Type forCode(final short code) throws Exception {
+        public static Type forCode(final short code) {
             if (reverse == null) {
-                throw new Exception("Unknown CIP type code 0x" + Integer.toHexString(code));
+                throw new CodedcException("Unknown CIP type code 0x" + Integer.toHexString(code));
             }
             return reverse.get(code);
 
@@ -173,7 +174,7 @@ public final class CIPData {
      * @throws Exception
      *             when data is invalid
      */
-    public CIPData(final Type type, final byte[] data) throws Exception {
+    public CIPData(final Type type, final byte[] data) {
         this.type = type;
         this.data = ByteBuffer.allocate(data.length);
         this.data.order(Connection.BYTE_ORDER);
@@ -182,7 +183,7 @@ public final class CIPData {
     }
 
     /** @return Number of elements */
-    final private short determineElementCount() throws Exception {
+    final private short determineElementCount() {
         switch (this.type) {
         case BOOL:
         case SINT:
@@ -195,7 +196,7 @@ public final class CIPData {
             return 1; // We do not know without byte packing details but at least 1.
         }
         default:
-            throw new Exception("Type " + this.type + " not handled");
+            throw new CodedcException("Type " + this.type + " not handled");
         }
     }
 

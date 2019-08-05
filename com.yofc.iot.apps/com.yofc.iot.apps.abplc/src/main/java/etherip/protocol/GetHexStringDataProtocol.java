@@ -20,7 +20,7 @@ public class GetHexStringDataProtocol extends ProtocolAdapter {
     private String value;
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         final int len = buf.remaining();
         final byte[] raw = new byte[len];
         buf.get(raw);

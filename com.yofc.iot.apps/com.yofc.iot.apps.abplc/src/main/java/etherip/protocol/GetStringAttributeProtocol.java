@@ -9,6 +9,8 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 
+import etherip.util.CodedcException;
+
 /**
  * Decode a <code>String</code> attribute
  *
@@ -20,10 +22,10 @@ public class GetStringAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         final int len = buf.get() & 0x7F;
         if (len > buf.remaining()) {
-            throw new Exception(
+            throw new CodedcException(
                     "String length of " + len + " exceeds remaining data (" + (buf.remaining()) + " bytes)");
         }
         final byte[] raw = new byte[len];

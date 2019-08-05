@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import etherip.data.CipException;
 import etherip.data.ConnectionData;
 
 /**
@@ -28,7 +27,7 @@ public class GetConnectionDataProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetConnectionDataProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         this.connectionData = new ConnectionData();
 
         // Service
@@ -56,9 +55,9 @@ public class GetConnectionDataProtocol extends ProtocolAdapter {
          * buf.position(buf.position() + rest);
          * }
          */
-        if (this.connectionData.getConnectionGeneralStatus() != 0) {
-            throw new CipException(this.connectionData.getConnectionGeneralStatus(), (byte) 0);
-        }
+        // if (this.connectionData.getConnectionGeneralStatus() != 0) {
+        // throw new CipException(this.connectionData.getConnectionGeneralStatus(), (byte) 0);
+        // }
     }
 
     /** @return Value read from response */

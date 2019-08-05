@@ -9,6 +9,8 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 
+import etherip.util.CodedcException;
+
 /**
  * SendRRData, the unconnected Request/Response protocol
  *
@@ -39,7 +41,7 @@ public class SendRRDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         final short addr_type = 0;
         final short data_type = 0xB2;
         buf.putInt(0);
@@ -55,16 +57,16 @@ public class SendRRDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         final int iface = buf.getInt();
         if (iface != 0) {
-            throw new Exception("Received interface " + iface + " instead of 0");
+            throw new CodedcException("Received interface " + iface + " instead of 0");
         }
         // short timeout
         buf.getShort();
         final short count = buf.getShort();
         if (count != 2) {
-            throw new Exception("Received count " + count + " instead of 2");
+            throw new CodedcException("Received count " + count + " instead of 2");
         }
         // short addr_type
         buf.getShort();

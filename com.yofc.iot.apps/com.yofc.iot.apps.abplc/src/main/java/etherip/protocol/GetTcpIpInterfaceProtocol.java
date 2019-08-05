@@ -29,7 +29,7 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetTcpIpInterfaceProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         this.tcpIpnterface = new TcpIpInterface();
         short hostNameLength;
         byte[] raw;

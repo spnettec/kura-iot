@@ -31,7 +31,7 @@ public interface ProtocolDecoder {
      *            {@link ByteBuffer} from which to decode protocol
      * @return Number of remaining bytes needed. 0 if buffer contains complete protocol response.
      */
-    public int getResponseSize() throws Exception;
+    public int getResponseSize();
 
     /**
      * Decode protocol from buffer.
@@ -52,5 +52,5 @@ public interface ProtocolDecoder {
      *            If not-<code>null</code>, {@link StringBuilder} where protocol detail for log should be
      *            written
      */
-    public void decode(ByteBuffer buf) throws Exception;
+    public void decode(ByteBuffer buf);
 }

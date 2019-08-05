@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import etherip.data.CipException;
 import etherip.types.CNPath;
 import etherip.types.CNService;
+import etherip.util.CodedcException;
 
 /**
  * Message Router PDU (Protocol Data Unit)
@@ -66,7 +67,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
      * @throws Exception
      */
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         buf.put(this.service.getCode());
         this.path.encode(buf);
 
@@ -75,21 +76,22 @@ public class MessageRouterProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public int getResponseSize() throws Exception {
+    public int getResponseSize() {
         throw new IllegalStateException("Unknown response size");
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         int available = buf.remaining();
         final byte service_code = buf.get();
         final CNService reply = CNService.forCode(service_code);
         if (reply == null) {
-            throw new Exception("Received reply with unknown service code 0x" + Integer.toHexString(service_code));
+            throw new CodedcException(
+                    "Received reply with unknown service code 0x" + Integer.toHexString(service_code));
         }
         if (!reply.isReply()) {
-            throw new Exception("Expected reply, got " + reply);
+            throw new CodedcException("Expected reply, got " + reply);
         }
         // int reserved
         buf.get();
@@ -116,7 +118,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         }
 
         if (expected_reply != null && expected_reply != reply) {
-            throw new Exception("Expected " + expected_reply + ", got " + reply);
+            throw new CodedcException("Expected " + expected_reply + ", got " + reply);
         }
         int bodySize = available - 4 - 2 * ext_status_size;
         this.payLoad = bodySize - 2;

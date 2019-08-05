@@ -157,12 +157,12 @@ public class CNClassPath extends CNPath {
     }
 
     @Override
-    public int getResponseSize() throws Exception {
+    public int getResponseSize() {
         return 2 + this.getPathLength() * 2;
     }
 
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         final byte[] raw = new byte[2];
         buf.get(raw);
         // available = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();

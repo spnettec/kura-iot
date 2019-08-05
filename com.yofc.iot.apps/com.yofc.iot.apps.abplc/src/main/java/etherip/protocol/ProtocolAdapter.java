@@ -24,19 +24,19 @@ public class ProtocolAdapter implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         // NOP
     }
 
     /** {@inheritDoc} */
     @Override
-    public int getResponseSize() throws Exception {
+    public int getResponseSize() {
         return 0;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         // NOP
     }
 }

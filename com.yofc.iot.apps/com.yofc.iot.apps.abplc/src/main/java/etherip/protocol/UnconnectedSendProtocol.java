@@ -45,7 +45,7 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) throws Exception {
+    public void encode(final ByteBuffer buf) {
         this.encoder.encode(buf);
 
         final byte tick_time = (byte) 10;
@@ -71,7 +71,7 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) throws Exception {
+    public void decode(final ByteBuffer buf) {
         // CM_Unconnected_Send wraps a request.
         // The response then arrives without CM_Unconnected_Send wrapper,
         // so pass decoding on to the body.
