@@ -90,7 +90,7 @@ public class TcpConnection extends Connection {
         this.buffer.clear();
         do {
             this.channel.read(this.buffer).get(this.timeoutMs, MILLISECONDS);
-        } while (this.buffer.position() < decoder.getResponseSize(this.buffer));
+        } while (this.buffer.position() < getResponseSize(this.buffer));
 
         // Prepare to decode
         this.buffer.flip();

@@ -64,10 +64,10 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
+    public int getResponseSize() throws Exception {
         int total = 0;
         for (final ProtocolAdapter service : this.services) {
-            total += service.getResponseSize(null);
+            total += service.getResponseSize();
         }
         return total;
     }

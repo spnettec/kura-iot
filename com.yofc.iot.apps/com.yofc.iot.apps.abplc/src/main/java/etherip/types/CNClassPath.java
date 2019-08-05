@@ -157,7 +157,7 @@ public class CNClassPath extends CNPath {
     }
 
     @Override
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
+    public int getResponseSize() throws Exception {
         return 2 + this.getPathLength() * 2;
     }
 

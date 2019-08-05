@@ -30,7 +30,7 @@ public class ProtocolAdapter implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
+    public int getResponseSize() throws Exception {
         return 0;
     }
 

@@ -75,7 +75,7 @@ public class MessageRouterProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
+    public int getResponseSize() throws Exception {
         throw new IllegalStateException("Unknown response size");
     }
 

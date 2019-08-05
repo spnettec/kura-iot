@@ -107,26 +107,8 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
-        // Need at least the encapsulation header
-        final int needed = 24 - buf.position();
-        if (needed > 0) {
-            return needed;
-        }
-
-        // Buffer contains header (and maybe more after that)
-        final short command_code = buf.getShort(0);
-        final Command cmd = Command.forCode(command_code);
-        if (cmd == null) {
-            throw new Exception("Received unknown command code " + command_code);
-        }
-        if (cmd != this.command) {
-            throw new Exception("Received command " + command + " instead of " + this.command);
-        }
-
-        final short body_size = buf.getShort(2);
-
-        return 24 + body_size;
+    public int getResponseSize() throws Exception {
+        return 0;
     }
 
     /** {@inheritDoc} */

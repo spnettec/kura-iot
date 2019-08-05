@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.LongAdder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import etherip.protocol.Encapsulation.Command;
+
 /**
  * Connection to EtherNet/IP device
  * <p>
@@ -91,6 +93,24 @@ public abstract class Connection implements AutoCloseable {
     /** @return {@link ByteBuffer} */
     public ByteBuffer getBuffer() {
         return this.buffer;
+    }
+
+    public int getResponseSize(final ByteBuffer buf) throws Exception {
+        // Need at least the encapsulation header
+        final int needed = 24 - buf.position();
+        if (needed > 0) {
+            return needed;
+        }
+
+        // Buffer contains header (and maybe more after that)
+        final short command_code = buf.getShort(0);
+        final Command cmd = Command.forCode(command_code);
+        if (cmd == null) {
+            throw new Exception("Received unknown command code " + command_code);
+        }
+        final short body_size = buf.getShort(2);
+
+        return 24 + body_size;
     }
 
     public abstract boolean isOpen();

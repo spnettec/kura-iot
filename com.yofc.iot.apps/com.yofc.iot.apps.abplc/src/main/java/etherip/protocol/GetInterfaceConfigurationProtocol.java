@@ -59,10 +59,10 @@ public class GetInterfaceConfigurationProtocol extends ProtocolAdapter {
         this.interfaceConfiguration.setNameServer2(Integer.valueOf(raw[3] & 0xFF) + "." + Integer.valueOf(raw[2] & 0xFF)
                 + "." + Integer.valueOf(raw[1] & 0xFF) + "." + Integer.valueOf(raw[0] & 0xFF));
 
-        raw = new byte[2];
-        short domainNameLength = 0;
+        // raw = new byte[2];
+        // short domainNameLength = 0;
 
-        buf.get(raw);
+        short domainNameLength = buf.getShort();
         domainNameLength = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();
         if (domainNameLength % 2 != 0) {
             domainNameLength++;
@@ -71,7 +71,7 @@ public class GetInterfaceConfigurationProtocol extends ProtocolAdapter {
         buf.get(raw);
         this.interfaceConfiguration.setDomainName(new String(raw));
 
-        this.responseSize -= buf.position();
+        this.responseSize = buf.position() - this.responseSize;
 
         log.info("InterfaceConfiguration value      : {}", this.interfaceConfiguration);
     }
@@ -82,7 +82,7 @@ public class GetInterfaceConfigurationProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
+    public int getResponseSize() throws Exception {
         return this.responseSize;
     }
 }
