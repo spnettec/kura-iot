@@ -1,38 +1,41 @@
 package org.com.yofc.iot.apps.s7plc;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.yofc.iot.apps.plc.api.exceptions.PlcConnectionException;
+import com.yofc.iot.apps.plc.api.messages.PlcReadRequest;
+import com.yofc.iot.apps.plc.api.messages.PlcReadResponse;
+import com.yofc.iot.apps.plc.protocols.s7.driver.S7PlcDriver;
+import com.yofc.iot.apps.plc.protocols.s7.driver.connection.S7PlcConnection;
 
 /**
  * Unit test for simple App.
  */
-public class AppTest 
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public AppTest( String testName )
-    {
-        super( testName );
+public class AppTest {
+
+    Logger logger = LoggerFactory.getLogger(AppTest.class);
+
+    @Before
+    public void setup() {
+
     }
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
-
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
+    @Test
+    public void testConnectTcp() throws PlcConnectionException, InterruptedException, ExecutionException {
+        S7PlcConnection s7Connection = (S7PlcConnection) new S7PlcDriver().connect("s7://10.150.34.2/0/2");
+        s7Connection.connect();
+        PlcReadRequest request = s7Connection.readRequestBuilder().addItem("test", "%DB4.DBD96.0:REAL").build();
+        CompletableFuture<PlcReadResponse> responseFuture = s7Connection.read(request);
+        PlcReadResponse response = responseFuture.get();
+        logger.info("vlue:{}", response.getDouble("test"));
+        assertNotNull(response);
     }
 }
