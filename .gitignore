@@ -293,3 +293,4 @@ buildNumber.properties
 /fis-server/src/main/generated
 /src/main/resources/programs/*
 /src/main/resources/static
+/.DS_Store
