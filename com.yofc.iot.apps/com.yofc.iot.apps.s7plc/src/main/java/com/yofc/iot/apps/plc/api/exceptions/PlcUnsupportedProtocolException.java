@@ -21,6 +21,11 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcUnsupportedProtocolException extends PlcConnectionException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7319550427572982913L;
+
     public PlcUnsupportedProtocolException(String message) {
         super(message);
     }

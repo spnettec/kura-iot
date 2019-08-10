@@ -13,5 +13,6 @@
     <module>com.yofc.iot.apps.comp</module>
     <module>com.yofc.iot.apps.jolokia</module>
     <module>com.yofc.iot.apps.s7plc</module>
+    <module>com.yofc.iot.apps.enip</module>
   </modules>
 </project>

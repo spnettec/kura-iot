@@ -217,7 +217,7 @@ public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, Internal
         }
 
         @Override
-        public <T> Builder addItem(String name, String fieldQuery, T... values) {
+        public <T> Builder addItem(String name, String fieldQuery, @SuppressWarnings("unchecked") T... values) {
             Objects.requireNonNull(values);
             Class<?> checkedClazz = null;
             for (T value : values) {

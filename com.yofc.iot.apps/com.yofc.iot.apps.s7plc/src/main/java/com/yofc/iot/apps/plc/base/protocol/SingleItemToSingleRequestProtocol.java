@@ -69,10 +69,6 @@ import com.yofc.iot.apps.plc.base.messages.PlcWriter;
 import com.yofc.iot.apps.plc.base.messages.items.BaseDefaultFieldItem;
 import com.yofc.iot.apps.plc.base.model.InternalPlcSubscriptionHandle;
 import com.yofc.iot.apps.plc.base.model.SubscriptionPlcField;
-import com.yofc.iot.apps.plc.base.protocol.SingleItemToSingleRequestProtocol.CorrelatedPlcReadRequest;
-import com.yofc.iot.apps.plc.base.protocol.SingleItemToSingleRequestProtocol.CorrelatedPlcSubscriptionRequest;
-import com.yofc.iot.apps.plc.base.protocol.SingleItemToSingleRequestProtocol.CorrelatedPlcUnsubscriptionRequest;
-import com.yofc.iot.apps.plc.base.protocol.SingleItemToSingleRequestProtocol.CorrelatedPlcWriteRequest;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
@@ -83,6 +79,7 @@ import io.netty.channel.PendingWriteQueue;
 import io.netty.util.Timeout;
 import io.netty.util.Timer;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.PromiseCombiner;
 
 /**
@@ -349,7 +346,7 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
             scheduledTimeouts.put(in, timeout);
 
             // Create a promise that has to be called multiple times.
-            PromiseCombiner promiseCombiner = new PromiseCombiner();
+            PromiseCombiner promiseCombiner = new PromiseCombiner(ImmediateEventExecutor.INSTANCE);
             InternalPlcRequest request = in.getRequest();
             if (request instanceof InternalPlcFieldRequest
                     && (splitConfig.splitRead || splitConfig.splitWrite || splitConfig.splitSubscription)) {
@@ -379,7 +376,7 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
                         if (!tdpus.add(tdpu)) {
                             throw new IllegalStateException("AtomicInteger should not create duplicated ids: " + tdpu);
                         }
-                        promiseCombiner.add((Future) subPromise);
+                        promiseCombiner.add((Future<Void>) subPromise);
                     });
                 } else if (internalPlcFieldRequest instanceof InternalPlcWriteRequest && splitConfig.splitWrite) {
                     InternalPlcWriteRequest internalPlcWriteRequest = (InternalPlcWriteRequest) internalPlcFieldRequest;
@@ -404,7 +401,7 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
                         if (!tdpus.add(tdpu)) {
                             throw new IllegalStateException("AtomicInteger should not create duplicated ids: " + tdpu);
                         }
-                        promiseCombiner.add((Future) subPromise);
+                        promiseCombiner.add((Future<Void>) subPromise);
                     });
                 } else if (internalPlcFieldRequest instanceof InternalPlcSubscriptionRequest
                         && splitConfig.splitSubscription) {
@@ -432,7 +429,7 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
                         if (!tdpus.add(tdpu)) {
                             throw new IllegalStateException("AtomicInteger should not create duplicated ids: " + tdpu);
                         }
-                        promiseCombiner.add((Future) subPromise);
+                        promiseCombiner.add((Future<Void>) subPromise);
                     });
                 } else {
                     throw new PlcProtocolException("Unmapped request type " + request.getClass());
@@ -462,12 +459,12 @@ public class SingleItemToSingleRequestProtocol extends ChannelDuplexHandler {
                     if (!tdpus.add(tdpu)) {
                         throw new IllegalStateException("AtomicInteger should not create duplicated ids: " + tdpu);
                     }
-                    promiseCombiner.add((Future) subPromise);
+                    promiseCombiner.add((Future<Void>) subPromise);
                 });
             } else {
                 ChannelPromise subPromise = new DefaultChannelPromise(promise.channel());
                 queue.add(msg, subPromise);
-                promiseCombiner.add((Future) subPromise);
+                promiseCombiner.add((Future<Void>) subPromise);
             }
 
             promiseCombiner.finish(promise);

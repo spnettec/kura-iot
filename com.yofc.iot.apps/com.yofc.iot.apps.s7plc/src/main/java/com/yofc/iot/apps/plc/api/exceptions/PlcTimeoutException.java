@@ -26,6 +26,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class PlcTimeoutException extends PlcRuntimeException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8186292126003158444L;
     private final long timeout;
 
     /**

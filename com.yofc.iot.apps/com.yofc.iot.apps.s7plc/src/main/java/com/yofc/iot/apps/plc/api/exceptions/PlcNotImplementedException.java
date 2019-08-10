@@ -23,6 +23,11 @@ package com.yofc.iot.apps.plc.api.exceptions;
  */
 public class PlcNotImplementedException extends PlcRuntimeException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -7007507212047973179L;
+
     public PlcNotImplementedException(String message) {
         super(message);
     }

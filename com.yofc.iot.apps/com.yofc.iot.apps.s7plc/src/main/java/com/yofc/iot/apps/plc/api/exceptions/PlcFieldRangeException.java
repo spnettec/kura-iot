@@ -21,6 +21,11 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcFieldRangeException extends PlcRuntimeException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5305984625400246957L;
+
     public PlcFieldRangeException(int maxIndex, int requestedIndex) {
         super(String.format("requested index of %d is outside the valid range of 0 - %d", requestedIndex, maxIndex));
     }

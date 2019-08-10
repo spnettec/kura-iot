@@ -20,6 +20,10 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcProtocolPayloadTooBigException extends PlcProtocolException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1501999937686550994L;
     private String protocolName;
     private int maxSize;
     private int actualSize;

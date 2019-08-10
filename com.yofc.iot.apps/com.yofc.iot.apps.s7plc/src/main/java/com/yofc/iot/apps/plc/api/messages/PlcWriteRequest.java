@@ -67,7 +67,7 @@ public interface PlcWriteRequest extends PlcFieldRequest {
 
         PlcWriteRequest.Builder addItem(String name, String fieldQuery, Byte[]... values);
 
-        <T> PlcWriteRequest.Builder addItem(String name, String fieldQuery, T... values);
+        <T> PlcWriteRequest.Builder addItem(String name, String fieldQuery, @SuppressWarnings("unchecked") T... values);
     }
 
 }

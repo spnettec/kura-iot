@@ -20,6 +20,11 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcUnsupportedOperationException extends PlcRuntimeException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 4173310589466928045L;
+
     public PlcUnsupportedOperationException(String message) {
         super(message);
     }

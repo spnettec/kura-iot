@@ -21,6 +21,11 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcIncompatibleDatatypeException extends PlcRuntimeException {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5780931080822930585L;
+
     public PlcIncompatibleDatatypeException(Class<?> datatype, int index) {
         super("Incompatible Datatype " + datatype.getName() + " at index " + index);
     }
