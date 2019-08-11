@@ -1,11 +1,16 @@
 package com.yofc.iot.apps.enip.cpf;
 
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import io.netty.buffer.ByteBuf;
 
 public final class SockAddr {
+
+    @Override
+    public String toString() {
+        return "SockAddr [sinFamily=" + sinFamily + ", sinPort=" + sinPort + ", sinAddr="
+                + Arrays.toString(unsignedByteToInt(sinAddr)) + ", sinZero=" + sinZero + "]";
+    }
 
     private final int sinFamily;
     private final int sinPort;
@@ -58,22 +63,31 @@ public final class SockAddr {
     }
 
     public static ByteBuf encode(SockAddr sockAddr, ByteBuf buffer) {
-        buffer.order(ByteOrder.BIG_ENDIAN).writeShort(sockAddr.getSinFamily());
-        buffer.order(ByteOrder.BIG_ENDIAN).writeShort(sockAddr.getSinPort());
-        buffer.order(ByteOrder.BIG_ENDIAN).writeBytes(sockAddr.getSinAddr());
-        buffer.order(ByteOrder.BIG_ENDIAN).writeLong(sockAddr.getSinZero());
+        buffer.unwrap().writeShort(sockAddr.getSinFamily());
+        buffer.unwrap().writeShort(sockAddr.getSinPort());
+        buffer.unwrap().writeBytes(sockAddr.getSinAddr());
+        buffer.unwrap().writeLong(sockAddr.getSinZero());
 
         return buffer;
     }
 
     public static SockAddr decode(ByteBuf buffer) {
-        int sinFamily = buffer.order(ByteOrder.BIG_ENDIAN).readUnsignedShort();
-        int sinPort = buffer.order(ByteOrder.BIG_ENDIAN).readUnsignedShort();
+        int sinFamily = buffer.unwrap().readUnsignedShort();
+        int sinPort = buffer.unwrap().readUnsignedShort();
         byte[] sinAddr = new byte[4];
-        buffer.order(ByteOrder.BIG_ENDIAN).readBytes(sinAddr);
-        long sinZero = buffer.order(ByteOrder.BIG_ENDIAN).readLong();
+        buffer.unwrap().readBytes(sinAddr);
+        long sinZero = buffer.unwrap().readLong();
 
         return new SockAddr(sinFamily, sinPort, sinAddr, sinZero);
+    }
+
+    private static final int[] unsignedByteToInt(byte[] b) {
+        int len = b.length;
+        int[] result = new int[len];
+        for (int i = 0; i < len; i++) {
+            result[i] = b[i] & 0xFF;
+        }
+        return result;
     }
 
 }

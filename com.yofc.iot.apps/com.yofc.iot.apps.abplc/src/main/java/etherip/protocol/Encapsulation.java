@@ -7,9 +7,8 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.util.CodedcException;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Encapsulation commands
@@ -93,16 +92,16 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         final int status = 0;
         final int options = 0;
 
-        buf.putShort(this.command.code());
-        buf.putShort((short) this.body.getRequestSize());
-        buf.putInt(this.session);
-        buf.putInt(status);
-        buf.putLong(this.senderContext);
-        buf.putInt(options);
+        buf.writeShortLE(this.command.code());
+        buf.writeShortLE((short) this.body.getRequestSize());
+        buf.writeIntLE(this.session);
+        buf.writeIntLE(status);
+        buf.writeLongLE(this.senderContext);
+        buf.writeIntLE(options);
 
         this.body.encode(buf);
     }
@@ -115,9 +114,9 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         // Start decoding
-        final short command_code = buf.getShort();
+        final short command_code = buf.readShortLE();
         final Command cmd = Command.forCode(command_code);
         if (cmd == null) {
             throw new CodedcException("Received unknown command code " + command_code);
@@ -126,9 +125,9 @@ public class Encapsulation implements Protocol {
             throw new CodedcException("Received command " + command + " instead of " + this.command);
         }
 
-        final short body_size = buf.getShort();
+        final short body_size = buf.readShortLE();
 
-        final int ses = buf.getInt();
+        final int ses = buf.readIntLE();
         if (ses != this.session) {
             // If we did not have a session, remember the newly obtained session
             if (this.session == 0) {
@@ -138,20 +137,20 @@ public class Encapsulation implements Protocol {
             }
         }
 
-        final int status = buf.getInt();
+        final int status = buf.readIntLE();
 
-        final long recvdContext = buf.getLong();
+        final long recvdContext = buf.readLongLE();
         if (recvdContext != this.senderContext)
             throw new CodedcException("Received context " + recvdContext + ", expected " + this.senderContext);
         // int options
-        buf.getInt();
+        buf.readIntLE();
 
         if (status != 0) {
             throw new CodedcException(
                     String.format("Received status 0x%08X (%s)%n", status, this.getStatusMessage(status)));
         }
-        if (buf.remaining() < body_size) {
-            throw new CodedcException("Need " + body_size + " more bytes, have " + buf.remaining());
+        if (buf.readableBytes() < body_size) {
+            throw new CodedcException("Need " + body_size + " more bytes, have " + buf.readableBytes());
         }
 
         this.body.decode(buf);

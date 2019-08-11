@@ -7,9 +7,8 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.data.Identity;
+import io.netty.buffer.ByteBuf;
 
 /**
  * List Identities response decoder
@@ -21,14 +20,14 @@ public class ListIdentiesProtocol extends ProtocolAdapter {
     private Identity[] identities;
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         // Decode reply to ListIdentity
-        final int count = buf.getShort();
+        final int count = buf.readShortLE();
 
         this.identities = new Identity[count];
         for (int i = 0; i < count; ++i) {
             final byte[] raw = new byte[22];
-            buf.get(raw);
+            buf.readBytes(raw);
 
             final GetIdentityProtocol getIdentityProtocol = new GetIdentityProtocol();
             getIdentityProtocol.decode(buf);

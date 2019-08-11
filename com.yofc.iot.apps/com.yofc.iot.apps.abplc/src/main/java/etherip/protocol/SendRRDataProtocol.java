@@ -7,9 +7,8 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.util.CodedcException;
+import io.netty.buffer.ByteBuf;
 
 /**
  * SendRRData, the unconnected Request/Response protocol
@@ -41,41 +40,41 @@ public class SendRRDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         final short addr_type = 0;
         final short data_type = 0xB2;
-        buf.putInt(0);
-        buf.putShort((short) 0);
-        buf.putShort((short) 2);
-        buf.putShort(addr_type);
-        buf.putShort((short) 0);
-        buf.putShort(data_type);
-        buf.putShort((short) this.body.getRequestSize());
+        buf.writeIntLE(0);
+        buf.writeShortLE((short) 0);
+        buf.writeShortLE((short) 2);
+        buf.writeShortLE(addr_type);
+        buf.writeShortLE((short) 0);
+        buf.writeShortLE(data_type);
+        buf.writeShortLE((short) this.body.getRequestSize());
 
         this.body.encode(buf);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
-        final int iface = buf.getInt();
+    public void decode(final ByteBuf buf) {
+        final int iface = buf.readIntLE();
         if (iface != 0) {
             throw new CodedcException("Received interface " + iface + " instead of 0");
         }
         // short timeout
-        buf.getShort();
-        final short count = buf.getShort();
+        buf.readShortLE();
+        final short count = buf.readShortLE();
         if (count != 2) {
             throw new CodedcException("Received count " + count + " instead of 2");
         }
         // short addr_type
-        buf.getShort();
+        buf.readShortLE();
         // short addr_length
-        buf.getShort();
+        buf.readShortLE();
         // short data_type
-        buf.getShort();
+        buf.readShortLE();
         // short received_data_length
-        buf.getShort();
+        buf.readShortLE();
 
         // Followed by data...
         this.body.decode(buf);

@@ -7,10 +7,9 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.data.EthernetLink;
 import etherip.data.InterfaceFlags;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Ethernet Link Object decoder
@@ -25,16 +24,16 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
     private EthernetLink ethernetLink;
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         this.ethernetLink = new EthernetLink();
 
         byte[] raw = new byte[4];
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.ethernetLink.setInterfaceSpeed(Integer.valueOf(raw[3] & 0xFF) + Integer.valueOf(raw[2] & 0xFF)
                 + Integer.valueOf(raw[1] & 0xFF) + Integer.valueOf(raw[0] & 0xFF));
 
-        buf.get(raw);
+        buf.readBytes(raw);
         final InterfaceFlags interfaceFlags = new InterfaceFlags();
         interfaceFlags.setActiveLink(((raw[0] >> 0) & 0x1) == 1);
         interfaceFlags.setFullDuplex(((raw[0] >> 1) & 0x1) == 1);
@@ -45,7 +44,7 @@ public class GetEthernetLinkProtocol extends ProtocolAdapter {
         this.ethernetLink.setInterfaceFlags(interfaceFlags);
 
         raw = new byte[6];
-        buf.get(raw);
+        buf.readBytes(raw);
         String formatStr = ":%02X";
         this.ethernetLink.setPhysicalAddress(String.format("%02X", raw[0]) + String.format(formatStr, raw[1])
                 + String.format(formatStr, raw[2]) + String.format(":%02X", raw[3]) + String.format(formatStr, raw[4])

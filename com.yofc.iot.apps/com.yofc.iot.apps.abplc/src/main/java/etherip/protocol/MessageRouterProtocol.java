@@ -7,12 +7,11 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.data.CipException;
 import etherip.types.CNPath;
 import etherip.types.CNService;
 import etherip.util.CodedcException;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Message Router PDU (Protocol Data Unit)
@@ -67,8 +66,8 @@ public class MessageRouterProtocol extends ProtocolAdapter {
      * @throws Exception
      */
     @Override
-    public void encode(final ByteBuffer buf) {
-        buf.put(this.service.getCode());
+    public void encode(final ByteBuf buf) {
+        buf.writeByte(this.service.getCode());
         this.path.encode(buf);
 
         this.body.encode(buf);
@@ -82,9 +81,9 @@ public class MessageRouterProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
-        int available = buf.remaining();
-        final byte service_code = buf.get();
+    public void decode(final ByteBuf buf) {
+        int available = buf.readableBytes();
+        final byte service_code = buf.readByte();
         final CNService reply = CNService.forCode(service_code);
         if (reply == null) {
             throw new CodedcException(
@@ -94,12 +93,12 @@ public class MessageRouterProtocol extends ProtocolAdapter {
             throw new CodedcException("Expected reply, got " + reply);
         }
         // int reserved
-        buf.get();
-        this.status = buf.get();
-        final int ext_status_size = buf.get();
+        buf.readByte();
+        this.status = buf.readByte();
+        final int ext_status_size = buf.readByte();
         this.extStatus = new int[ext_status_size];
         for (int i = 0; i < ext_status_size; ++i) {
-            this.extStatus[i] = buf.getShort();
+            this.extStatus[i] = buf.readShortLE();
         }
 
         // Followed by data...

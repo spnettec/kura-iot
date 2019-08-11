@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import etherip.data.TcpIpInterface;
 import etherip.types.CNClassPath;
+import io.netty.buffer.ByteBuf;
 
 /**
  * TCP/IP Interface Object
@@ -29,21 +30,21 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetTcpIpInterfaceProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         this.tcpIpnterface = new TcpIpInterface();
         short hostNameLength;
         byte[] raw;
 
         raw = new byte[4];
-        buf.get(raw);
+        buf.readBytes(raw);
         this.tcpIpnterface.setStatus(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
         // available -= 4;
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.tcpIpnterface.setConfigurationCapability(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
         // available -= 4;
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.tcpIpnterface.setConfigurationControl(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
         // available -= 4;
 
@@ -58,10 +59,10 @@ public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
         // available -= getInterfaceConfigurationProtocol.getResponseSize(buf);
 
         raw = new byte[2];
-        buf.get(raw);
+        buf.readBytes(raw);
         hostNameLength = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();
         raw = new byte[hostNameLength];
-        buf.get(raw);
+        buf.readBytes(raw);
         this.tcpIpnterface.setHostName(new String(raw));
 
         log.info("TcpIpInterface value      : {}", this.tcpIpnterface);

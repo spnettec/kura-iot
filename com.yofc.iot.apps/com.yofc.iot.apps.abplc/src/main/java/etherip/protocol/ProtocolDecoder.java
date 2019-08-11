@@ -9,6 +9,8 @@ package etherip.protocol;
 
 import java.nio.ByteBuffer;
 
+import io.netty.buffer.ByteBuf;
+
 /**
  * Decode bytes of a protocol
  *
@@ -52,5 +54,5 @@ public interface ProtocolDecoder {
      *            If not-<code>null</code>, {@link StringBuilder} where protocol detail for log should be
      *            written
      */
-    public void decode(ByteBuffer buf);
+    public void decode(ByteBuf buf);
 }

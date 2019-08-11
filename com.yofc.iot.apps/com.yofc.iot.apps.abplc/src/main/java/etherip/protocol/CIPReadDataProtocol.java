@@ -7,10 +7,9 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.types.CIPData;
 import etherip.types.CNService;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Protocol body for {@link CNService#CIP_ReadData}
@@ -50,24 +49,24 @@ public class CIPReadDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf) {
-        buf.putShort(this.count); // elements
+    public void encode(final ByteBuf buf) {
+        buf.writeShortLE(this.count); // elements
         if (this.startBytes > 0)
-            buf.putInt(this.startBytes);
+            buf.writeIntLE(this.startBytes);
 
     }
 
     @Override
-    public void decode(final ByteBuffer buf) {
-        int available = buf.remaining();
+    public void decode(final ByteBuf buf) {
+        int available = buf.readableBytes();
         if (available <= 0) {
             this.data = null;
 
             return;
         }
-        final CIPData.Type type = CIPData.Type.forCode(buf.getShort());
+        final CIPData.Type type = CIPData.Type.forCode(buf.readShortLE());
         final byte[] raw = new byte[available - 2];
-        buf.get(raw);
+        buf.readBytes(raw);
         this.data = new CIPData(type, raw);
 
     }

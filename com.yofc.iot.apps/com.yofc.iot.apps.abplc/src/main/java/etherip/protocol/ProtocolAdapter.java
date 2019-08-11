@@ -7,7 +7,7 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Base for protocol handler with NOP implementations
@@ -24,7 +24,7 @@ public class ProtocolAdapter implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         // NOP
     }
 
@@ -36,7 +36,7 @@ public class ProtocolAdapter implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         // NOP
     }
 }

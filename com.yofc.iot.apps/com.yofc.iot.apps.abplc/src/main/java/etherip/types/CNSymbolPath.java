@@ -7,10 +7,11 @@
  *******************************************************************************/
 package etherip.types;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import io.netty.buffer.ByteBuf;
 
 /**
  * Control Net Path for element path. Support symbolic and numeric address elements in any part.
@@ -83,7 +84,7 @@ public class CNSymbolPath extends CNPath {
             return size;
         }
 
-        public void encode(final ByteBuffer buf) {
+        public void encode(final ByteBuf buf) {
             if (firstElement && path == null) {
                 encodeInstanceId(buf);
             } else {
@@ -92,48 +93,48 @@ public class CNSymbolPath extends CNPath {
             }
         }
 
-        private void encodeInstanceId(final ByteBuffer buf) {
+        private void encodeInstanceId(final ByteBuf buf) {
             if (index != null)
                 for (Integer idx : index) {
-                    buf.put(new byte[] { 0x20, 0x6B }); // Logical Segment for Symbol Class ID
+                    buf.writeBytes(new byte[] { 0x20, 0x6B }); // Logical Segment for Symbol Class ID
                     if (idx > MAX_BYTE_VALUE) {
-                        buf.put((byte) 0x25);
-                        buf.put((byte) 0);
-                        buf.putShort(idx.shortValue());
+                        buf.writeByte((byte) 0x25);
+                        buf.writeByte((byte) 0);
+                        buf.writeShortLE(idx.shortValue());
                     } else {
-                        buf.put((byte) 0x24);
-                        buf.put(idx.byteValue());
+                        buf.writeByte((byte) 0x24);
+                        buf.writeByte(idx.byteValue());
                     }
                 }
         }
 
-        private void encodeElementName(final ByteBuffer buf) {
+        private void encodeElementName(final ByteBuf buf) {
             if (path != null) {
                 // spec 4 p.21: "ANSI extended symbol segment"
-                buf.put((byte) 0x91);
-                buf.put((byte) path.length());
-                buf.put(path.getBytes());
+                buf.writeByte((byte) 0x91);
+                buf.writeByte((byte) path.length());
+                buf.writeBytes(path.getBytes());
                 if (this.needPad()) {
-                    buf.put((byte) 0);
+                    buf.writeByte((byte) 0);
                 }
             }
         }
 
-        private void encodeElementId(final ByteBuffer buf) {
+        private void encodeElementId(final ByteBuf buf) {
             if (index != null)
                 for (Integer idx : index) {
                     if (idx != null) {
                         if (idx > MAX_INT_VALUE) {
-                            buf.put((byte) 0x2A);
-                            buf.put((byte) 0);
-                            buf.putShort(idx.shortValue());
+                            buf.writeByte((byte) 0x2A);
+                            buf.writeByte((byte) 0);
+                            buf.writeShortLE(idx.shortValue());
                         } else if (idx > MAX_BYTE_VALUE) {
-                            buf.put((byte) 0x29);
-                            buf.put((byte) 0);
-                            buf.putShort(idx.shortValue());
+                            buf.writeByte((byte) 0x29);
+                            buf.writeByte((byte) 0);
+                            buf.writeShortLE(idx.shortValue());
                         } else {
-                            buf.put((byte) 0x28);
-                            buf.put(idx.byteValue());
+                            buf.writeByte((byte) 0x28);
+                            buf.writeByte(idx.byteValue());
                         }
                     }
                 }
@@ -197,8 +198,8 @@ public class CNSymbolPath extends CNPath {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) {
-        buf.put((byte) (this.getRequestSize() / 2));
+    public void encode(final ByteBuf buf) {
+        buf.writeByte((byte) (this.getRequestSize() / 2));
         for (final PathElement pi : this.elements) {
             pi.encode(buf);
         }
@@ -227,7 +228,7 @@ public class CNSymbolPath extends CNPath {
     }
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         // TODO Auto-generated method stub
 
     }

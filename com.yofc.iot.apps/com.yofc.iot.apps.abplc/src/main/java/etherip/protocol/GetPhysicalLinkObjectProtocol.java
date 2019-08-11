@@ -7,9 +7,8 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.types.CNClassPath;
+import io.netty.buffer.ByteBuf;
 
 /**
  * CNClassPath parameter decoder.<br>
@@ -20,7 +19,7 @@ import etherip.types.CNClassPath;
 public class GetPhysicalLinkObjectProtocol extends CNClassPath {
 
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         // NOP
     }
 

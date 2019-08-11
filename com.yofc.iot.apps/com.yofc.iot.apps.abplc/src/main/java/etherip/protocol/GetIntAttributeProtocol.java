@@ -7,7 +7,7 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 //TODO Implement CIP data types according to CPI_Vol_3.3: Appendix_C_Section_C-6.1.
 /**
@@ -22,8 +22,8 @@ public class GetIntAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
-        this.value = buf.getInt();
+    public void decode(final ByteBuf buf) {
+        this.value = buf.readIntLE();
     }
 
     /** @return Value read from response */

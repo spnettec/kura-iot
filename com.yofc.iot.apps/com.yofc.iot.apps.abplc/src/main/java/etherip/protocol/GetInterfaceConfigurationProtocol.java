@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import etherip.data.InterfaceConfiguration;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Interface Configuration decoder.
@@ -33,45 +34,45 @@ public class GetInterfaceConfigurationProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void decode(final ByteBuffer buf) {
-        this.responseSize = buf.position();
+    public void decode(final ByteBuf buf) {
+        this.responseSize = buf.readableBytes();
         this.interfaceConfiguration = new InterfaceConfiguration();
 
         byte[] raw = new byte[4];
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.interfaceConfiguration.setIpAddress(Integer.valueOf(raw[3] & 0xFF) + "." + Integer.valueOf(raw[2] & 0xFF)
                 + "." + Integer.valueOf(raw[1] & 0xFF) + "." + Integer.valueOf(raw[0] & 0xFF));
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.interfaceConfiguration.setSubnetMask(Integer.valueOf(raw[3] & 0xFF) + "." + Integer.valueOf(raw[2] & 0xFF)
                 + "." + Integer.valueOf(raw[1] & 0xFF) + "." + Integer.valueOf(raw[0] & 0xFF));
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.interfaceConfiguration.setGateway(Integer.valueOf(raw[3] & 0xFF) + "." + Integer.valueOf(raw[2] & 0xFF)
                 + "." + Integer.valueOf(raw[1] & 0xFF) + "." + Integer.valueOf(raw[0] & 0xFF));
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.interfaceConfiguration.setNameServer(Integer.valueOf(raw[3] & 0xFF) + "." + Integer.valueOf(raw[2] & 0xFF)
                 + "." + Integer.valueOf(raw[1] & 0xFF) + "." + Integer.valueOf(raw[0] & 0xFF));
 
-        buf.get(raw);
+        buf.readBytes(raw);
         this.interfaceConfiguration.setNameServer2(Integer.valueOf(raw[3] & 0xFF) + "." + Integer.valueOf(raw[2] & 0xFF)
                 + "." + Integer.valueOf(raw[1] & 0xFF) + "." + Integer.valueOf(raw[0] & 0xFF));
 
         // raw = new byte[2];
         // short domainNameLength = 0;
 
-        short domainNameLength = buf.getShort();
+        short domainNameLength = buf.readShortLE();
         domainNameLength = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();
         if (domainNameLength % 2 != 0) {
             domainNameLength++;
         }
         raw = new byte[domainNameLength];
-        buf.get(raw);
+        buf.readBytes(raw);
         this.interfaceConfiguration.setDomainName(new String(raw));
 
-        this.responseSize = buf.position() - this.responseSize;
+        this.responseSize = buf.readableBytes() - this.responseSize;
 
         log.info("InterfaceConfiguration value      : {}", this.interfaceConfiguration);
     }

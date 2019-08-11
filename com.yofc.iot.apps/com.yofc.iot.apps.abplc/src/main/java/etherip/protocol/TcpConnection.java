@@ -11,6 +11,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 
 import etherip.util.Hexdump;
@@ -61,17 +62,17 @@ public class TcpConnection extends Connection {
     public void write(final ProtocolEncoder encoder) throws Exception {
         this.buffer.clear();
         encoder.encode(this.buffer);
+        ByteBuffer b = this.buffer.nioBuffer();
 
-        this.buffer.flip();
         if (logger.isDebugEnabled()) {
-            logger.debug("Data sent ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
+            logger.debug("Data sent ({} bytes):\n{}", b.remaining(), Hexdump.toHexdump(b));
         }
-        int toWrite = this.buffer.limit();
+        int toWrite = b.limit();
         while (toWrite > 0) {
-            final int written = this.channel.write(this.buffer).get(this.timeoutMs, MILLISECONDS);
+            final int written = this.channel.write(b).get(this.timeoutMs, MILLISECONDS);
             toWrite -= written;
             if (toWrite > 0) {
-                this.buffer.compact();
+                b.compact();
             }
         }
     }
@@ -87,14 +88,15 @@ public class TcpConnection extends Connection {
     @Override
     public void read(final ProtocolDecoder decoder) throws Exception {
         // Read until protocol has enough data to decode
-        this.buffer.clear();
+        ByteBuffer b = ByteBuffer.allocate(600);
         do {
-            this.channel.read(this.buffer).get(this.timeoutMs, MILLISECONDS);
-        } while (this.buffer.position() < getResponseSize(this.buffer));
+            this.channel.read(b).get(this.timeoutMs, MILLISECONDS);
+        } while (b.position() < getResponseSize(this.buffer));
 
         // Prepare to decode
-        this.buffer.flip();
-
+        b.flip();
+        this.buffer.clear();
+        this.buffer.writeBytes(b);
         decoder.decode(this.buffer);
 
     }

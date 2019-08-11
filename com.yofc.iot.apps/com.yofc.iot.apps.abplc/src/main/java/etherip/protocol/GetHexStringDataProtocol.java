@@ -7,7 +7,7 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Decode the cip response to a string in HEX code<br>
@@ -20,10 +20,10 @@ public class GetHexStringDataProtocol extends ProtocolAdapter {
     private String value;
 
     @Override
-    public void decode(final ByteBuffer buf) {
-        final int len = buf.remaining();
+    public void decode(final ByteBuf buf) {
+        final int len = buf.readableBytes();
         final byte[] raw = new byte[len];
-        buf.get(raw);
+        buf.readBytes(raw);
         StringBuilder stringBuilder = new StringBuilder();
 
         for (final byte item : raw) {

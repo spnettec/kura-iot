@@ -7,9 +7,8 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.util.Hexdump;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Protocol body for listing services that the device supports
@@ -21,18 +20,18 @@ public class ListServicesProtocol extends ProtocolAdapter {
     private Service[] services;
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         // Decode reply to ListServices
-        final int count = buf.getShort();
+        final int count = buf.readShortLE();
 
         this.services = new Service[count];
         for (int i = 0; i < count; ++i) {
-            final short type = buf.getShort();
-            final short length = buf.getShort();
-            final short version = buf.getShort();
-            final short flags = buf.getShort();
+            final short type = buf.readShortLE();
+            final short length = buf.readShortLE();
+            final short version = buf.readShortLE();
+            final short flags = buf.readShortLE();
             final byte[] name = new byte[length - 4];
-            buf.get(name);
+            buf.readBytes(name);
 
             final Service service = new Service(type, length, version, flags, name);
 

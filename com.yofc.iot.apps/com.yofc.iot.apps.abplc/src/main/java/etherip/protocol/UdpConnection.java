@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import etherip.util.Hexdump;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Connection to EtherNet/IP device via UDP
@@ -63,7 +64,7 @@ public class UdpConnection extends Connection {
 
     /** @return {@link ByteBuffer} */
     @Override
-    public ByteBuffer getBuffer() {
+    public ByteBuf getBuffer() {
         return this.buffer;
     }
 
@@ -79,17 +80,18 @@ public class UdpConnection extends Connection {
     public void write(final ProtocolEncoder encoder) throws Exception {
         this.buffer.clear();
         encoder.encode(this.buffer);
+        ByteBuffer b = this.buffer.nioBuffer();
 
-        this.buffer.flip();
+        b.flip();
         if (logger.isInfoEnabled()) {
-            logger.info("Data sent ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
+            logger.info("Data sent ({} bytes):\n{}", b.remaining(), Hexdump.toHexdump(b));
         }
-        int toWrite = this.buffer.limit();
+        int toWrite = b.limit();
         while (toWrite > 0) {
-            final int written = this.channel.write(this.buffer);
+            final int written = this.channel.write(b);
             toWrite -= written;
             if (toWrite > 0) {
-                this.buffer.compact();
+                b.compact();
             }
         }
     }
@@ -106,16 +108,17 @@ public class UdpConnection extends Connection {
     public void read(final ProtocolDecoder decoder) throws Exception {
         // Read until protocol has enough data to decode
         this.buffer.clear();
+        ByteBuffer b = this.buffer.nioBuffer();
         if (this.channel.isBlocking()) {
             this.channel.socket().setSoTimeout((int) this.timeoutMs);
         }
         do {
-            this.channel.receive(this.buffer);
-        } while (this.buffer.position() < getResponseSize(this.buffer));
+            this.channel.receive(b);
+        } while (b.position() < getResponseSize(this.buffer));
         // Prepare to decode
-        this.buffer.flip();
+        b.flip();
         if (logger.isInfoEnabled()) {
-            logger.info("Data read ({} bytes):\n{}", this.buffer.remaining(), Hexdump.toHexdump(this.buffer));
+            logger.info("Data read ({} bytes):\n{}", b.remaining(), Hexdump.toHexdump(b));
         }
 
         decoder.decode(this.buffer);

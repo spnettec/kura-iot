@@ -8,13 +8,14 @@
 package etherip.protocol;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.concurrent.atomic.LongAdder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import etherip.protocol.Encapsulation.Command;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 /**
  * Connection to EtherNet/IP device
@@ -28,13 +29,12 @@ public abstract class Connection implements AutoCloseable {
     public static final Logger logger = LoggerFactory.getLogger(Connection.class);
     private LongAdder sequenceId = new LongAdder();
     /** EtherIP uses little endian */
-    public static final ByteOrder BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
 
     private static final int BUFFER_SIZE = 600;
 
     protected final int slot;
 
-    protected final ByteBuffer buffer;
+    protected final ByteBuf buffer;
 
     private int session = 0;
 
@@ -55,15 +55,13 @@ public abstract class Connection implements AutoCloseable {
         logger.info("Connecting to {}:{}", address, this.port);
         this.slot = slot;
 
-        this.buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
-        this.buffer.order(BYTE_ORDER);
+        this.buffer = Unpooled.buffer(BUFFER_SIZE);
     }
 
     public Connection(final String address, final int slot, int port) throws Exception {
         this.slot = slot;
 
-        this.buffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
-        this.buffer.order(BYTE_ORDER);
+        this.buffer = Unpooled.buffer(BUFFER_SIZE);
         this.port = port;
         logger.info("Connecting to {}:{}", address, this.port);
     }
@@ -91,24 +89,24 @@ public abstract class Connection implements AutoCloseable {
     }
 
     /** @return {@link ByteBuffer} */
-    public ByteBuffer getBuffer() {
+    public ByteBuf getBuffer() {
         return this.buffer;
     }
 
-    public int getResponseSize(final ByteBuffer buf) throws Exception {
+    public int getResponseSize(final ByteBuf buf) throws Exception {
         // Need at least the encapsulation header
-        final int needed = 24 - buf.position();
+        final int needed = 24 - buf.readerIndex();
         if (needed > 0) {
             return needed;
         }
 
         // Buffer contains header (and maybe more after that)
-        final short command_code = buf.getShort(0);
+        final short command_code = buf.getShortLE(0);
         final Command cmd = Command.forCode(command_code);
         if (cmd == null) {
             throw new Exception("Received unknown command code " + command_code);
         }
-        final short body_size = buf.getShort(2);
+        final short body_size = buf.getShortLE(2);
 
         return 24 + body_size;
     }

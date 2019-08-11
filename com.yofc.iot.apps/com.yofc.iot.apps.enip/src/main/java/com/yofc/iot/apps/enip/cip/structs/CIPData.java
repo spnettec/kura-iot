@@ -127,7 +127,7 @@ public final class CIPData {
             this.elements = (short) 1;
             break;
         case STRUCT:
-            this.data = Unpooled.buffer(90);
+            this.data = Unpooled.buffer(92);
             this.type = type;
             this.elements = (short) 1;
             break;
@@ -137,7 +137,7 @@ public final class CIPData {
     }
 
     public CIPData(String text) throws Exception {
-        this.data = Unpooled.buffer(text.length() + 90);
+        this.data = Unpooled.buffer(92);
         this.type = Type.STRUCT;
         this.elements = (short) 1;
         setString(text);
@@ -282,12 +282,16 @@ public final class CIPData {
         if (this.type != Type.STRUCT) {
             throw new Exception("Type " + this.type + " does not contain string");
         }
+
         final short code = this.data.getShortLE(0);
         final Type el_type = Type.forCode(code);
         if (el_type != Type.STRUCT_STRING) {
             throw new Exception("No string, structure element is of type " + this.type);
         }
-        final int len = this.data.getIntLE(2);
+        int len = this.data.getIntLE(2);
+        if (len > this.data.writerIndex() - 6) {
+            len = this.data.writerIndex() - 6;
+        }
         final byte[] chars = new byte[len];
         for (int i = 0; i < len; ++i) {
             chars[i] = this.data.getByte(6 + i);
@@ -341,21 +345,23 @@ public final class CIPData {
         if (this.type != Type.STRUCT) {
             throw new Exception("Type " + this.type + " does not contain string");
         }
-        this.data.setShortLE(0, Type.STRUCT_STRING.code);
+        this.data.clear();
+        this.data.writeShortLE(Type.STRUCT_STRING.code);
 
         // Try to fit the text,
         // but limit it to size of buffer,
         // starting at the offset for the text
         // (2 byte STRUCT_STRING, 4 byte length)
         // and allow for the final '\0' byte
-        final int len = Math.min(text.length(), this.data.capacity() - 6 - 1);
-        this.data.setIntLE(2, len);
+        final int len = Math.min(text.length(), 84);
+        this.data.writeIntLE(len);
 
         final byte[] chars = text.getBytes();
         for (int i = 0; i < len; ++i) {
-            this.data.setByte(6 + i, chars[i]);
+            this.data.writeByte(chars[i]);
         }
-        this.data.setByte(6 + len, (byte) 0);
+        // this.data.writeByte((byte) 0);
+        this.data.setIndex(0, this.data.capacity());
     }
 
     /** @return String representation for debugging */
@@ -409,7 +415,10 @@ public final class CIPData {
             }
             if (el_type == Type.STRUCT_STRING) {
                 result.append(Type.STRUCT_STRING).append(" ");
-                final int len = buf.readIntLE();
+                int len = buf.readIntLE();
+                if (len > buf.readableBytes()) {
+                    len = buf.readableBytes();
+                }
                 final byte[] chars = new byte[len];
                 buf.readBytes(chars);
                 final String value = new String(chars);

@@ -7,7 +7,7 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Decode a <code>short</code> attribute
@@ -20,8 +20,8 @@ public class GetShortAttributeProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
-        this.value = buf.getShort();
+    public void decode(final ByteBuf buf) {
+        this.value = buf.readShortLE();
     }
 
     /** @return Value read from response */

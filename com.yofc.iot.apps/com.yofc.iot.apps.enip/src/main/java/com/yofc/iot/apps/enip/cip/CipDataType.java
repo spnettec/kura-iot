@@ -155,7 +155,9 @@ public enum CipDataType {
     /**
      * International Character String.
      */
-    STRINGI(0xDE);
+    STRINGI(0xDE),
+
+    STRUCT_STRING(0x0FCE);
 
     private final int code;
 

@@ -7,7 +7,7 @@
  *******************************************************************************/
 package etherip.types;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Control Net Path for class, instance, attribute
@@ -67,31 +67,31 @@ public class CNClassPath extends CNPath {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) {
-        buf.put(this.getPathLength());
-        buf.put((byte) classSegmentType());
+    public void encode(final ByteBuf buf) {
+        buf.writeByte(this.getPathLength());
+        buf.writeByte((byte) classSegmentType());
         if (shortClassId()) {
-            buf.put((byte) 0); // Padding
-            buf.putShort((short) this.class_code);
+            buf.writeByte((byte) 0); // Padding
+            buf.writeShortLE((short) this.class_code);
         } else {
-            buf.put((byte) this.class_code);
+            buf.writeByte((byte) this.class_code);
         }
 
-        buf.put((byte) instanceSegmentType());
+        buf.writeByte((byte) instanceSegmentType());
         if (shortInstanceId()) {
-            buf.put((byte) 0); // Padding
-            buf.putShort((short) this.instance);
+            buf.writeByte((byte) 0); // Padding
+            buf.writeShortLE((short) this.instance);
         } else {
-            buf.put((byte) this.instance);
+            buf.writeByte((byte) this.instance);
         }
 
         if (hasAttribute()) {
-            buf.put((byte) attributeSegmentType());
+            buf.writeByte((byte) attributeSegmentType());
             if (shortAttributeId()) {
-                buf.put((byte) 0); // Padding
-                buf.putShort((short) this.attr);
+                buf.writeByte((byte) 0); // Padding
+                buf.writeShortLE((short) this.attr);
             } else {
-                buf.put((byte) this.attr);
+                buf.writeByte((byte) this.attr);
             }
         }
     }
@@ -162,18 +162,18 @@ public class CNClassPath extends CNPath {
     }
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         final byte[] raw = new byte[2];
-        buf.get(raw);
+        buf.readBytes(raw);
         // available = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();
 
         if (raw[0] == 0x02) {
-            buf.get(raw);
+            buf.readBytes(raw);
             if (raw[0] == 0x20) {
                 this.class_code = raw[1];
                 this.class_name = "Ethernet Link";
             }
-            buf.get(raw);
+            buf.readBytes(raw);
             if (raw[0] == 0x24) {
                 this.instance(raw[1]);
             }

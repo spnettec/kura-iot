@@ -7,12 +7,11 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.types.CIPData;
 import etherip.types.CIPData.Type;
 import etherip.types.CNService;
 import etherip.util.CodedcException;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Protocol body for {@link CNService#CIP_WriteData}
@@ -63,16 +62,15 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         int witeCountNum = writeCount;
         if (witeCountNum <= 0)
             witeCountNum = this.data.getElementCount();
-        buf.putShort(this.data.getType().getCode());
+        buf.writeShortLE(this.data.getType().getCode());
         // STRUCT already contains structure detail, elements etc.
         // For other types, add the element count
         if (this.data.getType() == Type.STRUCT) {
-            this.data.getData().clear();
-            final short struct_detail = this.data.getData().getShort();
+            final short struct_detail = this.data.getData().readShortLE();
             if (struct_detail != Type.STRUCT_STRING.getCode()) {
                 throw new CodedcException("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
             }
@@ -80,24 +78,26 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
             // STRUCT, STRUCT_STRING, length, chars.
             // It needs to be written as
             // STRUCT, STRUCT_STRING, _elements_, length, chars.
-            buf.putShort(struct_detail);
+            buf.writeShortLE(struct_detail);
 
-            buf.putShort((short) (this.data.getElementCount() + start));
+            buf.writeShortLE((short) (this.data.getElementCount() + start));
             if (dataOffset > 0)
-                buf.putInt(dataOffset);
+                buf.writeIntLE(dataOffset);
             // Copy length, chars from data into buf
-            buf.put(this.data.getData());
+            int length = this.data.getData().readableBytes();
+            int offset = data.getData().writerIndex() + 88 - (length > 88 ? 88 : length);
+            data.getData().writerIndex(offset);
+            buf.writeBytes(this.data.getData());
         } else {
             int vSize = this.data.getType().getElementSize();
-            buf.putShort((short) (this.data.getElementCount() + start));
+            buf.writeShortLE((short) (this.data.getElementCount() + start));
             if (dataOffset > 0)
-                buf.putInt(dataOffset);
+                buf.writeIntLE(dataOffset);
 
             int position = dataOffset - start * vSize;
             int length = vSize * witeCountNum;
-            this.data.getData().clear();
 
-            buf.put(this.data.getData().array(), position, length);
+            buf.writeBytes(this.data.getData().array(), position, length);
         }
 
     }

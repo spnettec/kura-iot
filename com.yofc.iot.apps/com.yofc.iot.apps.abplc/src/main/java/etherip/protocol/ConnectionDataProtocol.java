@@ -9,9 +9,8 @@ package etherip.protocol;
 
 import static etherip.types.CNPath.ConnectionManager;
 
-import java.nio.ByteBuffer;
-
 import etherip.types.CNService;
+import io.netty.buffer.ByteBuf;
 
 /**
  * @see CIP_Vol1_3.3: 3-5.5.5: Get_Connection_Data Service
@@ -41,16 +40,16 @@ public class ConnectionDataProtocol extends ProtocolAdapter {
      * @throws Exception
      */
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         this.encoder.encode(buf);
 
         final short connectionNumber = (short) 1;
-        buf.putShort(connectionNumber);
+        buf.writeShortLE(connectionNumber);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         this.body.decode(buf);
     }
 }

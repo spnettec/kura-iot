@@ -7,12 +7,11 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import etherip.data.ConnectionData;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Connection Data decoder
@@ -27,18 +26,18 @@ public class GetConnectionDataProtocol extends ProtocolAdapter {
     public static final Logger log = LoggerFactory.getLogger(GetConnectionDataProtocol.class);
 
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         this.connectionData = new ConnectionData();
 
         // Service
         final byte[] raw = new byte[1];
-        buf.get(raw);
+        buf.readBytes(raw);
         // CIP Connection Manager byte
-        buf.get(raw);
+        buf.readBytes(raw);
         // Statuses
-        buf.get(raw);
+        buf.readBytes(raw);
         this.connectionData.setConnectionGeneralStatus(raw[0]);
-        buf.get(raw);
+        buf.readBytes(raw);
         this.connectionData.setConnectionAdditionalStatus(raw[0]);
 
         log.debug("ConnectionData value      : {}", this.connectionData);

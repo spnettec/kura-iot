@@ -10,7 +10,7 @@ package etherip.protocol;
 import static etherip.types.CNPath.ConnectionManager;
 import static etherip.types.CNService.CM_Unconnected_Send;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Protocol PDU that uses CM_Unconnected_Send
@@ -45,33 +45,33 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         this.encoder.encode(buf);
 
         final byte tick_time = (byte) 10;
         final byte ticks = (byte) 240;
-        buf.put(tick_time);
-        buf.put(ticks);
+        buf.writeByte(tick_time);
+        buf.writeByte(ticks);
         final short body_size = (short) this.body.getRequestSize();
-        buf.putShort(body_size);
+        buf.writeShortLE(body_size);
 
         final boolean pad = this.needPad();
 
         this.body.encode(buf);
         if (pad) {
-            buf.put((byte) 0);
+            buf.writeByte((byte) 0);
         }
 
-        buf.put((byte) 1); // Path size
-        buf.put((byte) 0); // reserved
-        buf.put((byte) 1); // Port 1 = backplane
-        buf.put((byte) this.slot);
+        buf.writeByte((byte) 1); // Path size
+        buf.writeByte((byte) 0); // reserved
+        buf.writeByte((byte) 1); // Port 1 = backplane
+        buf.writeByte((byte) this.slot);
 
     }
 
     /** {@inheritDoc} */
     @Override
-    public void decode(final ByteBuffer buf) {
+    public void decode(final ByteBuf buf) {
         // CM_Unconnected_Send wraps a request.
         // The response then arrives without CM_Unconnected_Send wrapper,
         // so pass decoding on to the body.

@@ -7,10 +7,9 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-
 import etherip.types.CNService;
 import etherip.util.CodedcException;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Protocol for {@link CNService#CIP_MultiRequest}
@@ -39,19 +38,19 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf) {
+    public void encode(final ByteBuf buf) {
         // final int start = buf.position();
 
         final short count = (short) this.services.length;
         // Encode service count
-        buf.putShort(count);
+        buf.writeShortLE(count);
 
         // Encode offsets to individual requests
         // Offset to 1st item:
         // 2 bytes for 'count', 2 bytes for each offset
         short offset = (short) (2 + 2 * count);
         for (int i = 0; i < count; ++i) {
-            buf.putShort(offset);
+            buf.writeShortLE(offset);
 
             // Next offset: After bytes for this request
             offset += this.services[i].getRequestSize();
@@ -74,24 +73,24 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void decode(final ByteBuffer buf) {
-        int available = buf.remaining();
-        final int start = buf.position();
+    public void decode(final ByteBuf buf) {
+        int available = buf.readableBytes();
+        final int start = buf.readerIndex();
 
         // Count
-        final short count = buf.getShort();
+        final short count = buf.readShortLE();
 
         // Offset table
         final short[] offset = new short[count];
         for (int i = 0; i < count; ++i) {
-            offset[i] = buf.getShort();
+            offset[i] = buf.readShortLE();
 
         }
 
         // Individual replies
-        int originLimit = buf.limit();
+        int originWriteIndex = buf.writerIndex();
         for (int i = 0; i < count; ++i) { // Track buffer offset from start
-            final int off = buf.position() - start;
+            final int off = buf.readerIndex() - start;
             if (off != offset[i]) {
                 throw new CodedcException("Expected response #" + (i + 1) + " at offset " + offset[i] + ", not " + off);
             }
@@ -103,9 +102,9 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
             } else {
                 section_length = available - offset[i]; // .. from distance to end for last section
             }
-            buf.limit(buf.position() + section_length);
+            buf.writerIndex(buf.readerIndex() + section_length);
             this.services[i].decode(buf);
         }
-        buf.limit(originLimit);
+        buf.writerIndex(originWriteIndex);
     }
 }

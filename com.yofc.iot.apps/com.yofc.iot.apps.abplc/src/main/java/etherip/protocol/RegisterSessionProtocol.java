@@ -7,7 +7,7 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Register a session
@@ -22,9 +22,9 @@ public class RegisterSessionProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public void encode(final ByteBuffer buf) {
-        buf.putShort((short) 1); // protocol
-        buf.putShort((short) 0); // options
+    public void encode(final ByteBuf buf) {
+        buf.writeShortLE((short) 1); // protocol
+        buf.writeShortLE((short) 0); // options
 
     }
 }

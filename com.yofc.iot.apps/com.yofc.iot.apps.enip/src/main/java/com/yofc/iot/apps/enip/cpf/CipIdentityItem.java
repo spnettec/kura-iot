@@ -6,6 +6,14 @@ import io.netty.buffer.ByteBuf;
 
 public final class CipIdentityItem extends CpfItem {
 
+    @Override
+    public String toString() {
+        return "CipIdentityItem [protocolVersion=" + protocolVersion + ", socketAddress=" + socketAddress
+                + ", vendorId=" + vendorId + ", deviceType=" + deviceType + ", productCode=" + productCode
+                + ", revisionMajor=" + revisionMajor + ", revisionMinor=" + revisionMinor + ", status=" + status
+                + ", serialNumber=" + serialNumber + ", productName=" + productName + ", state=" + state + "]";
+    }
+
     public static final int TYPE_ID = 0x0C;
 
     private final int protocolVersion;
