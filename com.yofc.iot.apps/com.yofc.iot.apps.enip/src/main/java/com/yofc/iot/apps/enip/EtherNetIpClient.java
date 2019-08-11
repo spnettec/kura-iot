@@ -71,7 +71,7 @@ public class EtherNetIpClient {
                 .setMaxIdleSeconds(IntUtil.saturatedCast(config.getMaxIdle().getSeconds()))
                 .setMaxReconnectDelaySeconds(config.getMaxReconnectDelaySeconds())
                 .setChannelActions(new EnipChannelActions()).setExecutor(config.getExecutor())
-                .setScheduler(config.getScheduledExecutor()).setLoggerName("com.digitalpetri.enip.ChannelFsm").build();
+                .setScheduler(config.getScheduledExecutor()).setLoggerName(this.getClass().getName()).build();
 
         channelFsm = ChannelFsmFactory.newChannelFsm(fsmConfig);
     }

@@ -46,7 +46,7 @@ public class AppTest {
     @DisplayName("开始")
     public static void setUp(Vertx vertx, VertxTestContext context) throws InterruptedException, ExecutionException {
         EtherNetIpClientConfig config = EtherNetIpClientConfig.builder("10.166.11.181").setSerialNumber(0x00)
-                .setVendorId(0x00).setTimeout(Duration.ofSeconds(200)).build();
+                .setVendorId(0x00).setTimeout(Duration.ofSeconds(5)).build();
 
         // backplane, slot 0
         EPath.PaddedEPath connectionPath = new EPath.PaddedEPath(new PortSegment(1, new byte[] { (byte) 0 }));
@@ -110,6 +110,7 @@ public class AppTest {
                 });
             } else {
                 ex.printStackTrace();
+                context.completeNow();
             }
         });
 
@@ -133,19 +134,24 @@ public class AppTest {
         services.add(service);
         services.add(service1);
         MultipleServicePacketService s = new MultipleServicePacketService(services);
-        pool.acquire().thenAccept(connection -> {
-            CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), s);
+        pool.acquire().whenComplete((connection, ex0) -> {
+            if (connection != null) {
+                CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), s);
 
-            f.whenComplete((v, ex) -> {
-                if (ex != null) {
-                    ex.printStackTrace();
-                } else {
-                    logger.info("WriteTagService completed.");
-                }
+                f.whenComplete((v, ex) -> {
+                    if (ex != null) {
+                        ex.printStackTrace();
+                    } else {
+                        logger.info("WriteTagService completed.");
+                    }
 
-                pool.release(connection);
+                    pool.release(connection);
+                    context.completeNow();
+                });
+            } else {
+                ex0.printStackTrace();
                 context.completeNow();
-            });
+            }
         });
     }
 }
