@@ -34,12 +34,6 @@ public class SendRRDataProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public int getRequestSize() {
-        return RR_DATA_HEADER_SIZE + this.body.getRequestSize();
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void encode(final ByteBuf buf) {
         final short addr_type = 0;
         final short data_type = 0xB2;
@@ -49,9 +43,28 @@ public class SendRRDataProtocol extends ProtocolAdapter {
         buf.writeShortLE(addr_type);
         buf.writeShortLE((short) 0);
         buf.writeShortLE(data_type);
-        buf.writeShortLE((short) this.body.getRequestSize());
+        // buf.writeShortLE((short) this.body.getRequestSize());
 
+        encodeEmbeddedService(buf);
+    }
+
+    private int encodeEmbeddedService(ByteBuf buf) {
+        // length of embedded message
+        int lengthStartIndex = buf.writerIndex();
+        buf.writeShortLE(0);
+
+        // embedded message
+        int messageStartIndex = buf.writerIndex();
         this.body.encode(buf);
+
+        // go back and update length
+        int bytesWritten = buf.writerIndex() - messageStartIndex;
+        buf.markWriterIndex();
+        buf.writerIndex(lengthStartIndex);
+        buf.writeShortLE(bytesWritten);
+        buf.resetWriterIndex();
+
+        return bytesWritten;
     }
 
     /** {@inheritDoc} */

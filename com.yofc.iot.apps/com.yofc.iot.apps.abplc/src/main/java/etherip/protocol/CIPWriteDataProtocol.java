@@ -57,11 +57,6 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public int getRequestSize() {
-        return this.requestSize;
-    }
-
-    @Override
     public void encode(final ByteBuf buf) {
         int witeCountNum = writeCount;
         if (witeCountNum <= 0)
@@ -99,6 +94,5 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
 
             buf.writeBytes(this.data.getData().array(), position, length);
         }
-
     }
 }

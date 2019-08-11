@@ -42,18 +42,10 @@ public class CIPReadDataProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public int getRequestSize() {
-        if (this.startBytes > 0)
-            return 6;
-        return 2;
-    }
-
-    @Override
     public void encode(final ByteBuf buf) {
         buf.writeShortLE(this.count); // elements
         if (this.startBytes > 0)
             buf.writeIntLE(this.startBytes);
-
     }
 
     @Override

@@ -27,20 +27,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
     }
 
     @Override
-    public int getRequestSize() {
-        // Size: 'count' + offset to each service
-        int total = 2 + 2 * this.services.length;
-        // ..plus bytes of each service itself
-        for (final ProtocolAdapter service : this.services) {
-            total += service.getRequestSize();
-        }
-        return total;
-    }
-
-    @Override
     public void encode(final ByteBuf buf) {
-        // final int start = buf.position();
-
         final short count = (short) this.services.length;
         // Encode service count
         buf.writeShortLE(count);
@@ -49,27 +36,32 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
         // Offset to 1st item:
         // 2 bytes for 'count', 2 bytes for each offset
         short offset = (short) (2 + 2 * count);
-        for (int i = 0; i < count; ++i) {
-            buf.writeShortLE(offset);
 
-            // Next offset: After bytes for this request
-            offset += this.services[i].getRequestSize();
+        buf.writeShortLE(offset);
+        int lengthStartIndex = buf.writerIndex();
+        buf.writerIndex(lengthStartIndex + 2 * (count - 1));
+
+        for (int i = 0; i < count - 1; ++i) {
+            offset += encodeEmbeddedService(this.services[i], lengthStartIndex, offset, buf);
+            lengthStartIndex += 2;
         }
-
-        for (int i = 0; i < count; ++i) {
-
-            this.services[i].encode(buf);
-
-        }
+        this.services[count - 1].encode(buf);
     }
 
-    @Override
-    public int getResponseSize() {
-        int total = 0;
-        for (final ProtocolAdapter service : this.services) {
-            total += service.getResponseSize();
-        }
-        return total;
+    private int encodeEmbeddedService(MessageRouterProtocol service, int lengthStartIndex, int offset, ByteBuf buf) {
+
+        // embedded message
+        int messageStartIndex = buf.writerIndex();
+        service.encode(buf);
+
+        // go back and update length
+        int bytesWritten = buf.writerIndex() - messageStartIndex;
+        buf.markWriterIndex();
+        buf.writerIndex(lengthStartIndex);
+        buf.writeShortLE(bytesWritten + offset);
+        buf.resetWriterIndex();
+
+        return bytesWritten;
     }
 
     @Override
@@ -88,7 +80,7 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
         }
 
         // Individual replies
-        int originWriteIndex = buf.writerIndex();
+        buf.markWriterIndex();
         for (int i = 0; i < count; ++i) { // Track buffer offset from start
             final int off = buf.readerIndex() - start;
             if (off != offset[i]) {
@@ -105,6 +97,6 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
             buf.writerIndex(buf.readerIndex() + section_length);
             this.services[i].decode(buf);
         }
-        buf.writerIndex(originWriteIndex);
+        buf.resetWriterIndex();
     }
 }

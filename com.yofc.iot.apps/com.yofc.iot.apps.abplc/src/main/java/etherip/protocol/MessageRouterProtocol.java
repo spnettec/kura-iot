@@ -12,6 +12,8 @@ import etherip.types.CNPath;
 import etherip.types.CNService;
 import etherip.util.CodedcException;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.ReferenceCountUtil;
 
 /**
  * Message Router PDU (Protocol Data Unit)
@@ -55,9 +57,15 @@ public class MessageRouterProtocol extends ProtocolAdapter {
     }
 
     /** {@inheritDoc} */
-    @Override
+    // @Override
     public int getRequestSize() {
-        return 2 + this.path.getRequestSize() + this.body.getRequestSize();
+        ByteBuf buf = Unpooled.buffer(600);
+        try {
+            this.encode(buf);
+            return buf.writerIndex();
+        } finally {
+            ReferenceCountUtil.release(buf);
+        }
     }
 
     /**
@@ -71,12 +79,6 @@ public class MessageRouterProtocol extends ProtocolAdapter {
         this.path.encode(buf);
 
         this.body.encode(buf);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public int getResponseSize() {
-        throw new IllegalStateException("Unknown response size");
     }
 
     /** {@inheritDoc} */

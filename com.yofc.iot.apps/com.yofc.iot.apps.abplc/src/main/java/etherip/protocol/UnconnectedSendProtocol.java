@@ -39,12 +39,6 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
 
     /** {@inheritDoc} */
     @Override
-    public int getRequestSize() {
-        return this.encoder.getRequestSize() + 4 + this.body.getRequestSize() + (this.needPad() ? 1 : 0) + 4;
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void encode(final ByteBuf buf) {
         this.encoder.encode(buf);
 
@@ -52,12 +46,11 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
         final byte ticks = (byte) 240;
         buf.writeByte(tick_time);
         buf.writeByte(ticks);
-        final short body_size = (short) this.body.getRequestSize();
-        buf.writeShortLE(body_size);
+        // final short body_size = (short) this.body.getRequestSize();
+        // buf.writeShortLE(body_size);
 
-        final boolean pad = this.needPad();
-
-        this.body.encode(buf);
+        int size = encodeEmbeddedService(buf);
+        final boolean pad = this.needPad(size);
         if (pad) {
             buf.writeByte((byte) 0);
         }
@@ -67,6 +60,25 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
         buf.writeByte((byte) 1); // Port 1 = backplane
         buf.writeByte((byte) this.slot);
 
+    }
+
+    private int encodeEmbeddedService(ByteBuf buf) {
+        // length of embedded message
+        int lengthStartIndex = buf.writerIndex();
+        buf.writeShortLE(0);
+
+        // embedded message
+        int messageStartIndex = buf.writerIndex();
+        this.body.encode(buf);
+
+        // go back and update length
+        int bytesWritten = buf.writerIndex() - messageStartIndex;
+        buf.markWriterIndex();
+        buf.writerIndex(lengthStartIndex);
+        buf.writeShortLE(bytesWritten);
+        buf.resetWriterIndex();
+
+        return bytesWritten;
     }
 
     /** {@inheritDoc} */
@@ -79,8 +91,8 @@ public class UnconnectedSendProtocol extends ProtocolAdapter {
     }
 
     /** @return Is path of odd length, requiring a pad byte? */
-    private boolean needPad() {
+    private boolean needPad(int size) {
         // Findbugs: x%2==1 fails for negative numbers
-        return (this.body.getRequestSize() % 2) != 0;
+        return (size % 2) != 0;
     }
 }

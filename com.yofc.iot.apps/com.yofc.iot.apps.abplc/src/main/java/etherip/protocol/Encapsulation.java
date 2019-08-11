@@ -86,30 +86,34 @@ public class Encapsulation implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public int getRequestSize() {
-        return ENCAPSULATION_HEADER_SIZE + this.body.getRequestSize();
+    public void encode(final ByteBuf buf) {
+        buf.writeShortLE(this.command.code());
+        encodeEmbeddedService(buf);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void encode(final ByteBuf buf) {
+    private int encodeEmbeddedService(ByteBuf buf) {
         final int status = 0;
         final int options = 0;
-
-        buf.writeShortLE(this.command.code());
-        buf.writeShortLE((short) this.body.getRequestSize());
+        // length of embedded message
+        int lengthStartIndex = buf.writerIndex();
+        buf.writeShortLE(0);
         buf.writeIntLE(this.session);
         buf.writeIntLE(status);
         buf.writeLongLE(this.senderContext);
         buf.writeIntLE(options);
 
+        // embedded message
+        int messageStartIndex = buf.writerIndex();
         this.body.encode(buf);
-    }
 
-    /** {@inheritDoc} */
-    @Override
-    public int getResponseSize() {
-        return 0;
+        // go back and update length
+        int bytesWritten = buf.writerIndex() - messageStartIndex;
+        buf.markWriterIndex();
+        buf.writerIndex(lengthStartIndex);
+        buf.writeShortLE(bytesWritten);
+        buf.resetWriterIndex();
+
+        return bytesWritten;
     }
 
     /** {@inheritDoc} */
@@ -181,4 +185,5 @@ public class Encapsulation implements Protocol {
     public final int getSession() {
         return this.session;
     }
+
 }

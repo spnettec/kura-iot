@@ -20,11 +20,6 @@ public class GetPhysicalLinkObjectProtocol extends CNClassPath {
 
     @Override
     public void encode(final ByteBuf buf) {
-        // NOP
-    }
 
-    @Override
-    public int getRequestSize() {
-        return 0;
     }
 }

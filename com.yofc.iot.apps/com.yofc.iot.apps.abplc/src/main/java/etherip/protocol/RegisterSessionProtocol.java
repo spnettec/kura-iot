@@ -17,11 +17,6 @@ import io.netty.buffer.ByteBuf;
 public class RegisterSessionProtocol extends ProtocolAdapter {
 
     @Override
-    public int getRequestSize() {
-        return 4;
-    }
-
-    @Override
     public void encode(final ByteBuf buf) {
         buf.writeShortLE((short) 1); // protocol
         buf.writeShortLE((short) 0); // options

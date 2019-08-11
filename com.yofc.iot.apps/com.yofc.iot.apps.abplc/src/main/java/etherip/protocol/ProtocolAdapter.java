@@ -18,20 +18,8 @@ public class ProtocolAdapter implements Protocol {
 
     /** {@inheritDoc} */
     @Override
-    public int getRequestSize() {
-        return 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void encode(final ByteBuf buf) {
-        // NOP
-    }
 
-    /** {@inheritDoc} */
-    @Override
-    public int getResponseSize() {
-        return 0;
     }
 
     /** {@inheritDoc} */

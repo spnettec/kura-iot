@@ -14,7 +14,7 @@ import io.netty.buffer.ByteBuf;
 
 /**
  * @see CIP_Vol1_3.3: 3-5.5.5: Get_Connection_Data Service
- * @author László Pataki
+ * @author heyoulin
  */
 public class ConnectionDataProtocol extends ProtocolAdapter {
 
@@ -26,12 +26,6 @@ public class ConnectionDataProtocol extends ProtocolAdapter {
         this.encoder = new MessageRouterProtocol(CNService.Get_Connection_Data, ConnectionManager(),
                 new ProtocolAdapter());
         this.body = body;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public int getRequestSize() {
-        return this.encoder.getRequestSize() + 2;
     }
 
     /**

@@ -18,9 +18,6 @@ import io.netty.buffer.ByteBuf;
  */
 public interface ProtocolEncoder {
 
-    /** @return Size of the request in bytes */
-    public int getRequestSize();
-
     /**
      * Encode protocol into the buffer.
      * <p>
@@ -36,4 +33,5 @@ public interface ProtocolEncoder {
      *            If not-<code>null</code>, {@link StringBuilder} where protocol detail for log should be written
      */
     public void encode(ByteBuf buf);
+
 }

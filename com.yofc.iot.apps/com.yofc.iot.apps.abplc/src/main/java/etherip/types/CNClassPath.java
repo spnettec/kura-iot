@@ -16,7 +16,7 @@ import io.netty.buffer.ByteBuf;
  * <p>
  * <code>CNPath path = Identity.instance(1).attr(7)</code>
  *
- * @author Kay Kasemir, László Pataki
+ * @author heyoulin
  */
 public class CNClassPath extends CNPath {
 
@@ -43,32 +43,16 @@ public class CNClassPath extends CNPath {
     }
 
     /** @return Path length in words */
-    public byte getPathLength() {
-        return (byte) (getRequestSize() / 2);
-    }
-
-    @Override
-    public int getRequestSize() {
-        int size = 4; // a base path with 2 single byte elements
-        if (shortClassId()) {
-            size += 2;
-        }
-        if (shortInstanceId()) {
-            size += 2;
-        }
-        if (hasAttribute()) {
-            size += 2;
-            if (shortAttributeId()) {
-                size += 2;
-            }
-        }
-        return size;
+    public byte getPathLength(int size) {
+        return (byte) (size / 2);
     }
 
     /** {@inheritDoc} */
     @Override
     public void encode(final ByteBuf buf) {
-        buf.writeByte(this.getPathLength());
+        int lengthStartIndex = buf.writerIndex();
+        buf.writeByte((byte) 0);
+        int messageStartIndex = buf.writerIndex();
         buf.writeByte((byte) classSegmentType());
         if (shortClassId()) {
             buf.writeByte((byte) 0); // Padding
@@ -94,6 +78,11 @@ public class CNClassPath extends CNPath {
                 buf.writeByte((byte) this.attr);
             }
         }
+        int bytesWritten = buf.writerIndex() - messageStartIndex;
+        buf.markWriterIndex();
+        buf.writerIndex(lengthStartIndex);
+        buf.writeByte(getPathLength(bytesWritten));
+        buf.resetWriterIndex();
     }
 
     private byte classSegmentType() {
@@ -154,11 +143,6 @@ public class CNClassPath extends CNPath {
                     .append(this.attr);
         }
         return description.toString();
-    }
-
-    @Override
-    public int getResponseSize() {
-        return 2 + this.getPathLength() * 2;
     }
 
     @Override

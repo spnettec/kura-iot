@@ -60,30 +60,31 @@ public class CNSymbolPath extends CNPath {
             return this.index;
         }
 
-        public int getEncodedSize() {
-            int size = 0;
-            if (firstElement && path == null) {
-                size += 2; // Add space for Symbol Class ID
-            }
-
-            if (path != null) {
-                size += path.length() + 2;
-                if (needPad()) {
-                    size += 1;
-                }
-            }
-            if (index != null && index.length > 0) {
-                for (Integer idx : index) {
-                    size += 2;
-
-                    if (idx > MAX_BYTE_VALUE) {
-                        size += 2;
-                    }
-                }
-            }
-            return size;
-        }
-
+        /*
+         * public int getEncodedSize() {
+         * int size = 0;
+         * if (firstElement && path == null) {
+         * size += 2; // Add space for Symbol Class ID
+         * }
+         * 
+         * if (path != null) {
+         * size += path.length() + 2;
+         * if (needPad()) {
+         * size += 1;
+         * }
+         * }
+         * if (index != null && index.length > 0) {
+         * for (Integer idx : index) {
+         * size += 2;
+         * 
+         * if (idx > MAX_BYTE_VALUE) {
+         * size += 2;
+         * }
+         * }
+         * }
+         * return size;
+         * }
+         */
         public void encode(final ByteBuf buf) {
             if (firstElement && path == null) {
                 encodeInstanceId(buf);
@@ -188,21 +189,20 @@ public class CNSymbolPath extends CNPath {
 
     /** {@inheritDoc} */
     @Override
-    public int getRequestSize() { // End of string is padded if length is odd
-        int count = 0;
-        for (final PathElement s : this.elements) {
-            count += s.getEncodedSize();
-        }
-        return count;
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void encode(final ByteBuf buf) {
-        buf.writeByte((byte) (this.getRequestSize() / 2));
+        int lengthStartIndex = buf.writerIndex();
+        buf.writeByte((byte) 0);
+        int dataStartIndex = buf.writerIndex();
+        // buf.writeByte((byte) (this.getRequestSize() / 2));
         for (final PathElement pi : this.elements) {
             pi.encode(buf);
         }
+        int bytesWritten = buf.writerIndex() - dataStartIndex;
+        int wordsWritten = bytesWritten / 2;
+        buf.markWriterIndex();
+        buf.writerIndex(lengthStartIndex);
+        buf.writeByte(wordsWritten);
+        buf.resetWriterIndex();
     }
 
     @Override
@@ -219,12 +219,6 @@ public class CNSymbolPath extends CNPath {
             }
         }
         return buf.toString();
-    }
-
-    @Override
-    public int getResponseSize() {
-        // TODO Auto-generated method stub
-        return 0;
     }
 
     @Override

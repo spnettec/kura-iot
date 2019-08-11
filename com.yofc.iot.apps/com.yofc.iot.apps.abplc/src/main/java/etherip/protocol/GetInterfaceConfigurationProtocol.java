@@ -82,8 +82,4 @@ public class GetInterfaceConfigurationProtocol extends ProtocolAdapter {
         return this.interfaceConfiguration;
     }
 
-    @Override
-    public int getResponseSize() {
-        return this.responseSize;
-    }
 }
