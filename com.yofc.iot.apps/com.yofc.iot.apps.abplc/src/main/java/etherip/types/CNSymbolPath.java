@@ -60,31 +60,6 @@ public class CNSymbolPath extends CNPath {
             return this.index;
         }
 
-        /*
-         * public int getEncodedSize() {
-         * int size = 0;
-         * if (firstElement && path == null) {
-         * size += 2; // Add space for Symbol Class ID
-         * }
-         * 
-         * if (path != null) {
-         * size += path.length() + 2;
-         * if (needPad()) {
-         * size += 1;
-         * }
-         * }
-         * if (index != null && index.length > 0) {
-         * for (Integer idx : index) {
-         * size += 2;
-         * 
-         * if (idx > MAX_BYTE_VALUE) {
-         * size += 2;
-         * }
-         * }
-         * }
-         * return size;
-         * }
-         */
         public void encode(final ByteBuf buf) {
             if (firstElement && path == null) {
                 encodeInstanceId(buf);
