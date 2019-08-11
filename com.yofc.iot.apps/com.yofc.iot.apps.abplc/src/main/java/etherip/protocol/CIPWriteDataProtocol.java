@@ -24,7 +24,6 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
     private final int dataOffset;
     private final short writeCount;
     private int start;
-    private int requestSize = 0;
 
     public long getDataOffset() {
         return dataOffset;
@@ -53,7 +52,6 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
         count += 4;
         if (dataOffset > 0)
             count += 4;
-        requestSize = count;
     }
 
     @Override
