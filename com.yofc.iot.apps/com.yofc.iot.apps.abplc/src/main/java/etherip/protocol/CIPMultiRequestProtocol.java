@@ -28,40 +28,25 @@ public class CIPMultiRequestProtocol extends ProtocolAdapter {
 
     @Override
     public void encode(final ByteBuf buf) {
-        final short count = (short) this.services.length;
-        // Encode service count
-        buf.writeShortLE(count);
+        int serviceCount = this.services.length;
 
-        // Encode offsets to individual requests
-        // Offset to 1st item:
-        // 2 bytes for 'count', 2 bytes for each offset
-        short offset = (short) (2 + 2 * count);
+        buf.writeShortLE(serviceCount);
 
-        buf.writeShortLE(offset);
-        int lengthStartIndex = buf.writerIndex();
-        buf.writerIndex(lengthStartIndex + 2 * (count - 1));
+        int[] offsets = new int[serviceCount];
+        int offsetsStartIndex = buf.writerIndex();
+        buf.writeZero(serviceCount * 2);
 
-        for (int i = 0; i < count - 1; ++i) {
-            offset += encodeEmbeddedService(this.services[i], lengthStartIndex, offset, buf);
-            lengthStartIndex += 2;
+        for (int i = 0; i < serviceCount; i++) {
+            offsets[i] = buf.writerIndex() - offsetsStartIndex + 2;
+            this.services[i].encode(buf);
         }
-        this.services[count - 1].encode(buf);
-    }
 
-    private int encodeEmbeddedService(MessageRouterProtocol service, int lengthStartIndex, int offset, ByteBuf buf) {
-
-        // embedded message
-        int messageStartIndex = buf.writerIndex();
-        service.encode(buf);
-
-        // go back and update length
-        int bytesWritten = buf.writerIndex() - messageStartIndex;
         buf.markWriterIndex();
-        buf.writerIndex(lengthStartIndex);
-        buf.writeShortLE(bytesWritten + offset);
+        buf.writerIndex(offsetsStartIndex);
+        for (int offset : offsets) {
+            buf.writeShortLE(offset);
+        }
         buf.resetWriterIndex();
-
-        return bytesWritten;
     }
 
     @Override
