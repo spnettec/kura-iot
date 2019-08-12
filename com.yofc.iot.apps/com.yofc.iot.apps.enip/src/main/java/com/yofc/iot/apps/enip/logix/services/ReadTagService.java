@@ -33,9 +33,13 @@ public class ReadTagService implements CipService<ByteBuf> {
     }
 
     public ReadTagService(String tagName) {
+        this(tagName, 1);
+    }
+
+    public ReadTagService(String tagName, int elementCount) {
         PaddedEPath rp = new EPath.PaddedEPath(new DataSegment.AnsiDataSegment(tagName));
         this.requestPath = rp;
-        this.elementCount = 1;
+        this.elementCount = elementCount;
     }
 
     /**

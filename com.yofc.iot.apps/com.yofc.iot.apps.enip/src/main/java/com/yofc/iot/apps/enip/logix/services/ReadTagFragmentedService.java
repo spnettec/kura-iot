@@ -1,12 +1,13 @@
 package com.yofc.iot.apps.enip.logix.services;
 
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 import com.yofc.iot.apps.enip.cip.CipResponseException;
+import com.yofc.iot.apps.enip.cip.epath.DataSegment;
+import com.yofc.iot.apps.enip.cip.epath.EPath;
 import com.yofc.iot.apps.enip.cip.epath.EPath.PaddedEPath;
 import com.yofc.iot.apps.enip.cip.services.CipService;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
@@ -34,6 +35,16 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
 
     public ReadTagFragmentedService(PaddedEPath requestPath, int elementCount) {
         this.requestPath = requestPath;
+        this.elementCount = elementCount;
+    }
+
+    public ReadTagFragmentedService(String tagName) {
+        this(tagName, 1);
+    }
+
+    public ReadTagFragmentedService(String tagName, int elementCount) {
+        PaddedEPath rp = new EPath.PaddedEPath(new DataSegment.AnsiDataSegment(tagName));
+        this.requestPath = rp;
         this.elementCount = elementCount;
     }
 
@@ -72,8 +83,7 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
                 if (status == 0x00) {
                     synchronized (buffers) {
                         ByteBuf composite = Unpooled.compositeBuffer().addComponent(header.retain())
-                                .addComponents(buffers).writerIndex(header.readableBytes() + offset)
-                                .order(ByteOrder.LITTLE_ENDIAN);
+                                .addComponents(buffers).writerIndex(header.readableBytes() + offset);
 
                         // Clean up so this service can be re-used...
                         buffers.clear();

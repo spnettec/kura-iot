@@ -23,7 +23,7 @@ import com.yofc.iot.apps.enip.cip.services.CipService;
 import com.yofc.iot.apps.enip.cip.services.MultipleServicePacketService;
 import com.yofc.iot.apps.enip.cip.structs.CIPData;
 import com.yofc.iot.apps.enip.cip.structs.CIPData.Type;
-import com.yofc.iot.apps.enip.logix.services.ReadTagService;
+import com.yofc.iot.apps.enip.logix.services.ReadTagFragmentedService;
 import com.yofc.iot.apps.enip.logix.services.WriteTagService;
 import com.yofc.vertx.osgi.api.Utils;
 
@@ -74,8 +74,8 @@ public class AppTest {
         // else
         // ex.printStackTrace();
         // });
-        ReadTagService service = new ReadTagService("FURNACE_MOTOR_MODE_SELECT_HMI");
-        ReadTagService service1 = new ReadTagService("SYSTEM_BAR_NO");
+        ReadTagFragmentedService service = new ReadTagFragmentedService("FURNACE_MOTOR_MODE_SELECT_HMI");
+        ReadTagFragmentedService service1 = new ReadTagFragmentedService("SYSTEM_BAR_NO");
         List<CipService<?>> services = new ArrayList<>();
         services.add(service);
         services.add(service1);

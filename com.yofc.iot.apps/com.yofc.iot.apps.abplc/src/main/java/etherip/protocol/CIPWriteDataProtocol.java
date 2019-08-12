@@ -38,20 +38,6 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
         this.dataOffset = dataOffset;
         this.writeCount = writeCount;
         this.start = start;
-        calRequestSize();
-
-    }
-
-    private void calRequestSize() {
-        int count = this.writeCount;
-        if (count <= 0)
-            count = this.data.getData().capacity();
-        else {
-            count = count * this.data.getType().getElementSize();
-        }
-        count += 4;
-        if (dataOffset > 0)
-            count += 4;
     }
 
     @Override
@@ -78,7 +64,7 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
                 buf.writeIntLE(dataOffset);
             // Copy length, chars from data into buf
             int length = this.data.getData().readableBytes();
-            int offset = data.getData().writerIndex() + 88 - (length > 88 ? 88 : length);
+            int offset = data.getData().writerIndex() + 84 - (length > 84 ? 84 : length);
             data.getData().writerIndex(offset);
             buf.writeBytes(this.data.getData());
         } else {
