@@ -49,14 +49,14 @@ public final class RegisterSession extends Command {
     }
 
     public static ByteBuf encode(RegisterSession command, ByteBuf buffer) {
-        buffer.writeShort(command.getProtocolVersion());
-        buffer.writeShort(command.getOptionFlags());
+        buffer.writeShortLE(command.getProtocolVersion());
+        buffer.writeShortLE(command.getOptionFlags());
 
         return buffer;
     }
 
     public static RegisterSession decode(ByteBuf buffer) {
-        return new RegisterSession(buffer.readUnsignedShort(), buffer.readUnsignedShort());
+        return new RegisterSession(buffer.readUnsignedShortLE(), buffer.readUnsignedShortLE());
     }
 
 }

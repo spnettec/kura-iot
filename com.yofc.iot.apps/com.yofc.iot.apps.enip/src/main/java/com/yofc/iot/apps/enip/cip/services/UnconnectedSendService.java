@@ -62,7 +62,7 @@ public class UnconnectedSendService<T> implements CipService<T> {
     private int encodeEmbeddedService(ByteBuf buffer) {
         // length of embedded message
         int lengthStartIndex = buffer.writerIndex();
-        buffer.writeShort(0);
+        buffer.writeShortLE(0);
 
         // embedded message
         int messageStartIndex = buffer.writerIndex();
@@ -72,7 +72,7 @@ public class UnconnectedSendService<T> implements CipService<T> {
         int bytesWritten = buffer.writerIndex() - messageStartIndex;
         buffer.markWriterIndex();
         buffer.writerIndex(lengthStartIndex);
-        buffer.writeShort(bytesWritten);
+        buffer.writeShortLE(bytesWritten);
         buffer.resetWriterIndex();
 
         return bytesWritten;

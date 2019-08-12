@@ -24,13 +24,13 @@ public enum CommandCode {
     }
 
     public static ByteBuf encode(CommandCode commandCode, ByteBuf buffer) {
-        buffer.writeShort(commandCode.getCode());
+        buffer.writeShortLE(commandCode.getCode());
 
         return buffer;
     }
 
     public static CommandCode decode(ByteBuf buffer) {
-        int code = buffer.readUnsignedShort();
+        int code = buffer.readUnsignedShortLE();
 
         switch (code) {
         case 0x00:

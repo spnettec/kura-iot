@@ -41,7 +41,7 @@ public final class ListInterfaces extends Command {
 
     public static ByteBuf encode(ListInterfaces command, ByteBuf buffer) {
         if (command.getInterfaces().length != 0) {
-            buffer.writeShort(command.getInterfaces().length);
+            buffer.writeShortLE(command.getInterfaces().length);
 
             for (InterfaceInformation interfaceInformation : command.getInterfaces()) {
                 InterfaceInformation.encode(interfaceInformation, buffer);
@@ -52,7 +52,7 @@ public final class ListInterfaces extends Command {
     }
 
     public static ListInterfaces decode(ByteBuf buffer) {
-        int itemCount = buffer.readableBytes() >= 2 ? buffer.readUnsignedShort() : 0;
+        int itemCount = buffer.readableBytes() >= 2 ? buffer.readUnsignedShortLE() : 0;
 
         InterfaceInformation[] interfaces = new InterfaceInformation[itemCount];
 
@@ -82,16 +82,16 @@ public final class ListInterfaces extends Command {
         }
 
         public static ByteBuf encode(InterfaceInformation interfaceInformation, ByteBuf buffer) {
-            buffer.writeShort(interfaceInformation.getItemId());
-            buffer.writeShort(interfaceInformation.getData().length);
+            buffer.writeShortLE(interfaceInformation.getItemId());
+            buffer.writeShortLE(interfaceInformation.getData().length);
             buffer.writeBytes(interfaceInformation.getData());
 
             return buffer;
         }
 
         public static InterfaceInformation decode(ByteBuf buffer) {
-            int itemId = buffer.readUnsignedShort();
-            int dataLength = buffer.readUnsignedShort();
+            int itemId = buffer.readUnsignedShortLE();
+            int dataLength = buffer.readUnsignedShortLE();
             byte[] data = new byte[dataLength];
             buffer.readBytes(data);
 

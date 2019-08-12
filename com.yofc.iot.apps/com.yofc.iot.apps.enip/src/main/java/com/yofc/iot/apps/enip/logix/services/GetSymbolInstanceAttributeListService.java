@@ -32,17 +32,17 @@ public class GetSymbolInstanceAttributeListService extends GetInstanceAttributeL
         @Override
         public SymbolInstance decode(int instanceId, ByteBuf buffer) {
             // attribute 1 - symbol name
-            int nameLength = buffer.readUnsignedShort();
+            int nameLength = buffer.readUnsignedShortLE();
             String name = buffer.toString(buffer.readerIndex(), nameLength, StandardCharsets.US_ASCII);
             buffer.skipBytes(nameLength);
 
             // attribute 2 - symbol type
-            int type = buffer.readUnsignedShort();
+            int type = buffer.readUnsignedShortLE();
 
             // attribute 8 - dimensions
-            int d1Size = buffer.readInt();
-            int d2Size = buffer.readInt();
-            int d3Size = buffer.readInt();
+            int d1Size = buffer.readIntLE();
+            int d2Size = buffer.readIntLE();
+            int d3Size = buffer.readIntLE();
 
             return new SymbolInstance(program, name, instanceId, type, d1Size, d2Size, d3Size);
         }

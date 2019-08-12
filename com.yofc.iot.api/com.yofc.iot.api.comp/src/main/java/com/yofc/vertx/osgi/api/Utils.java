@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -220,6 +221,16 @@ public class Utils {
         return i -> {
             try {
                 throwingConsumer.accept(i);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        };
+    }
+
+    public static <T, U> BiConsumer<T, U> BiConsumerWrapper(BiConsumerWithException<T, U, Exception> throwingConsumer) {
+        return (i, u) -> {
+            try {
+                throwingConsumer.accept(i, u);
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }

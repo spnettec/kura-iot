@@ -47,9 +47,9 @@ public final class ElectronicKey {
     }
 
     public static ByteBuf encode(ElectronicKey key, ByteBuf buffer) {
-        buffer.writeShort(key.getVendorId());
-        buffer.writeShort(key.getDeviceType());
-        buffer.writeShort(key.getProductCode());
+        buffer.writeShortLE(key.getVendorId());
+        buffer.writeShortLE(key.getDeviceType());
+        buffer.writeShortLE(key.getProductCode());
 
         int majorRevisionAndCompatibility = key.isCompatibilitySet() ? 0x80 : 0x00;
         majorRevisionAndCompatibility |= (key.getMajorRevision() & 0x7F);

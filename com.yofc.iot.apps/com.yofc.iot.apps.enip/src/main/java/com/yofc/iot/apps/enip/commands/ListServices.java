@@ -43,7 +43,7 @@ public final class ListServices extends Command {
 
     public static ByteBuf encode(ListServices command, ByteBuf buffer) {
         if (command.getServices().length != 0) {
-            buffer.writeShort(command.getServices().length);
+            buffer.writeShortLE(command.getServices().length);
 
             for (ServiceInformation serviceInformation : command.getServices()) {
                 ServiceInformation.encode(serviceInformation, buffer);
@@ -54,7 +54,7 @@ public final class ListServices extends Command {
     }
 
     public static ListServices decode(ByteBuf buffer) {
-        int itemCount = buffer.readableBytes() >= 2 ? buffer.readUnsignedShort() : 0;
+        int itemCount = buffer.readableBytes() >= 2 ? buffer.readUnsignedShortLE() : 0;
 
         ServiceInformation[] services = new ServiceInformation[itemCount];
 
@@ -96,24 +96,24 @@ public final class ListServices extends Command {
         }
 
         public static ByteBuf encode(ServiceInformation serviceInformation, ByteBuf buffer) {
-            buffer.writeShort(serviceInformation.getTypeCode());
+            buffer.writeShortLE(serviceInformation.getTypeCode());
 
             // The 16 bytes of the name plus two shorts.
-            buffer.writeShort(20);
+            buffer.writeShortLE(20);
 
             // Encode the item...
-            buffer.writeShort(serviceInformation.getVersion());
-            buffer.writeShort(serviceInformation.getCapabilityFlags());
+            buffer.writeShortLE(serviceInformation.getVersion());
+            buffer.writeShortLE(serviceInformation.getCapabilityFlags());
             writeString(serviceInformation.getName(), buffer);
 
             return buffer;
         }
 
         public static ServiceInformation decode(ByteBuf buffer) {
-            int typeCode = buffer.readUnsignedShort();
-            int itemLength = buffer.readShort();
-            int version = buffer.readShort();
-            int capabilityFlags = buffer.readShort();
+            int typeCode = buffer.readUnsignedShortLE();
+            int itemLength = buffer.readShortLE();
+            int version = buffer.readShortLE();
+            int capabilityFlags = buffer.readShortLE();
             String name = readString(buffer, itemLength - 4).trim();
             return new ServiceInformation(typeCode, version, capabilityFlags, name);
         }

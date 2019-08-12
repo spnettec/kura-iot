@@ -52,22 +52,22 @@ public class SetAttributeListService implements CipService<AttributeResponse[]> 
     }
 
     private void encode(ByteBuf buffer) {
-        buffer.writeShort(attributeRequests.length);
+        buffer.writeShortLE(attributeRequests.length);
 
         for (AttributeRequest request : attributeRequests) {
-            buffer.writeShort(request.getId());
+            buffer.writeShortLE(request.getId());
             buffer.writeBytes(request.getData());
         }
     }
 
     private AttributeResponse[] decode(ByteBuf buffer) {
-        int count = buffer.readUnsignedShort();
+        int count = buffer.readUnsignedShortLE();
 
         AttributeResponse[] responses = new AttributeResponse[count];
 
         for (int i = 0; i < count; i++) {
-            int id = buffer.readShort();
-            int status = buffer.readShort();
+            int id = buffer.readShortLE();
+            int status = buffer.readShortLE();
 
             ByteBuf data = (status == 0x00) ? attributeDataDecoder.apply(id) : Unpooled.EMPTY_BUFFER;
 

@@ -23,13 +23,13 @@ public enum EnipStatus {
     }
 
     public static ByteBuf encode(EnipStatus status, ByteBuf buffer) {
-        buffer.writeInt(status.getStatus());
+        buffer.writeIntLE(status.getStatus());
 
         return buffer;
     }
 
     public static EnipStatus decode(ByteBuf buffer) {
-        int status = buffer.readInt();
+        int status = buffer.readIntLE();
 
         switch (status) {
         case 0x00:

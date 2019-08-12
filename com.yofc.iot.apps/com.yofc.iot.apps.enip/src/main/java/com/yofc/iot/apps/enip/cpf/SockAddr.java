@@ -63,20 +63,20 @@ public final class SockAddr {
     }
 
     public static ByteBuf encode(SockAddr sockAddr, ByteBuf buffer) {
-        buffer.unwrap().writeShort(sockAddr.getSinFamily());
-        buffer.unwrap().writeShort(sockAddr.getSinPort());
-        buffer.unwrap().writeBytes(sockAddr.getSinAddr());
-        buffer.unwrap().writeLong(sockAddr.getSinZero());
+        buffer.writeShortLE(sockAddr.getSinFamily());
+        buffer.writeShortLE(sockAddr.getSinPort());
+        buffer.writeBytes(sockAddr.getSinAddr());
+        buffer.writeLongLE(sockAddr.getSinZero());
 
         return buffer;
     }
 
     public static SockAddr decode(ByteBuf buffer) {
-        int sinFamily = buffer.unwrap().readUnsignedShort();
-        int sinPort = buffer.unwrap().readUnsignedShort();
+        int sinFamily = buffer.readUnsignedShortLE();
+        int sinPort = buffer.readUnsignedShortLE();
         byte[] sinAddr = new byte[4];
-        buffer.unwrap().readBytes(sinAddr);
-        long sinZero = buffer.unwrap().readLong();
+        buffer.readBytes(sinAddr);
+        long sinZero = buffer.readLongLE();
 
         return new SockAddr(sinFamily, sinPort, sinAddr, sinZero);
     }

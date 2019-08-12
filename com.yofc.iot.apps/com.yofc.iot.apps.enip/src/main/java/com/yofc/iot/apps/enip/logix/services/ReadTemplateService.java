@@ -82,8 +82,8 @@ public class ReadTemplateService implements CipService<TemplateInstance> {
         bytesToRead = roundUp(bytesToRead, 4) + 4;
         bytesToRead -= totalBytesRead;
 
-        buffer.writeInt(totalBytesRead);
-        buffer.writeShort(bytesToRead);
+        buffer.writeIntLE(totalBytesRead);
+        buffer.writeShortLE(bytesToRead);
     }
 
     private TemplateInstance decode(ByteBuf buffer, int symbolType) {
@@ -92,9 +92,9 @@ public class ReadTemplateService implements CipService<TemplateInstance> {
         List<Function<String, TemplateMember>> functions = new ArrayList<>(memberCount);
 
         for (int i = 0; i < memberCount; i++) {
-            int infoWord = buffer.readShort();
-            int memberType = buffer.readUnsignedShort();
-            int offset = IntUtil.saturatedCast(buffer.readUnsignedInt());
+            int infoWord = buffer.readShortLE();
+            int memberType = buffer.readUnsignedShortLE();
+            int offset = IntUtil.saturatedCast(buffer.readUnsignedIntLE());
 
             functions.add((name) -> new TemplateMember(name, infoWord, memberType, offset));
         }

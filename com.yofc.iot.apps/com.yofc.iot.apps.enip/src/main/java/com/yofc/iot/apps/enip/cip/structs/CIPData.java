@@ -125,8 +125,10 @@ public final class CIPData {
             this.data = Unpooled.buffer(type.elementSize * 1);
             this.type = type;
             this.elements = (short) 1;
+            this.data.writerIndex(this.data.capacity());
             break;
         case STRUCT:
+        case STRUCT_STRING:
             this.data = Unpooled.buffer(92);
             this.type = type;
             this.elements = (short) 1;
@@ -162,7 +164,7 @@ public final class CIPData {
 
     public CIPData(final Type type, final ByteBuf data) {
         this.type = type;
-        this.data = data.unwrap().copy(data.readerIndex(), data.readableBytes());
+        this.data = data.copy(data.readerIndex(), data.readableBytes());
         this.elements = this.determineElementCount();
     }
 
@@ -311,7 +313,7 @@ public final class CIPData {
      * @throws IndexOutOfBoundsException
      *             if index is invalid
      */
-    public final synchronized void set(final int index, final Number value)
+    public final synchronized CIPData set(final int index, final Number value)
             throws Exception, IndexOutOfBoundsException {
         switch (this.type) {
         case BOOL:
@@ -331,6 +333,7 @@ public final class CIPData {
         default:
             throw new Exception("Cannot set type " + this.type + " to a number");
         }
+        return this;
     }
 
     /**
@@ -341,8 +344,8 @@ public final class CIPData {
      * @throws Exception
      *             if data does not contain a string
      */
-    public final synchronized void setString(final String text) throws Exception {
-        if (this.type != Type.STRUCT) {
+    public final synchronized CIPData setString(final String text) throws Exception {
+        if (this.type != Type.STRUCT && this.type != Type.STRUCT_STRING) {
             throw new Exception("Type " + this.type + " does not contain string");
         }
         this.data.clear();
@@ -362,6 +365,7 @@ public final class CIPData {
         }
         // this.data.writeByte((byte) 0);
         this.data.setIndex(0, this.data.capacity());
+        return this;
     }
 
     /** @return String representation for debugging */

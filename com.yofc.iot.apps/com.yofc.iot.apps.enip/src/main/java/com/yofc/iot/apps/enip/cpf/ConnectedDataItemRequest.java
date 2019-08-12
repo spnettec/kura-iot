@@ -21,11 +21,11 @@ public final class ConnectedDataItemRequest extends CpfItem {
     }
 
     public static ByteBuf encode(ConnectedDataItemRequest item, ByteBuf buffer) {
-        buffer.writeShort(item.getTypeId());
+        buffer.writeShortLE(item.getTypeId());
 
         // Length placeholder...
         int lengthStartIndex = buffer.writerIndex();
-        buffer.writeShort(0);
+        buffer.writeShortLE(0);
 
         // Encode the encapsulated data...
         int dataStartIndex = buffer.writerIndex();
@@ -35,7 +35,7 @@ public final class ConnectedDataItemRequest extends CpfItem {
         int bytesWritten = buffer.writerIndex() - dataStartIndex;
         buffer.markWriterIndex();
         buffer.writerIndex(lengthStartIndex);
-        buffer.writeShort(bytesWritten);
+        buffer.writeShortLE(bytesWritten);
         buffer.resetWriterIndex();
 
         return buffer;

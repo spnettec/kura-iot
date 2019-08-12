@@ -30,15 +30,15 @@ public final class NullAddressItem extends CpfItem {
     private static final int ITEM_LENGTH = 0;
 
     public static ByteBuf encode(NullAddressItem item, ByteBuf buffer) {
-        buffer.writeShort(TYPE_ID);
-        buffer.writeShort(ITEM_LENGTH);
+        buffer.writeShortLE(TYPE_ID);
+        buffer.writeShortLE(ITEM_LENGTH);
 
         return buffer;
     }
 
     public static NullAddressItem decode(ByteBuf buffer) {
-        int typeId = buffer.readUnsignedShort();
-        int length = buffer.readUnsignedShort();
+        int typeId = buffer.readUnsignedShortLE();
+        int length = buffer.readUnsignedShortLE();
 
         assert (typeId == TYPE_ID);
         assert (length == ITEM_LENGTH);

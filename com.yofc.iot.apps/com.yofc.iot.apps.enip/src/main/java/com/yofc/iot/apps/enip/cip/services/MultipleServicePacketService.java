@@ -75,7 +75,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
     private void encode(ByteBuf buffer) {
         int serviceCount = currentServices.size();
 
-        buffer.writeShort(serviceCount);
+        buffer.writeShortLE(serviceCount);
 
         int[] offsets = new int[serviceCount];
         int offsetsStartIndex = buffer.writerIndex();
@@ -89,18 +89,18 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
         buffer.markWriterIndex();
         buffer.writerIndex(offsetsStartIndex);
         for (int offset : offsets) {
-            buffer.writeShort(offset);
+            buffer.writeShortLE(offset);
         }
         buffer.resetWriterIndex();
     }
 
     private ByteBuf[] decode(ByteBuf buffer) {
         int dataStartIndex = buffer.readerIndex();
-        int serviceCount = buffer.readUnsignedShort();
+        int serviceCount = buffer.readUnsignedShortLE();
 
         int[] offsets = new int[serviceCount];
         for (int i = 0; i < serviceCount; i++) {
-            offsets[i] = buffer.readUnsignedShort();
+            offsets[i] = buffer.readUnsignedShortLE();
         }
 
         ByteBuf[] serviceData = new ByteBuf[serviceCount];

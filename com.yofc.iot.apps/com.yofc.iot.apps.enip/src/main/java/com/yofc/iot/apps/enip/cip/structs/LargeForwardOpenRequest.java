@@ -102,21 +102,21 @@ public class LargeForwardOpenRequest {
         buffer.writeByte(priorityAndTimeoutBytes >> 8 & 0xFF);
         buffer.writeByte(priorityAndTimeoutBytes & 0xFF);
 
-        buffer.writeInt(0); // o2tConnectionId chosen by remote and indicated in response
-        buffer.writeInt(request.t2oConnectionId);
-        buffer.writeShort(request.connectionSerialNumber);
+        buffer.writeIntLE(0); // o2tConnectionId chosen by remote and indicated in response
+        buffer.writeIntLE(request.t2oConnectionId);
+        buffer.writeShortLE(request.connectionSerialNumber);
 
-        buffer.writeShort(request.vendorId);
-        buffer.writeInt((int) request.vendorSerialNumber);
+        buffer.writeShortLE(request.vendorId);
+        buffer.writeIntLE((int) request.vendorSerialNumber);
 
         buffer.writeByte(request.connectionTimeoutMultiplier);
         buffer.writeZero(3); // 3 reserved bytes
 
-        buffer.writeInt((int) TimeUnit.MICROSECONDS.convert(request.o2tRpi.toMillis(), TimeUnit.MILLISECONDS));
-        buffer.writeInt(parametersToInt(request.o2tParameters));
+        buffer.writeIntLE((int) TimeUnit.MICROSECONDS.convert(request.o2tRpi.toMillis(), TimeUnit.MILLISECONDS));
+        buffer.writeIntLE(parametersToInt(request.o2tParameters));
 
-        buffer.writeInt((int) TimeUnit.MICROSECONDS.convert(request.t2oRpi.toMillis(), TimeUnit.MILLISECONDS));
-        buffer.writeInt(parametersToInt(request.t2oParameters));
+        buffer.writeIntLE((int) TimeUnit.MICROSECONDS.convert(request.t2oRpi.toMillis(), TimeUnit.MILLISECONDS));
+        buffer.writeIntLE(parametersToInt(request.t2oParameters));
 
         buffer.writeByte(request.transportClassAndTrigger);
 

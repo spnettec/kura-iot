@@ -46,7 +46,7 @@ public class MessageRouterResponse {
         int count = buffer.readUnsignedByte();
         int[] additionalStatus = new int[count];
         for (int i = 0; i < count; i++) {
-            additionalStatus[i] = buffer.readShort();
+            additionalStatus[i] = buffer.readShortLE();
         }
 
         ByteBuf data = buffer.isReadable() ? buffer.readSlice(buffer.readableBytes()).retain() : Unpooled.EMPTY_BUFFER;

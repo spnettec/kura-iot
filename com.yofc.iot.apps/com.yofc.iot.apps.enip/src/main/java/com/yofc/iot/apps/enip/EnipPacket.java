@@ -86,16 +86,16 @@ public final class EnipPacket {
     }
 
     public static ByteBuf encode(EnipPacket packet, ByteBuf buffer) {
-        buffer.writeShort(packet.getCommandCode().getCode());
+        buffer.writeShortLE(packet.getCommandCode().getCode());
 
         // Length placeholder...
         int lengthStartIndex = buffer.writerIndex();
-        buffer.writeShort(0);
+        buffer.writeShortLE(0);
 
-        buffer.writeInt((int) packet.getSessionHandle());
-        buffer.writeInt(packet.getStatus().getStatus());
-        buffer.writeLong(packet.getSenderContext());
-        buffer.writeInt(0);
+        buffer.writeIntLE((int) packet.getSessionHandle());
+        buffer.writeIntLE(packet.getStatus().getStatus());
+        buffer.writeLongLE(packet.getSenderContext());
+        buffer.writeIntLE(0);
 
         int dataStartIndex = buffer.writerIndex();
 
@@ -107,7 +107,7 @@ public final class EnipPacket {
         int bytesWritten = buffer.writerIndex() - dataStartIndex;
         buffer.markWriterIndex();
         buffer.writerIndex(lengthStartIndex);
-        buffer.writeShort(bytesWritten);
+        buffer.writeShortLE(bytesWritten);
         buffer.resetWriterIndex();
 
         return buffer;
@@ -116,9 +116,9 @@ public final class EnipPacket {
     public static EnipPacket decode(ByteBuf buffer) {
         CommandCode commandCode = CommandCode.decode(buffer);
         buffer.skipBytes(2); // length
-        long sessionHandle = buffer.readUnsignedInt();
+        long sessionHandle = buffer.readUnsignedIntLE();
         EnipStatus status = EnipStatus.decode(buffer);
-        long senderContext = buffer.readLong();
+        long senderContext = buffer.readLongLE();
         buffer.skipBytes(4); // options
 
         Command command = (status == EnipStatus.EIP_SUCCESS) ? decodeCommand(commandCode, buffer) : null;

@@ -91,7 +91,7 @@ public class GetInstanceAttributeListService<T> implements CipService<List<T>> {
 
         while (buffer.isReadable()) {
             // reply data includes instanceId + requested attributes
-            lastInstanceId = buffer.readInt();
+            lastInstanceId = buffer.readIntLE();
 
             list.add(attributesDecoder.decode(lastInstanceId, buffer));
         }

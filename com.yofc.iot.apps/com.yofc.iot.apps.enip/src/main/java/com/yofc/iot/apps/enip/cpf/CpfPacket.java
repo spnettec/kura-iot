@@ -34,7 +34,7 @@ public final class CpfPacket {
     }
 
     public static ByteBuf encode(CpfPacket packet, ByteBuf buffer) {
-        buffer.writeShort(packet.getItems().length);
+        buffer.writeShortLE(packet.getItems().length);
 
         for (CpfItem item : packet.getItems()) {
             CpfItem.encode(item, buffer);
@@ -44,7 +44,7 @@ public final class CpfPacket {
     }
 
     public static CpfPacket decode(ByteBuf buffer) {
-        int itemCount = buffer.readUnsignedShort();
+        int itemCount = buffer.readUnsignedShortLE();
         CpfItem[] items = new CpfItem[itemCount];
 
         for (int i = 0; i < itemCount; i++) {

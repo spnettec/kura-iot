@@ -65,9 +65,9 @@ public abstract class LogicalSegment<T> extends EPathSegment {
         case Bits_8:
             return buffer.writeByte(value);
         case Bits_16:
-            return buffer.writeShort(value);
+            return buffer.writeShortLE(value);
         case Bits_32:
-            return buffer.writeInt(value);
+            return buffer.writeIntLE(value);
         case Reserved:
         default:
             throw new IllegalStateException("Reserved segment type not supported");

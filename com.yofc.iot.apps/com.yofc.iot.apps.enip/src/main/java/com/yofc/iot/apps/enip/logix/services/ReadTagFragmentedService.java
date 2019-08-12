@@ -45,8 +45,8 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
     }
 
     private void encode(ByteBuf buffer) {
-        buffer.writeShort(elementCount);
-        buffer.writeInt(offset);
+        buffer.writeShortLE(elementCount);
+        buffer.writeIntLE(offset);
     }
 
     @Override

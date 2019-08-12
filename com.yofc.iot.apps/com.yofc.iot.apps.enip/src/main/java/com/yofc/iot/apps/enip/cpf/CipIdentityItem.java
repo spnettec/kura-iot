@@ -149,23 +149,23 @@ public final class CipIdentityItem extends CpfItem {
     }
 
     public static ByteBuf encode(CipIdentityItem item, ByteBuf buffer) {
-        buffer.writeShort(TYPE_ID);
+        buffer.writeShortLE(TYPE_ID);
 
         // Length placeholder...
         int lengthStartIndex = buffer.writerIndex();
-        buffer.writeShort(0);
+        buffer.writeShortLE(0);
 
         // Encode the item...
         int itemStartIndex = buffer.writerIndex();
-        buffer.writeShort(item.getProtocolVersion());
+        buffer.writeShortLE(item.getProtocolVersion());
         SockAddr.encode(item.getSocketAddress(), buffer);
-        buffer.writeShort(item.getVendorId());
-        buffer.writeShort(item.getDeviceType());
-        buffer.writeShort(item.getProductCode());
+        buffer.writeShortLE(item.getVendorId());
+        buffer.writeShortLE(item.getDeviceType());
+        buffer.writeShortLE(item.getProductCode());
         buffer.writeByte(item.getRevisionMajor());
         buffer.writeByte(item.getRevisionMinor());
-        buffer.writeShort(item.getStatus());
-        buffer.writeInt((int) item.getSerialNumber());
+        buffer.writeShortLE(item.getStatus());
+        buffer.writeIntLE((int) item.getSerialNumber());
         writeString(item.getProductName(), buffer);
         buffer.writeByte(item.getState());
 
@@ -173,21 +173,21 @@ public final class CipIdentityItem extends CpfItem {
         int bytesWritten = buffer.writerIndex() - itemStartIndex;
         buffer.markWriterIndex();
         buffer.writerIndex(lengthStartIndex);
-        buffer.writeShort(bytesWritten);
+        buffer.writeShortLE(bytesWritten);
         buffer.resetWriterIndex();
 
         return buffer;
     }
 
     public static CipIdentityItem decode(ByteBuf buffer) {
-        int typeId = buffer.readUnsignedShort();
+        int typeId = buffer.readUnsignedShortLE();
         buffer.skipBytes(2); // length
 
         assert (typeId == TYPE_ID);
 
-        return new CipIdentityItem(buffer.readUnsignedShort(), SockAddr.decode(buffer), buffer.readUnsignedShort(),
-                buffer.readUnsignedShort(), buffer.readUnsignedShort(), buffer.readUnsignedByte(),
-                buffer.readUnsignedByte(), buffer.readShort(), buffer.readUnsignedInt(), readString(buffer),
+        return new CipIdentityItem(buffer.readUnsignedShortLE(), SockAddr.decode(buffer), buffer.readUnsignedShortLE(),
+                buffer.readUnsignedShortLE(), buffer.readUnsignedShortLE(), buffer.readUnsignedByte(),
+                buffer.readUnsignedByte(), buffer.readShortLE(), buffer.readUnsignedIntLE(), readString(buffer),
                 buffer.readUnsignedByte());
     }
 

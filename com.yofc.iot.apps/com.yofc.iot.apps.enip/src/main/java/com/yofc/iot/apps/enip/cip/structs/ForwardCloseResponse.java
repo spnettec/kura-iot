@@ -27,9 +27,9 @@ public class ForwardCloseResponse {
     }
 
     public static ForwardCloseResponse decode(ByteBuf buffer) {
-        int connectionSerialNumber = buffer.readUnsignedShort();
-        int originatorVendorId = buffer.readUnsignedShort();
-        long originatorSerialNumber = buffer.readUnsignedInt();
+        int connectionSerialNumber = buffer.readUnsignedShortLE();
+        int originatorVendorId = buffer.readUnsignedShortLE();
+        long originatorSerialNumber = buffer.readUnsignedIntLE();
 
         return new ForwardCloseResponse(connectionSerialNumber, originatorVendorId, originatorSerialNumber);
     }

@@ -3,6 +3,8 @@ package com.yofc.iot.apps.enip.logix.services;
 import java.util.function.Consumer;
 
 import com.yofc.iot.apps.enip.cip.CipResponseException;
+import com.yofc.iot.apps.enip.cip.epath.DataSegment;
+import com.yofc.iot.apps.enip.cip.epath.EPath;
 import com.yofc.iot.apps.enip.cip.epath.EPath.PaddedEPath;
 import com.yofc.iot.apps.enip.cip.services.CipService;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
@@ -28,6 +30,12 @@ public class ReadTagService implements CipService<ByteBuf> {
      */
     public ReadTagService(PaddedEPath requestPath) {
         this(requestPath, 1);
+    }
+
+    public ReadTagService(String tagName) {
+        PaddedEPath rp = new EPath.PaddedEPath(new DataSegment.AnsiDataSegment(tagName));
+        this.requestPath = rp;
+        this.elementCount = 1;
     }
 
     /**
@@ -68,7 +76,7 @@ public class ReadTagService implements CipService<ByteBuf> {
     }
 
     private void encode(ByteBuf buffer) {
-        buffer.writeShort(elementCount);
+        buffer.writeShortLE(elementCount);
     }
 
     private ByteBuf decode(MessageRouterResponse response) {

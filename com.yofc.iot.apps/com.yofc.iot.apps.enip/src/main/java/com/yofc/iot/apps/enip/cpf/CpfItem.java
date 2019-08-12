@@ -46,7 +46,7 @@ public abstract class CpfItem {
     }
 
     public static CpfItem decode(ByteBuf buffer) {
-        int typeId = buffer.getUnsignedShort(buffer.readerIndex());
+        int typeId = buffer.getUnsignedShortLE(buffer.readerIndex());
 
         switch (typeId) {
         case CipIdentityItem.TYPE_ID:

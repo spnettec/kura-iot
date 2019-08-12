@@ -36,7 +36,7 @@ public final class PortSegment extends EPathSegment {
         if (needLinkAddressSize)
             buffer.writeByte(linkAddressLength);
         if (needExtendedPort)
-            buffer.writeShort(segment.getPortId());
+            buffer.writeShortLE(segment.getPortId());
         buffer.writeBytes(segment.getLinkAddress());
 
         int bytesWritten = buffer.writerIndex() - writerIndex;

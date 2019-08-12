@@ -47,21 +47,21 @@ public class GetAttributeListService implements CipService<AttributeResponse[]> 
     }
 
     private void encode(ByteBuf buffer) {
-        buffer.writeShort(attributeIds.length);
+        buffer.writeShortLE(attributeIds.length);
 
         for (int id : attributeIds) {
-            buffer.writeShort(id);
+            buffer.writeShortLE(id);
         }
     }
 
     private AttributeResponse[] decode(ByteBuf buffer) {
-        int count = buffer.readUnsignedShort();
+        int count = buffer.readUnsignedShortLE();
 
         AttributeResponse[] attributeResponses = new AttributeResponse[count];
 
         for (int i = 0; i < count; i++) {
-            int id = buffer.readUnsignedShort();
-            int status = buffer.readUnsignedShort();
+            int id = buffer.readUnsignedShortLE();
+            int status = buffer.readUnsignedShortLE();
             ByteBuf data = status == 0x00 ? buffer.readSlice(attributeSizes[i]).copy() : Unpooled.EMPTY_BUFFER;
 
             attributeResponses[i] = new AttributeResponse(id, status, data);

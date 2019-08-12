@@ -52,22 +52,22 @@ public class ReadModifyWriteTagService implements CipService<Void> {
     private void encode(ByteBuf buffer) {
         switch (maskSize) {
         case ONE_BYTE:
-            buffer.writeShort(1);
+            buffer.writeShortLE(1);
             buffer.writeByte((int) orMask);
             buffer.writeByte((int) andMask);
             break;
         case TWO_BYTE:
-            buffer.writeShort(2);
+            buffer.writeShortLE(2);
             buffer.writeShort((int) orMask);
             buffer.writeShort((int) andMask);
             break;
         case FOUR_BYTE:
-            buffer.writeShort(4);
+            buffer.writeShortLE(4);
             buffer.writeInt((int) orMask);
             buffer.writeInt((int) andMask);
             break;
         case EIGHT_BYTE:
-            buffer.writeShort(8);
+            buffer.writeShortLE(8);
             buffer.writeLong(orMask);
             buffer.writeLong(andMask);
             break;

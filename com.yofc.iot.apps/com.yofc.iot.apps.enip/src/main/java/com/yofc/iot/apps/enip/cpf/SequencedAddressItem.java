@@ -56,19 +56,19 @@ public final class SequencedAddressItem extends CpfItem {
     private static final int ITEM_LENGTH = 8;
 
     public static ByteBuf encode(SequencedAddressItem item, ByteBuf buffer) {
-        buffer.writeShort(TYPE_ID);
-        buffer.writeShort(ITEM_LENGTH);
-        buffer.writeInt((int) item.getConnectionId());
-        buffer.writeInt((int) item.getSequenceNumber());
+        buffer.writeShortLE(TYPE_ID);
+        buffer.writeShortLE(ITEM_LENGTH);
+        buffer.writeIntLE((int) item.getConnectionId());
+        buffer.writeIntLE((int) item.getSequenceNumber());
 
         return buffer;
     }
 
     public static SequencedAddressItem decode(ByteBuf buffer) {
-        int typeId = buffer.readUnsignedShort();
-        int length = buffer.readUnsignedShort();
-        long connectionId = buffer.readUnsignedInt();
-        long sequenceNumber = buffer.readUnsignedInt();
+        int typeId = buffer.readUnsignedShortLE();
+        int length = buffer.readUnsignedShortLE();
+        long connectionId = buffer.readUnsignedIntLE();
+        long sequenceNumber = buffer.readUnsignedIntLE();
 
         assert (typeId == TYPE_ID);
         assert (length == ITEM_LENGTH);

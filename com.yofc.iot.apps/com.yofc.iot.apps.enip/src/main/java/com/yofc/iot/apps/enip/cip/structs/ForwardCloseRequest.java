@@ -55,10 +55,10 @@ public class ForwardCloseRequest {
         buffer.writeByte(priorityAndTimeoutBytes >> 8 & 0xFF);
         buffer.writeByte(priorityAndTimeoutBytes & 0xFF);
 
-        buffer.writeShort(request.getConnectionSerialNumber());
+        buffer.writeShortLE(request.getConnectionSerialNumber());
 
-        buffer.writeShort(request.getOriginatorVendorId());
-        buffer.writeInt((int) request.getOriginatorSerialNumber());
+        buffer.writeShortLE(request.getOriginatorVendorId());
+        buffer.writeIntLE((int) request.getOriginatorSerialNumber());
 
         encodeConnectionPath(request.getConnectionPath(), buffer);
 

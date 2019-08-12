@@ -70,13 +70,13 @@ public final class ForwardOpenResponse {
     }
 
     public static ForwardOpenResponse decode(ByteBuf buffer) {
-        int o2tConnectionId = buffer.readInt();
-        int t2oConnectionId = buffer.readInt();
-        int connectionSerialNumber = buffer.readUnsignedShort();
-        int originatorVendorId = buffer.readUnsignedShort();
-        long originatorSerialNumber = buffer.readUnsignedInt();
-        long o2tActualPacketInterval = TimeUnit.MICROSECONDS.convert(buffer.readUnsignedInt(), TimeUnit.MILLISECONDS);
-        long t2oActualPacketInterval = TimeUnit.MICROSECONDS.convert(buffer.readUnsignedInt(), TimeUnit.MILLISECONDS);
+        int o2tConnectionId = buffer.readIntLE();
+        int t2oConnectionId = buffer.readIntLE();
+        int connectionSerialNumber = buffer.readUnsignedShortLE();
+        int originatorVendorId = buffer.readUnsignedShortLE();
+        long originatorSerialNumber = buffer.readUnsignedIntLE();
+        long o2tActualPacketInterval = TimeUnit.MICROSECONDS.convert(buffer.readUnsignedIntLE(), TimeUnit.MILLISECONDS);
+        long t2oActualPacketInterval = TimeUnit.MICROSECONDS.convert(buffer.readUnsignedIntLE(), TimeUnit.MILLISECONDS);
         int applicationReplySize = buffer.readUnsignedByte();
         buffer.skipBytes(1); // reserved
 

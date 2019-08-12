@@ -46,17 +46,17 @@ public final class ConnectedAddressItem extends CpfItem {
     private static final int ITEM_LENGTH = 4;
 
     public static ByteBuf encode(ConnectedAddressItem item, ByteBuf buffer) {
-        buffer.writeShort(item.getTypeId());
-        buffer.writeShort(ITEM_LENGTH);
-        buffer.writeInt(item.getConnectionId());
+        buffer.writeShortLE(item.getTypeId());
+        buffer.writeShortLE(ITEM_LENGTH);
+        buffer.writeIntLE(item.getConnectionId());
 
         return buffer;
     }
 
     public static ConnectedAddressItem decode(ByteBuf buffer) {
-        int typeId = buffer.readUnsignedShort();
-        int length = buffer.readUnsignedShort();
-        int connectionId = buffer.readInt();
+        int typeId = buffer.readUnsignedShortLE();
+        int length = buffer.readUnsignedShortLE();
+        int connectionId = buffer.readIntLE();
 
         assert (typeId == TYPE_ID);
         assert (length == ITEM_LENGTH);

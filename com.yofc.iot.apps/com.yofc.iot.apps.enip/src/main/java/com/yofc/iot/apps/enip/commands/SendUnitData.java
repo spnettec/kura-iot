@@ -58,8 +58,8 @@ public final class SendUnitData extends Command {
     }
 
     public static ByteBuf encode(SendUnitData command, ByteBuf buffer) {
-        buffer.writeInt((int) command.getInterfaceHandle());
-        buffer.writeShort(command.getTimeout());
+        buffer.writeIntLE((int) command.getInterfaceHandle());
+        buffer.writeShortLE(command.getTimeout());
 
         CpfPacket.encode(command.getPacket(), buffer);
 
@@ -67,7 +67,7 @@ public final class SendUnitData extends Command {
     }
 
     public static SendUnitData decode(ByteBuf buffer) {
-        return new SendUnitData(buffer.readUnsignedInt(), buffer.readUnsignedShort(), CpfPacket.decode(buffer));
+        return new SendUnitData(buffer.readUnsignedIntLE(), buffer.readUnsignedShortLE(), CpfPacket.decode(buffer));
     }
 
 }
