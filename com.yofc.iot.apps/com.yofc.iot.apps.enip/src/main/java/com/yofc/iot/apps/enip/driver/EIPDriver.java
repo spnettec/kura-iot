@@ -48,6 +48,8 @@ import org.slf4j.LoggerFactory;
 import com.yofc.iot.apps.enip.cip.structs.CIPData;
 import com.yofc.iot.apps.enip.driver.EIPDriver.Config;
 
+import io.netty.channel.epoll.Epoll;
+
 @Designate(ocd = Config.class, factory = true)
 @Component(enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
         "service.pid=com.yofc.iot.apps.enip.driver.EIPDriver" })
@@ -62,6 +64,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         logger.info("Activating EIP-PLC Driver...");
         extractProperties(properties);
         logger.info("Activating EIP-PLC Driver... Done");
+        if (!Epoll.isAvailable())
+            logger.warn("Epoll is invailable");
     }
 
     private void extractProperties(final Config properties) {

@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.HashedWheelTimer;
 
@@ -20,7 +22,7 @@ public class EtherNetIpShared {
      */
     public static synchronized EventLoopGroup sharedEventLoop() {
         if (SHARED_EVENT_LOOP == null) {
-            SHARED_EVENT_LOOP = new NioEventLoopGroup();
+            SHARED_EVENT_LOOP = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
         }
         return SHARED_EVENT_LOOP;
     }

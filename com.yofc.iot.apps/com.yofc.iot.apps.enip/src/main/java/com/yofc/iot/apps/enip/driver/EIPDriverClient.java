@@ -124,7 +124,8 @@ public class EIPDriverClient {
                         } catch (Exception e) {
                             completFuture.completeExceptionally(e);
                         }
-                    }
+                    } else
+                        cipDatas.add(null);
                 }
                 completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
             }
