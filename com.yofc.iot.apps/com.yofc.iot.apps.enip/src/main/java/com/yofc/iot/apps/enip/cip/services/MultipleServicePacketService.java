@@ -31,6 +31,11 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
     private static final PaddedEPath MESSAGE_ROUTER_PATH = new PaddedEPath(new ClassId(0x02), new InstanceId(0x01));
 
     private final List<CipService<?>> currentServices;
+    private ByteBuf[] responseBuf;
+
+    public ByteBuf[] getResponseBuf() {
+        return responseBuf;
+    }
 
     public MultipleServicePacketService(List<CipService<?>> services) {
 
@@ -79,7 +84,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
             if (response.getGeneralStatus() == 0x00 || response.getGeneralStatus() == 0x1E) {
 
                 ByteBuf[] serviceData = decode(response.getData());
-                ByteBuf[] responseBuf = new ByteBuf[serviceData.length];
+                this.responseBuf = new ByteBuf[serviceData.length];
                 for (int i = 0; i < serviceData.length; i++) {
                     CipService<?> service = currentServices.get(i);
                     try {
@@ -93,7 +98,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
                     }
                 }
 
-                return responseBuf;
+                return this.responseBuf;
 
             } else {
                 throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());

@@ -49,6 +49,16 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
         this.elementCount = elementCount;
     }
 
+    public int getRequestSize() {
+        ByteBuf buf = Unpooled.buffer(600);
+        try {
+            this.encodeRequest(buf);
+            return buf.writerIndex();
+        } finally {
+            ReferenceCountUtil.release(buf);
+        }
+    }
+
     @Override
     public void encodeRequest(ByteBuf buffer) {
         MessageRouterRequest request = new MessageRouterRequest(SERVICE_CODE, requestPath, dataEncoder);
