@@ -3,6 +3,7 @@ package com.yofc.iot.apps.enip.logix.services;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.yofc.iot.apps.enip.cip.CipResponseException;
@@ -24,7 +25,7 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
     private final Consumer<ByteBuf> dataEncoder = this::encode;
 
     private final List<ByteBuf> buffers = Collections.synchronizedList(new ArrayList<>());
-    private volatile int offset = 0;
+    private AtomicInteger offset = new AtomicInteger(0);
 
     private final PaddedEPath requestPath;
     private final int elementCount;
@@ -57,7 +58,7 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
 
     private void encode(ByteBuf buffer) {
         buffer.writeShortLE(elementCount);
-        buffer.writeIntLE(offset);
+        buffer.writeIntLE(offset.get());
     }
 
     @Override
@@ -78,16 +79,16 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
                 ByteBuf fragment = data.slice().retain();
 
                 buffers.add(fragment);
-                offset += fragment.readableBytes();
+                int off = offset.addAndGet(fragment.readableBytes());
 
                 if (status == 0x00) {
                     synchronized (buffers) {
                         ByteBuf composite = Unpooled.compositeBuffer().addComponent(header.retain())
-                                .addComponents(buffers).writerIndex(header.readableBytes() + offset);
+                                .addComponents(buffers).writerIndex(header.readableBytes() + off);
 
                         // Clean up so this service can be re-used...
                         buffers.clear();
-                        offset = 0;
+                        offset = new AtomicInteger(0);
 
                         return composite;
                     }

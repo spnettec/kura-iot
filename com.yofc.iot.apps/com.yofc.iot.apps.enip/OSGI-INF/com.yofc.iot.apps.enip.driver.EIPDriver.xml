@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.apps.enip.driver.EIPDriver" configuration-policy="require" enabled="true" activate="activate" deactivate="deactivate" modified="updated">
+  <property name="maxRequestItems" type="Integer" value="30"/>
+  <property name="hostIp" type="String" value="localhost"/>
+  <property name="port" type="Integer" value="44818"/>
+  <property name="writeSingle" type="Boolean" value="false"/>
+  <property name="slot" type="Integer" value="0"/>
+  <property name="readSingle" type="Boolean" value="false"/>
+  <property name="timeout" type="Integer" value="2000"/>
+  <property name="service.pid" type="String" value="com.yofc.iot.apps.enip.driver.EIPDriver"/>
+  <service>
+    <provide interface="org.eclipse.kura.driver.Driver"/>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+  </service>
+  <implementation class="com.yofc.iot.apps.enip.driver.EIPDriver"/>
+</scr:component>

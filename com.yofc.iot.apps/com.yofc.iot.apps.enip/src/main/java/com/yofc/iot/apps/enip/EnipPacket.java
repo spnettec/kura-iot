@@ -1,7 +1,5 @@
 package com.yofc.iot.apps.enip;
 
-import javax.annotation.Nullable;
-
 import com.yofc.iot.apps.enip.commands.Command;
 import com.yofc.iot.apps.enip.commands.CommandCode;
 import com.yofc.iot.apps.enip.commands.ListIdentity;
@@ -27,11 +25,10 @@ public final class EnipPacket {
     private final EnipStatus status;
     private final long senderContext;
 
-    @Nullable
     private final Command command;
 
     public EnipPacket(CommandCode commandCode, long sessionHandle, EnipStatus status, long senderContext,
-            @Nullable Command command) {
+            Command command) {
 
         this.commandCode = commandCode;
         this.sessionHandle = sessionHandle;
@@ -56,7 +53,6 @@ public final class EnipPacket {
         return senderContext;
     }
 
-    @Nullable
     public Command getCommand() {
         return command;
     }

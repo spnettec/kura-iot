@@ -2,8 +2,6 @@ package com.yofc.iot.apps.enip.logix.services;
 
 import java.nio.charset.StandardCharsets;
 
-import javax.annotation.Nullable;
-
 import com.yofc.iot.apps.enip.logix.structs.SymbolInstance;
 
 import io.netty.buffer.ByteBuf;
@@ -17,7 +15,7 @@ public class GetSymbolInstanceAttributeListService extends GetInstanceAttributeL
             8  // dimensions
     };
 
-    public GetSymbolInstanceAttributeListService(@Nullable String program) {
+    public GetSymbolInstanceAttributeListService(String program) {
         super(program, SYMBOL_CLASS_ID, REQUESTED_ATTRIBUTES, new SymbolAttributesDecoder(program));
     }
 

@@ -12,8 +12,12 @@ import com.yofc.iot.apps.enip.cip.CipResponseException;
 import com.yofc.iot.apps.enip.cip.epath.EPath.PaddedEPath;
 import com.yofc.iot.apps.enip.cip.epath.LogicalSegment.ClassId;
 import com.yofc.iot.apps.enip.cip.epath.LogicalSegment.InstanceId;
+import com.yofc.iot.apps.enip.cip.structs.CIPData;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
+import com.yofc.iot.apps.enip.logix.services.ReadTagFragmentedService;
+import com.yofc.iot.apps.enip.logix.services.ReadTagService;
+import com.yofc.iot.apps.enip.logix.services.WriteTagService;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
@@ -38,6 +42,33 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
         MessageRouterRequest request = new MessageRouterRequest(SERVICE_CODE, MESSAGE_ROUTER_PATH, this::encode);
 
         MessageRouterRequest.encode(request, buffer);
+    }
+
+    public static MultipleServicePacketService readFragment(String... tags) {
+        List<CipService<?>> services = new ArrayList<>();
+        for (String tag : tags) {
+            services.add(new ReadTagFragmentedService(tag));
+        }
+        return new MultipleServicePacketService(services);
+    }
+
+    public static MultipleServicePacketService read(String... tags) {
+        List<CipService<?>> services = new ArrayList<>();
+        for (String tag : tags) {
+            services.add(new ReadTagService(tag));
+        }
+        return new MultipleServicePacketService(services);
+    }
+
+    public static MultipleServicePacketService writeTags(String[] tags, CIPData[] data) {
+        if (tags.length != data.length) {
+            throw new IllegalArgumentException("Got " + tags.length + " tags but " + data.length + " values");
+        }
+        List<CipService<?>> services = new ArrayList<>();
+        for (int i = 0; i < tags.length; i++) {
+            services.add(new WriteTagService(tags[i], data[i]));
+        }
+        return new MultipleServicePacketService(services);
     }
 
     @Override

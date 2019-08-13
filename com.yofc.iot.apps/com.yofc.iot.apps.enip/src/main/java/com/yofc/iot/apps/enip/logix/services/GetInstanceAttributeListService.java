@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.yofc.iot.apps.enip.cip.CipResponseException;
 import com.yofc.iot.apps.enip.cip.epath.DataSegment;
 import com.yofc.iot.apps.enip.cip.epath.EPath;
@@ -33,7 +30,7 @@ public class GetInstanceAttributeListService<T> implements CipService<List<T>> {
     private final int[] attributes;
     private final AttributesDecoder<T> attributesDecoder;
 
-    public GetInstanceAttributeListService(@Nullable String program, int classId, @Nonnull int[] attributes,
+    public GetInstanceAttributeListService(String program, int classId, int[] attributes,
             AttributesDecoder<T> attributesDecoder) {
 
         this.program = program;

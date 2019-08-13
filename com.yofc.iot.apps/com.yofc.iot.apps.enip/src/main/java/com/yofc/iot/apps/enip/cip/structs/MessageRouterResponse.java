@@ -1,7 +1,5 @@
 package com.yofc.iot.apps.enip.cip.structs;
 
-import javax.annotation.Nonnull;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
@@ -13,7 +11,7 @@ public class MessageRouterResponse {
 
     private final ByteBuf data;
 
-    public MessageRouterResponse(int serviceCode, int generalStatus, int[] additionalStatus, @Nonnull ByteBuf data) {
+    public MessageRouterResponse(int serviceCode, int generalStatus, int[] additionalStatus, ByteBuf data) {
 
         this.serviceCode = serviceCode;
         this.generalStatus = generalStatus;
@@ -33,7 +31,6 @@ public class MessageRouterResponse {
         return additionalStatus;
     }
 
-    @Nonnull
     public ByteBuf getData() {
         return data;
     }

@@ -54,6 +54,7 @@ public class CipConnectionPool {
 
     private final int connectionLimit;
     private final CipConnectionFactory connectionFactory;
+    private boolean isClosed = false;
 
     public CipConnectionPool(int connectionLimit, CipClient client, PaddedEPath connectionPath, int connectionSize) {
         this(connectionLimit, new DefaultConnectionFactory(client, connectionPath, connectionSize));
@@ -64,8 +65,21 @@ public class CipConnectionPool {
         this.connectionFactory = connectionFactory;
     }
 
+    public synchronized void close() {
+        CipConnection connection;
+        while ((connection = queue.poll()) != null) {
+            connectionFactory.close(connection);
+        }
+        waitQueue.clear();
+        this.isClosed = true;
+    }
+
     public synchronized CompletableFuture<CipConnection> acquire() {
         CompletableFuture<CipConnection> future = new CompletableFuture<>();
+        if (this.isClosed) {
+            future.completeExceptionally(new RuntimeException("pool is colsed"));
+            return future;
+        }
 
         acquire0().whenComplete((c, ex) -> {
             if (c != null) {
