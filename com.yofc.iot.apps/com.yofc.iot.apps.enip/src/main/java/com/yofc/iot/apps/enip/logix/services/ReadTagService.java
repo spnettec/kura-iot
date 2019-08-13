@@ -1,5 +1,9 @@
 package com.yofc.iot.apps.enip.logix.services;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.yofc.iot.apps.enip.cip.CipResponseException;
@@ -11,6 +15,7 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCountUtil;
 
 public class ReadTagService implements CipService<ByteBuf> {
@@ -18,7 +23,8 @@ public class ReadTagService implements CipService<ByteBuf> {
     public static final int SERVICE_CODE = 0x4C;
 
     private final Consumer<ByteBuf> dataEncoder = this::encode;
-
+    private final List<ByteBuf> buffers = Collections.synchronizedList(new ArrayList<>());
+    private AtomicInteger offset = new AtomicInteger(0);
     private final PaddedEPath requestPath;
     private final int elementCount;
 
@@ -66,26 +72,48 @@ public class ReadTagService implements CipService<ByteBuf> {
     public ByteBuf decodeResponse(ByteBuf buffer) throws PartialResponseException, CipResponseException {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
 
-        int generalStatus = response.getGeneralStatus();
+        int status = response.getGeneralStatus();
+        ByteBuf data = response.getData();
 
         try {
-            if (generalStatus == 0x00) {
-                this.responseData = decode(response);
-                return this.responseData;
+            if (status == 0x00 || status == 0x06) {
+                if (status == 0x06 && data.readableBytes() == 0) {
+                    throw PartialResponseException.INSTANCE;
+                }
+
+                boolean structured = data.getShortLE(data.readerIndex()) == 0x02A0;
+                ByteBuf header = structured ? data.readSlice(4) : data.readSlice(2);
+                ByteBuf fragment = data.slice().retain();
+
+                buffers.add(fragment);
+                int off = offset.addAndGet(fragment.readableBytes());
+
+                if (status == 0x00) {
+                    synchronized (buffers) {
+                        this.responseData = Unpooled.compositeBuffer().addComponent(header.retain())
+                                .addComponents(buffers).writerIndex(header.readableBytes() + off);
+
+                        // Clean up so this service can be re-used...
+                        buffers.clear();
+                        offset = new AtomicInteger(0);
+
+                        return this.responseData;
+                    }
+                } else {
+                    throw PartialResponseException.INSTANCE;
+                }
             } else {
-                throw new CipResponseException(generalStatus, response.getAdditionalStatus());
+                throw new CipResponseException(status, response.getAdditionalStatus());
             }
         } finally {
-            ReferenceCountUtil.release(response.getData());
+            ReferenceCountUtil.release(data);
         }
     }
 
     private void encode(ByteBuf buffer) {
         buffer.writeShortLE(elementCount);
-    }
+        buffer.writeIntLE(offset.get());
 
-    private ByteBuf decode(MessageRouterResponse response) {
-        return response.getData().retain();
     }
 
     private ByteBuf responseData = null;

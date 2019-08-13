@@ -30,6 +30,7 @@ public class AppTest {
     @DisplayName("开始")
     public static void setUp(Vertx vertx, VertxTestContext context) throws InterruptedException, ExecutionException {
         client = new EIPDriverClient("10.166.11.181", 0);
+        client.setTimeoutMs(50000);
         client.connect();
         context.completeNow();
     }
@@ -43,14 +44,25 @@ public class AppTest {
     @Test
     @Timeout(value = 100000, timeUnit = TimeUnit.SECONDS)
     public void testLogixRead(Vertx vertx, VertxTestContext context) {
-        client.readTags("FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO").whenComplete((data, ex) -> {
-            if (data != null)
-                for (CIPData cipData : data)
-                    logger.info("Tag data: {}", cipData.toString());
-            else
-                ex.printStackTrace();
-            context.completeNow();
-        });
+        client.readTags("FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                "SYSTEM_BAR_NO").whenComplete((data, ex) -> {
+                    if (data != null)
+                        for (CIPData cipData : data)
+                            logger.info("Tag data: {}", cipData.toString());
+                    else
+                        ex.printStackTrace();
+                    context.completeNow();
+                });
     }
 
     @Test

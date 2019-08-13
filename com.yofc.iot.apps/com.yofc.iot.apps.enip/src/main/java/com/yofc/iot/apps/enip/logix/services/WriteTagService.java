@@ -81,13 +81,21 @@ public class WriteTagService implements CipService<Void> {
         }
         buffer.writeShortLE(tagType);
         buffer.writeShortLE(elementCount);
-        if (structured) {
-            int length = data.readableBytes();
-            int offset = data.writerIndex() + 84 - (length > 84 ? 84 : length);
-            buffer.writeIntLE(length);
-            data.writerIndex(offset);
+        data.markReaderIndex();
+        data.markWriterIndex();
+        try {
+            if (structured) {
+                int length = data.readableBytes();
+                int offset = data.writerIndex() + 84 - (length > 84 ? 84 : length);
+                buffer.writeIntLE(length);
+                data.writerIndex(offset);
+            }
+            buffer.writeBytes(data);
+        } finally {
+            data.resetReaderIndex();
+            data.resetWriterIndex();
         }
-        buffer.writeBytes(data);
+
     }
 
     @Override

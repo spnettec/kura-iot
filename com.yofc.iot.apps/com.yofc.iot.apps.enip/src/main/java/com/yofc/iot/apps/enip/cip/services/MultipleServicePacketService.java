@@ -35,6 +35,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
     public MultipleServicePacketService(List<CipService<?>> services) {
 
         this.currentServices = synchronizedList(new ArrayList<>(services));
+        this.responseData = new ByteBuf[services.size()];
     }
 
     @Override
@@ -79,11 +80,16 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
             if (response.getGeneralStatus() == 0x00 || response.getGeneralStatus() == 0x1E) {
 
                 ByteBuf[] serviceData = decode(response.getData());
-                this.responseData = new ByteBuf[serviceData.length];
+                // this.responseData = new ByteBuf[serviceData.length];
+                Boolean isPartial = false;
+                List<CipService<?>> completedServices = new ArrayList<>();
                 for (int i = 0; i < serviceData.length; i++) {
                     CipService<?> service = currentServices.get(i);
                     try {
-                        responseData[i] = ((ByteBuf) service.decodeResponse(serviceData[i]));
+                        responseData[getNullresponseData()] = ((ByteBuf) service.decodeResponse(serviceData[i]));
+                        completedServices.add(service);
+                    } catch (PartialResponseException e) {
+                        isPartial = true;
                     } catch (Exception e) {
                         logger.error("decode service error:", e);
                     }
@@ -91,6 +97,11 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
                     finally {
                         ReferenceCountUtil.release(serviceData[i]);
                     }
+                }
+                if (isPartial) {
+                    for (CipService<?> s : completedServices)
+                        currentServices.remove(s);
+                    throw PartialResponseException.INSTANCE;
                 }
 
                 return this.responseData;
@@ -101,6 +112,13 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
         } finally {
             ReferenceCountUtil.release(response.getData());
         }
+    }
+
+    private int getNullresponseData() {
+        for (int i = 0; i < this.responseData.length; i++)
+            if (responseData[i] == null)
+                return i;
+        throw new RuntimeException("Data index error");
     }
 
     private void encode(ByteBuf buffer) {
