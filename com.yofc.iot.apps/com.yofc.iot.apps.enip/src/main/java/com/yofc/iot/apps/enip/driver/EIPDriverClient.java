@@ -32,7 +32,7 @@ public class EIPDriverClient {
     private final String address;
     private final int slot;
     private final int port;
-    private long timeoutMs;
+    private long timeoutMs = 2000;
 
     public EIPDriverClient(final String address, final int slot) {
         this.address = address;

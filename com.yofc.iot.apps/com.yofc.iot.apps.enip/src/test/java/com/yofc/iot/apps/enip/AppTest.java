@@ -30,7 +30,6 @@ public class AppTest {
     @DisplayName("开始")
     public static void setUp(Vertx vertx, VertxTestContext context) throws InterruptedException, ExecutionException {
         client = new EIPDriverClient("10.166.11.181", 0);
-        client.setTimeoutMs(50000);
         client.connect();
         context.completeNow();
     }
