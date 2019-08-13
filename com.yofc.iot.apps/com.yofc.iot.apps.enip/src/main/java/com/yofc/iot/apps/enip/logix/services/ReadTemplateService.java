@@ -61,11 +61,11 @@ public class ReadTemplateService implements CipService<TemplateInstance> {
                     ByteBuf composite = PooledByteBufAllocator.DEFAULT.compositeBuffer(buffers.size())
                             .addComponents(buffers).writerIndex(totalBytesRead).order(ByteOrder.LITTLE_ENDIAN);
 
-                    TemplateInstance instance = decode(composite, symbolType);
+                    this.responseData = decode(composite, symbolType);
 
                     ReferenceCountUtil.release(composite);
 
-                    return instance;
+                    return this.responseData;
                 } else {
                     throw PartialResponseException.INSTANCE;
                 }
@@ -145,6 +145,13 @@ public class ReadTemplateService implements CipService<TemplateInstance> {
      */
     private int roundUp(int n, int m) {
         return ((n + m - 1) / m) * m;
+    }
+
+    private TemplateInstance responseData = null;
+
+    @Override
+    public TemplateInstance getResponseData() {
+        return responseData;
     }
 
 }

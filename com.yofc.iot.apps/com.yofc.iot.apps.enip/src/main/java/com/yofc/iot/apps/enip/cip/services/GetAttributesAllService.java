@@ -31,7 +31,8 @@ public class GetAttributesAllService implements CipService<ByteBuf> {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
 
         if (response.getGeneralStatus() == 0x00) {
-            return response.getData();
+            this.responseData = response.getData();
+            return this.responseData;
         } else {
             ReferenceCountUtil.release(response.getData());
 
@@ -39,4 +40,10 @@ public class GetAttributesAllService implements CipService<ByteBuf> {
         }
     }
 
+    private ByteBuf responseData = null;
+
+    @Override
+    public ByteBuf getResponseData() {
+        return responseData;
+    }
 }

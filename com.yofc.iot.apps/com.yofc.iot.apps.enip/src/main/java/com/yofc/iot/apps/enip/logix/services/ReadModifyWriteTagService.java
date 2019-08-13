@@ -81,4 +81,9 @@ public class ReadModifyWriteTagService implements CipService<Void> {
         EIGHT_BYTE
     }
 
+    @Override
+    public Void getResponseData() {
+        return null;
+    }
+
 }

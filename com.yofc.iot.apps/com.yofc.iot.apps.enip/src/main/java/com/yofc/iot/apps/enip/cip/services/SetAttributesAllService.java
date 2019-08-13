@@ -44,4 +44,9 @@ public class SetAttributesAllService implements CipService<Void> {
         }
     }
 
+    @Override
+    public Void getResponseData() {
+        return null;
+    }
+
 }

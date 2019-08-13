@@ -70,7 +70,8 @@ public class ReadTagService implements CipService<ByteBuf> {
 
         try {
             if (generalStatus == 0x00) {
-                return decode(response);
+                this.responseData = decode(response);
+                return this.responseData;
             } else {
                 throw new CipResponseException(generalStatus, response.getAdditionalStatus());
             }
@@ -87,4 +88,10 @@ public class ReadTagService implements CipService<ByteBuf> {
         return response.getData().retain();
     }
 
+    private ByteBuf responseData = null;
+
+    @Override
+    public ByteBuf getResponseData() {
+        return responseData;
+    }
 }

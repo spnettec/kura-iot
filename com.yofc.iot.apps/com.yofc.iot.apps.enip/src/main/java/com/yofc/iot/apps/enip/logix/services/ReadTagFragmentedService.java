@@ -49,16 +49,6 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
         this.elementCount = elementCount;
     }
 
-    public int getRequestSize() {
-        ByteBuf buf = Unpooled.buffer(600);
-        try {
-            this.encodeRequest(buf);
-            return buf.writerIndex();
-        } finally {
-            ReferenceCountUtil.release(buf);
-        }
-    }
-
     @Override
     public void encodeRequest(ByteBuf buffer) {
         MessageRouterRequest request = new MessageRouterRequest(SERVICE_CODE, requestPath, dataEncoder);
@@ -93,14 +83,14 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
 
                 if (status == 0x00) {
                     synchronized (buffers) {
-                        ByteBuf composite = Unpooled.compositeBuffer().addComponent(header.retain())
+                        this.responseData = Unpooled.compositeBuffer().addComponent(header.retain())
                                 .addComponents(buffers).writerIndex(header.readableBytes() + off);
 
                         // Clean up so this service can be re-used...
                         buffers.clear();
                         offset = new AtomicInteger(0);
 
-                        return composite;
+                        return this.responseData;
                     }
                 } else {
                     throw PartialResponseException.INSTANCE;
@@ -111,6 +101,13 @@ public class ReadTagFragmentedService implements CipService<ByteBuf> {
         } finally {
             ReferenceCountUtil.release(data);
         }
+    }
+
+    private ByteBuf responseData = null;
+
+    @Override
+    public ByteBuf getResponseData() {
+        return responseData;
     }
 
 }

@@ -37,7 +37,8 @@ public class GetAttributeListService implements CipService<AttributeResponse[]> 
 
         try {
             if (response.getGeneralStatus() == 0x00) {
-                return decode(response.getData());
+                this.responseData = decode(response.getData());
+                return this.responseData;
             } else {
                 throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
             }
@@ -70,4 +71,10 @@ public class GetAttributeListService implements CipService<AttributeResponse[]> 
         return attributeResponses;
     }
 
+    private AttributeResponse[] responseData = null;
+
+    @Override
+    public AttributeResponse[] getResponseData() {
+        return responseData;
+    }
 }

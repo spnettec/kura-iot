@@ -69,7 +69,8 @@ public class GetInstanceAttributeListService<T> implements CipService<List<T>> {
                 instances.addAll(decode(data));
 
                 if (status == 0x00) {
-                    return new ArrayList<>(instances);
+                    this.responseData = new ArrayList<>(instances);
+                    return this.responseData;
                 } else {
                     instanceId = lastInstanceId + 1;
 
@@ -114,4 +115,10 @@ public class GetInstanceAttributeListService<T> implements CipService<List<T>> {
 
     }
 
+    private List<T> responseData = null;
+
+    @Override
+    public List<T> getResponseData() {
+        return responseData;
+    }
 }

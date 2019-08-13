@@ -112,7 +112,15 @@ public class UnconnectedSendService<T> implements CipService<T> {
 
     @Override
     public T decodeResponse(ByteBuf buffer) throws CipResponseException, PartialResponseException {
-        return service.decodeResponse(buffer);
+        this.responseData = service.decodeResponse(buffer);
+        return this.responseData;
+    }
+
+    private T responseData = null;
+
+    @Override
+    public T getResponseData() {
+        return responseData;
     }
 
 }

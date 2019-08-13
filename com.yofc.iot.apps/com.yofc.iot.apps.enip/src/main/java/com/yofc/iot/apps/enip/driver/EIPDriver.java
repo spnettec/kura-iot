@@ -235,8 +235,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                     logger.error("EIP PLC read error", e);
                     record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     record.setTimestamp(System.currentTimeMillis());
-                    disconnect();
-                    connect();
+                    // disconnect();
+                    // connect();
                 }
 
             }
@@ -283,7 +283,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 record.setTimestamp(System.currentTimeMillis());
             }
-            disconnect();
+            // disconnect();
             throw new ConnectionException(e);
         }
     }
@@ -317,7 +317,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 ChannelRecord record = request.getRecord();
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
             }
-            disconnect();
+            // disconnect();
             throw new ConnectionException(e);
         }
 

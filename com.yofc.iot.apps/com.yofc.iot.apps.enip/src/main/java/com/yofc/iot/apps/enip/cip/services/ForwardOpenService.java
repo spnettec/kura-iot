@@ -39,7 +39,8 @@ public class ForwardOpenService implements CipService<ForwardOpenResponse> {
 
         try {
             if (generalStatus == 0x00) {
-                return ForwardOpenResponse.decode(mResponse.getData());
+                this.responseData = ForwardOpenResponse.decode(mResponse.getData());
+                return this.responseData;
             } else {
                 throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
             }
@@ -52,4 +53,10 @@ public class ForwardOpenService implements CipService<ForwardOpenResponse> {
         ForwardOpenRequest.encode(request, buffer);
     }
 
+    private ForwardOpenResponse responseData = null;
+
+    @Override
+    public ForwardOpenResponse getResponseData() {
+        return responseData;
+    }
 }

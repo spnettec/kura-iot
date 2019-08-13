@@ -40,7 +40,8 @@ public class LargeForwardOpenService implements CipService<LargeForwardOpenRespo
 
         try {
             if (generalStatus == 0x00) {
-                return LargeForwardOpenResponse.decode(mResponse.getData());
+                this.responseData = LargeForwardOpenResponse.decode(mResponse.getData());
+                return this.responseData;
             } else {
                 throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
             }
@@ -53,4 +54,10 @@ public class LargeForwardOpenService implements CipService<LargeForwardOpenRespo
         LargeForwardOpenRequest.encode(request, buffer);
     }
 
+    private LargeForwardOpenResponse responseData = null;
+
+    @Override
+    public LargeForwardOpenResponse getResponseData() {
+        return responseData;
+    }
 }

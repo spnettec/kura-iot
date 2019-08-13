@@ -31,7 +31,8 @@ public class GetAttributeSingleService implements CipService<ByteBuf> {
 
         try {
             if (response.getGeneralStatus() == 0x00) {
-                return decode(response.getData());
+                this.responseData = decode(response.getData());
+                return this.responseData;
             } else {
                 throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
             }
@@ -47,4 +48,10 @@ public class GetAttributeSingleService implements CipService<ByteBuf> {
         return buffer.readSlice(buffer.readableBytes()).retain();
     }
 
+    private ByteBuf responseData = null;
+
+    @Override
+    public ByteBuf getResponseData() {
+        return responseData;
+    }
 }

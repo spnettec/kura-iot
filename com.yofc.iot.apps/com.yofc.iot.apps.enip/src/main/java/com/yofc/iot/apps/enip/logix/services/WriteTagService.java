@@ -90,4 +90,9 @@ public class WriteTagService implements CipService<Void> {
         buffer.writeBytes(data);
     }
 
+    @Override
+    public Void getResponseData() {
+        return null;
+    }
+
 }

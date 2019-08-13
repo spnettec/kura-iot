@@ -40,13 +40,21 @@ public class ForwardCloseService implements CipService<ForwardCloseResponse> {
 
         try {
             if (generalStatus == 0x00) {
-                return ForwardCloseResponse.decode(mResponse.getData());
+                this.responseData = ForwardCloseResponse.decode(mResponse.getData());
+                return this.responseData;
             } else {
                 throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
             }
         } finally {
             ReferenceCountUtil.release(mResponse.getData());
         }
+    }
+
+    private ForwardCloseResponse responseData = null;
+
+    @Override
+    public ForwardCloseResponse getResponseData() {
+        return responseData;
     }
 
 }
