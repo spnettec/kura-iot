@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.yofc.iot.apps.enip.EtherNetIpClientConfig;
 import com.yofc.iot.apps.enip.cip.CipClient;
 import com.yofc.iot.apps.enip.cip.CipConnectionPool;
+import com.yofc.iot.apps.enip.cip.CipConnectionPool.CipConnection;
 import com.yofc.iot.apps.enip.cip.epath.EPath;
 import com.yofc.iot.apps.enip.cip.epath.PortSegment;
 import com.yofc.iot.apps.enip.cip.services.CipService;
@@ -84,73 +85,77 @@ public class EIPDriverClient {
     }
 
     public CompletableFuture<CIPData[]> readTags(int maxNumberOfRequestsPerGroup, String... tags) {
-        int currentGroupByteCount = 0;
-        List<CipService<?>> groupMessages = new ArrayList<>();
-        List<CipService<ByteBuf>> mgroupMessages = new ArrayList<>();
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        for (String tag : tags) {
-            ReadTagFragmentedService service = new ReadTagFragmentedService(tag);
-            mgroupMessages.add(service);
-            int messageSize = service.getRequestSize();
-            if (currentGroupByteCount + messageSize > 450 || groupMessages.size() == maxNumberOfRequestsPerGroup) {
-                MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-                CompletableFuture<Void> future = executeMultiMessages(mservice);
-                futures.add(future);
-                currentGroupByteCount = 0;
-                groupMessages.clear();
-            }
-            currentGroupByteCount += messageSize;
-            groupMessages.add(service);
-        }
-        if (!groupMessages.isEmpty()) {
-            MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-            CompletableFuture<Void> future = executeMultiMessages(mservice);
-            futures.add(future);
-        }
         CompletableFuture<CIPData[]> completFuture = new CompletableFuture<>();
-
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((action, ex) -> {
-            if (ex != null)
-                completFuture.completeExceptionally(ex);
-            else {
-                List<CIPData> cipDatas = new ArrayList<>();
-                for (CipService<ByteBuf> msg : mgroupMessages) {
-                    ByteBuf data = msg.getResponseData();
-                    if (data != null) {
-                        try {
-                            final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                            CIPData cipdata = new CIPData(type, data);
-                            cipDatas.add(cipdata);
-                        } catch (Exception e) {
-                            completFuture.completeExceptionally(e);
-                        }
-                    } else
-                        cipDatas.add(null);
+        pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex0) -> {
+            if (connection != null) {
+                int currentGroupByteCount = 0;
+                List<CipService<?>> groupMessages = new ArrayList<>();
+                List<CipService<ByteBuf>> mgroupMessages = new ArrayList<>();
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+                for (String tag : tags) {
+                    ReadTagFragmentedService service = new ReadTagFragmentedService(tag);
+                    mgroupMessages.add(service);
+                    int messageSize = service.getRequestSize();
+                    if (currentGroupByteCount + messageSize > 450
+                            || groupMessages.size() == maxNumberOfRequestsPerGroup) {
+                        MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
+                        CompletableFuture<Void> future = executeMultiMessages(mservice, connection);
+                        futures.add(future);
+                        currentGroupByteCount = 0;
+                        groupMessages.clear();
+                    }
+                    currentGroupByteCount += messageSize;
+                    groupMessages.add(service);
                 }
-                completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
-            }
+                if (!groupMessages.isEmpty()) {
+                    MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
+                    CompletableFuture<Void> future = executeMultiMessages(mservice, connection);
+                    futures.add(future);
+                }
 
-        });
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                        .whenComplete((action, ex) -> {
+                            if (ex != null)
+                                completFuture.completeExceptionally(ex);
+                            else {
+                                List<CIPData> cipDatas = new ArrayList<>();
+                                for (CipService<ByteBuf> msg : mgroupMessages) {
+                                    ByteBuf data = msg.getResponseData();
+                                    if (data != null) {
+                                        try {
+                                            final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
+                                            CIPData cipdata = new CIPData(type, data);
+                                            cipDatas.add(cipdata);
+                                        } catch (Exception e) {
+                                            completFuture.completeExceptionally(e);
+                                        }
+                                    } else
+                                        cipDatas.add(null);
+                                }
+                                completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
+                            }
+
+                        });
+            } else {
+                completFuture.completeExceptionally(ex0);
+            }
+        }));
         return completFuture;
     }
 
-    public CompletableFuture<Void> executeMultiMessages(MultipleServicePacketService service) {
+    public CompletableFuture<Void> executeMultiMessages(MultipleServicePacketService service,
+            CipConnection connection) {
         CompletableFuture<Void> completFuture = new CompletableFuture<>();
-        pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
-            if (connection != null) {
-                CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
 
-                f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
-                    if (data != null) {
-                        completFuture.complete(null);
-                    } else {
-                        completFuture.completeExceptionally(ex2);
-                    }
-                    pool.release(connection);
-                }));
+        CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+
+        f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
+            if (data != null) {
+                completFuture.complete(null);
             } else {
-                completFuture.completeExceptionally(ex);
+                completFuture.completeExceptionally(ex2);
             }
+            pool.release(connection);
         }));
         return completFuture;
     }
@@ -193,29 +198,45 @@ public class EIPDriverClient {
     }
 
     public CompletableFuture<Void> writeTags(int maxNumberOfRequestsPerGroup, String[] tags, CIPData[] datas) {
-        int currentGroupByteCount = 0;
-        List<CipService<?>> groupMessages = new ArrayList<>();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
-        for (int i = 0; i < tags.length; i++) {
-            WriteTagService service = new WriteTagService(tags[i], datas[i]);
-            int messageSize = service.getRequestSize();
-            if (currentGroupByteCount + messageSize > 450 || groupMessages.size() == maxNumberOfRequestsPerGroup) {
-                MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-                CompletableFuture<Void> future = executeMultiMessages(mservice);
-                futures.add(future);
-                currentGroupByteCount = 0;
-                groupMessages.clear();
-            }
-            currentGroupByteCount += messageSize;
-            groupMessages.add(service);
-        }
-        if (!groupMessages.isEmpty()) {
-            MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-            CompletableFuture<Void> future = executeMultiMessages(mservice);
-            futures.add(future);
-        }
+        CompletableFuture<Void> completFuture = new CompletableFuture<>();
+        pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex0) -> {
+            if (connection != null) {
+                int currentGroupByteCount = 0;
+                List<CipService<?>> groupMessages = new ArrayList<>();
 
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+                for (int i = 0; i < tags.length; i++) {
+                    WriteTagService service = new WriteTagService(tags[i], datas[i]);
+                    int messageSize = service.getRequestSize();
+                    if (currentGroupByteCount + messageSize > 450
+                            || groupMessages.size() == maxNumberOfRequestsPerGroup) {
+                        MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
+                        CompletableFuture<Void> future = executeMultiMessages(mservice, connection);
+                        futures.add(future);
+                        currentGroupByteCount = 0;
+                        groupMessages.clear();
+                    }
+                    currentGroupByteCount += messageSize;
+                    groupMessages.add(service);
+                }
+                if (!groupMessages.isEmpty()) {
+                    MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
+                    CompletableFuture<Void> future = executeMultiMessages(mservice, connection);
+                    futures.add(future);
+                }
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                        .whenComplete((action, ex) -> {
+                            if (ex != null)
+                                completFuture.completeExceptionally(ex);
+                            else
+                                completFuture.complete(null);
+                        });
+            } else {
+                completFuture.completeExceptionally(ex0);
+            }
+
+        }));
+        return completFuture;
 
     }
 
