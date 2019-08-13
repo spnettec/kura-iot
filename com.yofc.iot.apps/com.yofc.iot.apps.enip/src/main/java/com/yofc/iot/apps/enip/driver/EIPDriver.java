@@ -104,8 +104,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
 
             if (!this.state.client.isConnected()) {
                 logger.debug("Connecting to EIP PLC...");
+                this.state.client.setTimeoutMs(this.state.options.timeout());
                 this.state.client.connect();
-
                 logger.debug("Connecting to EIP PLC... Done");
             }
         } catch (Exception e) {

@@ -28,6 +28,7 @@ public class EIPDriverClient {
     private final String address;
     private final int slot;
     private final int port;
+    private long timeoutMs;
 
     public EIPDriverClient(final String address, final int slot) {
         this.address = address;
@@ -41,13 +42,19 @@ public class EIPDriverClient {
         this.port = port;
     }
 
+    public void setTimeoutMs(long timeoutMs) {
+        this.timeoutMs = timeoutMs;
+        if (client != null)
+            client.getConfig().setTimeout(Duration.ofMillis(timeoutMs));
+    }
+
     public boolean isConnected() {
         return (client != null && pool != null);
     }
 
     public boolean connect() {
         EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00)
-                .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofSeconds(500)).build();
+                .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofMillis(this.timeoutMs)).build();
 
         // backplane, slot 0
         EPath.PaddedEPath connectionPath = new EPath.PaddedEPath(new PortSegment(1, new byte[] { (byte) this.slot }));

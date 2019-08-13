@@ -15,7 +15,7 @@ public class EtherNetIpClientConfig {
     private final int port;
     private final int vendorId;
     private final int serialNumber;
-    private final Duration timeout;
+    private Duration timeout;
     private final Duration maxIdle;
     private final int maxReconnectDelaySeconds;
     private final boolean lazy;
@@ -65,6 +65,10 @@ public class EtherNetIpClientConfig {
 
     public Duration getTimeout() {
         return timeout;
+    }
+
+    public void setTimeout(Duration timeout) {
+        this.timeout = timeout;
     }
 
     /**
