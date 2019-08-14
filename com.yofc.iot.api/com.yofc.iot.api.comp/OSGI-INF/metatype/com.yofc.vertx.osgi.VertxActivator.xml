@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="OSGI-INF/l10n/com.yofc.vertx.osgi.Config">
   <OCD id="com.yofc.vertx.osgi.VertxActivator" name="%name" description="%description">
-    <AD id="port" type="Integer" name="%port" description="%portdesc" default="8088"/>
+    <AD id="port" type="Integer" name="%port" description="%portDesc" default="8088"/>
     <AD id="enabled" type="Boolean" name="%enabled" description="%enabledDesc" default="false"/>
+    <AD id="h2WebPort" type="Integer" name="%h2WebPort" description="%h2WebPortDesc" default="8082"/>
+    <AD id="h2WebEnabled" type="Boolean" name="%h2WebEnabled" description="%h2WebEnabledDesc" default="false"/>
   </OCD>
   <Designate pid="com.yofc.vertx.osgi.VertxActivator">
     <Object ocdref="com.yofc.vertx.osgi.VertxActivator"/>

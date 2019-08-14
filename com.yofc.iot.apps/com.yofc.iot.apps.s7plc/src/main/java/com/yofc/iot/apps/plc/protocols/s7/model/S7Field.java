@@ -18,6 +18,9 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,7 +97,7 @@ public class S7Field implements PlcField {
     /**
      * @return Java type of expected response.
      *
-     *         TODO implement all Methods
+     *         TODO validate all Methods existing are implemented
      */
     @Override
     public Class<?> getDefaultJavaType() {
@@ -116,6 +119,12 @@ public class S7Field implements PlcField {
         case REAL:
         case LREAL:
             return Double.class;
+        case DATE_AND_TIME:
+            return LocalDateTime.class;
+        case DATE:
+            return LocalDate.class;
+        case TIME_OF_DAY:
+            return LocalTime.class;
         default:
             throw new NotImplementedException("The response type for datatype " + dataType + " is not yet implemented");
         }
@@ -143,7 +152,7 @@ public class S7Field implements PlcField {
          * if (matcher.group(NUM_ELEMENTS) != null) {
          * numElements = Integer.parseInt(matcher.group(NUM_ELEMENTS));
          * }
-         * numElements = calcNumberOfElementsForStringTypes(numElements, dataType);
+         * numElements = calcNumberOfElementsForIndividualTypes(numElements, dataType);
          * if (!transferSizeCode.isEmpty() && !dataType.getSizeCode().equals(transferSizeCode)) {
          * throw new PlcInvalidFieldException("Transfer size code '" + transferSizeCode
          * + "' doesn't match specified data type '" + dataType.name() + "'");
@@ -169,7 +178,7 @@ public class S7Field implements PlcField {
             if (matcher.group(NUM_ELEMENTS) != null) {
                 numElements = Integer.parseInt(matcher.group(NUM_ELEMENTS));
             }
-            numElements = calcNumberOfElementsForStringTypes(numElements, dataType);
+            numElements = calcNumberOfElementsForIndividualTypes(numElements, dataType);
             if (!transferSizeCode.isEmpty() && !dataType.getSizeCode().equals(transferSizeCode)) {
                 throw new PlcInvalidFieldException("Transfer size code '" + transferSizeCode
                         + "' doesn't match specified data type '" + dataType.name() + "'");
@@ -177,10 +186,8 @@ public class S7Field implements PlcField {
             return new S7Field(dataType, memoryArea, blockNumber, byteOffset, bitOffset, numElements);
         }
         // }
-        else
-            throw new PlcInvalidFieldException("Unable to parse address: " + fieldString);
+        throw new PlcInvalidFieldException("Unable to parse address: " + fieldString);
     }
-    // }
 
     /**
      * checks if DatablockNumber of S7Field is in valid range
@@ -223,17 +230,23 @@ public class S7Field implements PlcField {
      *            detected Transport-Size that represents the data-type
      * @return corrected numElements if nessesary
      */
-    private static int calcNumberOfElementsForStringTypes(int numElements, TransportSize dataType) {
-        // if no String nothing has to be done
-        if (!dataType.equals(TransportSize.STRING)) {
-            return numElements;
+    private static int calcNumberOfElementsForIndividualTypes(int numElements, TransportSize dataType) {
+
+        if (dataType.equals(TransportSize.STRING)) {
+            // on valid String-length add two byte because of S7-representation of Strings
+            if (numElements > 1 && numElements <= 254) {
+                return numElements + 2;
+            }
+            // connection String usage with "STRING" only --> numElements=1 --> enter default value
+            return 256;
         }
-        // on valid String-length add two byte because of S7-representation of Strings
-        if (numElements > 1 && numElements <= 254) {
-            return numElements + 2;
-        }
-        // connection String usage with "STRING" only --> numElements=1 --> enter default value
-        return 256;
+        return numElements;
+
     }
 
+    @Override
+    public String toString() {
+        return "S7Field{" + "dataType=" + dataType + ", memoryArea=" + memoryArea + ", blockNumber=" + blockNumber
+                + ", byteOffset=" + byteOffset + ", bitOffset=" + bitOffset + ", numElements=" + numElements + '}';
+    }
 }

@@ -87,7 +87,6 @@ import io.netty.channel.DefaultChannelPromise;
 import io.netty.channel.PendingWriteQueue;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.PromiseCombiner;
 
 /**
@@ -114,6 +113,7 @@ public class S7Protocol extends ChannelDuplexHandler {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         protected void decode(ChannelHandlerContext ctx, Object msg, List<Object> out) {
             S7Protocol.this.decode(ctx, (IsoTPMessage) msg, out);
         }
@@ -215,7 +215,7 @@ public class S7Protocol extends ChannelDuplexHandler {
                 }
 
                 // Create a promise that has to be called multiple times.
-                PromiseCombiner promiseCombiner = new PromiseCombiner(ImmediateEventExecutor.INSTANCE);
+                PromiseCombiner promiseCombiner = new PromiseCombiner();
                 for (S7Message message : messages) {
                     ByteBuf buf = Unpooled.buffer();
                     writeS7Message(promise.channel(), promiseCombiner, message, buf);
@@ -250,7 +250,7 @@ public class S7Protocol extends ChannelDuplexHandler {
             ChannelPromise subPromise = new DefaultChannelPromise(channel);
             // The tpduRef was 0x01 but had to be changed to 0x00 in order to support Siemens LOGO devices.
             queue.add(new DataTpdu(true, (byte) 0x00, Collections.emptyList(), buf, message), subPromise);
-            promiseCombiner.add((Future<Void>) subPromise);
+            promiseCombiner.add((Future) subPromise);
             logger.debug("S7 Message with id {} queued", message.getTpduReference());
         }
     }
@@ -434,7 +434,8 @@ public class S7Protocol extends ChannelDuplexHandler {
         buf.writeByte((byte) 0x0a);
         buf.writeByte(s7AnyRequestItem.getAddressingMode().getCode());
         buf.writeByte(s7AnyRequestItem.getDataType().getTypeCode());
-        buf.writeShort(s7AnyRequestItem.getNumElements());
+
+        buf.writeShort(encodeNumElements(s7AnyRequestItem));
         buf.writeShort(s7AnyRequestItem.getDataBlockNumber());
         buf.writeByte(s7AnyRequestItem.getMemoryArea().getCode());
         // A S7 address is 3 bytes long. Unfortunately the byte-offset is NOT located in
@@ -445,6 +446,24 @@ public class S7Protocol extends ChannelDuplexHandler {
         buf.writeShort((short) (s7AnyRequestItem.getByteOffset() >> 5));
         buf.writeByte(
                 (byte) (((s7AnyRequestItem.getByteOffset() & 0x1F) << 3) | (s7AnyRequestItem.getBitOffset() & 0x07)));
+    }
+
+    /**
+     * this is a workaround for the date and time types, as native requests with the datatypes are
+     * 
+     * @return
+     */
+    private short encodeNumElements(S7AnyVarParameterItem s7AnyVarParameterItem) {
+        switch (s7AnyVarParameterItem.getDataType()) {
+        case DATE_AND_TIME:
+        case TIME_OF_DAY:
+        case DATE:
+            return (short) (s7AnyVarParameterItem.getNumElements()
+                    * s7AnyVarParameterItem.getDataType().getSizeInBytes());
+        default:
+            return (short) s7AnyVarParameterItem.getNumElements();
+        }
+
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -569,8 +588,10 @@ public class S7Protocol extends ChannelDuplexHandler {
         maxAmqCallee = setupCommunicationParameter.getMaxAmqCallee();
         pduSize = setupCommunicationParameter.getPduLength();
 
-        logger.info("S7Connection established pdu-size {}, max-amq-caller {}, " + "max-amq-callee {}", pduSize,
-                maxAmqCaller, maxAmqCallee);
+        if (logger.isInfoEnabled()) {
+            logger.info("S7Connection established pdu-size {}, max-amq-caller {}, " + "max-amq-callee {}", pduSize,
+                    maxAmqCaller, maxAmqCallee);
+        }
 
         // Only if the controller type is set to "ANY", then try to identify the PLC type.
         if (controllerType == S7ControllerType.ANY) {
@@ -586,11 +607,14 @@ public class S7Protocol extends ChannelDuplexHandler {
         }
         // If a concrete type was specified, then we're done here.
         else {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Successfully connected to S7: {}", controllerType.name());
+                logger.debug("- max amq caller: {}", maxAmqCaller);
+                logger.debug("- max amq callee: {}", maxAmqCallee);
+                logger.debug("- pdu size: {}", pduSize);
+            }
             if (logger.isInfoEnabled()) {
-                logger.info(String.format("Successfully connected to S7: %s", controllerType.name()));
-                logger.info(String.format("- max amq caller: %s", maxAmqCaller));
-                logger.info(String.format("- max amq callee: %s", maxAmqCallee));
-                logger.info(String.format("- pdu size: %s", pduSize));
+                logger.info("Successfully connected to S7: {} wit PDU {}", controllerType.name(), pduSize);
             }
 
             // Send an event that connection setup is complete.
@@ -608,11 +632,14 @@ public class S7Protocol extends ChannelDuplexHandler {
                 }
             }
         }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Successfully connected to S7: {}", controllerType.name());
+            logger.debug("-  max amq caller: {}", maxAmqCaller);
+            logger.debug("-  max amq callee: {}", maxAmqCallee);
+            logger.debug("-  pdu size: {}", pduSize);
+        }
         if (logger.isInfoEnabled()) {
-            logger.info(String.format("Successfully connected to S7: %s", controllerType.name()));
-            logger.info(String.format("- max amq caller: %s", maxAmqCaller));
-            logger.info(String.format("- max amq callee: %s", maxAmqCallee));
-            logger.info(String.format("- pdu size: %s", pduSize));
+            logger.info("Successfully connected to S7: {} wit PDU {}", controllerType.name(), pduSize);
         }
 
         // Send an event that connection setup is complete.

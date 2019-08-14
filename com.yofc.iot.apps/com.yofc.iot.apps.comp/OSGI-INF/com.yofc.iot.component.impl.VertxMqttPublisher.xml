@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.VertxMqttPublisher" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
-  <property name="brokerPort" type="Integer" value="1883"/>
-  <property name="input.cardinality.maximum" type="Integer" value="1"/>
-  <property name="mqttTopic" type="String" value="yofc/it"/>
-  <property name="script" type="String" value=""/>
-  <property name="input.cardinality.default" type="Integer" value="1"/>
-  <property name="output.cardinality.default" type="Integer" value="0"/>
   <property name="password" type="String" value=""/>
-  <property name="output.cardinality.maximum" type="Integer" value="0"/>
+  <property name="brokerPort" type="Integer" value="1883"/>
   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
   <property name="brokerHost" type="String" value="localhost"/>
-  <property name="input.cardinality.minimum" type="Integer" value="1"/>
-  <property name="output.cardinality.minimum" type="Integer" value="0"/>
+  <property name="mqttTopic" type="String" value="yofc/it"/>
+  <property name="downgradeFre" type="Long" value="0"/>
+  <property name="script" type="String" value=""/>
   <property name="username" type="String" value="mqtt"/>
   <service>
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
     <provide interface="org.eclipse.kura.wire.WireComponent"/>
+    <provide interface="org.eclipse.kura.wire.WireEmitter"/>
+    <provide interface="org.eclipse.kura.wire.WireReceiver"/>
+    <provide interface="org.osgi.service.wireadmin.Producer"/>
     <provide interface="org.osgi.service.wireadmin.Consumer"/>
   </service>
   <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>

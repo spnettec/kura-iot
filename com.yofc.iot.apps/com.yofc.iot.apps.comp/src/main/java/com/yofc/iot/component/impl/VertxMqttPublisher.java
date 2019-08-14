@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +28,7 @@ import org.eclipse.kura.marshalling.Marshaller;
 import org.eclipse.kura.message.KuraPayload;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
+import org.eclipse.kura.wire.WireEmitter;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireHelperService;
 import org.eclipse.kura.wire.WireReceiver;
@@ -45,6 +47,7 @@ import org.osgi.service.metatype.annotations.AttributeType;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.osgi.service.wireadmin.Consumer;
+import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,12 +68,17 @@ import io.vertx.mqtt.MqttClientOptions;
 
 @Designate(factory = true, ocd = VertxMqttPublisherCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
-        ConfigurableComponent.class, WireComponent.class, Consumer.class }, property = {
-                "kura.ui.service.hide:Boolean=true", "output.cardinality.minimum:Integer=0",
-                "output.cardinality.maximum:Integer=0", "output.cardinality.default:Integer=0",
-                "input.cardinality.minimum:Integer=1", "input.cardinality.maximum:Integer=1",
-                "input.cardinality.default:Integer=1" })
-public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
+        ConfigurableComponent.class, WireComponent.class, WireEmitter.class, WireReceiver.class, Producer.class,
+        Consumer.class }, property = { "kura.ui.service.hide:Boolean=true" })
+/*
+ * property = {
+ * "kura.ui.service.hide:Boolean=true", "output.cardinality.minimum:Integer=0",
+ * "output.cardinality.maximum:Integer=0", "output.cardinality.default:Integer=0",
+ * "input.cardinality.minimum:Integer=1", "input.cardinality.maximum:Integer=1",
+ * "input.cardinality.default:Integer=1" }
+ * 
+ */
+public class VertxMqttPublisher implements WireEmitter, WireReceiver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(VertxMqttPublisher.class);
     private static final String TOPIC_PATTERN_STRING = "\\$([^\\s/]+)";
@@ -95,6 +103,7 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
     @Reference
     private AssetHelp assetHelp;
     private long timerId = 0;
+    private Map<String, Long> topicTime = new ConcurrentHashMap<>();
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -189,18 +198,24 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
                         for (Object record : outputList) {
                             WireRecord wireRecord = (WireRecord) record;
                             String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                            KuraPayload payload = buildKuraPayload(wireRecord);
+                            if (isDownGrade(topic))
+                                continue;
+                            KuraPayload payload = buildKuraPayload(wireRecord, topic);
                             mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
                                     MqttQoS.AT_MOST_ONCE, false, false);
+                            this.wireSupport.emit(wireEnvelope.getRecords());
                             logger.info("Publish MQTT {}", topic);
                         }
                     }
                 } else if (output instanceof JsonObject) {
                     WireRecord wireRecord = Utils.toWireRecord((JsonObject) output);
                     String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                    KuraPayload payload = buildKuraPayload(wireRecord);
+                    if (isDownGrade(topic))
+                        return;
+                    KuraPayload payload = buildKuraPayload(wireRecord, topic);
                     mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
                             false, false);
+                    this.wireSupport.emit(wireEnvelope.getRecords());
                     logger.info("Publish MQTT {}", topic);
                 }
 
@@ -209,17 +224,44 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
             }
         } else {
             for (WireRecord record : wireEnvelope.getRecords()) {
-                KuraPayload payload = buildKuraPayload(record);
                 String topic = fillTopicPlaceholders(this.properties.mqttTopic(), record);
+                if (isDownGrade(topic))
+                    continue;
+                KuraPayload payload = buildKuraPayload(record, topic);
                 try {
                     mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
                             false, false);
                 } catch (KuraException e) {
                     logger.error("Failed to marshal payload", e);
                 }
+                this.wireSupport.emit(wireEnvelope.getRecords());
                 logger.info("Publish MQTT {}", topic);
             }
         }
+    }
+
+    private Boolean isDownGrade(String topic) {
+        Long setTime = this.properties.downgradeFre();
+        if (setTime == 0)
+            return false;
+        Long time = topicTime.get(topic);
+        if (time == null)
+            return false;
+        Long nowTime = new Date().getTime();
+        if ((nowTime - time) >= setTime)
+            return false;
+        return true;
+
+    }
+
+    @Override
+    public Object polled(Wire wire) {
+        return this.wireSupport.polled(wire);
+    }
+
+    @Override
+    public void consumersConnected(Wire[] wires) {
+        this.wireSupport.consumersConnected(wires);
     }
 
     @Override
@@ -312,10 +354,11 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
         });
     }
 
-    private KuraPayload buildKuraPayload(final WireRecord wireRecord) {
+    private KuraPayload buildKuraPayload(final WireRecord wireRecord, String topic) {
         requireNonNull(wireRecord, "Wire Record cannot be null");
         final KuraPayload kuraPayload = new KuraPayload();
-
+        Date time = new Date();
+        topicTime.put(topic, time.getTime());
         kuraPayload.setTimestamp(new Date());
 
         for (final Entry<String, TypedValue<?>> entry : wireRecord.getProperties().entrySet()) {
@@ -373,6 +416,9 @@ public class VertxMqttPublisher implements WireReceiver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%password", type = AttributeType.PASSWORD, cardinality = 0, description = "%passwordDesc", required = false)
         String password() default "";
+
+        @AttributeDefinition(name = "%downgradeFre", cardinality = 0, description = "%downgradeFreDesc", required = true)
+        long downgradeFre() default 0;
     }
 
 }

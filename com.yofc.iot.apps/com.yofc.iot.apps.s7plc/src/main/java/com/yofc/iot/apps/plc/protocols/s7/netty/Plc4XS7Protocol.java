@@ -23,6 +23,10 @@ import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +40,8 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.apps.plc.api.exceptions.PlcException;
 import com.yofc.iot.apps.plc.api.exceptions.PlcIoException;
@@ -63,6 +69,9 @@ import com.yofc.iot.apps.plc.base.messages.items.DefaultByteFieldItem;
 import com.yofc.iot.apps.plc.base.messages.items.DefaultDoubleFieldItem;
 import com.yofc.iot.apps.plc.base.messages.items.DefaultFloatFieldItem;
 import com.yofc.iot.apps.plc.base.messages.items.DefaultIntegerFieldItem;
+import com.yofc.iot.apps.plc.base.messages.items.DefaultLocalDateFieldItem;
+import com.yofc.iot.apps.plc.base.messages.items.DefaultLocalDateTimeFieldItem;
+import com.yofc.iot.apps.plc.base.messages.items.DefaultLocalTimeFieldItem;
 import com.yofc.iot.apps.plc.base.messages.items.DefaultLongFieldItem;
 import com.yofc.iot.apps.plc.base.messages.items.DefaultShortFieldItem;
 import com.yofc.iot.apps.plc.base.messages.items.DefaultStringFieldItem;
@@ -97,6 +106,8 @@ import io.netty.channel.ChannelHandlerContext;
  * the {@link PlcRequestContainer}s future with the {@link PlcResponse}.
  */
 public class Plc4XS7Protocol extends PlcMessageToMessageCodec<S7Message, PlcRequestContainer> {
+
+    private static final Logger logger = LoggerFactory.getLogger(Plc4XS7Protocol.class);
 
     private static final AtomicInteger tpduGenerator = new AtomicInteger(10);
 
@@ -479,87 +490,105 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec<S7Message, PlcRequ
             BaseDefaultFieldItem fieldItem = null;
             ByteBuf data = Unpooled.wrappedBuffer(payloadItem.getData());
             if (responseCode == PlcResponseCode.OK) {
-                // TODO 2018-09-27 jf: array returning only implemented for BOOL, BYTE, INTEGERS, FP
-                // not for CHARS & STRINGS and not for all other bit-strings except for BYTE
-                switch (field.getDataType()) {
-                // -----------------------------------------
-                // Bit
-                // -----------------------------------------
-                case BOOL:
-                    fieldItem = decodeReadResponseBitField(field, data);
-                    break;
-                // -----------------------------------------
-                // Bit-strings
-                // -----------------------------------------
-                case BYTE:  // 1 byte
-                    fieldItem = decodeReadResponseByteBitStringField(field, data);
-                    break;
-                case WORD:  // 2 byte (16 bit)
-                    fieldItem = decodeReadResponseShortBitStringField(field, data);
-                    break;
-                case DWORD:  // 4 byte (32 bit)
-                    fieldItem = decodeReadResponseIntegerBitStringField(field, data);
-                    break;
-                case LWORD:  // 8 byte (64 bit)
-                    fieldItem = decodeReadResponseLongBitStringField(field, data);
-                    break;
-                // -----------------------------------------
-                // Integers
-                // -----------------------------------------
-                // 8 bit:
-                case SINT:
-                    fieldItem = decodeReadResponseSignedByteField(field, data);
-                    break;
-                case USINT:
-                    fieldItem = decodeReadResponseUnsignedByteField(field, data);
-                    break;
-                // 16 bit:
-                case INT:
-                    fieldItem = decodeReadResponseSignedShortField(field, data);
-                    break;
-                case UINT:
-                    fieldItem = decodeReadResponseUnsignedShortField(field, data);
-                    break;
-                // 32 bit:
-                case DINT:
-                    fieldItem = decodeReadResponseSignedIntegerField(field, data);
-                    break;
-                case UDINT:
-                    fieldItem = decodeReadResponseUnsignedIntegerField(field, data);
-                    break;
-                // 64 bit:
-                case LINT:
-                    fieldItem = decodeReadResponseSignedLongField(field, data);
-                    break;
-                case ULINT:
-                    fieldItem = decodeReadResponseUnsignedLongField(field, data);
-                    break;
-                // -----------------------------------------
-                // Floating point values
-                // -----------------------------------------
-                case REAL:
-                    fieldItem = decodeReadResponseFloatField(field, data);
-                    break;
-                case LREAL:
-                    fieldItem = decodeReadResponseDoubleField(field, data);
-                    break;
-                // -----------------------------------------
-                // Characters & Strings
-                // -----------------------------------------
-                case CHAR: // 1 byte (8 bit)
-                    fieldItem = decodeReadResponseFixedLengthStringField(1, false, data);
-                    break;
-                case WCHAR: // 2 byte
-                    fieldItem = decodeReadResponseFixedLengthStringField(1, true, data);
-                    break;
-                case STRING:
-                    fieldItem = decodeReadResponseVarLengthStringField(false, data);
-                    break;
-                case WSTRING:
-                    fieldItem = decodeReadResponseVarLengthStringField(true, data);
-                    break;
-                default:
-                    throw new PlcProtocolException("Unsupported type " + field.getDataType());
+                try {
+                    switch (field.getDataType()) {
+                    // -----------------------------------------
+                    // Bit
+                    // -----------------------------------------
+                    case BOOL:
+                        fieldItem = decodeReadResponseBitField(field, data);
+                        break;
+                    // -----------------------------------------
+                    // Bit-strings
+                    // -----------------------------------------
+                    case BYTE:  // 1 byte
+                        fieldItem = decodeReadResponseByteBitStringField(field, data);
+                        break;
+                    case WORD:  // 2 byte (16 bit)
+                        fieldItem = decodeReadResponseShortBitStringField(field, data);
+                        break;
+                    case DWORD:  // 4 byte (32 bit)
+                        fieldItem = decodeReadResponseIntegerBitStringField(field, data);
+                        break;
+                    case LWORD:  // 8 byte (64 bit)
+                        fieldItem = decodeReadResponseLongBitStringField(field, data);
+                        break;
+                    // -----------------------------------------
+                    // Integers
+                    // -----------------------------------------
+                    // 8 bit:
+                    case SINT:
+                        fieldItem = decodeReadResponseSignedByteField(field, data);
+                        break;
+                    case USINT:
+                        fieldItem = decodeReadResponseUnsignedByteField(field, data);
+                        break;
+                    // 16 bit:
+                    case INT:
+                        fieldItem = decodeReadResponseSignedShortField(field, data);
+                        break;
+                    case UINT:
+                        fieldItem = decodeReadResponseUnsignedShortField(field, data);
+                        break;
+                    // 32 bit:
+                    case DINT:
+                        fieldItem = decodeReadResponseSignedIntegerField(field, data);
+                        break;
+                    case UDINT:
+                        fieldItem = decodeReadResponseUnsignedIntegerField(field, data);
+                        break;
+                    // 64 bit:
+                    case LINT:
+                        fieldItem = decodeReadResponseSignedLongField(field, data);
+                        break;
+                    case ULINT:
+                        fieldItem = decodeReadResponseUnsignedLongField(field, data);
+                        break;
+                    // -----------------------------------------
+                    // Floating point values
+                    // -----------------------------------------
+                    case REAL:
+                        fieldItem = decodeReadResponseFloatField(field, data);
+                        break;
+                    case LREAL:
+                        fieldItem = decodeReadResponseDoubleField(field, data);
+                        break;
+                    // -----------------------------------------
+                    // Characters & Strings
+                    // -----------------------------------------
+                    case CHAR: // 1 byte (8 bit)
+                        fieldItem = decodeReadResponseFixedLengthStringField(1, false, data);
+                        break;
+                    case WCHAR: // 2 byte
+                        fieldItem = decodeReadResponseFixedLengthStringField(1, true, data);
+                        break;
+                    case STRING:
+                        fieldItem = decodeReadResponseVarLengthStringField(false, data);
+                        break;
+                    case WSTRING:
+                        fieldItem = decodeReadResponseVarLengthStringField(true, data);
+                        break;
+                    // -----------------------------------------
+                    // TIA Date-Formats
+                    // -----------------------------------------
+                    case DATE_AND_TIME:
+                        fieldItem = decodeReadResponseDateAndTime(field, data);
+                        break;
+                    case TIME_OF_DAY:
+                        fieldItem = decodeReadResponseTimeOfDay(field, data);
+                        break;
+                    case DATE:
+                        fieldItem = decodeReadResponseDate(field, data);
+                        break;
+                    default:
+                        throw new PlcProtocolException("Unsupported type " + field.getDataType());
+                    }
+                } catch (Plc4XNettyException e) {
+                    logger.warn("Problem during casting of field {}: Exception: {}; FieldInformation: {}", fieldName,
+                            e.getMessage(), field);
+                } catch (Exception e) {
+                    logger.warn("Some other error occurred casting field {}, FieldInformation: {}", fieldName, field,
+                            e);
                 }
             }
             Pair<PlcResponseCode, BaseDefaultFieldItem> result = new ImmutablePair<>(responseCode, fieldItem);
@@ -670,8 +699,40 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec<S7Message, PlcRequ
     BaseDefaultFieldItem decodeReadResponseVarLengthStringField(boolean isUtf16, ByteBuf data) {
         // Max length ... ignored.
         data.skipBytes(1);
-        byte actualLength = data.readByte();
-        return decodeReadResponseFixedLengthStringField(actualLength, isUtf16, data);
+
+        // reading out byte and transforming that to an unsigned byte within an integer, otherwise longer strings are
+        // failing
+        byte currentLengthByte = data.readByte();
+        int currentLength = currentLengthByte & 0xFF;
+        return decodeReadResponseFixedLengthStringField(currentLength, isUtf16, data);
+    }
+
+    BaseDefaultFieldItem decodeReadResponseDateAndTime(S7Field field, ByteBuf data) {
+        LocalDateTime[] localDateTimes = readAllValues(LocalDateTime.class, field, i -> readDateAndTime(data));
+        return new DefaultLocalDateTimeFieldItem(localDateTimes);
+    }
+
+    BaseDefaultFieldItem decodeReadResponseTimeOfDay(S7Field field, ByteBuf data) {
+        LocalTime[] localTimes = readAllValues(LocalTime.class, field, i -> readTimeOfDay(data));
+        return new DefaultLocalTimeFieldItem(localTimes);
+    }
+
+    BaseDefaultFieldItem decodeReadResponseDate(S7Field field, ByteBuf data) {
+        LocalDate[] localTimes = readAllValues(LocalDate.class, field, i -> readDate(data));
+        return new DefaultLocalDateFieldItem(localTimes);
+    }
+
+    // Returns a 32 bit unsigned value : from 0 to 4294967295 (2^32-1)
+    public static int getUDIntAt(byte[] buffer, int pos) {
+        int result;
+        result = buffer[pos] & 0x0FF;
+        result <<= 8;
+        result += buffer[pos + 1] & 0x0FF;
+        result <<= 8;
+        result += buffer[pos + 2] & 0x0FF;
+        result <<= 8;
+        result += buffer[pos + 3] & 0x0FF;
+        return result;
     }
 
     private static <T> T[] readAllValues(Class<T> clazz, S7Field field, Function<Integer, T> extract) {
@@ -760,6 +821,60 @@ public class Plc4XS7Protocol extends PlcMessageToMessageCodec<S7Message, PlcRequ
         // Read the next 8 bytes into the rest.
         data.readBytes(bytes, 1, 8);
         return new BigInteger(bytes);
+    }
+
+    LocalDateTime readDateAndTime(ByteBuf data) {
+        // per definition for Date_And_Time only the first 6 bytes are used
+
+        int year = convertByteToBcd(data.readByte());
+        int month = convertByteToBcd(data.readByte());
+        int day = convertByteToBcd(data.readByte());
+        int hour = convertByteToBcd(data.readByte());
+        int minute = convertByteToBcd(data.readByte());
+        int second = convertByteToBcd(data.readByte());
+        // skip the last 2 bytes no information present
+        data.readByte();
+        data.readByte();
+
+        // data-type ranges from 1990 up to 2089
+        if (year >= 90) {
+            year += 1900;
+        } else {
+            year += 2000;
+        }
+
+        return LocalDateTime.of(year, month, day, hour, minute, second);
+    }
+
+    LocalTime readTimeOfDay(ByteBuf data) {
+        // per definition for Date_And_Time only the first 6 bytes are used
+
+        int millisSinsMidnight = data.readInt();
+
+        return LocalTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0).plus(millisSinsMidnight,
+                ChronoUnit.MILLIS);
+
+    }
+
+    LocalDate readDate(ByteBuf data) {
+        // per definition for Date_And_Time only the first 6 bytes are used
+
+        int daysSince1990 = data.readUnsignedShort();
+
+        System.out.println(daysSince1990);
+        return LocalDate.now().withYear(1990).withDayOfMonth(1).withMonth(1).plus(daysSince1990, ChronoUnit.DAYS);
+
+    }
+
+    /**
+     * converts incoming byte to an integer regarding used BCD format
+     * 
+     * @param incomingByte
+     * @return converted BCD number
+     */
+    private static int convertByteToBcd(byte incomingByte) {
+        int dec = (incomingByte >> 4) * 10;
+        return dec + (incomingByte & 0x0f);
     }
 
 }
