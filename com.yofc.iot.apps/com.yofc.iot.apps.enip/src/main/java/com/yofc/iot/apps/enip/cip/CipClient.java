@@ -236,7 +236,12 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
     }
 
     private short nextSequenceNumber() {
-        return (short) sequenceNumber.incrementAndGet();
+        short num = (short) sequenceNumber.incrementAndGet();
+        if (num < 0) {
+            sequenceNumber.set(0);
+            return num = 0;
+        }
+        return 0;
     }
 
     private class ConnectedDataHandler implements CpfItemHandler {
