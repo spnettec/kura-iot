@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.apps.enip.cip.structs.CIPData;
-import com.yofc.iot.apps.enip.cip.structs.CIPData.Type;
 import com.yofc.iot.apps.enip.driver.EIPDriverClient;
 
 import io.vertx.core.Vertx;
@@ -29,7 +28,7 @@ public class AppTest {
     @BeforeAll
     @DisplayName("开始")
     public static void setUp(Vertx vertx, VertxTestContext context) throws InterruptedException, ExecutionException {
-        client = new EIPDriverClient("10.166.11.181", 0);
+        client = new EIPDriverClient("10.166.11.181", 0, 44818, 100);
         client.connect();
         context.completeNow();
     }
@@ -41,42 +40,46 @@ public class AppTest {
     }
 
     @Test
-    @Timeout(value = 100000, timeUnit = TimeUnit.SECONDS)
+    @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
     public void testLogixRead(Vertx vertx, VertxTestContext context) {
-        client.readTags("FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO").whenComplete((data, ex) -> {
-                    if (data != null)
-                        for (CIPData cipData : data)
-                            logger.info("Tag data: {}", cipData.toString());
-                    else
-                        ex.printStackTrace();
-                    context.completeNow();
-                });
-    }
-
-    @Test
-    @Timeout(value = 1000, timeUnit = TimeUnit.SECONDS)
-    public void testLogixWrite(Vertx vertx, VertxTestContext context) throws Exception {
-        String[] tags = { "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO" };
-        CIPData[] datas = { new CIPData(Type.INT).set(0, 44), new CIPData(
-                "asasa1111111111111111111111111111111111111111111111111111111111111111111111111eeddccbbaaqq") };
-        client.writeTags(tags, datas).whenComplete((data, ex) -> {
-            if (ex == null)
-                logger.info("WriteTagService completed.");
-            else
-                ex.printStackTrace();
-            context.completeNow();
+        vertx.setPeriodic(50, l -> {
+            client.readTags(false, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "SYSTEM_BAR_NO").whenComplete((data, ex) -> {
+                        if (data != null)
+                            for (CIPData cipData : data)
+                                logger.info("Tag data: {}", cipData.toString());
+                        else
+                            ex.printStackTrace();
+                        // context.completeNow();
+                    });
         });
-
     }
+    /*
+     * @Test
+     * 
+     * @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
+     * public void testLogixWrite(Vertx vertx, VertxTestContext context) throws Exception {
+     * String[] tags = { "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO" };
+     * CIPData[] datas = { new CIPData(Type.INT).set(0, 44), new CIPData(
+     * "asasa1111111111111111111111111111111111111111111111111111111111111111111111111eeddccbbaaqq") };
+     * client.writeTags(tags, datas).whenComplete((data, ex) -> {
+     * if (ex == null)
+     * logger.info("WriteTagService completed.");
+     * else
+     * ex.printStackTrace();
+     * context.completeNow();
+     * });
+     * 
+     * }
+     */
 }

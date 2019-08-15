@@ -170,6 +170,21 @@ public class CipConnectionPool {
         }
     }
 
+    public synchronized void clear() {
+        queue.clear();
+        count.set(0);
+        if (!waitQueue.isEmpty()) {
+            CompletableFuture<CipConnection> next = waitQueue.poll();
+
+            acquire().whenComplete((c, ex) -> {
+                if (c != null)
+                    next.complete(c);
+                else
+                    next.completeExceptionally(ex);
+            });
+        }
+    }
+
     public interface CipConnectionFactory {
 
         CompletableFuture<CipConnection> open();
@@ -182,7 +197,6 @@ public class CipConnectionPool {
 
         private static final Duration DEFAULT_RPI = Duration.ofSeconds(2);
         private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(15);
-        private static final Duration DEFAULT_MAX_TIMEOUT = Duration.ofMinutes(5);
 
         private static final PaddedEPath MESSAGE_ROUTER_CP_PATH = new PaddedEPath(new ClassId(0x02),
                 new InstanceId(0x01));
@@ -222,9 +236,9 @@ public class CipConnectionPool {
                         ForwardOpenResponse response = service.decodeResponse(b);
 
                         CipConnection connection = new CipConnection(DEFAULT_TIMEOUT.toNanos(),
-                                DEFAULT_MAX_TIMEOUT.toNanos(), response.getO2tConnectionId(),
-                                response.getT2oConnectionId(), response.getConnectionSerialNumber(),
-                                response.getOriginatorVendorId(), response.getOriginatorSerialNumber());
+                                response.getO2tConnectionId(), response.getT2oConnectionId(),
+                                response.getConnectionSerialNumber(), response.getOriginatorVendorId(),
+                                response.getOriginatorSerialNumber());
 
                         ReferenceCountUtil.release(response.getApplicationReply());
 
@@ -275,9 +289,9 @@ public class CipConnectionPool {
                         LargeForwardOpenResponse response = service.decodeResponse(b);
 
                         CipConnection connection = new CipConnection(DEFAULT_TIMEOUT.toNanos(),
-                                DEFAULT_MAX_TIMEOUT.toNanos(), response.getO2tConnectionId(),
-                                response.getT2oConnectionId(), response.getConnectionSerialNumber(),
-                                response.getOriginatorVendorId(), response.getOriginatorSerialNumber());
+                                response.getO2tConnectionId(), response.getT2oConnectionId(),
+                                response.getConnectionSerialNumber(), response.getOriginatorVendorId(),
+                                response.getOriginatorSerialNumber());
 
                         ReferenceCountUtil.release(response.getApplicationReply());
 
@@ -336,20 +350,16 @@ public class CipConnectionPool {
         private final int serialNumber;
         private final int originatorVendorId;
         private final long originatorSerialNumber;
-        private final long creationTimeoutNanos;
-        private final long maxTimeoutNanos;
 
-        public CipConnection(long timeoutNanos, long maxTimeoutNanos, int o2tConnectionId, int t2oConnectionId,
-                int serialNumber, int originatorVendorId, long originatorSerialNumber) {
+        public CipConnection(long timeoutNanos, int o2tConnectionId, int t2oConnectionId, int serialNumber,
+                int originatorVendorId, long originatorSerialNumber) {
 
             this.timeoutNanos = timeoutNanos;
-            this.maxTimeoutNanos = maxTimeoutNanos;
             this.o2tConnectionId = o2tConnectionId;
             this.t2oConnectionId = t2oConnectionId;
             this.serialNumber = serialNumber;
             this.originatorVendorId = originatorVendorId;
             this.originatorSerialNumber = originatorSerialNumber;
-            this.creationTimeoutNanos = System.nanoTime();
         }
 
         public long getTimeoutNanos() {
@@ -381,8 +391,7 @@ public class CipConnectionPool {
         }
 
         boolean isExpired() {
-            return (System.nanoTime() - lastUse) > timeoutNanos
-                    || (System.nanoTime() - creationTimeoutNanos) > maxTimeoutNanos;
+            return (System.nanoTime() - lastUse) > timeoutNanos;
         }
 
         @Override

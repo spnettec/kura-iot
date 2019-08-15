@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.kura.KuraErrorCode;
@@ -233,14 +234,14 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 record.setTimestamp(System.currentTimeMillis());
             } else {
                 try {
-                    CIPData cipData = this.state.client.readTag(tagName).get();
+                    CIPData cipData = this.state.client.readTag(this.state.options.isToken(), tagName).get();
                     fillRecord(cipData, record);
                 } catch (Exception e) {
                     logger.error("EIP PLC read error", e);
                     record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     record.setTimestamp(System.currentTimeMillis());
-                    // disconnect();
-                    // connect();
+                    if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+                        disconnect();
                 }
 
             }
@@ -273,21 +274,22 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         int maxItemCountPerRequest = abOptions.maxRequestItems();
         String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
         try {
-            CIPData[] cipDatas = this.state.client.readTags(maxItemCountPerRequest, tagNames).get();
+            CIPData[] cipDatas = this.state.client
+                    .readTags(maxItemCountPerRequest, this.state.options.isToken(), tagNames).get();
             for (int i = 0; i < tagNames.length; i++) {
                 String tagName = tagNames[i];
                 ChannelRecord record = tagRecordMap.get(tagName);
                 fillRecord(cipDatas[i], record);
             }
         } catch (Exception e) {
-            // logger.error("EIP PLC read error", e);
             for (int i = 0; i < tagNames.length; i++) {
                 String tagName = tagNames[i];
                 ChannelRecord record = tagRecordMap.get(tagName);
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 record.setTimestamp(System.currentTimeMillis());
             }
-            // disconnect();
+            if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+                disconnect();
             throw new ConnectionException(e);
         }
     }
@@ -310,7 +312,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         }
 
         try {
-            this.state.client.writeTags(tagNames, cipData);
+            this.state.client.writeTags(this.state.options.isToken(), tagNames, cipData).get();
             for (Request<WriteParams> request : requests) {
                 ChannelRecord record = request.getRecord();
                 record.setTimestamp(System.currentTimeMillis());
@@ -321,7 +323,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 ChannelRecord record = request.getRecord();
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
             }
-            // disconnect();
+            if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+                disconnect();
             throw new ConnectionException(e);
         }
 
@@ -341,12 +344,14 @@ public class EIPDriver implements Driver, ConfigurableComponent {
             ChannelRecord record = request.getRecord();
             record.setTimestamp(System.currentTimeMillis());
             try {
-                this.state.client.writeTag(tagName, data);
+                this.state.client.writeTag(this.state.options.isToken(), tagName, data).get();
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
             } catch (Exception e) {
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+                    disconnect();
                 throw new ConnectionException(e);
 
             }
@@ -433,6 +438,9 @@ public class EIPDriver implements Driver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%writeSingle", description = "%writeSingleDesc")
         boolean writeSingle() default false;
+
+        @AttributeDefinition(name = "%isToken", description = "%isTokenDesc")
+        boolean isToken() default false;
 
         @AttributeDefinition(name = "%poolSize", description = "%poolSizeDesc")
         int poolSize() default 2;

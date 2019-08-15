@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,9 @@ public class EIPDriverClient {
     }
 
     public void connect() {
+        EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00)
+                .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofMillis(this.timeoutMs)).build();
+        EPath.PaddedEPath connectionPath = new EPath.PaddedEPath(new PortSegment(1, new byte[] { (byte) this.slot }));
         if (client != null && pool != null && !client.getState().equals("Connected")) {
             try {
                 client.getConfig().setTimeout(Duration.ofMillis(timeoutMs));
@@ -81,21 +85,16 @@ public class EIPDriverClient {
                 pool.close();
                 pool = null;
             }
-        }
-        EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00)
-                .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofMillis(this.timeoutMs)).build();
-
-        // backplane, slot 0
-        EPath.PaddedEPath connectionPath = new EPath.PaddedEPath(new PortSegment(1, new byte[] { (byte) this.slot }));
-
-        client = new CipClient(config, connectionPath);
-        try {
-            client.connect().get();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("connection failure", e);
-            Thread.currentThread().interrupt();
-            client = null;
-            throw new RuntimeException(e);
+        } else {
+            client = new CipClient(config, connectionPath);
+            try {
+                client.connect().get();
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("connection failure", e);
+                Thread.currentThread().interrupt();
+                client = null;
+                throw new RuntimeException(e);
+            }
         }
 
         pool = new CipConnectionPool(this.poolSize, client, connectionPath, 500);
@@ -108,7 +107,7 @@ public class EIPDriverClient {
         client = null;
     }
 
-    public CompletableFuture<CIPData[]> readTags(int maxNumberOfRequestsPerGroup, String... tags) {
+    public CompletableFuture<CIPData[]> readTags(int maxNumberOfRequestsPerGroup, boolean connected, String... tags) {
         int currentGroupByteCount = 0;
         List<CipService<?>> groupMessages = new ArrayList<>();
         List<CipService<ByteBuf>> mgroupMessages = new ArrayList<>();
@@ -119,7 +118,11 @@ public class EIPDriverClient {
             int messageSize = service.getRequestSize();
             if (currentGroupByteCount + messageSize > 450 || groupMessages.size() == maxNumberOfRequestsPerGroup) {
                 MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-                CompletableFuture<Void> future = executeMultiMessages(mservice);
+                CompletableFuture<Void> future;
+                if (connected)
+                    future = executeMultiMessages(mservice);
+                else
+                    future = client.invokeUnconnected(mservice).thenApply(b -> null);
                 futures.add(future);
                 currentGroupByteCount = 0;
                 groupMessages.clear();
@@ -129,38 +132,75 @@ public class EIPDriverClient {
         }
         if (!groupMessages.isEmpty()) {
             MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-            CompletableFuture<Void> future = executeMultiMessages(mservice);
+            CompletableFuture<Void> future;
+            if (connected)
+                future = executeMultiMessages(mservice);
+            else
+                future = client.invokeUnconnected(mservice).thenApply(b -> null);
             futures.add(future);
         }
         CompletableFuture<CIPData[]> completFuture = new CompletableFuture<>();
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenComplete((action, ex) -> {
-            if (ex != null)
-                completFuture.completeExceptionally(ex);
-            else {
-                List<CIPData> cipDatas = new ArrayList<>();
-                for (CipService<ByteBuf> msg : mgroupMessages) {
-                    ByteBuf data = msg.getResponseData();
-                    if (data != null) {
-                        try {
-                            final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                            CIPData cipdata = new CIPData(type, data);
-                            cipDatas.add(cipdata);
-                        } catch (Exception e) {
-                            completFuture.completeExceptionally(e);
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .whenComplete(Utils.BiConsumerWrapper((action, ex) -> {
+                    if (ex != null)
+                        completFuture.completeExceptionally(ex);
+                    else {
+                        List<CIPData> cipDatas = new ArrayList<>();
+                        for (CipService<ByteBuf> msg : mgroupMessages) {
+                            ByteBuf data = msg.getResponseData();
+                            if (data != null) {
+                                try {
+                                    final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
+                                    CIPData cipdata = new CIPData(type, data);
+                                    cipDatas.add(cipdata);
+                                } catch (Exception e) {
+                                    completFuture.completeExceptionally(e);
+                                }
+                            } else
+                                cipDatas.add(null);
                         }
-                    } else
-                        cipDatas.add(null);
-                }
-                completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
-            }
+                        completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
+                    }
 
-        });
+                }));
         return completFuture;
     }
 
     private CompletableFuture<Void> executeMultiMessages(MultipleServicePacketService service) {
         CompletableFuture<Void> completFuture = new CompletableFuture<>();
+        if (!isConnected())
+            connect();
+        pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
+            if (connection != null) {
+                CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+
+                f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
+                    if (data != null) {
+                        completFuture.complete(null);
+                        pool.release(connection);
+                    } else {
+                        if (ex2 instanceof TimeoutException) {
+                            pool.clear();
+                            executeMultiMessagesWithFuture(service, completFuture);
+                        } else {
+                            completFuture.completeExceptionally(ex2);
+                            pool.release(connection);
+                        }
+                    }
+
+                }));
+            } else {
+                completFuture.completeExceptionally(ex);
+            }
+        }));
+        return completFuture;
+    }
+
+    private CompletableFuture<Void> executeMultiMessagesWithFuture(MultipleServicePacketService service,
+            CompletableFuture<Void> completFuture) {
+        if (!isConnected())
+            connect();
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
                 CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
@@ -180,13 +220,24 @@ public class EIPDriverClient {
         return completFuture;
     }
 
-    public CompletableFuture<CIPData[]> readTags(String... tags) {
-        return readTags(30, tags);
+    public CompletableFuture<CIPData[]> readTags(boolean connected, String... tags) {
+        return readTags(30, connected, tags);
     }
 
-    public CompletableFuture<CIPData> readTag(String tag) {
+    public CompletableFuture<CIPData> readTag(boolean connected, String tag) {
         CompletableFuture<CIPData> completFuture = new CompletableFuture<>();
         ReadTagService service = new ReadTagService(tag);
+        if (!isConnected())
+            connect();
+        if (!connected)
+            return client.invokeUnconnected(service).thenApply(data -> {
+                try {
+                    final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
+                    return new CIPData(type, data);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
                 CompletableFuture<ByteBuf> f = client.invokeConnected(connection.getO2tConnectionId(), service);
@@ -213,11 +264,12 @@ public class EIPDriverClient {
         return completFuture;
     }
 
-    public CompletableFuture<Void> writeTags(String[] tags, CIPData[] datas) {
-        return writeTags(5, tags, datas);
+    public CompletableFuture<Void> writeTags(boolean connected, String[] tags, CIPData[] datas) {
+        return writeTags(5, connected, tags, datas);
     }
 
-    public CompletableFuture<Void> writeTags(int maxNumberOfRequestsPerGroup, String[] tags, CIPData[] datas) {
+    public CompletableFuture<Void> writeTags(int maxNumberOfRequestsPerGroup, boolean connected, String[] tags,
+            CIPData[] datas) {
         int currentGroupByteCount = 0;
         List<CipService<?>> groupMessages = new ArrayList<>();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -226,7 +278,11 @@ public class EIPDriverClient {
             int messageSize = service.getRequestSize();
             if (currentGroupByteCount + messageSize > 450 || groupMessages.size() == maxNumberOfRequestsPerGroup) {
                 MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-                CompletableFuture<Void> future = executeMultiMessages(mservice);
+                CompletableFuture<Void> future;
+                if (connected)
+                    future = executeMultiMessages(mservice);
+                else
+                    future = client.invokeUnconnected(mservice).thenApply(b -> null);
                 futures.add(future);
                 currentGroupByteCount = 0;
                 groupMessages.clear();
@@ -236,7 +292,11 @@ public class EIPDriverClient {
         }
         if (!groupMessages.isEmpty()) {
             MultipleServicePacketService mservice = new MultipleServicePacketService(groupMessages);
-            CompletableFuture<Void> future = executeMultiMessages(mservice);
+            CompletableFuture<Void> future;
+            if (connected)
+                future = executeMultiMessages(mservice);
+            else
+                future = client.invokeUnconnected(mservice).thenApply(b -> null);
             futures.add(future);
         }
 
@@ -244,9 +304,13 @@ public class EIPDriverClient {
 
     }
 
-    public CompletableFuture<Void> writeTag(String tag, CIPData data) {
+    public CompletableFuture<Void> writeTag(boolean connected, String tag, CIPData data) {
         CompletableFuture<Void> completFuture = new CompletableFuture<>();
         WriteTagService service = new WriteTagService(tag, data);
+        if (!isConnected())
+            connect();
+        if (!connected)
+            return client.invokeUnconnected(service);
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex0) -> {
             if (connection != null) {
                 CompletableFuture<Void> f = client.invokeConnected(connection.getO2tConnectionId(), service);

@@ -149,7 +149,7 @@ public class EtherNetIpClientConfig {
         private Duration timeout = Duration.ofSeconds(5);
         private Duration maxIdle = Duration.ofSeconds(15);
         private int maxReconnectDelaySeconds = 16;
-        private boolean lazy = true;
+        private boolean lazy = false;
         private boolean persistent = true;
         private ExecutorService executor;
         private ScheduledExecutorService scheduledExecutor;

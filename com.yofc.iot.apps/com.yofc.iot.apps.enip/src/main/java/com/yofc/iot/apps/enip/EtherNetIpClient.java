@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.LongAdder;
 
 import org.slf4j.Logger;
@@ -155,7 +156,7 @@ public class EtherNetIpClient {
             if (p != null) {
                 String message = String.format("senderContext=%s timed out waiting %sms for response",
                         packet.getSenderContext(), config.getTimeout().toMillis());
-                p.promise.completeExceptionally(new Exception(message));
+                p.promise.completeExceptionally(new TimeoutException(message));
             }
         }, config.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
 
@@ -331,6 +332,7 @@ public class EtherNetIpClient {
         bootstrap.group(config.getEventLoop())
                 .channel(Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) config.getTimeout().toMillis())
                 .option(ChannelOption.TCP_NODELAY, true).handler(new ChannelInitializer<SocketChannel>() {
 

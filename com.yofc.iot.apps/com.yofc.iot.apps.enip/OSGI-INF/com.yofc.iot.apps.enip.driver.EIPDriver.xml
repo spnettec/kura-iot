@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.apps.enip.driver.EIPDriver" configuration-policy="require" enabled="true" activate="activate" deactivate="deactivate" modified="updated">
+  <property name="isToken" type="Boolean" value="false"/>
   <property name="maxRequestItems" type="Integer" value="30"/>
   <property name="hostIp" type="String" value="localhost"/>
   <property name="port" type="Integer" value="44818"/>
