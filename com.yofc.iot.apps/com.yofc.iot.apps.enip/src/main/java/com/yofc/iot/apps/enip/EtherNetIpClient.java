@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,7 @@ public class EtherNetIpClient {
     private final ExecutorService executor;
 
     private final Map<Long, PendingRequest<? extends Command>> pendingRequests = new ConcurrentHashMap<>();
-    private final AtomicLong senderContext = new AtomicLong(0L);
+    private final LongAdder senderContext = new LongAdder();
 
     private volatile long sessionHandle;
 
@@ -146,7 +146,7 @@ public class EtherNetIpClient {
     public <T extends Command> void writeCommand(Channel channel, Command command, CompletableFuture<T> future) {
 
         EnipPacket packet = new EnipPacket(command.getCommandCode(), sessionHandle, EnipStatus.EIP_SUCCESS,
-                senderContext.getAndIncrement(), command);
+                getAndIncrementSenderContext(), command);
 
         Timeout timeout = config.getWheelTimer().newTimeout(tt -> {
             if (tt.isCancelled())
@@ -377,6 +377,16 @@ public class EtherNetIpClient {
             });
         }
 
+    }
+
+    private long getAndIncrementSenderContext() {
+        senderContext.increment();
+        long sequenceId = senderContext.longValue();
+        if (sequenceId < 0) {
+            senderContext.reset();
+            sequenceId = 0;
+        }
+        return sequenceId;
     }
 
 }
