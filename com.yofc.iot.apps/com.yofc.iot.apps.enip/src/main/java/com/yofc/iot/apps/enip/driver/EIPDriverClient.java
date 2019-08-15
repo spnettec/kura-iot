@@ -77,7 +77,10 @@ public class EIPDriverClient {
                 client = null;
                 throw new RuntimeException(e);
             }
-            return;
+            if (pool != null) {
+                pool.close();
+                pool = null;
+            }
         }
         EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00)
                 .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofMillis(this.timeoutMs)).build();
