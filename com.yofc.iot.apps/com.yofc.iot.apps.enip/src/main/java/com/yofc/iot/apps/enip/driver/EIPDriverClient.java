@@ -33,17 +33,27 @@ public class EIPDriverClient {
     private final int slot;
     private final int port;
     private long timeoutMs = 2000;
+    private final int poolSize;
 
     public EIPDriverClient(final String address, final int slot) {
         this.address = address;
         this.slot = slot;
         this.port = 44818;
+        this.poolSize = 2;
     }
 
     public EIPDriverClient(final String address, final int slot, final int port) {
         this.address = address;
         this.slot = slot;
         this.port = port;
+        this.poolSize = 2;
+    }
+
+    public EIPDriverClient(final String address, final int slot, final int port, int poolSize) {
+        this.address = address;
+        this.slot = slot;
+        this.port = port;
+        this.poolSize = poolSize;
     }
 
     public void setTimeoutMs(long timeoutMs) {
@@ -53,10 +63,22 @@ public class EIPDriverClient {
     }
 
     public boolean isConnected() {
-        return (client != null && pool != null);
+        return (client != null && pool != null && client.getState().equals("Connected"));
     }
 
     public void connect() {
+        if (client != null && pool != null && !client.getState().equals("Connected")) {
+            try {
+                client.getConfig().setTimeout(Duration.ofMillis(timeoutMs));
+                client.connect().get();
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("connection failure", e);
+                Thread.currentThread().interrupt();
+                client = null;
+                throw new RuntimeException(e);
+            }
+            return;
+        }
         EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00)
                 .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofMillis(this.timeoutMs)).build();
 
@@ -73,7 +95,7 @@ public class EIPDriverClient {
             throw new RuntimeException(e);
         }
 
-        pool = new CipConnectionPool(2, client, connectionPath, 500);
+        pool = new CipConnectionPool(this.poolSize, client, connectionPath, 500);
     }
 
     public void close() {

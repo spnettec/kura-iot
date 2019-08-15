@@ -235,11 +235,11 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
         }
     }
 
-    private short nextSequenceNumber() {
-        short num = (short) sequenceNumber.incrementAndGet();
+    private int nextSequenceNumber() {
+        int num = sequenceNumber.incrementAndGet();
         if (num < 0) {
             sequenceNumber.set(1);
-            return num = 1;
+            num = 1;
         }
         return num;
     }

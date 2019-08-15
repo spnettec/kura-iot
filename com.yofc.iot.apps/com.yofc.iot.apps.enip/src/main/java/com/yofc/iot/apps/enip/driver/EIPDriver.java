@@ -280,7 +280,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 fillRecord(cipDatas[i], record);
             }
         } catch (Exception e) {
-            logger.error("EIP PLC read error", e);
+            // logger.error("EIP PLC read error", e);
             for (int i = 0; i < tagNames.length; i++) {
                 String tagName = tagNames[i];
                 ChannelRecord record = tagRecordMap.get(tagName);
@@ -347,6 +347,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
             } catch (Exception e) {
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                throw new ConnectionException(e);
 
             }
 
@@ -373,8 +374,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         private final Config options;
 
         EIPClientState(final Config options) {
-            this(options,
-                    options == null ? null : new EIPDriverClient(options.hostIp(), options.slot(), options.port()));
+            this(options, options == null ? null
+                    : new EIPDriverClient(options.hostIp(), options.slot(), options.port(), options.poolSize()));
         }
 
         public EIPClientState(final Config options, final EIPDriverClient client) {
@@ -432,6 +433,9 @@ public class EIPDriver implements Driver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%writeSingle", description = "%writeSingleDesc")
         boolean writeSingle() default false;
+
+        @AttributeDefinition(name = "%poolSize", description = "%poolSizeDesc")
+        int poolSize() default 2;
 
         @AttributeDefinition(name = "%maxRequestItems", description = "%maxRequestItemsDesc")
         int maxRequestItems() default 30;

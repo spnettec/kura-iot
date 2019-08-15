@@ -4,6 +4,7 @@
   <property name="hostIp" type="String" value="localhost"/>
   <property name="port" type="Integer" value="44818"/>
   <property name="writeSingle" type="Boolean" value="false"/>
+  <property name="poolSize" type="Integer" value="2"/>
   <property name="slot" type="Integer" value="0"/>
   <property name="readSingle" type="Boolean" value="false"/>
   <property name="timeout" type="Integer" value="2000"/>
