@@ -51,30 +51,27 @@ public class ReadTemplateService implements CipService<TemplateInstance> {
 
         int status = response.getGeneralStatus();
 
-        try {
-            if (status == 0x00 || status == 0x06) {
-                buffers.add(response.getData().retain());
+        if (status == 0x00 || status == 0x06) {
+            buffers.add(response.getData().retain());
 
-                totalBytesRead += response.getData().readableBytes();
+            totalBytesRead += response.getData().readableBytes();
 
-                if (status == 0x00) {
-                    ByteBuf composite = PooledByteBufAllocator.DEFAULT.compositeBuffer(buffers.size())
-                            .addComponents(buffers).writerIndex(totalBytesRead).order(ByteOrder.LITTLE_ENDIAN);
+            if (status == 0x00) {
+                ByteBuf composite = PooledByteBufAllocator.DEFAULT.compositeBuffer(buffers.size())
+                        .addComponents(buffers).writerIndex(totalBytesRead).order(ByteOrder.LITTLE_ENDIAN);
 
-                    this.responseData = decode(composite, symbolType);
+                this.responseData = decode(composite, symbolType);
 
-                    ReferenceCountUtil.release(composite);
+                ReferenceCountUtil.release(composite);
 
-                    return this.responseData;
-                } else {
-                    throw PartialResponseException.INSTANCE;
-                }
+                return this.responseData;
             } else {
-                throw new CipResponseException(status, response.getAdditionalStatus());
+                throw PartialResponseException.INSTANCE;
             }
-        } finally {
-            ReferenceCountUtil.release(response.getData());
+        } else {
+            throw new CipResponseException(status, response.getAdditionalStatus());
         }
+
     }
 
     private void encode(ByteBuf buffer) {

@@ -6,7 +6,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class GetAttributeSingleService implements CipService<ByteBuf> {
 
@@ -29,23 +28,20 @@ public class GetAttributeSingleService implements CipService<ByteBuf> {
     public ByteBuf decodeResponse(ByteBuf buffer) throws CipResponseException, PartialResponseException {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
 
-        try {
-            if (response.getGeneralStatus() == 0x00) {
-                this.responseData = decode(response.getData());
-                return this.responseData;
-            } else {
-                throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
-            }
-        } finally {
-            ReferenceCountUtil.release(response.getData());
+        if (response.getGeneralStatus() == 0x00) {
+            this.responseData = decode(response.getData());
+            return this.responseData;
+        } else {
+            throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
         }
+
     }
 
     private void encode(ByteBuf buffer) {
     }
 
     private ByteBuf decode(ByteBuf buffer) {
-        return buffer.readSlice(buffer.readableBytes()).retain();
+        return buffer.readSlice(buffer.readableBytes());
     }
 
     private ByteBuf responseData = null;

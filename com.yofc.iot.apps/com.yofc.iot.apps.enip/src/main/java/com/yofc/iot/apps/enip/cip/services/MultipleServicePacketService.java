@@ -20,7 +20,6 @@ import com.yofc.iot.apps.enip.logix.services.ReadTagService;
 import com.yofc.iot.apps.enip.logix.services.WriteTagService;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class MultipleServicePacketService implements CipService<ByteBuf[]> {
 
@@ -76,42 +75,34 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
     public ByteBuf[] decodeResponse(ByteBuf buffer) throws CipResponseException, PartialResponseException {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
 
-        try {
-            if (response.getGeneralStatus() == 0x00 || response.getGeneralStatus() == 0x1E) {
+        if (response.getGeneralStatus() == 0x00 || response.getGeneralStatus() == 0x1E) {
 
-                ByteBuf[] serviceData = decode(response.getData());
-                // this.responseData = new ByteBuf[serviceData.length];
-                Boolean isPartial = false;
-                List<CipService<?>> completedServices = new ArrayList<>();
-                for (int i = 0; i < serviceData.length; i++) {
-                    CipService<?> service = currentServices.get(i);
-                    try {
-                        responseData[getNullresponseData()] = ((ByteBuf) service.decodeResponse(serviceData[i]));
-                        completedServices.add(service);
-                    } catch (PartialResponseException e) {
-                        isPartial = true;
-                    } catch (Exception e) {
-                        logger.error("decode service error:", e);
-                    }
-
-                    finally {
-                        ReferenceCountUtil.release(serviceData[i]);
-                    }
+            ByteBuf[] serviceData = decode(response.getData());
+            Boolean isPartial = false;
+            List<CipService<?>> completedServices = new ArrayList<>();
+            for (int i = 0; i < serviceData.length; i++) {
+                CipService<?> service = currentServices.get(i);
+                try {
+                    responseData[getNullresponseData()] = ((ByteBuf) service.decodeResponse(serviceData[i]));
+                    completedServices.add(service);
+                } catch (PartialResponseException e) {
+                    isPartial = true;
+                } catch (Exception e) {
+                    logger.error("decode service error:", e);
                 }
-                if (isPartial) {
-                    for (CipService<?> s : completedServices)
-                        currentServices.remove(s);
-                    throw PartialResponseException.INSTANCE;
-                }
-
-                return this.responseData;
-
-            } else {
-                throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
             }
-        } finally {
-            ReferenceCountUtil.release(response.getData());
+            if (isPartial) {
+                for (CipService<?> s : completedServices)
+                    currentServices.remove(s);
+                throw PartialResponseException.INSTANCE;
+            }
+
+            return this.responseData;
+
+        } else {
+            throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
         }
+
     }
 
     private int getNullresponseData() {
@@ -158,7 +149,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
 
             int length = (i + 1 < serviceCount) ? offsets[i + 1] - offset : buffer.readableBytes();
 
-            serviceData[i] = buffer.slice(dataStartIndex + offsets[i], length).retain();
+            serviceData[i] = buffer.slice(dataStartIndex + offsets[i], length);
 
             buffer.skipBytes(length);
         }

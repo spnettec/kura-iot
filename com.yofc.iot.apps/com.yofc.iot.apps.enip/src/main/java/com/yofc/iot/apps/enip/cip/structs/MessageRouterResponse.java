@@ -1,7 +1,6 @@
 package com.yofc.iot.apps.enip.cip.structs;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 public class MessageRouterResponse {
 
@@ -46,9 +45,10 @@ public class MessageRouterResponse {
             additionalStatus[i] = buffer.readShortLE();
         }
 
-        ByteBuf data = buffer.isReadable() ? buffer.readSlice(buffer.readableBytes()).retain() : Unpooled.EMPTY_BUFFER;
+        // ByteBuf data = buffer.isReadable() ? buffer.readSlice(buffer.readableBytes()).retain() :
+        // Unpooled.EMPTY_BUFFER;
 
-        return new MessageRouterResponse(serviceCode, generalStatus, additionalStatus, data);
+        return new MessageRouterResponse(serviceCode, generalStatus, additionalStatus, buffer);
     }
 
 }

@@ -24,6 +24,7 @@ import com.yofc.iot.apps.enip.logix.services.WriteTagService;
 import com.yofc.vertx.osgi.api.Utils;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 
 public class EIPDriverClient {
 
@@ -152,10 +153,14 @@ public class EIPDriverClient {
                             if (data != null) {
                                 try {
                                     final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                                    CIPData cipdata = new CIPData(type, data);
+                                    byte[] bytes = new byte[data.readableBytes()];
+                                    data.readBytes(bytes);
+                                    CIPData cipdata = new CIPData(type, bytes);
                                     cipDatas.add(cipdata);
                                 } catch (Exception e) {
                                     completFuture.completeExceptionally(e);
+                                } finally {
+                                    ReferenceCountUtil.release(data);
                                 }
                             } else
                                 cipDatas.add(null);
@@ -233,9 +238,13 @@ public class EIPDriverClient {
             return client.invokeUnconnected(service).thenApply(data -> {
                 try {
                     final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                    return new CIPData(type, data);
+                    byte[] bytes = new byte[data.readableBytes()];
+                    data.readBytes(bytes);
+                    return new CIPData(type, bytes);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
+                } finally {
+                    ReferenceCountUtil.release(data);
                 }
             });
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
@@ -246,7 +255,9 @@ public class EIPDriverClient {
                     if (data != null) {
                         try {
                             final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                            CIPData cipdata = new CIPData(type, data);
+                            byte[] bytes = new byte[data.readableBytes()];
+                            data.readBytes(bytes);
+                            CIPData cipdata = new CIPData(type, bytes);
                             completFuture.complete(cipdata);
                         } catch (Exception e) {
                             completFuture.completeExceptionally(e);

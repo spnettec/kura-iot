@@ -46,7 +46,7 @@ public class ForwardCloseService implements CipService<ForwardCloseResponse> {
                 throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
             }
         } finally {
-            ReferenceCountUtil.release(mResponse.getData());
+            ReferenceCountUtil.release(buffer);
         }
     }
 

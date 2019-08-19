@@ -1,5 +1,7 @@
 package com.yofc.iot.apps.enip.logix.services;
 
+import java.nio.ByteBuffer;
+
 import com.yofc.iot.apps.enip.cip.CipResponseException;
 import com.yofc.iot.apps.enip.cip.epath.DataSegment;
 import com.yofc.iot.apps.enip.cip.epath.EPath;
@@ -11,7 +13,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class WriteTagService implements CipService<Void> {
 
@@ -21,9 +22,9 @@ public class WriteTagService implements CipService<Void> {
     private final boolean structured;
     private final int tagType;
     private final int elementCount;
-    private final ByteBuf data;
+    private final ByteBuffer data;
 
-    public WriteTagService(PaddedEPath requestPath, boolean structured, int tagType, ByteBuf data) {
+    public WriteTagService(PaddedEPath requestPath, boolean structured, int tagType, ByteBuffer data) {
         this(requestPath, structured, tagType, 1, data);
     }
 
@@ -39,10 +40,11 @@ public class WriteTagService implements CipService<Void> {
         this.elementCount = 1;
         this.data = cipData.getData();
         if (this.structured)
-            this.data.readerIndex(this.data.readerIndex() + 6);
+            this.data.position(this.data.position() + 6);
     }
 
-    public WriteTagService(PaddedEPath requestPath, boolean structured, int tagType, int elementCount, ByteBuf data) {
+    public WriteTagService(PaddedEPath requestPath, boolean structured, int tagType, int elementCount,
+            ByteBuffer data) {
 
         this.requestPath = requestPath;
         this.structured = structured;
@@ -64,14 +66,10 @@ public class WriteTagService implements CipService<Void> {
 
         int generalStatus = response.getGeneralStatus();
 
-        try {
-            if (generalStatus == 0x00) {
-                return null;
-            } else {
-                throw new CipResponseException(generalStatus, response.getAdditionalStatus());
-            }
-        } finally {
-            ReferenceCountUtil.release(response.getData());
+        if (generalStatus == 0x00) {
+            return null;
+        } else {
+            throw new CipResponseException(generalStatus, response.getAdditionalStatus());
         }
     }
 
@@ -81,19 +79,19 @@ public class WriteTagService implements CipService<Void> {
         }
         buffer.writeShortLE(tagType);
         buffer.writeShortLE(elementCount);
-        data.markReaderIndex();
-        data.markWriterIndex();
+        data.mark();
+        int limit = data.limit();
         try {
             if (structured) {
-                int length = data.readableBytes();
-                int offset = data.writerIndex() + 84 - (length > 84 ? 84 : length);
+                int length = data.remaining();
+                int offset = data.limit() + 84 - (length > 84 ? 84 : length);
                 buffer.writeIntLE(length);
-                data.writerIndex(offset);
+                data.limit(offset);
             }
             buffer.writeBytes(data);
         } finally {
-            data.resetReaderIndex();
-            data.resetWriterIndex();
+            data.reset();
+            data.limit(limit);
         }
 
     }

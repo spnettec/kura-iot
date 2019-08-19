@@ -14,7 +14,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class GetInstanceAttributeListService<T> implements CipService<List<T>> {
 
@@ -64,24 +63,21 @@ public class GetInstanceAttributeListService<T> implements CipService<List<T>> {
         int status = response.getGeneralStatus();
         ByteBuf data = response.getData();
 
-        try {
-            if (status == 0x00 || status == 0x06) {
-                instances.addAll(decode(data));
+        if (status == 0x00 || status == 0x06) {
+            instances.addAll(decode(data));
 
-                if (status == 0x00) {
-                    this.responseData = new ArrayList<>(instances);
-                    return this.responseData;
-                } else {
-                    instanceId = lastInstanceId + 1;
-
-                    throw PartialResponseException.INSTANCE;
-                }
+            if (status == 0x00) {
+                this.responseData = new ArrayList<>(instances);
+                return this.responseData;
             } else {
-                throw new CipResponseException(status, response.getAdditionalStatus());
+                instanceId = lastInstanceId + 1;
+
+                throw PartialResponseException.INSTANCE;
             }
-        } finally {
-            ReferenceCountUtil.release(data);
+        } else {
+            throw new CipResponseException(status, response.getAdditionalStatus());
         }
+
     }
 
     private List<T> decode(ByteBuf buffer) {

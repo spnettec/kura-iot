@@ -253,7 +253,7 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
             ByteBuf buffer = ((ConnectedDataItemResponse) items[1]).getData();
 
             int sequenceNumber = buffer.readShort();
-            ByteBuf data = buffer.readSlice(buffer.readableBytes()).retain();
+            ByteBuf data = buffer.readSlice(buffer.readableBytes());
 
             Timeout timeout = timeouts.remove(sequenceNumber);
             if (timeout != null)
@@ -261,13 +261,13 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
 
             CompletableFuture<ByteBuf> future = pending.remove(sequenceNumber);
 
-            if (future != null) {
+            if (future != null) // {
                 future.complete(data);
-            } else {
-                ReferenceCountUtil.release(data);
-            }
+            // } else {
+            // ReferenceCountUtil.release(data);
+            // }
 
-            ReferenceCountUtil.release(buffer);
+            // ReferenceCountUtil.release(buffer);
         }
 
         @Override

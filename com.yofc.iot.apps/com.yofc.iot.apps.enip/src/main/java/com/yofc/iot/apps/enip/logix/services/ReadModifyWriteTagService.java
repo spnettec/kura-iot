@@ -7,7 +7,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class ReadModifyWriteTagService implements CipService<Void> {
 
@@ -38,15 +37,12 @@ public class ReadModifyWriteTagService implements CipService<Void> {
 
         int generalStatus = response.getGeneralStatus();
 
-        try {
-            if (generalStatus == 0x00) {
-                return null;
-            } else {
-                throw new CipResponseException(generalStatus, response.getAdditionalStatus());
-            }
-        } finally {
-            ReferenceCountUtil.release(response.getData());
+        if (generalStatus == 0x00) {
+            return null;
+        } else {
+            throw new CipResponseException(generalStatus, response.getAdditionalStatus());
         }
+
     }
 
     private void encode(ByteBuf buffer) {

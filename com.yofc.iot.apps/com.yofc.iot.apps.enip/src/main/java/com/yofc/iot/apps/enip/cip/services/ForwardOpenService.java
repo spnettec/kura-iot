@@ -45,7 +45,7 @@ public class ForwardOpenService implements CipService<ForwardOpenResponse> {
                 throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
             }
         } finally {
-            ReferenceCountUtil.release(mResponse.getData());
+            ReferenceCountUtil.release(buffer);
         }
     }
 

@@ -16,10 +16,8 @@ import static java.util.Objects.requireNonNull;
 import static org.eclipse.kura.channel.ChannelFlag.FAILURE;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.kura.KuraErrorCode;
@@ -240,8 +238,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                     logger.error("EIP PLC read error", e);
                     record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     record.setTimestamp(System.currentTimeMillis());
-                    if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-                        disconnect();
+                    // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+                    // disconnect();
                 }
 
             }
@@ -250,7 +248,6 @@ public class EIPDriver implements Driver, ConfigurableComponent {
 
     private void readMuti(List<ChannelRecord> records) throws ConnectionException {
         final String[] result = new String[records.size()];
-        Map<String, ChannelRecord> tagRecordMap = new HashMap<>();
         for (int i = 0; i < records.size(); i++) {
             ChannelRecord record = records.get(i);
             String tagName = null;
@@ -267,29 +264,25 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 record.setTimestamp(System.currentTimeMillis());
             } else {
                 result[i] = tagName;
-                tagRecordMap.put(tagName, record);
             }
         }
         final Config abOptions = this.options.get();
         int maxItemCountPerRequest = abOptions.maxRequestItems();
-        String[] tagNames = tagRecordMap.keySet().toArray(new String[0]);
         try {
             CIPData[] cipDatas = this.state.client
-                    .readTags(maxItemCountPerRequest, this.state.options.isToken(), tagNames).get();
-            for (int i = 0; i < tagNames.length; i++) {
-                String tagName = tagNames[i];
-                ChannelRecord record = tagRecordMap.get(tagName);
+                    .readTags(maxItemCountPerRequest, this.state.options.isToken(), result).get();
+            for (int i = 0; i < result.length; i++) {
+                ChannelRecord record = records.get(i);
                 fillRecord(cipDatas[i], record);
             }
         } catch (Exception e) {
-            for (int i = 0; i < tagNames.length; i++) {
-                String tagName = tagNames[i];
-                ChannelRecord record = tagRecordMap.get(tagName);
+            for (int i = 0; i < result.length; i++) {
+                ChannelRecord record = records.get(i);
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 record.setTimestamp(System.currentTimeMillis());
             }
-            if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-                disconnect();
+            // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+            // disconnect();
             throw new ConnectionException(e);
         }
     }
@@ -323,8 +316,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 ChannelRecord record = request.getRecord();
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
             }
-            if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-                disconnect();
+            // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+            // disconnect();
             throw new ConnectionException(e);
         }
 
@@ -350,8 +343,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
             } catch (Exception e) {
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-                    disconnect();
+                // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
+                // disconnect();
                 throw new ConnectionException(e);
 
             }

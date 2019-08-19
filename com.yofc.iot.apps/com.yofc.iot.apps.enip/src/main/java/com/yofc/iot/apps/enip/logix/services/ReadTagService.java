@@ -1,8 +1,5 @@
 package com.yofc.iot.apps.enip.logix.services;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -23,7 +20,7 @@ public class ReadTagService implements CipService<ByteBuf> {
     public static final int SERVICE_CODE = 0x4C;
 
     private final Consumer<ByteBuf> dataEncoder = this::encode;
-    private final List<ByteBuf> buffers = Collections.synchronizedList(new ArrayList<>());
+    private final ByteBuf buffers = Unpooled.buffer();
     private AtomicInteger offset = new AtomicInteger(0);
     private final PaddedEPath requestPath;
     private final int elementCount;
@@ -75,38 +72,34 @@ public class ReadTagService implements CipService<ByteBuf> {
         int status = response.getGeneralStatus();
         ByteBuf data = response.getData();
 
-        try {
-            if (status == 0x00 || status == 0x06) {
-                if (status == 0x06 && data.readableBytes() == 0) {
-                    throw PartialResponseException.INSTANCE;
-                }
+        if (status == 0x00 || status == 0x06) {
+            if (status == 0x06 && data.readableBytes() == 0) {
+                throw PartialResponseException.INSTANCE;
+            }
 
-                boolean structured = data.getShortLE(data.readerIndex()) == 0x02A0;
-                ByteBuf header = structured ? data.readSlice(4) : data.readSlice(2);
-                ByteBuf fragment = data.slice().retain();
-
-                buffers.add(fragment);
-                int off = offset.addAndGet(fragment.readableBytes());
-
-                if (status == 0x00) {
-                    synchronized (buffers) {
-                        this.responseData = Unpooled.compositeBuffer().addComponent(header.retain())
-                                .addComponents(buffers).writerIndex(header.readableBytes() + off);
-
-                        // Clean up so this service can be re-used...
+            boolean structured = data.getShortLE(data.readerIndex()) == 0x02A0;
+            int currentIndex = data.readerIndex();
+            data.readerIndex(currentIndex + (structured ? 4 : 2));
+            int off = offset.addAndGet(data.readableBytes());
+            buffers.writeBytes(data);
+            data.readerIndex(currentIndex);
+            if (status == 0x00) {
+                synchronized (buffers) {
+                    try {
+                        this.responseData = Unpooled.buffer().writeBytes(data, structured ? 4 : 2).writeBytes(buffers)
+                                .writerIndex((structured ? 4 : 2) + off);
                         buffers.clear();
-                        offset = new AtomicInteger(0);
-
+                        offset.set(0);
                         return this.responseData;
+                    } finally {
+                        ReferenceCountUtil.release(buffers);
                     }
-                } else {
-                    throw PartialResponseException.INSTANCE;
                 }
             } else {
-                throw new CipResponseException(status, response.getAdditionalStatus());
+                throw PartialResponseException.INSTANCE;
             }
-        } finally {
-            ReferenceCountUtil.release(data);
+        } else {
+            throw new CipResponseException(status, response.getAdditionalStatus());
         }
     }
 
