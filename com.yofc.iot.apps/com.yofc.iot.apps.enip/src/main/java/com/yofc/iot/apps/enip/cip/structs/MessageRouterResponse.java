@@ -41,6 +41,7 @@ public class MessageRouterResponse {
 
         int count = buffer.readUnsignedByte();
         int[] additionalStatus = new int[count];
+
         for (int i = 0; i < count; i++) {
             additionalStatus[i] = buffer.readShortLE();
         }

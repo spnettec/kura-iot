@@ -11,7 +11,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.util.ReferenceCountUtil;
 
 public class SetAttributeListService implements CipService<AttributeResponse[]> {
 
@@ -39,17 +38,12 @@ public class SetAttributeListService implements CipService<AttributeResponse[]> 
     @Override
     public AttributeResponse[] decodeResponse(ByteBuf buffer) throws CipResponseException, PartialResponseException {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
-
-        try {
-            if (response.getGeneralStatus() == 0x00) {
-                AttributeResponse[] data = decode(buffer);
-                this.responseData = data;
-                return data;
-            } else {
-                throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
-            }
-        } finally {
-            ReferenceCountUtil.release(buffer);
+        if (response.getGeneralStatus() == 0x00) {
+            AttributeResponse[] data = decode(buffer);
+            this.responseData = data;
+            return data;
+        } else {
+            throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
         }
     }
 

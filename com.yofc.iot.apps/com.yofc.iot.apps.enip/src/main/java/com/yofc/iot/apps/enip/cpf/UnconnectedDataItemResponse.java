@@ -1,21 +1,22 @@
 package com.yofc.iot.apps.enip.cpf;
 
+import java.nio.ByteBuffer;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 
 public final class UnconnectedDataItemResponse extends CpfItem {
 
     public static final int TYPE_ID = 0xB2;
 
-    private final ByteBuf data;
+    private final ByteBuffer data;
 
-    public UnconnectedDataItemResponse(ByteBuf data) {
+    public UnconnectedDataItemResponse(ByteBuffer data) {
         super(TYPE_ID);
 
         this.data = data;
     }
 
-    public ByteBuf getData() {
+    public ByteBuffer getData() {
         return data;
     }
 
@@ -28,12 +29,12 @@ public final class UnconnectedDataItemResponse extends CpfItem {
 
         UnconnectedDataItemResponse that = (UnconnectedDataItemResponse) o;
 
-        return ByteBufUtil.equals(data, that.data);
+        return data.equals(that.data);
     }
 
     @Override
     public int hashCode() {
-        return ByteBufUtil.hashCode(data);
+        return data.hashCode();
     }
 
     public static ByteBuf encode(UnconnectedDataItemResponse item, ByteBuf buffer) {
@@ -46,7 +47,7 @@ public final class UnconnectedDataItemResponse extends CpfItem {
         // Encode the encapsulated data...
         int dataStartIndex = buffer.writerIndex();
         buffer.writeBytes(item.getData());
-        item.getData().release();
+        // item.getData().release();
 
         // Go back and update the length.
         int bytesWritten = buffer.writerIndex() - dataStartIndex;
@@ -63,10 +64,12 @@ public final class UnconnectedDataItemResponse extends CpfItem {
         int length = buffer.readUnsignedShortLE();
 
         assert (typeId == TYPE_ID);
+        byte[] bytes = new byte[length];
+        buffer.readBytes(bytes);
 
-        ByteBuf data = buffer.readSlice(length).retain();
+        // ByteBuf data = buffer.readSlice(length).retain();
 
-        return new UnconnectedDataItemResponse(data);
+        return new UnconnectedDataItemResponse(ByteBuffer.wrap(bytes));
     }
 
 }

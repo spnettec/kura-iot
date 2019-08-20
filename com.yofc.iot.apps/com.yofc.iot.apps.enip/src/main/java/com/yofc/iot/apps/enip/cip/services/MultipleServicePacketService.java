@@ -88,6 +88,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
                 } catch (PartialResponseException e) {
                     isPartial = true;
                 } catch (Exception e) {
+                    completedServices.add(service);
                     logger.error("decode service error:", e);
                 }
             }

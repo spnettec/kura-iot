@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.apps.enip.cip.structs.CIPData;
-import com.yofc.iot.apps.enip.cip.structs.CIPData.Type;
 import com.yofc.iot.apps.enip.driver.EIPDriverClient;
 
 import io.vertx.core.Vertx;
@@ -44,35 +43,60 @@ public class AppTest {
     @Test
     @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
     public void testLogixRead(Vertx vertx, VertxTestContext context) {
-        // vertx.setPeriodic(1000, l -> {
-        client.readTags(true, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI").whenComplete((data, ex) -> {
-                    if (data != null)
-                        for (CIPData cipData : data)
-                            cipData.toString();
-                    else
-                        ex.printStackTrace();
-                    context.completeNow();
-                });
-        // });
+        vertx.setPeriodic(50, l -> {
+            invokeRead(false, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+                    "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+                    "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
+                    "SYSTEM_BAR_NO", "FURNACE_MOTOR_MODE_SELECT_HMI");
+        });
     }
 
-    @Test
-
-    @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
-    public void testLogixWrite(Vertx vertx, VertxTestContext context) throws Exception {
-        String[] tags = { "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO" };
-        CIPData[] datas = { new CIPData(Type.INT).set(0, 44), new CIPData(
-                "asasa1111111111111111111111111111111111111111111111111111111111111111111111111eeddccbbaaqq") };
-        client.writeTags(true, tags, datas).whenComplete((data, ex) -> {
-            if (ex == null)
-                logger.info("WriteTagService completed.");
+    private void invokeRead(boolean connected, Vertx vertx, long time, String... tages) {
+        client.readTags(connected, tages).whenComplete((data, ex) -> {
+            if (data != null)
+                for (CIPData cipData : data)
+                    logger.info(cipData.toString());
             else
                 ex.printStackTrace();
-            context.completeNow();
+            invokeReadDelay(connected, vertx, time, tages);
+        });
+    }
+
+    private void invokeRead(boolean connected, String... tages) {
+        client.readTags(connected, tages).whenComplete((data, ex) -> {
+            if (data != null)
+                for (CIPData cipData : data)
+                    logger.info(cipData.toString());
+            else
+                ex.printStackTrace();
+        });
+    }
+
+    private void invokeReadDelay(boolean connected, Vertx vertx, long time, String... tages) {
+        vertx.setTimer(time, l -> {
+            invokeRead(connected, vertx, time, tages);
+
         });
 
     }
-
+    /*
+     * @Test
+     * 
+     * @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
+     * public void testLogixWrite(Vertx vertx, VertxTestContext context) throws Exception {
+     * String[] tags = { "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO" };
+     * CIPData[] datas = { new CIPData(Type.INT).set(0, 44), new CIPData(
+     * "asasa1111111111111111111111111111111111111111111111111111111111111111111111111eeddccbbaaqq") };
+     * client.writeTags(true, tags, datas).whenComplete((data, ex) -> {
+     * if (ex == null)
+     * logger.info("WriteTagService completed.");
+     * else
+     * ex.printStackTrace();
+     * context.completeNow();
+     * });
+     * 
+     * }
+     */
 }

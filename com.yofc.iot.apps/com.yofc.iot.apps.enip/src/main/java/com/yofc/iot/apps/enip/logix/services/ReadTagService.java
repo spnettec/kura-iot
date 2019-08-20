@@ -1,5 +1,7 @@
 package com.yofc.iot.apps.enip.logix.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -13,14 +15,13 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.util.ReferenceCountUtil;
 
 public class ReadTagService implements CipService<ByteBuf> {
 
     public static final int SERVICE_CODE = 0x4C;
 
     private final Consumer<ByteBuf> dataEncoder = this::encode;
-    private final ByteBuf buffers = Unpooled.buffer();
+    private final List<byte[]> buffers = new ArrayList<>();
     private AtomicInteger offset = new AtomicInteger(0);
     private final PaddedEPath requestPath;
     private final int elementCount;
@@ -81,23 +82,28 @@ public class ReadTagService implements CipService<ByteBuf> {
             int currentIndex = data.readerIndex();
             data.readerIndex(currentIndex + (structured ? 4 : 2));
             int off = offset.addAndGet(data.readableBytes());
-            buffers.writeBytes(data);
+            byte[] bytes = new byte[data.readableBytes()];
+            data.readBytes(bytes);
+            buffers.add(bytes);
             data.readerIndex(currentIndex);
             if (status == 0x00) {
                 synchronized (buffers) {
                     try {
-                        this.responseData = Unpooled.buffer().writeBytes(data, structured ? 4 : 2).writeBytes(buffers)
-                                .writerIndex((structured ? 4 : 2) + off);
+                        ByteBuf buf = Unpooled.buffer().writeBytes(data, structured ? 4 : 2);
+                        buffers.stream().forEach(bts -> buf.writeBytes(bts));
+                        buf.writerIndex((structured ? 4 : 2) + off);
+
                         buffers.clear();
                         offset.set(0);
                         return this.responseData;
                     } finally {
-                        ReferenceCountUtil.release(buffers);
+                        // ReferenceCountUtil.release(data);
                     }
                 }
             } else {
                 throw PartialResponseException.INSTANCE;
             }
+
         } else {
             throw new CipResponseException(status, response.getAdditionalStatus());
         }

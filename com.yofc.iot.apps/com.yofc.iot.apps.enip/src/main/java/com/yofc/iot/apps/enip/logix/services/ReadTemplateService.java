@@ -19,7 +19,6 @@ import com.yofc.iot.apps.enip.util.IntUtil;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.util.ReferenceCountUtil;
 
 public class ReadTemplateService implements CipService<TemplateInstance> {
 
@@ -61,8 +60,6 @@ public class ReadTemplateService implements CipService<TemplateInstance> {
                         .addComponents(buffers).writerIndex(totalBytesRead).order(ByteOrder.LITTLE_ENDIAN);
 
                 this.responseData = decode(composite, symbolType);
-
-                ReferenceCountUtil.release(composite);
 
                 return this.responseData;
             } else {

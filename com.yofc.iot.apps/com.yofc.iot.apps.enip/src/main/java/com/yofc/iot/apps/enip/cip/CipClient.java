@@ -1,5 +1,7 @@
 package com.yofc.iot.apps.enip.cip;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ import com.yofc.iot.apps.enip.cpf.UnconnectedDataItemRequest;
 import com.yofc.iot.apps.enip.cpf.UnconnectedDataItemResponse;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.Timeout;
 
@@ -42,7 +45,7 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
     private final ConnectedDataHandler connectedDataHandler = new ConnectedDataHandler();
     private final List<CpfItemHandler> additionalHandlers = new CopyOnWriteArrayList<>();
 
-    private final Map<Integer, CompletableFuture<ByteBuf>> pending = new ConcurrentHashMap<>();
+    private final Map<Integer, CompletableFuture<ByteBuffer>> pending = new ConcurrentHashMap<>();
     private final Map<Integer, Timeout> timeouts = new ConcurrentHashMap<>();
 
     private final AtomicInteger sequenceNumber = new AtomicInteger(0);
@@ -67,8 +70,10 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
 
         sendConnectedData(service::encodeRequest, connectionId).whenComplete((buffer, ex) -> {
             if (buffer != null) {
+                ByteBuf buf = null;
                 try {
-                    T response = service.decodeResponse(buffer);
+                    buf = Unpooled.wrappedBuffer(buffer.order(ByteOrder.BIG_ENDIAN));
+                    T response = service.decodeResponse(buf);
 
                     future.complete(response);
                 } catch (CipService.PartialResponseException e) {
@@ -76,7 +81,8 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
                 } catch (CipResponseException e) {
                     future.completeExceptionally(e);
                 } finally {
-                    ReferenceCountUtil.release(buffer);
+                    if (buf != null)
+                        ReferenceCountUtil.release(buf);
                 }
             } else {
                 future.completeExceptionally(ex);
@@ -116,8 +122,10 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
 
         sendUnconnectedData(service::encodeRequest).whenComplete((buffer, ex) -> {
             if (buffer != null) {
+                ByteBuf buf = null;
                 try {
-                    T response = service.decodeResponse(buffer);
+                    buf = Unpooled.wrappedBuffer(buffer.order(ByteOrder.BIG_ENDIAN));
+                    T response = service.decodeResponse(buf);
 
                     future.complete(response);
                 } catch (CipService.PartialResponseException e) {
@@ -136,8 +144,11 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
                     } else {
                         future.completeExceptionally(e);
                     }
+                } catch (Exception e) {
+                    future.completeExceptionally(e);
                 } finally {
-                    ReferenceCountUtil.release(buffer);
+                    if (buf != null)
+                        ReferenceCountUtil.release(buf);
                 }
             } else {
                 future.completeExceptionally(ex);
@@ -147,19 +158,19 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
         return future;
     }
 
-    public CompletableFuture<ByteBuf> sendConnectedData(ByteBuf data, int connectionId) {
+    public CompletableFuture<ByteBuffer> sendConnectedData(ByteBuf data, int connectionId) {
         return sendConnectedData((buffer) -> buffer.writeBytes(data), connectionId);
     }
 
-    public CompletableFuture<ByteBuf> sendConnectedData(Consumer<ByteBuf> dataEncoder, int connectionId) {
-        CompletableFuture<ByteBuf> future = new CompletableFuture<>();
+    public CompletableFuture<ByteBuffer> sendConnectedData(Consumer<ByteBuf> dataEncoder, int connectionId) {
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
 
         ConnectedAddressItem addressItem = new ConnectedAddressItem(connectionId);
 
         int sequenceNumber = nextSequenceNumber();
 
         ConnectedDataItemRequest dataItem = new ConnectedDataItemRequest((b) -> {
-            b.writeShort(sequenceNumber);
+            b.writeShortLE(sequenceNumber);
             dataEncoder.accept(b);
         });
 
@@ -169,7 +180,7 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
         Timeout timeout = getConfig().getWheelTimer().newTimeout(tt -> {
             if (tt.isCancelled())
                 return;
-            CompletableFuture<ByteBuf> f = pending.remove(sequenceNumber);
+            CompletableFuture<ByteBuffer> f = pending.remove(sequenceNumber);
             if (f != null) {
                 String message = String.format("sequenceNumber=%s timed out waiting %sms for response", sequenceNumber,
                         getConfig().getTimeout().toMillis());
@@ -189,12 +200,12 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
         return future;
     }
 
-    public CompletableFuture<ByteBuf> sendUnconnectedData(ByteBuf data) {
+    public CompletableFuture<ByteBuffer> sendUnconnectedData(ByteBuf data) {
         return sendUnconnectedData((buffer) -> buffer.writeBytes(data));
     }
 
-    public CompletableFuture<ByteBuf> sendUnconnectedData(Consumer<ByteBuf> dataEncoder) {
-        CompletableFuture<ByteBuf> future = new CompletableFuture<>();
+    public CompletableFuture<ByteBuffer> sendUnconnectedData(Consumer<ByteBuf> dataEncoder) {
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
 
         UnconnectedDataItemRequest dataItem = new UnconnectedDataItemRequest(dataEncoder);
         CpfPacket packet = new CpfPacket(new NullAddressItem(), dataItem);
@@ -206,7 +217,7 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
                 if (items.length == 2 && items[0].getTypeId() == NullAddressItem.TYPE_ID
                         && items[1].getTypeId() == UnconnectedDataItemResponse.TYPE_ID) {
 
-                    ByteBuf data = ((UnconnectedDataItemResponse) items[1]).getData();
+                    ByteBuffer data = ((UnconnectedDataItemResponse) items[1]).getData();
 
                     future.complete(data);
                 } else {
@@ -250,24 +261,19 @@ public class CipClient extends EtherNetIpClient implements CipServiceInvoker {
         @Override
         public void itemsReceived(CpfItem[] items) {
             // int connectionId = ((ConnectedAddressItem) items[0]).getConnectionId();
-            ByteBuf buffer = ((ConnectedDataItemResponse) items[1]).getData();
-
-            int sequenceNumber = buffer.readShort();
-            ByteBuf data = buffer.readSlice(buffer.readableBytes());
+            ByteBuffer buffer = ((ConnectedDataItemResponse) items[1]).getData();
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            int sequenceNumber = buffer.getShort();
+            buffer.slice();
 
             Timeout timeout = timeouts.remove(sequenceNumber);
             if (timeout != null)
                 timeout.cancel();
 
-            CompletableFuture<ByteBuf> future = pending.remove(sequenceNumber);
+            CompletableFuture<ByteBuffer> future = pending.remove(sequenceNumber);
 
-            if (future != null) // {
-                future.complete(data);
-            // } else {
-            // ReferenceCountUtil.release(data);
-            // }
-
-            // ReferenceCountUtil.release(buffer);
+            if (future != null)
+                future.complete(buffer);
         }
 
         @Override

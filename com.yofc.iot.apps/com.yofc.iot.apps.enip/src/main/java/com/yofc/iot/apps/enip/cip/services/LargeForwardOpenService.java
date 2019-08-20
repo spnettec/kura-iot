@@ -10,7 +10,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class LargeForwardOpenService implements CipService<LargeForwardOpenResponse> {
 
@@ -38,15 +37,11 @@ public class LargeForwardOpenService implements CipService<LargeForwardOpenRespo
 
         int generalStatus = mResponse.getGeneralStatus();
 
-        try {
-            if (generalStatus == 0x00) {
-                this.responseData = LargeForwardOpenResponse.decode(mResponse.getData());
-                return this.responseData;
-            } else {
-                throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
-            }
-        } finally {
-            ReferenceCountUtil.release(mResponse.getData());
+        if (generalStatus == 0x00) {
+            this.responseData = LargeForwardOpenResponse.decode(mResponse.getData());
+            return this.responseData;
+        } else {
+            throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
         }
     }
 

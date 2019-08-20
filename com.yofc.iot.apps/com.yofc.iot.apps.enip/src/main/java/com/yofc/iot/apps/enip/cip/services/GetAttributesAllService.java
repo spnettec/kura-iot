@@ -6,7 +6,6 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class GetAttributesAllService implements CipService<ByteBuf> {
 
@@ -34,8 +33,6 @@ public class GetAttributesAllService implements CipService<ByteBuf> {
             this.responseData = response.getData();
             return this.responseData;
         } else {
-            ReferenceCountUtil.release(response.getData());
-
             throw new CipResponseException(response.getGeneralStatus(), response.getAdditionalStatus());
         }
     }

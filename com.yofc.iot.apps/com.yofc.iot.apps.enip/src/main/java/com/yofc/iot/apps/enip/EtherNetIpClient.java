@@ -2,7 +2,6 @@ package com.yofc.iot.apps.enip;
 
 import static com.yofc.iot.apps.enip.util.FutureUtils.complete;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,9 +21,6 @@ import com.yofc.iot.apps.enip.commands.RegisterSession;
 import com.yofc.iot.apps.enip.commands.SendRRData;
 import com.yofc.iot.apps.enip.commands.SendUnitData;
 import com.yofc.iot.apps.enip.commands.UnRegisterSession;
-import com.yofc.iot.apps.enip.cpf.ConnectedDataItemResponse;
-import com.yofc.iot.apps.enip.cpf.CpfPacket;
-import com.yofc.iot.apps.enip.cpf.UnconnectedDataItemResponse;
 import com.yofc.iot.apps.enip.util.IntUtil;
 import com.yofc.netty.fsm.ChannelActions;
 import com.yofc.netty.fsm.ChannelFsm;
@@ -47,7 +43,6 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.ReferenceCountUtil;
 import io.netty.util.Timeout;
 
 public class EtherNetIpClient {
@@ -202,21 +197,24 @@ public class EtherNetIpClient {
                 } else {
                     pending.promise.completeExceptionally(new Exception("EtherNet/IP status: " + status));
                 }
-            } else {
-                logger.debug("Received response for unknown context: {}", packet.getSenderContext());
-
-                if (packet.getCommand() instanceof SendRRData) {
-                    CpfPacket cpfPacket = ((SendRRData) packet.getCommand()).getPacket();
-
-                    Arrays.stream(cpfPacket.getItems()).forEach(item -> {
-                        if (item instanceof ConnectedDataItemResponse) {
-                            ReferenceCountUtil.safeRelease(((ConnectedDataItemResponse) item).getData());
-                        } else if (item instanceof UnconnectedDataItemResponse) {
-                            ReferenceCountUtil.safeRelease(((UnconnectedDataItemResponse) item).getData());
-                        }
-                    });
-                }
             }
+            /*
+             * else {
+             * logger.debug("Received response for unknown context: {}", packet.getSenderContext());
+             * 
+             * if (packet.getCommand() instanceof SendRRData) {
+             * CpfPacket cpfPacket = ((SendRRData) packet.getCommand()).getPacket();
+             * 
+             * Arrays.stream(cpfPacket.getItems()).forEach(item -> {
+             * if (item instanceof ConnectedDataItemResponse) {
+             * ReferenceCountUtil.safeRelease(((ConnectedDataItemResponse) item).getData());
+             * } else if (item instanceof UnconnectedDataItemResponse) {
+             * ReferenceCountUtil.safeRelease(((UnconnectedDataItemResponse) item).getData());
+             * }
+             * });
+             * }
+             * }
+             */
         }
     }
 

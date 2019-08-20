@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,34 +142,32 @@ public class EIPDriverClient {
             futures.add(future);
         }
         CompletableFuture<CIPData[]> completFuture = new CompletableFuture<>();
-
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                .whenComplete(Utils.BiConsumerWrapper((action, ex) -> {
-                    if (ex != null)
-                        completFuture.completeExceptionally(ex);
-                    else {
-                        List<CIPData> cipDatas = new ArrayList<>();
-                        for (CipService<ByteBuf> msg : mgroupMessages) {
-                            ByteBuf data = msg.getResponseData();
-                            if (data != null) {
-                                try {
-                                    final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                                    byte[] bytes = new byte[data.readableBytes()];
-                                    data.readBytes(bytes);
-                                    CIPData cipdata = new CIPData(type, bytes);
-                                    cipDatas.add(cipdata);
-                                } catch (Exception e) {
-                                    completFuture.completeExceptionally(e);
-                                } finally {
-                                    ReferenceCountUtil.release(data);
-                                }
-                            } else
-                                cipDatas.add(null);
+        sequenceFuture(futures).whenComplete(Utils.BiConsumerWrapper((action, ex) -> {
+            if (ex != null)
+                completFuture.completeExceptionally(ex);
+            else {
+                List<CIPData> cipDatas = new ArrayList<>();
+                for (CipService<ByteBuf> msg : mgroupMessages) {
+                    ByteBuf data = msg.getResponseData();
+                    if (data != null) {
+                        try {
+                            final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
+                            byte[] bytes = new byte[data.readableBytes()];
+                            data.readBytes(bytes);
+                            CIPData cipdata = new CIPData(type, bytes);
+                            cipDatas.add(cipdata);
+                        } catch (Exception e) {
+                            completFuture.completeExceptionally(e);
+                        } finally {
+                            ReferenceCountUtil.release(data);
                         }
-                        completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
-                    }
+                    } else
+                        cipDatas.add(null);
+                }
+                completFuture.complete(cipDatas.toArray(new CIPData[cipDatas.size()]));
+            }
 
-                }));
+        }));
         return completFuture;
     }
 
@@ -261,6 +260,8 @@ public class EIPDriverClient {
                             completFuture.complete(cipdata);
                         } catch (Exception e) {
                             completFuture.completeExceptionally(e);
+                        } finally {
+                            ReferenceCountUtil.release(data);
                         }
 
                     } else {
@@ -338,5 +339,19 @@ public class EIPDriverClient {
             }
         }));
         return completFuture;
+    }
+
+    private <R> CompletableFuture<List<R>> sequenceFuture(List<CompletableFuture<R>> futures) {
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream().map(this::getValue).collect(Collectors.toList()));
+    }
+
+    private <T> T getValue(CompletableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (Exception ex) {
+            logger.error("getValue for async result failed", ex);
+        }
+        return null;
     }
 }
