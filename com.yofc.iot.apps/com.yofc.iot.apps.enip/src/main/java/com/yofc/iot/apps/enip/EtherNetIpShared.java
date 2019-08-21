@@ -22,7 +22,7 @@ public class EtherNetIpShared {
      */
     public static synchronized EventLoopGroup sharedEventLoop() {
         if (SHARED_EVENT_LOOP == null) {
-            SHARED_EVENT_LOOP = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+            SHARED_EVENT_LOOP = Epoll.isAvailable() ? new EpollEventLoopGroup(20) : new NioEventLoopGroup(20);
         }
         return SHARED_EVENT_LOOP;
     }

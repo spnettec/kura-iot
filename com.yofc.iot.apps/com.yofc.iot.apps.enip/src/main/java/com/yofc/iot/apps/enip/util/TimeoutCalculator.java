@@ -7,6 +7,10 @@ public class TimeoutCalculator {
     private static final int MIN_TIMEOUT = 1;
     private static final int MAX_TIMEOUT = 8355840;
 
+    private TimeoutCalculator() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static int calculateTimeoutBytes(Duration timeout) {
         int desiredTimeout = (int) timeout.toMillis();
 

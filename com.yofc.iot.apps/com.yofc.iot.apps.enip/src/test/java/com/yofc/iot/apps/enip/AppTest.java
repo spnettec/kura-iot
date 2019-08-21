@@ -43,8 +43,8 @@ public class AppTest {
     @Test
     @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
     public void testLogixRead(Vertx vertx, VertxTestContext context) {
-        vertx.setPeriodic(50, l -> {
-            invokeRead(false, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+        vertx.setPeriodic(10, l -> {
+            invokeRead(false, context, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
                     "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
                     "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
                     "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
@@ -53,18 +53,18 @@ public class AppTest {
         });
     }
 
-    private void invokeRead(boolean connected, Vertx vertx, long time, String... tages) {
+    private void invokeRead(boolean connected, Vertx vertx, VertxTestContext context, long time, String... tages) {
         client.readTags(connected, tages).whenComplete((data, ex) -> {
             if (data != null)
                 for (CIPData cipData : data)
                     logger.info(cipData.toString());
             else
                 ex.printStackTrace();
-            invokeReadDelay(connected, vertx, time, tages);
+            invokeReadDelay(connected, vertx, context, time, tages);
         });
     }
 
-    private void invokeRead(boolean connected, String... tages) {
+    private void invokeRead(boolean connected, VertxTestContext context, String... tages) {
         client.readTags(connected, tages).whenComplete((data, ex) -> {
             if (data != null)
                 for (CIPData cipData : data)
@@ -74,10 +74,9 @@ public class AppTest {
         });
     }
 
-    private void invokeReadDelay(boolean connected, Vertx vertx, long time, String... tages) {
+    private void invokeReadDelay(boolean connected, Vertx vertx, VertxTestContext context, long time, String... tages) {
         vertx.setTimer(time, l -> {
-            invokeRead(connected, vertx, time, tages);
-
+            invokeRead(connected, vertx, context, time, tages);
         });
 
     }

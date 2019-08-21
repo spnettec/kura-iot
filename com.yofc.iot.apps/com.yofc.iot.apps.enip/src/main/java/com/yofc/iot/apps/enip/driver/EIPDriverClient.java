@@ -1,5 +1,6 @@
 package com.yofc.iot.apps.enip.driver;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +24,6 @@ import com.yofc.iot.apps.enip.logix.services.ReadTagFragmentedService;
 import com.yofc.iot.apps.enip.logix.services.ReadTagService;
 import com.yofc.iot.apps.enip.logix.services.WriteTagService;
 import com.yofc.vertx.osgi.api.Utils;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
 
 public class EIPDriverClient {
 
@@ -112,7 +110,7 @@ public class EIPDriverClient {
     public CompletableFuture<CIPData[]> readTags(int maxNumberOfRequestsPerGroup, boolean connected, String... tags) {
         int currentGroupByteCount = 0;
         List<CipService<?>> groupMessages = new ArrayList<>();
-        List<CipService<ByteBuf>> mgroupMessages = new ArrayList<>();
+        List<CipService<ByteBuffer>> mgroupMessages = new ArrayList<>();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (String tag : tags) {
             ReadTagFragmentedService service = new ReadTagFragmentedService(tag);
@@ -147,19 +145,14 @@ public class EIPDriverClient {
                 completFuture.completeExceptionally(ex);
             else {
                 List<CIPData> cipDatas = new ArrayList<>();
-                for (CipService<ByteBuf> msg : mgroupMessages) {
-                    ByteBuf data = msg.getResponseData();
+                for (CipService<ByteBuffer> msg : mgroupMessages) {
+                    ByteBuffer data = msg.getResponseData();
                     if (data != null) {
                         try {
-                            final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                            byte[] bytes = new byte[data.readableBytes()];
-                            data.readBytes(bytes);
-                            CIPData cipdata = new CIPData(type, bytes);
+                            CIPData cipdata = new CIPData(data);
                             cipDatas.add(cipdata);
                         } catch (Exception e) {
                             completFuture.completeExceptionally(e);
-                        } finally {
-                            ReferenceCountUtil.release(data);
                         }
                     } else
                         cipDatas.add(null);
@@ -177,7 +170,7 @@ public class EIPDriverClient {
             connect();
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
-                CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                CompletableFuture<ByteBuffer[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
 
                 f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
                     if (data != null) {
@@ -207,7 +200,7 @@ public class EIPDriverClient {
             connect();
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
-                CompletableFuture<ByteBuf[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                CompletableFuture<ByteBuffer[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
 
                 f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
                     if (data != null) {
@@ -236,34 +229,23 @@ public class EIPDriverClient {
         if (!connected)
             return client.invokeUnconnected(service).thenApply(data -> {
                 try {
-                    final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                    byte[] bytes = new byte[data.readableBytes()];
-                    data.readBytes(bytes);
-                    return new CIPData(type, bytes);
+                    return new CIPData(data);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
-                } finally {
-                    ReferenceCountUtil.release(data);
                 }
             });
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
-                CompletableFuture<ByteBuf> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                CompletableFuture<ByteBuffer> f = client.invokeConnected(connection.getO2tConnectionId(), service);
 
                 f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
                     if (data != null) {
                         try {
-                            final CIPData.Type type = CIPData.Type.forCode(data.readShortLE());
-                            byte[] bytes = new byte[data.readableBytes()];
-                            data.readBytes(bytes);
-                            CIPData cipdata = new CIPData(type, bytes);
+                            CIPData cipdata = new CIPData(data);
                             completFuture.complete(cipdata);
                         } catch (Exception e) {
                             completFuture.completeExceptionally(e);
-                        } finally {
-                            ReferenceCountUtil.release(data);
                         }
-
                     } else {
                         completFuture.completeExceptionally(ex2);
                     }

@@ -180,6 +180,13 @@ public final class CIPData {
         this.elements = this.determineElementCount();
     }
 
+    public CIPData(ByteBuffer byteBuffer) {
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        this.type = CIPData.Type.forCode(byteBuffer.getShort());
+        this.data = byteBuffer.slice();
+        this.elements = this.determineElementCount();
+    }
+
     /** @return Number of elements */
     final private short determineElementCount() {
         switch (this.type) {
@@ -366,7 +373,7 @@ public final class CIPData {
         // starting at the offset for the text
         // (2 byte STRUCT_STRING, 4 byte length)
         // and allow for the final '\0' byte
-        final int len = Math.min(text.length(), 84);
+        final int len = Math.min(text.length(), this.data.capacity() - 6);
         this.data.putInt(2, len);
 
         final byte[] chars = text.getBytes();

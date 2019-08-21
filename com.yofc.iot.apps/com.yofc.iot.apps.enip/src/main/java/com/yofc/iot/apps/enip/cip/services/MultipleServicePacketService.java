@@ -2,6 +2,7 @@ package com.yofc.iot.apps.enip.cip.services;
 
 import static java.util.Collections.synchronizedList;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ import com.yofc.iot.apps.enip.logix.services.WriteTagService;
 
 import io.netty.buffer.ByteBuf;
 
-public class MultipleServicePacketService implements CipService<ByteBuf[]> {
+public class MultipleServicePacketService implements CipService<ByteBuffer[]> {
 
     private static Logger logger = LoggerFactory.getLogger(MultipleServicePacketService.class);
 
@@ -34,7 +35,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
     public MultipleServicePacketService(List<CipService<?>> services) {
 
         this.currentServices = synchronizedList(new ArrayList<>(services));
-        this.responseData = new ByteBuf[services.size()];
+        this.responseData = new ByteBuffer[services.size()];
     }
 
     @Override
@@ -72,7 +73,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
     }
 
     @Override
-    public ByteBuf[] decodeResponse(ByteBuf buffer) throws CipResponseException, PartialResponseException {
+    public ByteBuffer[] decodeResponse(ByteBuf buffer) throws CipResponseException, PartialResponseException {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
 
         if (response.getGeneralStatus() == 0x00 || response.getGeneralStatus() == 0x1E) {
@@ -83,7 +84,7 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
             for (int i = 0; i < serviceData.length; i++) {
                 CipService<?> service = currentServices.get(i);
                 try {
-                    responseData[getNullresponseData()] = ((ByteBuf) service.decodeResponse(serviceData[i]));
+                    responseData[getNullresponseData()] = ((ByteBuffer) service.decodeResponse(serviceData[i]));
                     completedServices.add(service);
                 } catch (PartialResponseException e) {
                     isPartial = true;
@@ -158,10 +159,10 @@ public class MultipleServicePacketService implements CipService<ByteBuf[]> {
         return serviceData;
     }
 
-    private ByteBuf[] responseData = null;
+    private ByteBuffer[] responseData = null;
 
     @Override
-    public ByteBuf[] getResponseData() {
+    public ByteBuffer[] getResponseData() {
         return responseData;
     }
 }

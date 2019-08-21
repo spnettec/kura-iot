@@ -1,5 +1,7 @@
 package com.yofc.iot.apps.enip.logix.services;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,9 +16,8 @@ import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
-public class ReadTagService implements CipService<ByteBuf> {
+public class ReadTagService implements CipService<ByteBuffer> {
 
     public static final int SERVICE_CODE = 0x4C;
 
@@ -67,7 +68,7 @@ public class ReadTagService implements CipService<ByteBuf> {
     }
 
     @Override
-    public ByteBuf decodeResponse(ByteBuf buffer) throws PartialResponseException, CipResponseException {
+    public ByteBuffer decodeResponse(ByteBuf buffer) throws PartialResponseException, CipResponseException {
         MessageRouterResponse response = MessageRouterResponse.decode(buffer);
 
         int status = response.getGeneralStatus();
@@ -80,25 +81,25 @@ public class ReadTagService implements CipService<ByteBuf> {
 
             boolean structured = data.getShortLE(data.readerIndex()) == 0x02A0;
             int currentIndex = data.readerIndex();
-            data.readerIndex(currentIndex + (structured ? 4 : 2));
-            int off = offset.addAndGet(data.readableBytes());
+            int headCount = structured ? 4 : 2;
+            data.readerIndex(currentIndex + headCount);
             byte[] bytes = new byte[data.readableBytes()];
             data.readBytes(bytes);
             buffers.add(bytes);
             data.readerIndex(currentIndex);
             if (status == 0x00) {
                 synchronized (buffers) {
-                    try {
-                        ByteBuf buf = Unpooled.buffer().writeBytes(data, structured ? 4 : 2);
-                        buffers.stream().forEach(bts -> buf.writeBytes(bts));
-                        buf.writerIndex((structured ? 4 : 2) + off);
-
-                        buffers.clear();
-                        offset.set(0);
-                        return this.responseData;
-                    } finally {
-                        // ReferenceCountUtil.release(data);
-                    }
+                    byte[] head = new byte[headCount];
+                    data.readBytes(head);
+                    buffers.add(0, head);
+                    int allCount = buffers.stream().mapToInt(bt -> bt.length).sum();
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(allCount).order(ByteOrder.LITTLE_ENDIAN);
+                    buffers.stream().forEach(byteBuffer::put);
+                    buffers.clear();
+                    offset.set(0);
+                    byteBuffer.flip();
+                    this.responseData = byteBuffer;
+                    return this.responseData;
                 }
             } else {
                 throw PartialResponseException.INSTANCE;
@@ -115,10 +116,10 @@ public class ReadTagService implements CipService<ByteBuf> {
 
     }
 
-    private ByteBuf responseData = null;
+    private ByteBuffer responseData = null;
 
     @Override
-    public ByteBuf getResponseData() {
+    public ByteBuffer getResponseData() {
         return responseData;
     }
 }
