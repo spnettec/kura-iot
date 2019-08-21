@@ -184,6 +184,7 @@ public final class CIPData {
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         this.type = CIPData.Type.forCode(byteBuffer.getShort());
         this.data = byteBuffer.slice();
+        this.data.order(ByteOrder.LITTLE_ENDIAN);
         this.elements = this.determineElementCount();
     }
 
