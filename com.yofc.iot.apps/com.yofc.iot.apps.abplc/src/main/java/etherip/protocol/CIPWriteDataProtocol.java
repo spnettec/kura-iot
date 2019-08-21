@@ -48,8 +48,10 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
         buf.writeShortLE(this.data.getType().getCode());
         // STRUCT already contains structure detail, elements etc.
         // For other types, add the element count
+        this.data.getData().clear();
         if (this.data.getType() == Type.STRUCT) {
-            final short struct_detail = this.data.getData().readShortLE();
+
+            final short struct_detail = this.data.getData().getShort();
             if (struct_detail != Type.STRUCT_STRING.getCode()) {
                 throw new CodedcException("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
             }
@@ -63,9 +65,9 @@ public class CIPWriteDataProtocol extends ProtocolAdapter {
             if (dataOffset > 0)
                 buf.writeIntLE(dataOffset);
             // Copy length, chars from data into buf
-            int length = this.data.getData().readableBytes();
-            int offset = data.getData().writerIndex() + 84 - (length > 84 ? 84 : length);
-            data.getData().writerIndex(offset);
+            int length = this.data.getData().remaining();
+            int offset = data.getData().limit() + 84 - (length > 84 ? 84 : length);
+            data.getData().limit(offset);
             buf.writeBytes(this.data.getData());
         } else {
             int vSize = this.data.getType().getElementSize();

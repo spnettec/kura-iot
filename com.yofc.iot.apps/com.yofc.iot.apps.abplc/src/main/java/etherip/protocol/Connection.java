@@ -8,6 +8,7 @@
 package etherip.protocol;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.concurrent.atomic.LongAdder;
 
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public abstract class Connection implements AutoCloseable {
     protected final int slot;
 
     protected final ByteBuf buffer;
+    protected final ByteBuffer iobuffer = ByteBuffer.allocate(600).order(ByteOrder.LITTLE_ENDIAN);
 
     private int session = 0;
 
@@ -93,20 +95,15 @@ public abstract class Connection implements AutoCloseable {
         return this.buffer;
     }
 
-    public int getResponseSize(final ByteBuf buf) throws Exception {
-        // Need at least the encapsulation header
-        final int needed = 24 - buf.readerIndex();
-        if (needed > 0) {
-            return needed;
-        }
+    public int getResponseSize(final ByteBuffer buf) throws Exception {
 
         // Buffer contains header (and maybe more after that)
-        final short command_code = buf.getShortLE(0);
+        final short command_code = buf.getShort(0);
         final Command cmd = Command.forCode(command_code);
         if (cmd == null) {
             throw new Exception("Received unknown command code " + command_code);
         }
-        final short body_size = buf.getShortLE(2);
+        final short body_size = buf.getShort(2);
 
         return 24 + body_size;
     }

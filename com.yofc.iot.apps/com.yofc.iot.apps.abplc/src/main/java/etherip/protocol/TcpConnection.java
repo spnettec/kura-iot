@@ -88,15 +88,15 @@ public class TcpConnection extends Connection {
     @Override
     public void read(final ProtocolDecoder decoder) throws Exception {
         // Read until protocol has enough data to decode
-        ByteBuffer b = ByteBuffer.allocate(600);
+        iobuffer.clear();
         do {
-            this.channel.read(b).get(this.timeoutMs, MILLISECONDS);
-        } while (b.position() < getResponseSize(this.buffer));
+            this.channel.read(iobuffer).get(this.timeoutMs, MILLISECONDS);
+        } while (iobuffer.position() < 24 || iobuffer.position() < getResponseSize(iobuffer));
 
         // Prepare to decode
-        b.flip();
+        iobuffer.flip();
         this.buffer.clear();
-        this.buffer.writeBytes(b);
+        this.buffer.writeBytes(iobuffer);
         decoder.decode(this.buffer);
 
     }

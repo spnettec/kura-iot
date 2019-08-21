@@ -7,14 +7,28 @@
  *******************************************************************************/
 package etherip.types;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-
+/**
+ * ControlNet data types
+ * <p>
+ * Spec. 5 p.3
+ * <p>
+ * Raw CIP data is kept in a <code>byte[]</code>. This class can decode the data or manipulate it.
+ * <p>
+ * Note that all operations that 'set' the value require that the CIPData already holds the respective type. For
+ * example, setting a CIPData of type REAL to an integer value will still result in a
+ * REAL, not change the type to INT. Setting a CIPData of type INT to a floating point value will truncate the floating
+ * point to an integer, since the CIPData remains an INT. Only CIPData with a
+ * string-containing STRUCT can be set to a string.
+ *
+ * @author Kay Kasemir
+ */
 public final class CIPData {
 
     public enum Type {
@@ -81,9 +95,9 @@ public final class CIPData {
     private final short elements;
 
     /** Raw data, not including type code or element count */
-    private final ByteBuf data;
+    private final ByteBuffer data;
 
-    public ByteBuf getData() {
+    public ByteBuffer getData() {
         return data;
     }
 
@@ -105,7 +119,8 @@ public final class CIPData {
         case DINT:
         case BITS:
         case REAL:
-            this.data = Unpooled.buffer(type.elementSize * elements);
+            this.data = ByteBuffer.allocate(type.elementSize * elements);
+            this.data.order(ByteOrder.LITTLE_ENDIAN);
             this.type = type;
             this.elements = (short) elements;
             break;
@@ -122,12 +137,14 @@ public final class CIPData {
         case DINT:
         case BITS:
         case REAL:
-            this.data = Unpooled.buffer(type.elementSize * 1);
+            this.data = ByteBuffer.allocate(type.elementSize * 1);
+            this.data.order(ByteOrder.LITTLE_ENDIAN);
             this.type = type;
             this.elements = (short) 1;
             break;
         case STRUCT:
-            this.data = Unpooled.buffer(92);
+            this.data = ByteBuffer.allocate(92);
+            this.data.order(ByteOrder.LITTLE_ENDIAN);
             this.type = type;
             this.elements = (short) 1;
             break;
@@ -137,7 +154,8 @@ public final class CIPData {
     }
 
     public CIPData(String text) throws Exception {
-        this.data = Unpooled.buffer(92);
+        this.data = ByteBuffer.allocate(92);
+        this.data.order(ByteOrder.LITTLE_ENDIAN);
         this.type = Type.STRUCT;
         this.elements = (short) 1;
         setString(text);
@@ -156,13 +174,9 @@ public final class CIPData {
      */
     public CIPData(final Type type, final byte[] data) {
         this.type = type;
-        this.data = Unpooled.wrappedBuffer(data);
-        this.elements = this.determineElementCount();
-    }
-
-    public CIPData(final Type type, final ByteBuf data) {
-        this.type = type;
-        this.data = data.unwrap().copy(data.readerIndex(), data.readableBytes());
+        this.data = ByteBuffer.allocate(data.length);
+        this.data.order(ByteOrder.LITTLE_ENDIAN);
+        this.data.put(data);
         this.elements = this.determineElementCount();
     }
 
@@ -216,14 +230,14 @@ public final class CIPData {
         switch (this.type) {
         case BOOL:
         case SINT:
-            return Byte.valueOf(this.data.getByte(this.type.elementSize * index));
+            return Byte.valueOf(this.data.get(this.type.elementSize * index));
         case INT:
-            return Short.valueOf(this.data.getShortLE(this.type.elementSize * index));
+            return Short.valueOf(this.data.getShort(this.type.elementSize * index));
         case DINT:
         case BITS:
-            return Integer.valueOf(this.data.getIntLE(this.type.elementSize * index));
+            return Integer.valueOf(this.data.getInt(this.type.elementSize * index));
         case REAL:
-            return Float.valueOf(this.data.getFloatLE(this.type.elementSize * index));
+            return Float.valueOf(this.data.getFloat(this.type.elementSize * index));
         default:
             throw new Exception("Cannot retrieve Number from " + this.type);
         }
@@ -233,23 +247,26 @@ public final class CIPData {
         switch (this.type) {
         case BOOL:
         case SINT:
-            return Byte.valueOf(this.data.getByte(0));
+            return Byte.valueOf(this.data.get(0));
         case INT:
-            return Short.valueOf(this.data.getShortLE(0));
+            return Short.valueOf(this.data.getShort(0));
         case DINT:
         case BITS:
-            return Integer.valueOf(this.data.getIntLE(0));
+            return Integer.valueOf(this.data.getInt(0));
         case REAL:
-            return Float.valueOf(this.data.getFloatLE(0));
+            return Float.valueOf(this.data.getFloat(0));
         case STRUCT: {
-            final int len = this.data.getIntLE(2);
+            int len = this.data.getInt(2);
 
-            final short code = this.data.getShortLE(0);
+            final short code = this.data.getShort(0);
             final Type elType = Type.forCode(code);
             if (len > 0) {
+                if (len > this.data.limit() - 6) {
+                    len = this.data.limit() - 6;
+                }
                 final byte[] chars = new byte[len];
                 for (int i = 0; i < len; ++i) {
-                    chars[i] = this.data.getByte(6 + i);
+                    chars[i] = this.data.get(6 + i);
                 }
                 if (elType == Type.STRUCT_STRING)
                     return new String(chars);
@@ -282,19 +299,15 @@ public final class CIPData {
         if (this.type != Type.STRUCT) {
             throw new Exception("Type " + this.type + " does not contain string");
         }
-
-        final short code = this.data.getShortLE(0);
+        final short code = this.data.getShort(0);
         final Type el_type = Type.forCode(code);
         if (el_type != Type.STRUCT_STRING) {
             throw new Exception("No string, structure element is of type " + this.type);
         }
-        int len = this.data.getIntLE(2);
-        if (len > this.data.writerIndex() - 6) {
-            len = this.data.writerIndex() - 6;
-        }
+        final int len = this.data.getInt(2);
         final byte[] chars = new byte[len];
         for (int i = 0; i < len; ++i) {
-            chars[i] = this.data.getByte(6 + i);
+            chars[i] = this.data.get(6 + i);
         }
         return new String(chars);
     }
@@ -311,26 +324,27 @@ public final class CIPData {
      * @throws IndexOutOfBoundsException
      *             if index is invalid
      */
-    public final synchronized void set(final int index, final Number value)
+    public final synchronized CIPData set(final int index, final Number value)
             throws Exception, IndexOutOfBoundsException {
         switch (this.type) {
         case BOOL:
         case SINT:
-            this.data.setByte(this.type.elementSize * index, value.byteValue());
+            this.data.put(this.type.elementSize * index, value.byteValue());
             break;
         case INT:
-            this.data.setShortLE(this.type.elementSize * index, value.shortValue());
+            this.data.putShort(this.type.elementSize * index, value.shortValue());
             break;
         case DINT:
         case BITS:
-            this.data.setIntLE(this.type.elementSize * index, value.intValue());
+            this.data.putInt(this.type.elementSize * index, value.intValue());
             break;
         case REAL:
-            this.data.setFloatLE(this.type.elementSize * index, value.floatValue());
+            this.data.putFloat(this.type.elementSize * index, value.floatValue());
             break;
         default:
             throw new Exception("Cannot set type " + this.type + " to a number");
         }
+        return this;
     }
 
     /**
@@ -341,27 +355,25 @@ public final class CIPData {
      * @throws Exception
      *             if data does not contain a string
      */
-    public final synchronized void setString(final String text) throws Exception {
+    public final synchronized CIPData setString(final String text) throws Exception {
         if (this.type != Type.STRUCT) {
             throw new Exception("Type " + this.type + " does not contain string");
         }
-        this.data.clear();
-        this.data.writeShortLE(Type.STRUCT_STRING.code);
+        this.data.putShort(0, Type.STRUCT_STRING.code);
 
         // Try to fit the text,
         // but limit it to size of buffer,
         // starting at the offset for the text
         // (2 byte STRUCT_STRING, 4 byte length)
         // and allow for the final '\0' byte
-        final int len = Math.min(text.length(), 84);
-        this.data.writeIntLE(len);
+        final int len = Math.min(text.length(), this.data.capacity() - 6);
+        this.data.putInt(2, len);
 
         final byte[] chars = text.getBytes();
-        for (int i = 0; i < len; ++i) {
-            this.data.writeByte(chars[i]);
+        for (int i = 0; i < len; i++) {
+            this.data.put(6 + i, chars[i]);
         }
-        // this.data.writeByte((byte) 0);
-        this.data.setIndex(0, this.data.capacity());
+        return this;
     }
 
     /** @return String representation for debugging */
@@ -369,20 +381,21 @@ public final class CIPData {
     public final synchronized String toString() {
         final StringBuilder result = new StringBuilder();
         result.append("CIP_").append(this.type).append(": ");
-        final ByteBuf buf = this.data.asReadOnly();
-        buf.readerIndex(0);
+        final ByteBuffer buf = this.data.asReadOnlyBuffer();
+        buf.order(this.data.order());
+        buf.clear();
         switch (this.type) {
         case BOOL:
         case SINT: {
             final byte[] values = new byte[this.elements];
-            buf.readBytes(values);
+            buf.get(values);
             result.append(Arrays.toString(values));
             break;
         }
         case INT: {
             final short[] values = new short[this.elements];
             for (int i = 0; i < this.elements; ++i) {
-                values[i] = buf.readShortLE();
+                values[i] = buf.getShort();
             }
             result.append(Arrays.toString(values));
             break;
@@ -391,7 +404,7 @@ public final class CIPData {
         case BITS: {
             final int[] values = new int[this.elements];
             for (int i = 0; i < this.elements; ++i) {
-                values[i] = buf.readIntLE();
+                values[i] = buf.getInt();
             }
             result.append(Arrays.toString(values));
             break;
@@ -399,13 +412,13 @@ public final class CIPData {
         case REAL: {
             final float[] values = new float[this.elements];
             for (int i = 0; i < this.elements; ++i) {
-                values[i] = buf.readFloatLE();
+                values[i] = buf.getFloat();
             }
             result.append(Arrays.toString(values));
             break;
         }
         case STRUCT: {
-            final short code = buf.readShortLE();
+            final short code = buf.getShort();
             final Type el_type;
             try {
                 el_type = Type.forCode(code);
@@ -415,12 +428,12 @@ public final class CIPData {
             }
             if (el_type == Type.STRUCT_STRING) {
                 result.append(Type.STRUCT_STRING).append(" ");
-                int len = buf.readIntLE();
-                if (len > buf.readableBytes()) {
-                    len = buf.readableBytes();
+                int len = buf.getInt();
+                if (len > buf.remaining()) {
+                    len = buf.remaining();
                 }
                 final byte[] chars = new byte[len];
-                buf.readBytes(chars);
+                buf.get(chars);
                 final String value = new String(chars);
                 result.append("'").append(value).append("', len " + len);
             } else {

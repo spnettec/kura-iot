@@ -108,17 +108,17 @@ public class UdpConnection extends Connection {
     public void read(final ProtocolDecoder decoder) throws Exception {
         // Read until protocol has enough data to decode
         this.buffer.clear();
-        ByteBuffer b = this.buffer.nioBuffer();
         if (this.channel.isBlocking()) {
             this.channel.socket().setSoTimeout((int) this.timeoutMs);
         }
         do {
-            this.channel.receive(b);
-        } while (b.position() < getResponseSize(this.buffer));
+            this.channel.receive(iobuffer);
+        } while (iobuffer.position() < 24 || iobuffer.position() < getResponseSize(iobuffer));
         // Prepare to decode
-        b.flip();
+        iobuffer.flip();
+        iobuffer.clear();
         if (logger.isInfoEnabled()) {
-            logger.info("Data read ({} bytes):\n{}", b.remaining(), Hexdump.toHexdump(b));
+            logger.info("Data read ({} bytes):\n{}", iobuffer.remaining(), Hexdump.toHexdump(iobuffer));
         }
 
         decoder.decode(this.buffer);
