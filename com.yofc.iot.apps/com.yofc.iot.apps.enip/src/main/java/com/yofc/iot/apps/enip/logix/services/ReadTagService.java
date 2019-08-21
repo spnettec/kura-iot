@@ -83,7 +83,9 @@ public class ReadTagService implements CipService<ByteBuffer> {
             int currentIndex = data.readerIndex();
             int headCount = structured ? 4 : 2;
             data.readerIndex(currentIndex + headCount);
-            byte[] bytes = new byte[data.readableBytes()];
+            int dataLength = data.readableBytes();
+            offset.addAndGet(dataLength);
+            byte[] bytes = new byte[dataLength];
             data.readBytes(bytes);
             buffers.add(bytes);
             data.readerIndex(currentIndex);
@@ -93,8 +95,9 @@ public class ReadTagService implements CipService<ByteBuffer> {
                     data.readBytes(head);
                     buffers.add(0, head);
                     int allCount = buffers.stream().mapToInt(bt -> bt.length).sum();
-                    ByteBuffer byteBuffer = ByteBuffer.allocate(allCount).order(ByteOrder.LITTLE_ENDIAN);
-                    buffers.stream().forEach(byteBuffer::put);
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(allCount);
+                    byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+                    buffers.stream().forEachOrdered(byteBuffer::put);
                     buffers.clear();
                     offset.set(0);
                     byteBuffer.flip();

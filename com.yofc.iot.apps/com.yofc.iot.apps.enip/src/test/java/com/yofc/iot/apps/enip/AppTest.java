@@ -43,8 +43,8 @@ public class AppTest {
     @Test
     @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
     public void testLogixRead(Vertx vertx, VertxTestContext context) {
-        vertx.setPeriodic(10, l -> {
-            invokeRead(false, context, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
+        vertx.setPeriodic(100, l -> {
+            invokeRead(true, context, "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
                     "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI", "FURNACE_MOTOR_MODE_SELECT_HMI",
                     "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
                     "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO", "SYSTEM_BAR_NO",
