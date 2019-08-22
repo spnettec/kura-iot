@@ -87,6 +87,7 @@ import io.netty.channel.DefaultChannelPromise;
 import io.netty.channel.PendingWriteQueue;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.PromiseCombiner;
 
 /**
@@ -113,7 +114,6 @@ public class S7Protocol extends ChannelDuplexHandler {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         protected void decode(ChannelHandlerContext ctx, Object msg, List<Object> out) {
             S7Protocol.this.decode(ctx, (IsoTPMessage) msg, out);
         }
@@ -174,11 +174,11 @@ public class S7Protocol extends ChannelDuplexHandler {
      * corresponding S7 setup communication message has to be sent in order to negotiate the S7 protocol layer.
      *
      * @param ctx
-     *            the current protocol layers context
+     *                the current protocol layers context
      * @param evt
-     *            the event
+     *                the event
      * @throws Exception
-     *             throws an exception if something goes wrong internally
+     *                       throws an exception if something goes wrong internally
      */
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -215,7 +215,7 @@ public class S7Protocol extends ChannelDuplexHandler {
                 }
 
                 // Create a promise that has to be called multiple times.
-                PromiseCombiner promiseCombiner = new PromiseCombiner();
+                PromiseCombiner promiseCombiner = new PromiseCombiner(ImmediateEventExecutor.INSTANCE);
                 for (S7Message message : messages) {
                     ByteBuf buf = Unpooled.buffer();
                     writeS7Message(promise.channel(), promiseCombiner, message, buf);
@@ -250,7 +250,7 @@ public class S7Protocol extends ChannelDuplexHandler {
             ChannelPromise subPromise = new DefaultChannelPromise(channel);
             // The tpduRef was 0x01 but had to be changed to 0x00 in order to support Siemens LOGO devices.
             queue.add(new DataTpdu(true, (byte) 0x00, Collections.emptyList(), buf, message), subPromise);
-            promiseCombiner.add((Future) subPromise);
+            promiseCombiner.add((Future<?>) subPromise);
             logger.debug("S7 Message with id {} queued", message.getTpduReference());
         }
     }

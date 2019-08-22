@@ -198,7 +198,7 @@ public class CipConnectionPool {
     public static class DefaultConnectionFactory implements CipConnectionFactory {
 
         private static final Duration DEFAULT_RPI = Duration.ofSeconds(2);
-        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(15);
+        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
 
         private static final PaddedEPath MESSAGE_ROUTER_CP_PATH = new PaddedEPath(new ClassId(0x02),
                 new InstanceId(0x01));
