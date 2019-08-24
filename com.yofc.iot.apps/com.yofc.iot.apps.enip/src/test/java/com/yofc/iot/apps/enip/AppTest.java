@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.apps.enip.cip.structs.CIPData;
+import com.yofc.iot.apps.enip.cip.structs.CIPData.Type;
 import com.yofc.iot.apps.enip.driver.EIPDriverClient;
 
 import io.vertx.core.Vertx;
@@ -80,21 +81,20 @@ public class AppTest {
         });
 
     }
-    /*
-     * @Test
-     * 
-     * @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
-     * public void testLogixWrite(Vertx vertx, VertxTestContext context) throws Exception {
-     * String[] tags = { "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO" };
-     * CIPData[] datas = { new CIPData(Type.INT).set(0, 44), new CIPData(
-     * "asasa1111111111111111111111111111111111111111111111111111111111111111111111111eeddccbbaaqq") };
-     * client.writeTags(true, tags, datas).whenComplete((data, ex) -> {
-     * if (ex == null)
-     * logger.info("WriteTagService completed.");
-     * else
-     * ex.printStackTrace();
-     * context.completeNow();
-     * });
-     * }
-     */
+
+    // @Test
+    @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
+    public void testLogixWrite(Vertx vertx, VertxTestContext context) throws Exception {
+        String[] tags = { "FURNACE_MOTOR_MODE_SELECT_HMI", "SYSTEM_BAR_NO" };
+        CIPData[] datas = { new CIPData(Type.INT).set(0, 44), new CIPData(
+                "asasa1111111111111111111111111111111111111111111111111111111111111111111111111eeddccbbaaqq") };
+        client.writeTags(true, tags, datas).whenComplete((data, ex) -> {
+            if (ex == null)
+                logger.info("WriteTagService completed.");
+            else
+                ex.printStackTrace();
+            context.completeNow();
+        });
+    }
+
 }

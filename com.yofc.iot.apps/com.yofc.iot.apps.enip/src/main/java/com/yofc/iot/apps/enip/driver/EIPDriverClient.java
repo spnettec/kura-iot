@@ -108,12 +108,27 @@ public class EIPDriverClient {
     }
 
     public CompletableFuture<CIPData[]> readTags(int maxNumberOfRequestsPerGroup, boolean connected, String... tags) {
+        int elementCounts[] = new int[tags.length];
+        for (int i = 0; i < elementCounts.length; i++)
+            elementCounts[i] = 1;
+        return readTags(maxNumberOfRequestsPerGroup, connected, tags, elementCounts);
+    }
+
+    public CompletableFuture<CIPData[]> readTags(int maxNumberOfRequestsPerGroup, boolean connected, String tags[],
+            int elementCounts[]) {
+        CompletableFuture<CIPData[]> completFuture = new CompletableFuture<>();
+        if (tags.length != elementCounts.length) {
+            completFuture.completeExceptionally(new RuntimeException("paramater error"));
+            return completFuture;
+        }
         int currentGroupByteCount = 0;
         List<CipService<?>> groupMessages = new ArrayList<>();
         List<CipService<ByteBuffer>> mgroupMessages = new ArrayList<>();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
-        for (String tag : tags) {
-            ReadTagFragmentedService service = new ReadTagFragmentedService(tag);
+        for (int i = 0; i < tags.length; i++) {
+            String tag = tags[i];
+            int elementCount = elementCounts[i];
+            ReadTagFragmentedService service = new ReadTagFragmentedService(tag, elementCount);
             mgroupMessages.add(service);
             int messageSize = service.getRequestSize();
             if (currentGroupByteCount + messageSize > 450 || groupMessages.size() == maxNumberOfRequestsPerGroup) {
@@ -139,7 +154,7 @@ public class EIPDriverClient {
                 future = client.invokeUnconnected(mservice).thenApply(b -> null);
             futures.add(future);
         }
-        CompletableFuture<CIPData[]> completFuture = new CompletableFuture<>();
+
         sequenceFuture(futures).whenComplete(Utils.BiConsumerWrapper((action, ex) -> {
             if (ex != null)
                 completFuture.completeExceptionally(ex);
@@ -222,8 +237,12 @@ public class EIPDriverClient {
     }
 
     public CompletableFuture<CIPData> readTag(boolean connected, String tag) {
+        return readTag(connected, tag, 1);
+    }
+
+    public CompletableFuture<CIPData> readTag(boolean connected, String tag, int elementCount) {
         CompletableFuture<CIPData> completFuture = new CompletableFuture<>();
-        ReadTagService service = new ReadTagService(tag);
+        ReadTagService service = new ReadTagService(tag, elementCount);
         if (!isConnected())
             connect();
         if (!connected)

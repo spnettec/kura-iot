@@ -31,7 +31,7 @@ public class ReadTagService implements CipService<ByteBuffer> {
      * Create a ReadTagService requesting 1 element at {@code requestPath}.
      *
      * @param requestPath
-     *            the path to the tag to read.
+     *                        the path to the tag to read.
      */
     public ReadTagService(PaddedEPath requestPath) {
         this(requestPath, 1);
@@ -51,9 +51,9 @@ public class ReadTagService implements CipService<ByteBuffer> {
      * Create a ReadTagService requesting {@code elementCount} elements at {@code requestPath}.
      *
      * @param requestPath
-     *            the path to the tag to read.
+     *                         the path to the tag to read.
      * @param elementCount
-     *            the number of elements to request.
+     *                         the number of elements to request.
      */
     public ReadTagService(PaddedEPath requestPath, int elementCount) {
         this.requestPath = requestPath;
@@ -78,25 +78,24 @@ public class ReadTagService implements CipService<ByteBuffer> {
             if (status == 0x06 && data.readableBytes() == 0) {
                 throw PartialResponseException.INSTANCE;
             }
-
-            boolean structured = data.getShortLE(data.readerIndex()) == 0x02A0;
-            int currentIndex = data.readerIndex();
-            int headCount = structured ? 4 : 2;
-            data.readerIndex(currentIndex + headCount);
+            short code = data.readShortLE();
+            Short subCode = null;
+            if (code == 0x02A0)
+                subCode = data.readShortLE();
             int dataLength = data.readableBytes();
             offset.addAndGet(dataLength);
             byte[] bytes = new byte[dataLength];
             data.readBytes(bytes);
             buffers.add(bytes);
-            data.readerIndex(currentIndex);
             if (status == 0x00) {
                 synchronized (buffers) {
-                    byte[] head = new byte[headCount];
-                    data.readBytes(head);
-                    buffers.add(0, head);
-                    int allCount = buffers.stream().mapToInt(bt -> bt.length).sum();
+                    int allCount = buffers.stream().mapToInt(bt -> bt.length).sum() + 2;
+                    allCount += subCode == null ? 0 : 2;
                     ByteBuffer byteBuffer = ByteBuffer.allocate(allCount);
                     byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+                    byteBuffer.putShort(code);
+                    if (subCode != null)
+                        byteBuffer.putShort(subCode);
                     buffers.stream().forEachOrdered(byteBuffer::put);
                     buffers.clear();
                     offset.set(0);

@@ -105,11 +105,11 @@ public final class CIPData {
      * Initialize empty CIP data
      *
      * @param type
-     *            Data {@link Type}
+     *                     Data {@link Type}
      * @param elements
-     *            Number of elements
+     *                     Number of elements
      * @throws Exception
-     *             when type is not handled
+     *                       when type is not handled
      */
     public CIPData(final Type type, final int elements) throws Exception {
         switch (type) {
@@ -166,11 +166,11 @@ public final class CIPData {
      * Initialize
      *
      * @param type
-     *            Data type
+     *                 Data type
      * @param data
-     *            Bytes that contain the raw CIP data
+     *                 Bytes that contain the raw CIP data
      * @throws Exception
-     *             when data is invalid
+     *                       when data is invalid
      */
     public CIPData(final Type type, final byte[] data) {
         this.type = type;
@@ -227,12 +227,12 @@ public final class CIPData {
      * Read CIP data as number
      *
      * @param index
-     *            Element index 0, 1, ...
+     *                  Element index 0, 1, ...
      * @return Numeric value of requested element
      * @throws Exception
-     *             on error, if data is not numeric
+     *                                       on error, if data is not numeric
      * @throws IndexOutOfBoundsException
-     *             if index is invalid
+     *                                       if index is invalid
      */
     public final synchronized Number getNumber(final int index) throws Exception, IndexOutOfBoundsException {
         switch (this.type) {
@@ -269,9 +269,6 @@ public final class CIPData {
             final short code = this.data.getShort(0);
             final Type elType = Type.forCode(code);
             if (len > 0) {
-                if (len > this.data.limit() - 6) {
-                    len = this.data.limit() - 6;
-                }
                 final byte[] chars = new byte[len];
                 for (int i = 0; i < len; ++i) {
                     chars[i] = this.data.get(6 + i);
@@ -301,7 +298,7 @@ public final class CIPData {
      *
      * @return {@link String}
      * @throws Exception
-     *             if data does not contain a string
+     *                       if data does not contain a string
      */
     public final synchronized String getString() throws Exception {
         if (this.type != Type.STRUCT) {
@@ -324,13 +321,13 @@ public final class CIPData {
      * Set CIP data
      *
      * @param index
-     *            Element index 0, 1, ...
+     *                  Element index 0, 1, ...
      * @param value
-     *            Numeric value to write to that element
+     *                  Numeric value to write to that element
      * @throws Exception
-     *             on invalid data type
+     *                                       on invalid data type
      * @throws IndexOutOfBoundsException
-     *             if index is invalid
+     *                                       if index is invalid
      */
     public final synchronized CIPData set(final int index, final Number value)
             throws Exception, IndexOutOfBoundsException {
@@ -359,9 +356,9 @@ public final class CIPData {
      * Write CIP data as string
      *
      * @param text
-     *            {@link String}
+     *                 {@link String}
      * @throws Exception
-     *             if data does not contain a string
+     *                       if data does not contain a string
      */
     public final synchronized CIPData setString(final String text) throws Exception {
         if (this.type != Type.STRUCT) {
@@ -437,9 +434,6 @@ public final class CIPData {
             if (el_type == Type.STRUCT_STRING) {
                 result.append(Type.STRUCT_STRING).append(" ");
                 int len = buf.getInt();
-                if (len > buf.remaining()) {
-                    len = buf.remaining();
-                }
                 final byte[] chars = new byte[len];
                 buf.get(chars);
                 final String value = new String(chars);
