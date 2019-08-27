@@ -211,9 +211,18 @@ public class SerialDriver implements Driver, ConfigurableComponent {
                 throw new ConnectionException("Data Error");
 
             ChannelRecord record = request.getRecord();
+            Integer tagReadLength = null;
+            try {
+                tagReadLength = getIntProperty(record, SerialChannelDescriptor.DATA_TAG_READ_LENGTH,
+                        "Serial Tag setting error");
+            } catch (KuraException e) {
+                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                record.setTimestamp(System.currentTimeMillis());
+                continue;
+            }
             record.setTimestamp(System.currentTimeMillis());
             try {
-                this.state.client.writeTag(tagName, data);
+                this.state.client.writeTag(tagName, data, tagReadLength);
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
             } catch (Exception e) {

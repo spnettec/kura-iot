@@ -66,7 +66,9 @@ public class SerialDriverClient {
             byte[] readBuffer = new byte[comPort.bytesAvailable()];
             comPort.readBytes(readBuffer, readBuffer.length);
         }
-        comPort.writeBytes(result, result.length);
+        int retrunNum = comPort.writeBytes(result, result.length);
+        if (retrunNum <= 0)
+            throw new RuntimeException("read sen command error: no bytes sent");
         int bytesNum = 0;
         int tryNum = 0;
         while ((bytesNum = comPort.bytesAvailable()) <= 0 && tryNum < 200) {
@@ -78,7 +80,7 @@ public class SerialDriverClient {
         }
         if (bytesNum <= 0) {
             logger.error("read error: no bytes return");
-            return "";
+            throw new RuntimeException("write error: no bytes return");
         }
         byte[] byes = new byte[bytesNum];
         comPort.readBytes(byes, byes.length);
@@ -103,14 +105,23 @@ public class SerialDriverClient {
 
     }
 
-    public synchronized void writeTag(String tagName, String value) {
+    public synchronized void writeTag(String tagName, String value, Integer tagReadLength) {
+        byte[] strBytes = value.getBytes();
+        int writeLen = tagReadLength;
+        if (tagReadLength == null)
+            writeLen = strBytes.length;
         ByteBuffer buffer = ByteBuffer.allocate(255);
-        byte[] dataBytes = value.getBytes();
+        byte[] dataBytes = new byte[writeLen];
+        for (int i = 0; i < writeLen; i++) {
+            if (i < strBytes.length)
+                dataBytes[i] = strBytes[i];
+            else
+                dataBytes[i] = 0;
+        }
         byte readNo = CRC16Util.HexStr2Byte(tagName);
         byte writeCmd = 0x07;
         byte blank = 0x03;
         byte startArea = 0x00;
-        int writeLen = dataBytes.length;
 
         byte eof = (byte) ~readNo;
         buffer.put(readNo);
@@ -159,7 +170,7 @@ public class SerialDriverClient {
         }
         if (byes[4] != 0) {
             if (byes[4] == 1) {
-                writeTag(tagName, value);
+                writeTag(tagName, value, tagReadLength);
             } else
                 throw new RuntimeException("write error: error code:" + CRC16Util.byte2HexStr(byes[4]));
         }
