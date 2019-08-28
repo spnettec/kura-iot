@@ -18,6 +18,7 @@ public class SerialDriverClient {
     private int flowControl = 0;
     private int parity = 0;
     private int stopBits = 8;
+    private ByteBuffer buffer = ByteBuffer.allocate(255);
 
     public SerialDriverClient(String serialPort, int baudRate, int flowControl, int parity, int stopBits) {
         this.serialPort = serialPort;
@@ -44,7 +45,7 @@ public class SerialDriverClient {
     }
 
     public synchronized String readTag(String tagName, int tagReadLength) {
-        ByteBuffer buffer = ByteBuffer.allocate(255);
+        buffer.clear();
         byte readNo = CRC16Util.HexStr2Byte(tagName);
         byte lengthHi = 0x00;
         byte lengthLow = 0x08;
@@ -110,7 +111,7 @@ public class SerialDriverClient {
         int writeLen = tagReadLength;
         if (tagReadLength == null)
             writeLen = strBytes.length;
-        ByteBuffer buffer = ByteBuffer.allocate(255);
+        buffer.clear();
         byte[] dataBytes = new byte[writeLen];
         for (int i = 0; i < writeLen; i++) {
             if (i < strBytes.length)
