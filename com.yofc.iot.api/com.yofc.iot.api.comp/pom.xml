@@ -193,7 +193,19 @@
                             {maven-resources}
                         </Include-Resource>
                         <Import-Package>
-                         !org.joda.time.*,!okhttp3,!org.glassfish.*,!org.springframework.*,!retrofit2,!springfox.*,!sun.reflect.annotation,!com.esotericsoftware.*,!com.github.davidmoten.*,!sun.nio.ch,*
+                         !org.joda.time.*,
+                         !okhttp3,!org.glassfish.*,
+                         !org.springframework.*,
+                         !retrofit2,!springfox.*,
+                         !sun.reflect.annotation,
+                         !com.esotericsoftware.*,
+                         !com.github.davidmoten.*,
+                         !sun.nio.ch,
+                         !javax.persistence,
+                         !kotlin.*,
+                         !net.sf.*,
+                         !org.hibernate.*,
+                         *
                         </Import-Package>
                     </instructions>
                 </configuration>
