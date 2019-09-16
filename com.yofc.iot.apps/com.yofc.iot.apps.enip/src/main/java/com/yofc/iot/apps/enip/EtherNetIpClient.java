@@ -74,12 +74,18 @@ public class EtherNetIpClient {
         channelFsm = ChannelFsmFactory.newChannelFsm(fsmConfig);
     }
 
-    public CompletableFuture<EtherNetIpClient> connect() {
+    public synchronized CompletableFuture<EtherNetIpClient> connect() {
         return complete(new CompletableFuture<EtherNetIpClient>())
                 .with(channelFsm.connect().thenApply(c -> EtherNetIpClient.this));
     }
 
-    public CompletableFuture<EtherNetIpClient> disconnect() {
+    public synchronized CompletableFuture<EtherNetIpClient> reConnect() {
+        return complete(new CompletableFuture<EtherNetIpClient>()).with(channelFsm.disconnect().whenComplete((c, e) -> {
+            channelFsm.connect();
+        }).thenApply(c -> EtherNetIpClient.this));
+    }
+
+    public synchronized CompletableFuture<EtherNetIpClient> disconnect() {
         return complete(new CompletableFuture<EtherNetIpClient>())
                 .with(channelFsm.disconnect().thenApply(c -> EtherNetIpClient.this));
     }
@@ -152,6 +158,8 @@ public class EtherNetIpClient {
                 String message = String.format("senderContext=%s timed out waiting %sms for response",
                         packet.getSenderContext(), config.getTimeout().toMillis());
                 p.promise.completeExceptionally(new TimeoutException(message));
+            } else {
+                logger.error("packet {} timeout without penfing", packet);
             }
         }, config.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
 
@@ -163,6 +171,8 @@ public class EtherNetIpClient {
                 if (pending != null) {
                     pending.timeout.cancel();
                     pending.promise.completeExceptionally(f.cause());
+                } else {
+                    logger.error("send packet {} error without penfing", packet);
                 }
             }
         });
@@ -177,6 +187,9 @@ public class EtherNetIpClient {
                 onUnitDataReceived((SendUnitData) packet.getCommand());
             } else {
                 logger.warn("Received SendUnitData command with status: {}", status);
+                if (status == EnipStatus.INVALID_OPEN_FORWORD) {
+                    this.reConnect().join();
+                }
             }
         } else {
             if (commandCode == CommandCode.RegisterSession) {
@@ -198,23 +211,11 @@ public class EtherNetIpClient {
                     pending.promise.completeExceptionally(new Exception("EtherNet/IP status: " + status));
                 }
             }
-            /*
-             * else {
-             * logger.debug("Received response for unknown context: {}", packet.getSenderContext());
-             * 
-             * if (packet.getCommand() instanceof SendRRData) {
-             * CpfPacket cpfPacket = ((SendRRData) packet.getCommand()).getPacket();
-             * 
-             * Arrays.stream(cpfPacket.getItems()).forEach(item -> {
-             * if (item instanceof ConnectedDataItemResponse) {
-             * ReferenceCountUtil.safeRelease(((ConnectedDataItemResponse) item).getData());
-             * } else if (item instanceof UnconnectedDataItemResponse) {
-             * ReferenceCountUtil.safeRelease(((UnconnectedDataItemResponse) item).getData());
-             * }
-             * });
-             * }
-             * }
-             */
+
+            else {
+                logger.error("Received response for unknown context: {}", packet.getSenderContext());
+            }
+
         }
     }
 
@@ -234,7 +235,7 @@ public class EtherNetIpClient {
      * {@link com.digitalpetri.enip.commands.SendUnitData} commands.
      *
      * @param command
-     *            the {@link com.digitalpetri.enip.commands.SendUnitData} command received.
+     *                    the {@link com.digitalpetri.enip.commands.SendUnitData} command received.
      */
     protected void onUnitDataReceived(SendUnitData command) {
     }

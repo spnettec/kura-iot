@@ -103,8 +103,8 @@ public class ChannelFsmFactory {
         fb.onInternalTransition(State.NotConnected).via(Event.GetChannel.class).execute(ctx -> {
             Event.GetChannel getChannelEvent = (Event.GetChannel) ctx.event();
 
-            config.getExecutor()
-                    .execute(() -> getChannelEvent.channelFuture.completeExceptionally(new Exception("not connected")));
+            config.getExecutor().execute(() -> getChannelEvent.channelFuture
+                    .completeExceptionally(new NotConnectedException("not connected")));
         });
     }
 

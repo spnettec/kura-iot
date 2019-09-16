@@ -73,9 +73,13 @@ public class EIPDriver implements Driver, ConfigurableComponent {
     }
 
     @Modified
-    public synchronized void updated(final Config properties) throws ConnectionException {
+    public synchronized void updated(final Config properties) {
         logger.info("Updating EIP-PLC Driver...");
-        disconnect();
+        try {
+            connect();
+        } catch (ConnectionException e) {
+            logger.error("Updating EIP-PLC Driver... Error");
+        }
         extractProperties(properties);
 
         logger.info("Updating EIP-PLC Driver... Done");
@@ -94,25 +98,32 @@ public class EIPDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void connect() throws ConnectionException {
-        try {
-            final Config currentOptions = this.options.get();
+    public synchronized void connect() throws ConnectionException {
+        synchronized (this) {
+            try {
+                final Config currentOptions = this.options.get();
 
-            if (this.state.client == null || this.state.options != currentOptions) {
-                logger.info("configuration changed, disconnecting...");
-                disconnect();
-                this.state = createClientState(currentOptions);
-                logger.info("configuration changed, disconnecting...Done");
-            }
+                if (this.state.client == null || this.state.options != currentOptions) {
+                    if (this.state.client != null)
+                        logger.info("configuration changed, disconnecting...");
+                    else
+                        logger.info("reconnection start, disconnecting...");
+                    this.state = createClientState(currentOptions);
+                    if (this.state.client != null)
+                        logger.info("configuration changed, disconnecting...Done");
+                    else
+                        logger.info("reconnection end, disconnecting...Done");
+                }
 
-            if (!this.state.client.isConnected()) {
-                logger.debug("Connecting to EIP PLC...");
-                this.state.client.setTimeoutMs(this.state.options.timeout());
-                this.state.client.connect();
-                logger.debug("Connecting to EIP PLC... Done");
+                if (!this.state.client.isConnected()) {
+                    logger.debug("Connecting to EIP PLC...");
+                    this.state.client.setTimeoutMs(this.state.options.timeout());
+                    this.state.client.connect();
+                    logger.debug("Connecting to EIP PLC... Done");
+                }
+            } catch (Exception e) {
+                throw new ConnectionException("EIP PLC Connection failed, unexpected exception", e);
             }
-        } catch (Exception e) {
-            throw new ConnectionException("EIP PLC Connection failed, unexpected exception", e);
         }
     }
 
@@ -121,7 +132,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void disconnect() throws ConnectionException {
+    public synchronized void disconnect() throws ConnectionException {
         if (this.state.client != null && this.state.client.isConnected()) {
             logger.debug("Disconnecting from EIP PLC...");
             try {
@@ -132,7 +143,6 @@ public class EIPDriver implements Driver, ConfigurableComponent {
             }
             logger.debug("Disconnecting from EIP PLC... Done");
         }
-
     }
 
     @Override
@@ -240,6 +250,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                     record.setTimestamp(System.currentTimeMillis());
                     // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
                     // disconnect();
+                    throw new ConnectionException(e);
                 }
 
             }
@@ -269,6 +280,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         final Config abOptions = this.options.get();
         int maxItemCountPerRequest = abOptions.maxRequestItems();
         try {
+            if (this.state == null || this.state.client == null || this.state.options == null)
+                throw new RuntimeException("not connected");
             CIPData[] cipDatas = this.state.client
                     .readTags(maxItemCountPerRequest, this.state.options.isToken(), result).get();
             for (int i = 0; i < result.length; i++) {

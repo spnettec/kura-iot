@@ -175,16 +175,13 @@ public class CipConnectionPool {
     public synchronized void clear() {
         queue.clear();
         count.set(0);
-        if (!waitQueue.isEmpty()) {
-            CompletableFuture<CipConnection> next = waitQueue.poll();
+    }
 
-            acquire().whenComplete((c, ex) -> {
-                if (c != null)
-                    next.complete(c);
-                else
-                    next.completeExceptionally(ex);
-            });
-        }
+    public synchronized void expired() {
+        queue.stream().forEach(connection -> {
+            connection.expired();
+        });
+
     }
 
     public interface CipConnectionFactory {
@@ -198,7 +195,7 @@ public class CipConnectionPool {
     public static class DefaultConnectionFactory implements CipConnectionFactory {
 
         private static final Duration DEFAULT_RPI = Duration.ofSeconds(2);
-        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
+        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(15);
 
         private static final PaddedEPath MESSAGE_ROUTER_CP_PATH = new PaddedEPath(new ClassId(0x02),
                 new InstanceId(0x01));
@@ -391,6 +388,10 @@ public class CipConnectionPool {
 
         public long getOriginatorSerialNumber() {
             return originatorSerialNumber;
+        }
+
+        void expired() {
+            lastUse = 0;
         }
 
         void updateLastUse() {

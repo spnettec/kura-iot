@@ -10,7 +10,8 @@ public enum EnipStatus {
     MALFORMED_DATA(0x03),
     INVALID_SESSION_HANDLE(0x64),
     INVALID_LENGTH(0x65),
-    UNSUPPORTED_PROTOCOL_VERSION(0x69);
+    UNSUPPORTED_PROTOCOL_VERSION(0x69),
+    INVALID_OPEN_FORWORD(0x6A);
 
     private final int status;
 
@@ -46,6 +47,8 @@ public enum EnipStatus {
             return INVALID_LENGTH;
         case 0x69:
             return UNSUPPORTED_PROTOCOL_VERSION;
+        case 0x6A:
+            return INVALID_OPEN_FORWORD;
         default:
             throw new RuntimeException(String.format("unrecognized status: 0x%02X", status));
         }

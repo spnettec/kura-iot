@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import com.yofc.iot.apps.enip.cip.structs.CIPData;
 import com.yofc.iot.apps.enip.logix.services.ReadTagFragmentedService;
 import com.yofc.iot.apps.enip.logix.services.ReadTagService;
 import com.yofc.iot.apps.enip.logix.services.WriteTagService;
+import com.yofc.netty.fsm.NotConnectedException;
 import com.yofc.vertx.osgi.api.Utils;
 
 public class EIPDriverClient {
@@ -63,26 +65,28 @@ public class EIPDriverClient {
             client.getConfig().setTimeout(Duration.ofMillis(timeoutMs));
     }
 
+    public long getTimeoutMs() {
+        return timeoutMs;
+    }
+
     public boolean isConnected() {
         return (client != null && pool != null && client.getState().equals("Connected"));
     }
 
-    public void connect() {
-        EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00)
+    public synchronized void connect() {
+        EtherNetIpClientConfig config = EtherNetIpClientConfig.builder(this.address).setSerialNumber(0x00).setLazy(true)
                 .setPort(this.port).setVendorId(0x00).setTimeout(Duration.ofMillis(this.timeoutMs)).build();
         EPath.PaddedEPath connectionPath = new EPath.PaddedEPath(new PortSegment(1, new byte[] { (byte) this.slot }));
-        if (client != null && pool != null && !client.getState().equals("Connected")) {
+        if (client != null && !client.getState().equals("Connected")) {
             try {
                 client.getConfig().setTimeout(Duration.ofMillis(timeoutMs));
                 client.connect().get();
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("connection failure", e);
-                Thread.currentThread().interrupt();
                 client = null;
                 throw new RuntimeException(e);
-            }
-            if (pool != null) {
-                pool.close();
+            } finally {
+                if (pool != null)
+                    pool.close();
                 pool = null;
             }
         } else {
@@ -90,8 +94,6 @@ public class EIPDriverClient {
             try {
                 client.connect().get();
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("connection failure", e);
-                Thread.currentThread().interrupt();
                 client = null;
                 throw new RuntimeException(e);
             }
@@ -100,9 +102,14 @@ public class EIPDriverClient {
         pool = new CipConnectionPool(this.poolSize, client, connectionPath, 500);
     }
 
-    public void close() {
+    public synchronized void close() {
         pool.close();
-        client.disconnect();
+        try {
+            client.disconnect().get(this.timeoutMs, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
         pool = null;
         client = null;
     }
@@ -185,25 +192,36 @@ public class EIPDriverClient {
             connect();
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
-                CompletableFuture<ByteBuffer[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                try {
+                    CompletableFuture<ByteBuffer[]> f = client.invokeConnected(connection.getO2tConnectionId(),
+                            service);
 
-                f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
-                    if (data != null) {
-                        completFuture.complete(null);
-                        pool.release(connection);
-                    } else {
-                        if (ex2 instanceof TimeoutException) {
-                            pool.clear();
-                            executeMultiMessagesWithFuture(service, completFuture);
+                    f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
+                        if (data != null) {
+                            completFuture.complete(null);
                         } else {
-                            completFuture.completeExceptionally(ex2);
-                            pool.release(connection);
+                            if (ex2 instanceof TimeoutException) {
+                                if (EIPDriverClient.this.isConnected()) {
+                                    pool.expired();
+                                    client.reConnect();
+                                }
+                                executeMultiMessagesWithFuture(service, completFuture);
+                                logger.info("first failer excute again");
+                            } else {
+                                completFuture.completeExceptionally(ex2);
+                            }
                         }
-                    }
 
-                }));
+                    }));
+                } finally {
+                    pool.release(connection);
+                }
             } else {
-                completFuture.completeExceptionally(ex);
+                if (ex instanceof NotConnectedException) {
+                    executeMultiMessagesWithFuture(service, completFuture);
+                    logger.info("first get connection failer agin");
+                } else
+                    completFuture.completeExceptionally(ex);
             }
         }));
         return completFuture;
@@ -215,18 +233,26 @@ public class EIPDriverClient {
             connect();
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
-                CompletableFuture<ByteBuffer[]> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                try {
+                    CompletableFuture<ByteBuffer[]> f = client.invokeConnected(connection.getO2tConnectionId(),
+                            service);
 
-                f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
-                    if (data != null) {
-                        completFuture.complete(null);
-                    } else {
-                        completFuture.completeExceptionally(ex2);
-                    }
+                    f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
+                        if (data != null) {
+                            completFuture.complete(null);
+                        } else {
+                            completFuture.completeExceptionally(ex2);
+                        }
+                    }));
+                } finally {
                     pool.release(connection);
-                }));
+                }
             } else {
-                completFuture.completeExceptionally(ex);
+                if (ex instanceof NotConnectedException) {
+                    executeMultiMessagesWithFuture(service, completFuture);
+                    logger.info("twice get connection failer agin");
+                } else
+                    completFuture.completeExceptionally(ex);
             }
         }));
         return completFuture;
@@ -255,21 +281,24 @@ public class EIPDriverClient {
             });
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
-                CompletableFuture<ByteBuffer> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                try {
+                    CompletableFuture<ByteBuffer> f = client.invokeConnected(connection.getO2tConnectionId(), service);
 
-                f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
-                    if (data != null) {
-                        try {
-                            CIPData cipdata = new CIPData(data);
-                            completFuture.complete(cipdata);
-                        } catch (Exception e) {
-                            completFuture.completeExceptionally(e);
+                    f.whenComplete(Utils.BiConsumerWrapper((data, ex2) -> {
+                        if (data != null) {
+                            try {
+                                CIPData cipdata = new CIPData(data);
+                                completFuture.complete(cipdata);
+                            } catch (Exception e) {
+                                completFuture.completeExceptionally(e);
+                            }
+                        } else {
+                            completFuture.completeExceptionally(ex2);
                         }
-                    } else {
-                        completFuture.completeExceptionally(ex2);
-                    }
+                    }));
+                } finally {
                     pool.release(connection);
-                }));
+                }
             } else {
                 completFuture.completeExceptionally(ex);
             }
@@ -326,15 +355,18 @@ public class EIPDriverClient {
             return client.invokeUnconnected(service);
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex0) -> {
             if (connection != null) {
-                CompletableFuture<Void> f = client.invokeConnected(connection.getO2tConnectionId(), service);
-                f.whenComplete(Utils.BiConsumerWrapper((v, ex) -> {
-                    if (ex != null) {
-                        completFuture.completeExceptionally(ex);
-                    } else {
-                        completFuture.complete(null);
-                    }
+                try {
+                    CompletableFuture<Void> f = client.invokeConnected(connection.getO2tConnectionId(), service);
+                    f.whenComplete(Utils.BiConsumerWrapper((v, ex) -> {
+                        if (ex != null) {
+                            completFuture.completeExceptionally(ex);
+                        } else {
+                            completFuture.complete(null);
+                        }
+                    }));
+                } finally {
                     pool.release(connection);
-                }));
+                }
             } else {
                 completFuture.completeExceptionally(ex0);
             }
