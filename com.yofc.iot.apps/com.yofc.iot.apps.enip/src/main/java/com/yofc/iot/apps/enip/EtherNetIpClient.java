@@ -224,10 +224,12 @@ public class EtherNetIpClient {
     }
 
     private void onExceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        logger.debug("onExceptionCaught() {} <-> {}", ctx.channel().localAddress(), ctx.channel().remoteAddress(),
+        logger.error("onExceptionCaught() {} <-> {}", ctx.channel().localAddress(), ctx.channel().remoteAddress(),
                 cause);
-
-        ctx.channel().close();
+        Channel channel = ctx.channel();
+        if (channel.isActive())
+            ctx.close();
+        this.connect();
     }
 
     /**
@@ -315,9 +317,9 @@ public class EtherNetIpClient {
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-            client.onExceptionCaught(ctx, cause);
 
             super.exceptionCaught(ctx, cause);
+            client.onExceptionCaught(ctx, cause);
         }
 
     }

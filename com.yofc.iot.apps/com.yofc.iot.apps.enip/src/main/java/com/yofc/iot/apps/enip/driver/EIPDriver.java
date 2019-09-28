@@ -18,6 +18,8 @@ import static org.eclipse.kura.channel.ChannelFlag.FAILURE;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.kura.KuraErrorCode;
@@ -105,21 +107,21 @@ public class EIPDriver implements Driver, ConfigurableComponent {
 
                 if (this.state.client == null || this.state.options != currentOptions) {
                     if (this.state.client != null)
-                        logger.info("configuration changed, disconnecting...");
+                        logger.debug("configuration changed, disconnecting...");
                     else
-                        logger.info("reconnection start, disconnecting...");
+                        logger.debug("reconnection start, disconnecting...");
                     this.state = createClientState(currentOptions);
                     if (this.state.client != null)
-                        logger.info("configuration changed, disconnecting...Done");
+                        logger.debug("configuration changed, disconnecting...Done");
                     else
-                        logger.info("reconnection end, disconnecting...Done");
+                        logger.debug("reconnection end, disconnecting...Done");
                 }
 
                 if (!this.state.client.isConnected()) {
-                    logger.debug("Connecting to EIP PLC...");
+                    logger.info("Connecting to EIP PLC...");
                     this.state.client.setTimeoutMs(this.state.options.timeout());
                     this.state.client.connect();
-                    logger.debug("Connecting to EIP PLC... Done");
+                    logger.info("Connecting to EIP PLC... Done");
                 }
             } catch (Exception e) {
                 throw new ConnectionException("EIP PLC Connection failed, unexpected exception", e);
@@ -242,14 +244,17 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 record.setTimestamp(System.currentTimeMillis());
             } else {
                 try {
-                    CIPData cipData = this.state.client.readTag(this.state.options.isToken(), tagName).get();
+                    CIPData cipData = this.state.client.readTag(this.state.options.isToken(), tagName)
+                            .get(this.state.options.timeout() * 2, TimeUnit.MILLISECONDS);
                     fillRecord(cipData, record);
                 } catch (Exception e) {
                     logger.error("EIP PLC read error", e);
                     record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     record.setTimestamp(System.currentTimeMillis());
-                    // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-                    // disconnect();
+                    if (e instanceof TimeoutException) {
+                        logger.info("driver timeout, readSingle disconnect");
+                        disconnect();
+                    }
                     throw new ConnectionException(e);
                 }
 
@@ -283,7 +288,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
             if (this.state == null || this.state.client == null || this.state.options == null)
                 throw new RuntimeException("not connected");
             CIPData[] cipDatas = this.state.client
-                    .readTags(maxItemCountPerRequest, this.state.options.isToken(), result).get();
+                    .readTags(maxItemCountPerRequest, this.state.options.isToken(), result)
+                    .get(this.state.options.timeout() * 2, TimeUnit.MILLISECONDS);
             for (int i = 0; i < result.length; i++) {
                 ChannelRecord record = records.get(i);
                 fillRecord(cipDatas[i], record);
@@ -294,8 +300,10 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 record.setTimestamp(System.currentTimeMillis());
             }
-            // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-            // disconnect();
+            if (e instanceof TimeoutException) {
+                logger.info("driver timeout, readmuti disconnect");
+                disconnect();
+            }
             throw new ConnectionException(e);
         }
     }
@@ -318,7 +326,8 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         }
 
         try {
-            this.state.client.writeTags(this.state.options.isToken(), tagNames, cipData).get();
+            this.state.client.writeTags(this.state.options.isToken(), tagNames, cipData)
+                    .get(this.state.options.timeout() * 2, TimeUnit.MILLISECONDS);
             for (Request<WriteParams> request : requests) {
                 ChannelRecord record = request.getRecord();
                 record.setTimestamp(System.currentTimeMillis());
@@ -329,8 +338,10 @@ public class EIPDriver implements Driver, ConfigurableComponent {
                 ChannelRecord record = request.getRecord();
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
             }
-            // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-            // disconnect();
+            if (e instanceof TimeoutException) {
+                logger.info("driver timeout, writeMuti disconnect");
+                disconnect();
+            }
             throw new ConnectionException(e);
         }
 
@@ -350,14 +361,17 @@ public class EIPDriver implements Driver, ConfigurableComponent {
             ChannelRecord record = request.getRecord();
             record.setTimestamp(System.currentTimeMillis());
             try {
-                this.state.client.writeTag(this.state.options.isToken(), tagName, data).get();
+                this.state.client.writeTag(this.state.options.isToken(), tagName, data)
+                        .get(this.state.options.timeout() * 2, TimeUnit.MILLISECONDS);
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
             } catch (Exception e) {
 
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                // if (e.getCause() != null && e.getCause() instanceof TimeoutException)
-                // disconnect();
+                if (e instanceof TimeoutException) {
+                    logger.info("driver timeout, writeSingle disconnect");
+                    disconnect();
+                }
                 throw new ConnectionException(e);
 
             }

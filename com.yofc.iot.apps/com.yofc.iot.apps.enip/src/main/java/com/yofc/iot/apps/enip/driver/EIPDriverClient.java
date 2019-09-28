@@ -188,8 +188,13 @@ public class EIPDriverClient {
 
     private CompletableFuture<Void> executeMultiMessages(MultipleServicePacketService service) {
         CompletableFuture<Void> completFuture = new CompletableFuture<>();
-        if (!isConnected())
-            connect();
+        try {
+            if (!isConnected())
+                connect();
+        } catch (Exception e) {
+            completFuture.completeExceptionally(e);
+            return completFuture;
+        }
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
                 try {
@@ -202,11 +207,12 @@ public class EIPDriverClient {
                         } else {
                             if (ex2 instanceof TimeoutException) {
                                 if (EIPDriverClient.this.isConnected()) {
+                                    logger.info("first timeout,reconnect");
                                     pool.expired();
                                     client.reConnect();
                                 }
                                 executeMultiMessagesWithFuture(service, completFuture);
-                                logger.info("first failer excute again");
+                                logger.info("first timeout excute failer excute again");
                             } else {
                                 completFuture.completeExceptionally(ex2);
                             }
@@ -227,10 +233,15 @@ public class EIPDriverClient {
         return completFuture;
     }
 
-    private CompletableFuture<Void> executeMultiMessagesWithFuture(MultipleServicePacketService service,
+    private void executeMultiMessagesWithFuture(MultipleServicePacketService service,
             CompletableFuture<Void> completFuture) {
-        if (!isConnected())
-            connect();
+        try {
+            if (!isConnected())
+                connect();
+        } catch (Exception e) {
+            completFuture.completeExceptionally(e);
+            return;
+        }
         pool.acquire().whenComplete(Utils.BiConsumerWrapper((connection, ex) -> {
             if (connection != null) {
                 try {
@@ -248,14 +259,16 @@ public class EIPDriverClient {
                     pool.release(connection);
                 }
             } else {
-                if (ex instanceof NotConnectedException) {
-                    executeMultiMessagesWithFuture(service, completFuture);
-                    logger.info("twice get connection failer agin");
-                } else
-                    completFuture.completeExceptionally(ex);
+                if (ex instanceof NotConnectedException)
+                    if (EIPDriverClient.this.isConnected()) {
+                        logger.info("can't connect,reconnect");
+                        pool.expired();
+                        client.reConnect();
+                    }
+
+                completFuture.completeExceptionally(ex);
             }
         }));
-        return completFuture;
     }
 
     public CompletableFuture<CIPData[]> readTags(boolean connected, String... tags) {
