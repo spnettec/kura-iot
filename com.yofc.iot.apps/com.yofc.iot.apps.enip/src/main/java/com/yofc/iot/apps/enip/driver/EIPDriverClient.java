@@ -209,7 +209,7 @@ public class EIPDriverClient {
                                 if (EIPDriverClient.this.isConnected()) {
                                     logger.info("first timeout,reconnect");
                                     pool.expired();
-                                    client.reConnect();
+                                    client.disconnect();
                                 }
                                 executeMultiMessagesWithFuture(service, completFuture);
                                 logger.info("first timeout excute failer excute again");
@@ -263,7 +263,7 @@ public class EIPDriverClient {
                     if (EIPDriverClient.this.isConnected()) {
                         logger.info("can't connect,reconnect");
                         pool.expired();
-                        client.reConnect();
+                        client.disconnect();
                     }
 
                 completFuture.completeExceptionally(ex);

@@ -79,12 +79,6 @@ public class EtherNetIpClient {
                 .with(channelFsm.connect().thenApply(c -> EtherNetIpClient.this));
     }
 
-    public synchronized CompletableFuture<EtherNetIpClient> reConnect() {
-        return complete(new CompletableFuture<EtherNetIpClient>()).with(channelFsm.disconnect().whenComplete((c, e) -> {
-            channelFsm.connect();
-        }).thenApply(c -> EtherNetIpClient.this));
-    }
-
     public synchronized CompletableFuture<EtherNetIpClient> disconnect() {
         return complete(new CompletableFuture<EtherNetIpClient>())
                 .with(channelFsm.disconnect().thenApply(c -> EtherNetIpClient.this));
@@ -188,7 +182,7 @@ public class EtherNetIpClient {
             } else {
                 logger.warn("Received SendUnitData command with status: {}", status);
                 if (status == EnipStatus.INVALID_OPEN_FORWORD) {
-                    this.reConnect().join();
+                    this.disconnect();
                 }
             }
         } else {
@@ -371,7 +365,7 @@ public class EtherNetIpClient {
                 if (r != null) {
                     try {
                         future.complete((T) r);
-                    } catch (ClassCastException e) {
+                    } catch (Exception e) {
                         future.completeExceptionally(e);
                     }
                 } else {
