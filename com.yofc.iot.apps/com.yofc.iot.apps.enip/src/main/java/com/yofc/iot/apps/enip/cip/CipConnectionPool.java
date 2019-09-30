@@ -36,7 +36,6 @@ import com.yofc.iot.apps.enip.cip.services.LargeForwardOpenService;
 import com.yofc.iot.apps.enip.cip.structs.ForwardCloseRequest;
 import com.yofc.iot.apps.enip.cip.structs.ForwardCloseResponse;
 import com.yofc.iot.apps.enip.cip.structs.ForwardOpenRequest;
-import com.yofc.iot.apps.enip.cip.structs.ForwardOpenResponse;
 import com.yofc.iot.apps.enip.cip.structs.LargeForwardOpenRequest;
 import com.yofc.iot.apps.enip.cip.structs.LargeForwardOpenResponse;
 import com.yofc.iot.apps.enip.cip.structs.NetworkConnectionParameters;
@@ -117,12 +116,12 @@ public class CipConnectionPool {
                 CompletableFuture<CipConnection> f = connectionFactory.open();
 
                 f.whenComplete((c, ex) -> {
-                    CompletableFuture<CipConnection> waiter;
-                    synchronized (CipConnectionPool.this) {
-                        waiter = waitQueue.poll();
-                    }
 
                     if (c != null) {
+                        CompletableFuture<CipConnection> waiter;
+                        synchronized (CipConnectionPool.this) {
+                            waiter = waitQueue.poll();
+                        }
                         if (waiter != null) {
                             waiter.complete(c);
                         } else {
@@ -131,9 +130,13 @@ public class CipConnectionPool {
                         logger.debug("Forward open succeeded: {}", c);
                     } else {
                         count.decrementAndGet();
-                        if (waiter != null)
-                            waiter.completeExceptionally(ex);
-                        logger.debug("Forward open failed: {}", ex.getMessage(), ex);
+                        synchronized (CipConnectionPool.this) {
+                            while (!waitQueue.isEmpty()) {
+                                waitQueue.poll().completeExceptionally(ex);
+                            }
+
+                            logger.debug("Forward open failed: {}", ex.getMessage(), ex);
+                        }
                     }
                 });
             } else {
@@ -229,12 +232,9 @@ public class CipConnectionPool {
 
             ForwardOpenService service = new ForwardOpenService(request);
 
-            client.sendUnconnectedData(service::encodeRequest).whenComplete((b, ex) -> {
-                if (b != null) {
-                    ByteBuf buf = null;
+            client.invoke(service).whenComplete((response, ex) -> {
+                if (response != null) {
                     try {
-                        buf = Unpooled.wrappedBuffer(b);
-                        ForwardOpenResponse response = service.decodeResponse(buf);
 
                         CipConnection connection = new CipConnection(DEFAULT_TIMEOUT.toNanos(),
                                 response.getO2tConnectionId(), response.getT2oConnectionId(),
@@ -242,13 +242,8 @@ public class CipConnectionPool {
                                 response.getOriginatorSerialNumber());
 
                         future.complete(connection);
-                    } catch (CipResponseException | PartialResponseException e) {
-                        future.completeExceptionally(e);
                     } catch (Exception e) {
                         future.completeExceptionally(e);
-                    } finally {
-                        if (buf != null)
-                            ReferenceCountUtil.release(buf);
                     }
                 } else {
                     future.completeExceptionally(ex);

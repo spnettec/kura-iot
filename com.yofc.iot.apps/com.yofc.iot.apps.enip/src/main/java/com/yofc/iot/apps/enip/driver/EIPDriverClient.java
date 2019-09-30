@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.yofc.iot.apps.enip.EtherNetIpClientConfig;
 import com.yofc.iot.apps.enip.cip.CipClient;
 import com.yofc.iot.apps.enip.cip.CipConnectionPool;
+import com.yofc.iot.apps.enip.cip.CipResponseException;
 import com.yofc.iot.apps.enip.cip.epath.EPath;
 import com.yofc.iot.apps.enip.cip.epath.PortSegment;
 import com.yofc.iot.apps.enip.cip.services.CipService;
@@ -226,6 +227,9 @@ public class EIPDriverClient {
                 if (ex instanceof NotConnectedException) {
                     executeMultiMessagesWithFuture(service, completFuture);
                     logger.info("first get connection failer agin");
+                } else if (ex instanceof CipResponseException) {
+                    pool.expired();
+                    client.disconnect();
                 } else
                     completFuture.completeExceptionally(ex);
             }
