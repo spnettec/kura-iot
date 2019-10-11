@@ -145,10 +145,7 @@
             <artifactId>rxjava2-extras</artifactId>
             <version>${rxjava2.extras.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
+        
         <dependency>
           <groupId>io.vertx</groupId>
           <artifactId>vertx-junit5</artifactId>

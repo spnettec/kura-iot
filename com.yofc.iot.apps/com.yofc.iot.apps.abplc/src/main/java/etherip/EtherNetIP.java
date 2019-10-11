@@ -87,7 +87,7 @@ public class EtherNetIP implements AutoCloseable {
      * Initialize
      *
      * @param address
-     *                    IP address of device
+     *            IP address of device
      */
     public EtherNetIP(final String address, final int slot) {
         this.address = address;
@@ -130,7 +130,7 @@ public class EtherNetIP implements AutoCloseable {
      *
      * @return supported services
      * @throws Exception
-     *                       on error getting services, or when expected service not supported
+     *             on error getting services, or when expected service not supported
      */
     public Service[] listServices() throws Exception {
         final ListServices listServices = new ListServices();
@@ -153,7 +153,7 @@ public class EtherNetIP implements AutoCloseable {
      * Queries PLC rack for identities. Logs them and return the identities.
      *
      * @throws Exception
-     *                       on error getting services
+     *             on error getting services
      */
     public Identity[] listIdentity() throws Exception {
         final ListIdenties listIdentities = new ListIdenties();
@@ -370,10 +370,10 @@ public class EtherNetIP implements AutoCloseable {
      * Read a single scalar tag
      * 
      * @param tag
-     *                Name of tag
+     *            Name of tag
      * @return Current value of the tag
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public CIPData readTag(final String tag) throws Exception {
         return this.readTag(tag, (short) 1);
@@ -389,12 +389,12 @@ public class EtherNetIP implements AutoCloseable {
      * Read a single array tag
      * 
      * @param tag
-     *                  Name of tag
+     *            Name of tag
      * @param count
-     *                  Number of array elements to read
+     *            Number of array elements to read
      * @return Current value of the tag
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public CIPData readTag(final String tag, final short count) throws Exception {
         MRChipReadProtocol cipRead = new MRChipReadProtocol(tag, count);
@@ -450,10 +450,10 @@ public class EtherNetIP implements AutoCloseable {
      * Read multiple scalar tags in one network transaction
      * 
      * @param tags
-     *                 Tag names
+     *            Tag names
      * @return Current values of the tags
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public CIPData[] readTags(final String... tags) throws Exception {
         return readTags(100, tags);
@@ -464,10 +464,10 @@ public class EtherNetIP implements AutoCloseable {
      * Transaction size is adjsuted for the size of string response.
      * 
      * @param tags
-     *                 Tag names
+     *            Tag names
      * @return Current values of the tags
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public CIPData[] readStringTags(final String... tags) throws Exception {
         return readTags(5, tags);
@@ -481,12 +481,12 @@ public class EtherNetIP implements AutoCloseable {
      * sure the response fit in a controller total response size limit (about 500 bytes for Logix 5000).
      * 
      * @param maxNumberOfRequestsPerGroup
-     *                                        maximum number of requests allowed in a single transaction.
+     *            maximum number of requests allowed in a single transaction.
      * @param tags
-     *                                        Tag names
+     *            Tag names
      * @return Current values of the tags
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public CIPData[] readTags(final int maxNumberOfRequestsPerGroup, final String... tags) throws Exception {
         final MRChipReadProtocol[] reads = new MRChipReadProtocol[tags.length];
@@ -511,11 +511,11 @@ public class EtherNetIP implements AutoCloseable {
      * sure the response fit in a controller total response size limit (about 500 bytes for Logix 5000).
      * 
      * @param maxNumberOfRequestsPerGroup
-     *                                        maximum number of requests allowed in a single transaction.
+     *            maximum number of requests allowed in a single transaction.
      * @param messages
-     *                                        messages to send
+     *            messages to send
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public void sendMultiMessages(final int maxNumberOfRequestsPerGroup, final MessageRouterProtocol... messages)
             throws Exception {
@@ -543,9 +543,9 @@ public class EtherNetIP implements AutoCloseable {
      * Messages are assumed to fit in controller limits for request and response sizes.
      * 
      * @param messages
-     *                     messages to send
+     *            messages to send
      * @throws Exception
-     *                       on error
+     *             on error
      */
     private void executeMultiMessages(final MessageRouterProtocol[] messages) throws Exception {
         final Encapsulation encap = new Encapsulation(SEND_RRDATA, this.connection.getSession(), new SendRRDataProtocol(
@@ -558,11 +558,11 @@ public class EtherNetIP implements AutoCloseable {
      * Write a tag
      * 
      * @param tag
-     *                  Tag name
+     *            Tag name
      * @param value
-     *                  Value to write
+     *            Value to write
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public void writeTag(final String tag, int start, final CIPData value) throws Exception {
         int vSize = value.getType().getElementSize();
@@ -604,11 +604,11 @@ public class EtherNetIP implements AutoCloseable {
      * Write multiple tags in one network transaction
      * 
      * @param tags
-     *                   Tag names to write
+     *            Tag names to write
      * @param values
-     *                   Values to write
+     *            Values to write
      * @throws Exception
-     *                       on error
+     *             on error
      */
     public void writeTags(final String[] tags, final CIPData[] values) throws Exception {
         if (tags.length != values.length) {
