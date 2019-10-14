@@ -80,7 +80,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
         try {
             connect();
         } catch (ConnectionException e) {
-            logger.error("Updating EIP-PLC Driver... Error");
+            logger.error("Updating EIP-PLC Driver... Error", e);
         }
         extractProperties(properties);
 
