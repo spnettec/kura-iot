@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.vertx.osgi.VertxActivator" configuration-policy="require" immediate="true" activate="start" deactivate="stop" modified="update">
-  <property name="h2WebPort" type="Integer" value="8082"/>
-  <property name="h2WebEnabled" type="Boolean" value="false"/>
   <property name="port" type="Integer" value="8088"/>
   <property name="enabled" type="Boolean" value="false"/>
   <service>

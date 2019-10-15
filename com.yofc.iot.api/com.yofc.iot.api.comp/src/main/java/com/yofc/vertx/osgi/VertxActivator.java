@@ -1,7 +1,6 @@
 package com.yofc.vertx.osgi;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.h2.tools.Server;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -33,19 +32,18 @@ public class VertxActivator implements ConfigurableComponent {
     private Vertx vertx;
     @Reference
     private Router router;
-    private HttpServer server;
-    private Server h2WebServer;
+    private volatile HttpServer server;
 
     @Activate
     public void start(BundleContext context, Config properties) {
-        if (properties.enabled())
-            startRest(properties);
-        else
-            stopRest();
-        if (properties.h2WebEnabled())
-            startH2(properties);
-        else
-            stoph2();
+        if (!properties.enabled()) {
+            stop(context);
+            return;
+        }
+        server = vertx.createHttpServer();
+        int port = properties.port();
+
+        server.requestHandler(router).listen(port);
     }
 
     @Modified
@@ -54,59 +52,23 @@ public class VertxActivator implements ConfigurableComponent {
         start(context, properties);
     }
 
-    private void startRest(Config properties) {
-        if (server != null)
-            stopRest();
-        server = vertx.createHttpServer();
-        int port = properties.port();
-        server.requestHandler(router).listen(port);
-    }
-
-    private void startH2(Config properties) {
-        try {
-            if (h2WebServer != null)
-                stoph2();
-            h2WebServer = Server
-                    .createWebServer("-webAllowOthers", "-webPort", Integer.toString(properties.h2WebPort())).start();
-        } catch (Exception e) {
-            logger.error("start h2 web console error", e);
-        }
-    }
-
-    private void stoph2() {
-        if (h2WebServer != null) {
-            h2WebServer.shutdown();
-            h2WebServer = null;
-        }
-    }
-
-    private void stopRest() {
+    @Deactivate
+    public void stop(BundleContext context) {
         if (server != null) {
             server.close();
             server = null;
         }
-    }
 
-    @Deactivate
-    public void stop(BundleContext context) {
-        stopRest();
-        stoph2();
     }
 
     @ObjectClassDefinition(id = "com.yofc.vertx.osgi.VertxActivator", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.vertx.osgi.Config")
     @interface Config {
 
-        @AttributeDefinition(name = "%port", description = "%portDesc")
+        @AttributeDefinition(name = "%port", description = "%portdesc")
         int port() default 8088;
 
         @AttributeDefinition(name = "%enabled", description = "%enabledDesc")
         boolean enabled() default false;
-
-        @AttributeDefinition(name = "%h2WebPort", description = "%h2WebPortDesc")
-        int h2WebPort() default 8082;
-
-        @AttributeDefinition(name = "%h2WebEnabled", description = "%h2WebEnabledDesc")
-        boolean h2WebEnabled() default false;
     }
 
 }
