@@ -64,7 +64,7 @@ public class VertxActivator implements ConfigurableComponent {
     @ObjectClassDefinition(id = "com.yofc.vertx.osgi.VertxActivator", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.vertx.osgi.Config")
     @interface Config {
 
-        @AttributeDefinition(name = "%port", description = "%portdesc")
+        @AttributeDefinition(name = "%port", description = "%portDesc")
         int port() default 8088;
 
         @AttributeDefinition(name = "%enabled", description = "%enabledDesc")

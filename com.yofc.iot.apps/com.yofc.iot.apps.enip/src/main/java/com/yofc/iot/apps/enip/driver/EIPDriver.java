@@ -77,11 +77,7 @@ public class EIPDriver implements Driver, ConfigurableComponent {
     @Modified
     public synchronized void updated(final Config properties) {
         logger.info("Updating EIP-PLC Driver...");
-        try {
-            connect();
-        } catch (ConnectionException e) {
-            logger.error("Updating EIP-PLC Driver... Error", e);
-        }
+
         extractProperties(properties);
 
         logger.info("Updating EIP-PLC Driver... Done");
