@@ -162,7 +162,6 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
             }
             logger.info("Updating Script Filter... Done");
         }
-        mqttConnect();
     }
 
     @Override
@@ -171,8 +170,12 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
             logger.error("Script parse error.Please input correct groovy script");
             return;
         }
-
-        if (mqttClient == null || !mqttClient.isConnected()) {
+        if (mqttClient == null) {
+            mqttConnect();
+            logger.warn("Mqtt client is not connected");
+            return;
+        }
+        if (!mqttClient.isConnected()) {
             logger.error("Mqtt client is not connected. Topic: {}", this.properties.mqttTopic());
             return;
         }
