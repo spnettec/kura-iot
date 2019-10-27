@@ -39,9 +39,9 @@ public final class ABPlcChannelDescriptor implements ChannelDescriptor {
         final List<Tad> elements = CollectionUtil.newArrayList();
 
         final Tad tagName = new Tad();
-        tagName.setName(DATA_TAG_NAME_ID);
+        tagName.setName("%" + DATA_TAG_NAME_ID);
         tagName.setId(DATA_TAG_NAME_ID);
-        tagName.setDescription("TAG NAME");
+        tagName.setDescription("%" + DATA_TAG_NAME_ID + "Desc");
         tagName.setType(Tscalar.STRING);
         tagName.setRequired(true);
         tagName.setDefault("");
