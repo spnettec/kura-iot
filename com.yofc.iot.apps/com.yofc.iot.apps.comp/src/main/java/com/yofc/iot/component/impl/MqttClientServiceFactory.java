@@ -31,6 +31,7 @@ import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.AttributeType;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
+import org.osgi.service.metatype.annotations.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,52 +312,51 @@ public class MqttClientServiceFactory implements MqttCallback, ConfigurableCompo
         @AttributeDefinition(name = "%cleanSession", description = "%cleanSessionDesc")
         boolean cleanSession() default true;
 
-        @AttributeDefinition(name = "%mqttVersion", cardinality = 0, description = "%mqttVersionDesc", required = false)
-        int mqttVersion() default 1;
+        @AttributeDefinition(name = "%mqttVersion", cardinality = 0, description = "%mqttVersionDesc", required = false, options = {
+                @Option(label = "3.1", value = "3"), @Option(label = "3.1.1", value = "4") })
+        int mqttVersion() default 4;
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%willTopic", cardinality = 0, description = "%willTopicDesc", required = false)
         String willTopic() default "";
 
-        @AttributeDefinition(name = "%mqttVersion", cardinality = 0, description = "%mqttVersionDesc", required = false)
+        @AttributeDefinition(name = "%willQos", cardinality = 0, description = "%willQosDesc", required = false)
         int willQos() default 0;
 
-        @AttributeDefinition(name = "%cleanSession", description = "%cleanSessionDesc")
+        @AttributeDefinition(name = "%willRetain", description = "%willRetainDesc")
         boolean willRetain() default false;
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%willPayload", cardinality = 0, description = "%willPayloadDesc", required = false)
         String willPayload() default "";
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%sslCertAlias", cardinality = 0, description = "%sslCertAliasDesc", required = false)
         String sslCertAlias() default "";
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%sslProtocol", cardinality = 0, description = "%sslProtocolDesc", required = false)
         String sslProtocol() default "TLS1.2";
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%sslCiphers", cardinality = 0, description = "%sslCiphersDesc", required = false)
         String sslCiphers() default "";
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%hnVerification", cardinality = 0, description = "%hnVerificationDesc", required = false)
         String hnVerification() default "";
 
-        @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
+        @AttributeDefinition(name = "%persistenceType", cardinality = 0, description = "%persistenceTypeDesc", required = false, options = {
+                @Option(label = "memory", value = "memory"), @Option(label = "fiel", value = "file") })
         String persistenceType() default "memory";
     }
 
     @Override
     public void connectionLost(Throwable cause) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        // TODO Auto-generated method stub
 
     }
 }
