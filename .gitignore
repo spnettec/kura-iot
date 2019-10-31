@@ -289,8 +289,4 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
-/fis-common/src/main/generated
-/fis-server/src/main/generated
-/src/main/resources/programs/*
-/src/main/resources/static
 /.DS_Store

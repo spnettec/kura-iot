@@ -1,5 +1,2 @@
 /metatype/
-/com.yofc.iot.component.impl.H2JDBCClientProvider.xml
-/com.yofc.iot.component.impl.HttpProxyComponent.xml
-/com.yofc.iot.component.impl.HttpRestComponent.xml
-/com.yofc.iot.component.impl.ValueChangeComponent.xml
+/*.xml
