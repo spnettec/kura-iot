@@ -1,5 +1,2 @@
 /metatype/
-/com.yofc.vertx.osgi.ProxyRouteImpl.xml
-/com.yofc.vertx.osgi.VertxActivator.xml
-/com.yofc.vertx.osgi.VertxActivatorBase.xml
-/com.yofc.vertx.osgi.VertxVerticleHost.xml
+/*.xml
