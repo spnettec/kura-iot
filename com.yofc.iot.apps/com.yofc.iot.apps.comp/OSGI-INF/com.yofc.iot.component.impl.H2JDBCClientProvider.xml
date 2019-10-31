@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.component.impl.H2JDBCClientProvider" immediate="true" activate="registerH2JDBCClientService" deactivate="unregisterH2JDBCClientService">
-  <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>
-  <implementation class="com.yofc.iot.component.impl.H2JDBCClientProvider"/>
-</scr:component>
