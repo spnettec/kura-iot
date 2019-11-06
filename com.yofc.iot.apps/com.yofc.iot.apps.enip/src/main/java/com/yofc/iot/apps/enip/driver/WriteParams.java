@@ -13,8 +13,6 @@ package com.yofc.iot.apps.enip.driver;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.eclipse.kura.type.DataType;
-
 import com.yofc.iot.apps.enip.cip.structs.CIPData;
 import com.yofc.iot.apps.enip.cip.structs.CIPData.Type;
 
@@ -25,40 +23,44 @@ public class WriteParams {
 
     public WriteParams(final Map<String, Object> channelConfig, final Object value) {
         writeTag = channelConfig.get(EIPChannelDescriptor.DATA_TAG_NAME_ID).toString();
-        final DataType valueType = tryExtract(channelConfig,
-                config -> DataType.valueOf((String) config.get("+value.type")), "Error while retrieving value type");
+        final EIPDataType valueType = tryExtract(channelConfig,
+                config -> EIPDataType.getDataType((String) config.get(EIPChannelDescriptor.TAG_DATA_TYPE_ID)),
+                "Error while retrieving value type");
         Type type;
         try {
             switch (valueType) {
-            case BOOLEAN:
+            case BOOL:
                 type = Type.BOOL;
                 break;
-            case BYTE_ARRAY:
-                type = Type.BITS;
+            case SINT:
+                type = Type.BOOL;
                 break;
-            case DOUBLE:
-                type = Type.REAL;
-                break;
-            case INTEGER:
+            case INT:
                 type = Type.INT;
                 break;
-            case LONG:
+            case DINT:
                 type = Type.DINT;
                 break;
-            case FLOAT:
+            case REAL:
                 type = Type.REAL;
                 break;
-            case STRING:
+            case BITS:
+                type = Type.BITS;
+                break;
+            case STRUCT:
                 type = Type.STRUCT;
+                break;
+            case STRUCT_STRING:
+                type = Type.STRUCT_STRING;
                 break;
             default:
                 throw new IllegalArgumentException("Cannot convert to DataType");
             }
-            if (valueType == DataType.STRING) {
+            if (valueType == EIPDataType.STRUCT_STRING || valueType == EIPDataType.STRUCT) {
                 this.writeValue = new CIPData(String.valueOf(value));
-            } else if (valueType == DataType.BYTE_ARRAY)
+            } else if (valueType == EIPDataType.BITS)
                 this.writeValue = new CIPData(type, (byte[]) value);
-            else if (valueType == DataType.BOOLEAN) {
+            else if (valueType == EIPDataType.BOOL) {
                 this.writeValue = new CIPData(type);
                 boolean isTrue = Boolean.parseBoolean(String.valueOf(value));
                 this.writeValue.set(0, (Number) (isTrue ? 1 : 0));
