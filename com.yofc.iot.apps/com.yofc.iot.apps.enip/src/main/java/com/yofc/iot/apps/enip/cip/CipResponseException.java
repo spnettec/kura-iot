@@ -35,7 +35,8 @@ public class CipResponseException extends Exception {
 
         CipStatusCodes.getName(generalStatus).ifPresent(name -> sb.append(" [").append(name).append("] "));
 
-        List<String> as = Arrays.stream(additionalStatus).mapToObj(a -> String.format("0x%04X", a))
+        List<String> as = Arrays.stream(additionalStatus).mapToObj(a -> String.format("0x%04X:%s", a,
+                CipStatusCodes.getExtDescription(a).isPresent() ? CipStatusCodes.getExtDescription(a).get() : ""))
                 .collect(Collectors.toList());
 
         String additional = "[" + String.join(",", as) + "]";

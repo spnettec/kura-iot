@@ -71,7 +71,13 @@ public class EIPDriver implements Driver, ConfigurableComponent {
 
     private void extractProperties(final Config properties) {
         requireNonNull(properties, "Properties cannot be null");
-        this.options.set(properties);
+        if (this.state.options != properties) {
+            this.options.set(properties);
+            try {
+                this.disconnect();
+            } catch (ConnectionException e) {
+            }
+        }
     }
 
     @Modified

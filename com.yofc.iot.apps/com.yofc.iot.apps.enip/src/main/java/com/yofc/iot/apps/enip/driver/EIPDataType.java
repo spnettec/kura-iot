@@ -1,6 +1,8 @@
 
 package com.yofc.iot.apps.enip.driver;
 
+import com.yofc.iot.apps.enip.cip.structs.CIPData.Type;
+
 public enum EIPDataType {
 
     BOOL,
@@ -12,30 +14,30 @@ public enum EIPDataType {
     STRUCT,
     STRUCT_STRING;
 
-    public static EIPDataType getDataType(String stringDataType) {
+    public static Type getDataType(String stringDataType) {
         if (BOOL.name().equalsIgnoreCase(stringDataType)) {
-            return BOOL;
+            return Type.BOOL;
         }
         if (SINT.name().equalsIgnoreCase(stringDataType)) {
-            return SINT;
+            return Type.SINT;
         }
         if (INT.name().equalsIgnoreCase(stringDataType)) {
-            return INT;
+            return Type.INT;
         }
         if (DINT.name().equalsIgnoreCase(stringDataType)) {
-            return DINT;
+            return Type.DINT;
         }
         if (REAL.name().equalsIgnoreCase(stringDataType)) {
-            return REAL;
+            return Type.REAL;
         }
         if (BITS.name().equalsIgnoreCase(stringDataType)) {
-            return BITS;
+            return Type.BITS;
         }
         if (STRUCT.name().equalsIgnoreCase(stringDataType)) {
-            return STRUCT;
+            return Type.STRUCT;
         }
         if (STRUCT_STRING.name().equalsIgnoreCase(stringDataType)) {
-            return STRUCT_STRING;
+            return Type.STRUCT_STRING;
         }
 
         throw new IllegalArgumentException("Cannot convert to DataType");

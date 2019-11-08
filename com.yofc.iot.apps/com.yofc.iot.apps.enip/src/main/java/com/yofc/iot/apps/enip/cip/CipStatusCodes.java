@@ -10,6 +10,7 @@ public abstract class CipStatusCodes {
     }
 
     private static final Map<Integer, NameAndDescription> STATUS_CODES;
+    private static final Map<Integer, NameAndDescription> EXTENDED_STATUSES;
 
     static {
         STATUS_CODES = new HashMap<>();
@@ -93,6 +94,19 @@ public abstract class CipStatusCodes {
                 v("unknown modbus error", "A CIP to Modbus translator received an unknown Modbus Exception Code."));
         STATUS_CODES.put(0x2C, v("attribute not gettable", "A request to read a non-readable attribute was received."));
         STATUS_CODES.put(0x2D, v("instance not deletable", "The requested object instance cannot be deleted."));
+        STATUS_CODES.put(0xFF, v("See extended code", "See extended code"));
+
+        EXTENDED_STATUSES = new HashMap<>();
+        EXTENDED_STATUSES.put(0x0107, v("TARGET CONNECTION NOT FOUND",
+                "This extended status code shall be returned in response to the forward_close request, when the connection that is to be closed is not found at the target node. This extended status code shall only be returned by a target node. Routers shall not generate this extended status code. If the specified connection is not found at the intermediate node, the close request shall still be forwarded using the path specified in the Forward_Close request."));
+        EXTENDED_STATUSES.put(0x0204, v("UNCONNECTED REQUEST TIMED OUT",
+                "The Unconnected Request Timed Out error shall occur when the UCMM times out before a reply is received. This may occur for an Unconnected_Send, Forward_Open, or Forward_Close service. This typically means that the UCMM has tried a link specific number of times using a link specific retry timer and has not received an acknowledgement or reply. This may be the result of congestion at the destination node or may be the result of a node not being powered up or present. This extended status code shall be returned by the originating node or any intermediate node."));
+        EXTENDED_STATUSES.put(0x0312, v("LINK ADDRESS NOT VALID",
+                "Link Address specified in Port Segment Not Valid This extended status code is the result of a port segment that specifies a link address that is not valid for the target network type. This extended status code shall not be used for link addresses that are valid for the target network type but do not respond."));
+        EXTENDED_STATUSES.put(0x0318, v("LINK ADDRESS TO SELF INVALID",
+                "Under some conditions (depends on the device), a link address in the Port Segment which points to the same device (loopback to yourself) is invalid."));
+        EXTENDED_STATUSES.put(0x2107,
+                v("CIP Write Tag error", "Tag type used in request does not match the target tag's data type"));
     }
 
     public static Optional<String> getName(int statusCode) {
@@ -103,6 +117,18 @@ public abstract class CipStatusCodes {
 
     public static Optional<String> getDescription(int statusCode) {
         NameAndDescription nameAndDescription = STATUS_CODES.getOrDefault(statusCode, NameAndDescription.NULL);
+
+        return Optional.ofNullable(nameAndDescription.description);
+    }
+
+    public static Optional<String> getExtName(int statusCode) {
+        NameAndDescription nameAndDescription = EXTENDED_STATUSES.getOrDefault(statusCode, NameAndDescription.NULL);
+
+        return Optional.ofNullable(nameAndDescription.name);
+    }
+
+    public static Optional<String> getExtDescription(int statusCode) {
+        NameAndDescription nameAndDescription = EXTENDED_STATUSES.getOrDefault(statusCode, NameAndDescription.NULL);
 
         return Optional.ofNullable(nameAndDescription.description);
     }
