@@ -20,6 +20,8 @@ import org.eclipse.kura.driver.ChannelDescriptor;
 import org.eclipse.kura.driver.Driver;
 import org.eclipse.kura.driver.PreparedRead;
 import org.eclipse.kura.protocol.modbus.ModbusProtocolDeviceService;
+import org.eclipse.kura.type.DataType;
+import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -144,35 +146,16 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             Integer slaveAddr = 1;
             try {
                 dataAddress = getIntProperty(record, ModbusChannelDescriptor.DATA_ADDRESS, "Modbus Tag setting error");
-            } catch (KuraException e) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-                continue;
-            }
-            try {
                 count = getIntProperty(record, ModbusChannelDescriptor.DATA_TAG_READ_LENGTH,
                         "Modbus Tag setting error");
-            } catch (KuraException e) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-                continue;
-            }
-            try {
                 registerType = getStringProperty(record, ModbusChannelDescriptor.REGISTER_TYPE,
                         "Modbus Tag setting error");
-            } catch (KuraException e) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-                continue;
-            }
-            try {
                 slaveAddr = getIntProperty(record, ModbusChannelDescriptor.SLAVE_ADDR, "Modbus Tag setting error");
             } catch (KuraException e) {
                 record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 record.setTimestamp(System.currentTimeMillis());
                 continue;
             }
-
             try {
                 int[] readata = null;
                 if (RegisterType.INPUT.name().equals(registerType))
@@ -200,20 +183,60 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
 
     public static void fillRecord(final Object value, final ChannelRecord record) {
         record.setTimestamp(System.currentTimeMillis());
-
         if (value == null) {
             record.setChannelStatus(new ChannelStatus(FAILURE, "Operation Result cannot be null", null));
             return;
         }
         record.setTimestamp(System.currentTimeMillis());
         try {
-            record.setValue(TypedValues.newStringValue(value == null ? "" : JSON.toJSONString(value)));
+            if (value instanceof int[]) {
+                int[] result = (int[]) value;
+                if (result.length == 1)
+                    record.setValue(map(result[0], record.getValueType()));
+                else
+                    record.setValue(TypedValues.newStringValue(JSON.toJSONString(value)));
+            } else if (value instanceof boolean[]) {
+                boolean[] result = (boolean[]) value;
+                if (result.length == 1)
+                    record.setValue(map(result[0] ? 1 : 0, record.getValueType()));
+                else
+                    record.setValue(TypedValues.newStringValue(JSON.toJSONString(value)));
+            } else {
+                record.setChannelStatus(new ChannelStatus(FAILURE, "Operation Result type error", null));
+                return;
+            }
             record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
         } catch (Exception e) {
             record.setChannelStatus(
                     new ChannelStatus(FAILURE, "Error while converting the retrieved value to the defined typed", e));
         }
 
+    }
+
+    private static TypedValue<?> map(final int value, final DataType targetType) throws Exception {
+        Number valueObj = value;
+        switch (targetType) {
+        case LONG:
+            return TypedValues.newLongValue(valueObj.longValue());
+        case FLOAT:
+            return TypedValues.newFloatValue(valueObj.floatValue());
+        case DOUBLE:
+            return TypedValues.newDoubleValue(valueObj.doubleValue());
+        case INTEGER:
+            return TypedValues.newIntegerValue(value);
+        case BOOLEAN:
+            return TypedValues.newBooleanValue(valueObj.intValue() != 0);
+        case STRING:
+            return TypedValues.newStringValue(valueObj == null ? "" : valueObj.toString());
+        case BYTE_ARRAY:
+            return TypedValues.newByteArrayValue(intToByteArray(value));
+        default:
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public static final byte[] intToByteArray(int value) {
+        return new byte[] { (byte) (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value };
     }
 
     @Override
@@ -244,12 +267,6 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             Integer slaveAddr = 1;
             try {
                 dataAddress = getIntProperty(record, ModbusChannelDescriptor.DATA_ADDRESS, "Modbus Tag setting error");
-            } catch (KuraException e) {
-                record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                record.setTimestamp(System.currentTimeMillis());
-                continue;
-            }
-            try {
                 registerType = getStringProperty(record, ModbusChannelDescriptor.REGISTER_TYPE,
                         "Modbus Tag setting error");
             } catch (KuraException e) {
@@ -339,21 +356,8 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             return null;
         }
         Properties prop = new Properties();
-
-        String modbusProtocol = null;
-        // if (this.properties.get(MODBUS_SLAVE_ADDRESS) != null) {
-        modbusProtocol = currentOptions.protocol();
-        // } else {
-        // return null;
-        // }
+        String modbusProtocol = currentOptions.protocol();
         prop.setProperty("connectionType", modbusProtocol);
-
-        // String slave = "1";
-        // if (this.properties.get(MODBUS_SLAVE_ADDRESS) != null) {
-        // slave = (String) this.properties.get(MODBUS_SLAVE_ADDRESS);
-        // }
-        // prop.setProperty("slaveAddr", slave);
-
         boolean isTCP = "TCP-RTU".equals(modbusProtocol) || "TCP/IP".equals(modbusProtocol);
         if (isTCP) {
             int iport = currentOptions.tcpPort();

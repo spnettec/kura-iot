@@ -16,7 +16,6 @@ public final class ModbusChannelDescriptor implements ChannelDescriptor {
     public static final String DATA_ADDRESS = "dataAddress";
     public static final String DATA_TAG_READ_LENGTH = "readLength";
 
-    /** {@inheritDoc} */
     @Override
     public Object getDescriptor() {
         final List<Tad> elements = CollectionUtil.newArrayList();
