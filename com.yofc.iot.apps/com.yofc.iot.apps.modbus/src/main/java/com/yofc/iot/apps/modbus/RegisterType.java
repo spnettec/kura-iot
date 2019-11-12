@@ -5,5 +5,7 @@ public enum RegisterType {
 
     INPUT,
     HODING,
-    DISCRETE
+    DISCRETE,
+    COILS
+
 }

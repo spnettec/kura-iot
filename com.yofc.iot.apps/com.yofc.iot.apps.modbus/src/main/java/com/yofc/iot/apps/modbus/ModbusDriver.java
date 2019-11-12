@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.IntStream;
 
 import org.eclipse.kura.KuraConnectionStatus;
 import org.eclipse.kura.KuraErrorCode;
@@ -136,8 +137,7 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
         if (!isConnected()) {
             connect();
         }
-        for (int i = 0; i < records.size(); i++) {
-            ChannelRecord record = records.get(i);
+        for (ChannelRecord record : records) {
             Integer dataAddress = 0;
             Integer count = 1;
             String registerType;
@@ -182,6 +182,9 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
                 else if (RegisterType.DISCRETE.name().equals(registerType)) {
                     boolean[] disReadata = this.protocolDevice.readDiscreteInputs(slaveAddr, dataAddress, count);
                     fillRecord(disReadata, record);
+                } else if (RegisterType.COILS.name().equals(registerType)) {
+                    boolean[] coilsReadata = this.protocolDevice.readCoils(slaveAddr, dataAddress, count);
+                    fillRecord(coilsReadata, record);
                 } else
                     throw new ConnectionException("ModBusProtocolDevice Service not present");
                 fillRecord(readata, record);
@@ -232,8 +235,7 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             connect();
         }
 
-        for (int i = 0; i < records.size(); i++) {
-            ChannelRecord record = records.get(i);
+        for (ChannelRecord record : records) {
             String data = String.valueOf(record.getValue().getValue());
             if (data == null)
                 throw new ConnectionException("Data Error");
@@ -258,9 +260,7 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             record.setTimestamp(System.currentTimeMillis());
             try {
                 List<Integer> readataList = JSON.parseArray(data, Integer.class);
-                int[] readata = new int[readataList.size()];
-                for (int j = 0; j < readata.length; j++)
-                    readata[i] = readataList.get(i);
+                int[] readata = readataList.stream().flatMapToInt(num -> IntStream.of(num.intValue())).toArray();
                 if (RegisterType.INPUT.name().equals(registerType))
                     this.protocolDevice.writeMultipleRegister(slaveAddr, dataAddress, readata);
                 else if (RegisterType.HODING.name().equals(registerType))

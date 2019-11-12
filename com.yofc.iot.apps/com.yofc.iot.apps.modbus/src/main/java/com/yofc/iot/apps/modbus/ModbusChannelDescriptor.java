@@ -28,6 +28,7 @@ public final class ModbusChannelDescriptor implements ChannelDescriptor {
         tag.setOption(generateDbTypeOption(RegisterType.HODING));
         tag.setOption(generateDbTypeOption(RegisterType.INPUT));
         tag.setOption(generateDbTypeOption(RegisterType.DISCRETE));
+        tag.setOption(generateDbTypeOption(RegisterType.COILS));
         tag.setType(Tscalar.STRING);
         tag.setRequired(true);
         tag.setDefault(RegisterType.INPUT.name());
