@@ -117,8 +117,8 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
                 this.protocolDevice.disconnect();
             } catch (Exception e) {
                 throw new ConnectionException(e);
-            }finally {
-                this.protocolDevice=null;
+            } finally {
+                this.protocolDevice = null;
             }
             logger.debug("Disconnecting from Modbus... Done");
         }
@@ -171,7 +171,7 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
                     boolean[] coilsReadata = this.protocolDevice.readCoils(slaveAddr, dataAddress, count);
                     fillRecord(coilsReadata, record);
                 } else
-                    throw new ConnectionException("ModBusProtocolDevice Service not present");
+                    throw new ConnectionException("not supported RegisterType:" + registerType);
                 fillRecord(readata, record);
             } catch (Exception e) {
                 logger.error("Modbus read error", e);
