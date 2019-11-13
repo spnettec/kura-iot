@@ -117,6 +117,8 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
                 this.protocolDevice.disconnect();
             } catch (Exception e) {
                 throw new ConnectionException(e);
+            }finally {
+                this.protocolDevice=null;
             }
             logger.debug("Disconnecting from Modbus... Done");
         }
@@ -187,7 +189,6 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             record.setChannelStatus(new ChannelStatus(FAILURE, "Operation Result cannot be null", null));
             return;
         }
-        record.setTimestamp(System.currentTimeMillis());
         try {
             if (value instanceof int[]) {
                 int[] result = (int[]) value;
