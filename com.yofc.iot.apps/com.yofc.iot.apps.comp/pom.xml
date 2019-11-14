@@ -180,13 +180,13 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>2.5.5</version>
+            <version>3.0.0-rc-1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-xml</artifactId>
-            <version>2.5.5</version>
+            <version>3.0.0-rc-1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -223,6 +223,7 @@
                              org.h2.api;version="[1.4.197,1.4.200)",
                              org.h2.jdbcx;version="[1.4.197,1.4.200)",
                              org.h2.tools;version="[1.4.197,1.4.200)",
+                             groovy.lang;version="[2.5,4)",
                              *
                         </Import-Package>
                         <Include-Resource>
