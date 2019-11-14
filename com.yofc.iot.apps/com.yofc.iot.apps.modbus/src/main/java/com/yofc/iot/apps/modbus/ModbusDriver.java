@@ -117,8 +117,6 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
                 this.protocolDevice.disconnect();
             } catch (Exception e) {
                 throw new ConnectionException(e);
-            } finally {
-                this.protocolDevice = null;
             }
             logger.debug("Disconnecting from Modbus... Done");
         }
