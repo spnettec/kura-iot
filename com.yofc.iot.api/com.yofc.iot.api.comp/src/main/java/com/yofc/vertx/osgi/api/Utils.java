@@ -2,6 +2,7 @@ package com.yofc.vertx.osgi.api;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,8 +92,7 @@ public class Utils {
 
     public static List<WireRecord> getWireRecords(WireRecord... records) {
         final List<WireRecord> resultWireRecords = new ArrayList<>();
-        for (WireRecord record : records)
-            resultWireRecords.add(record);
+        Collections.addAll(resultWireRecords, records);
         return resultWireRecords;
     }
 
