@@ -48,8 +48,12 @@ import com.yofc.iot.component.impl.MqttClientServiceImpl.Config;
 import com.yofc.iot.component.utils.MqttClientConfiguration;
 import com.yofc.iot.component.utils.MqttClientConfiguration.PersistenceType;
 
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
+
 @Designate(ocd = Config.class, factory = true)
-@Component(configurationPolicy = ConfigurationPolicy.REQUIRE)
+@Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
 public class MqttClientServiceImpl implements MqttCallback, MqttClientService, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(MqttClientServiceImpl.class);
@@ -79,7 +83,9 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     public void update(Config properties) {
         if (properties.equals(this.preConfig))
             return;
+        closeMqttClient();
         updateConfig(properties);
+        this.preConfig = properties;
     }
 
     @Deactivate
@@ -126,7 +132,6 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 getMqttVersionLabel(this.clientConf.getConnectOptions().getMqttVersion()));
         logger.info("#  willDestination = {}", this.clientConf.getConnectOptions().getWillDestination());
         logger.info("#  willMessage     = {}", this.clientConf.getConnectOptions().getWillMessage());
-        logger.info("#");
         logger.info("#  Connecting...");
 
         // connect
@@ -221,20 +226,40 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     private void updateConfig(Config properties) {
         if (!properties.activate()) {
             closeMqttClient();
+            return;
         }
         MqttConnectOptions conOpt = new MqttConnectOptions();
         String clientId = properties.clientId();
         String brokerUrl = properties.brokeUrl();
         String userName = properties.username();
-        conOpt.setUserName(userName);
+        Boolean isPostProcess = properties.postProcess();
+        String scriptSource = properties.postProcessCode();
         String password = properties.password();
         try {
             char[] pass = this.cryptoService.decryptAes(password.toCharArray());
-            conOpt.setPassword(pass);
+            password = new String(pass);
         } catch (Exception e) {
             logger.info("Password is not encrypted");
-            conOpt.setPassword(password.toCharArray());
         }
+        if (isPostProcess != null && isPostProcess && scriptSource != null && !scriptSource.equals("")) {
+            Binding binding = new Binding();
+            GroovyShell shell = new GroovyShell(binding);
+            binding.setVariable("logger", logger);
+            binding.setProperty("userName", userName);
+            binding.setProperty("passwordString", password);
+            binding.setProperty("clientId", clientId);
+            try {
+                Script script = shell.parse(scriptSource);
+                script.run();
+                userName = (String) script.getProperty("userName");
+                password = (String) script.getProperty("passwordString");
+                clientId = (String) script.getProperty("clientId");
+            } catch (Exception e) {
+                logger.error("Script parse error:{}", e);
+            }
+        }
+        conOpt.setUserName(userName);
+        conOpt.setPassword(password.toCharArray());
         conOpt.setKeepAliveInterval(properties.keepAliveInterval());
         conOpt.setConnectionTimeout(properties.connectionTimeout());
 
@@ -277,15 +302,15 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
             }
         }
         String sType = properties.persistenceType();
-        PersistenceType persistenceType = null;
+        PersistenceType pType = null;
         if ("file".equals(sType)) {
-            persistenceType = PersistenceType.FILE;
+            pType = PersistenceType.FILE;
         } else if ("memory".equals(sType)) {
-            persistenceType = PersistenceType.MEMORY;
+            pType = PersistenceType.MEMORY;
         } else {
-            throw new IllegalStateException("Invalid MQTT client configuration: persistenceType: " + persistenceType);
+            throw new IllegalStateException("Invalid MQTT client configuration: persistenceType: " + pType);
         }
-        this.clientConf = new MqttClientConfiguration(brokerUrl, clientId, persistenceType, conOpt);
+        this.clientConf = new MqttClientConfiguration(brokerUrl, clientId, pType, conOpt);
         try {
             connect();
         } catch (KuraConnectException e) {
@@ -370,18 +395,17 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void connectionLost(Throwable cause) {
-        this.closeMqttClient();
         logger.error("connection lost", cause);
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-
+        logger.info("message received, topic:{}, message:{}", topic, message);
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-
+        logger.info("message delivery Complete token:{}", token);
     }
 
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.MqttClientServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.MqttClientServiceCfg")
@@ -390,7 +414,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         @AttributeDefinition(name = "%activate", description = "%activateDesc")
         boolean activate() default false;
 
-        @AttributeDefinition(name = "%brokeUrl", cardinality = 0, description = "%brokeUrlDesc", required = true)
+        @AttributeDefinition(name = "%brokerUrl", cardinality = 0, description = "%brokerUrlDesc", required = true)
         String brokeUrl() default "mqtt://localhost:1883/";
 
         @AttributeDefinition(name = "%username", cardinality = 0, description = "%usernameDesc", required = false)
@@ -401,6 +425,12 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
         @AttributeDefinition(name = "%clientId", cardinality = 0, description = "%clientIdDesc", required = false)
         String clientId() default "";
+
+        @AttributeDefinition(name = "%postProcess", description = "%postProcessDesc")
+        boolean postProcess() default false;
+
+        @AttributeDefinition(name = "%postProcessCode", cardinality = 0, description = "%postProcessCodeDesc", required = false)
+        String postProcessCode() default "//userName  passwordString  clientId";
 
         @AttributeDefinition(name = "%keepAliveInterval", cardinality = 0, description = "%keepAliveIntervalDesc", required = false)
         int keepAliveInterval() default 1000;
@@ -431,7 +461,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         String sslCertAlias() default "";
 
         @AttributeDefinition(name = "%sslProtocol", cardinality = 0, description = "%sslProtocolDesc", required = false)
-        String sslProtocol() default "TLS1.2";
+        String sslProtocol() default "TLSv1.2";
 
         @AttributeDefinition(name = "%sslCiphers", cardinality = 0, description = "%sslCiphersDesc", required = false)
         String sslCiphers() default "";
@@ -440,7 +470,8 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         String hnVerification() default "";
 
         @AttributeDefinition(name = "%persistenceType", cardinality = 0, description = "%persistenceTypeDesc", required = false, options = {
-                @Option(label = "memory", value = "memory"), @Option(label = "fiel", value = "file") })
+                @Option(label = "memory", value = "memory"), @Option(label = "file", value = "file") })
         String persistenceType() default "memory";
+
     }
 }
