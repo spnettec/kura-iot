@@ -433,10 +433,10 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         String postProcessCode() default "//userName  passwordString  clientId";
 
         @AttributeDefinition(name = "%keepAliveInterval", cardinality = 0, description = "%keepAliveIntervalDesc", required = false)
-        int keepAliveInterval() default 1000;
+        int keepAliveInterval() default 30;
 
         @AttributeDefinition(name = "%connectionTimeout", cardinality = 0, description = "%connectionTimeoutDesc", required = false)
-        int connectionTimeout() default 1000;
+        int connectionTimeout() default 10;
 
         @AttributeDefinition(name = "%cleanSession", description = "%cleanSessionDesc")
         boolean cleanSession() default true;
