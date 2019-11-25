@@ -4,6 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -72,16 +77,19 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     private Config preConfig = null;
 
     private List<String> registerTopcs = new ArrayList<>();
+    protected ScheduledExecutorService connectionMonitorExecutor;
+    private ScheduledFuture<?> connectionMonitorFuture;
 
     @Activate
     public void start(Config properties) {
         this.preConfig = properties;
+        this.connectionMonitorExecutor = Executors.newSingleThreadScheduledExecutor();
         updateConfig(properties);
     }
 
     @Modified
     public void update(Config properties) {
-        if (properties.equals(this.preConfig))
+        if (this.preConfig != null && properties.toString().equals(this.preConfig.toString()))
             return;
         closeMqttClient();
         updateConfig(properties);
@@ -91,6 +99,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     @Deactivate
     public void stop() {
         closeMqttClient();
+        stopConnectionMonitorTask();
     }
 
     public boolean isConnected() {
@@ -311,11 +320,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
             throw new IllegalStateException("Invalid MQTT client configuration: persistenceType: " + pType);
         }
         this.clientConf = new MqttClientConfiguration(brokerUrl, clientId, pType, conOpt);
-        try {
-            connect();
-        } catch (KuraConnectException e) {
-            logger.error("Connection failure", e);
-        }
+        startConnectionMonitorTask();
     }
 
     @Override
@@ -396,6 +401,8 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     @Override
     public void connectionLost(Throwable cause) {
         logger.error("connection lost", cause);
+        stopConnectionMonitorTask(); // Just in case...
+        startConnectionMonitorTask();
     }
 
     @Override
@@ -406,6 +413,76 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
         logger.info("message delivery Complete token:{}", token);
+    }
+
+    private boolean startConnectionMonitorTask() {
+        if (this.connectionMonitorFuture != null && !this.connectionMonitorFuture.isDone()) {
+            logger.error("Reconnect task already running");
+            throw new IllegalStateException("Reconnect task already running");
+        }
+        boolean autoConnect = this.preConfig.autoConnect();
+        int reconnectInterval = this.preConfig.connectDelay();
+        if (autoConnect) {
+            int maxDelay = reconnectInterval / 5;
+            maxDelay = maxDelay > 0 ? maxDelay : 1;
+            int initialDelay = new Random().nextInt(maxDelay);
+            logger.info("Starting reconnect task with initial delay {}", initialDelay);
+            this.connectionMonitorFuture = this.connectionMonitorExecutor.scheduleAtFixedRate(new Runnable() {
+
+                @Override
+                public void run() {
+                    String originalName = Thread.currentThread().getName();
+                    Thread.currentThread().setName("DataServiceImpl:ReconnectTask");
+                    boolean connected = false;
+                    try {
+                        if (MqttClientServiceImpl.this.isConnected())
+                            logger.info("Already connected. Reconnect task will be terminated.");
+                        else {
+                            MqttClientServiceImpl.this.connect();
+                            logger.info("Connected. Reconnect task will be terminated.");
+                        }
+                        connected = true;
+                    } catch (KuraConnectException e) {
+                        if (isAuthenticationException(e))
+                            throw new RuntimeException("Authentication Exception. Reconnect task will be terminated.");
+                    } catch (Error e) {
+                        logger.error("Unexpected Error. Task will be terminated", e);
+                        throw e;
+                    } finally {
+                        Thread.currentThread().setName(originalName);
+                        if (connected) {
+                            // Throwing an exception will suppress subsequent executions of this periodic task.
+                            throw new RuntimeException("Connected. Reconnect task will be terminated.");
+                        }
+                    }
+                }
+
+                private boolean isAuthenticationException(KuraConnectException e) {
+                    boolean authenticationException = false;
+                    if (e.getCause() instanceof MqttException) {
+                        MqttException mqttException = (MqttException) e.getCause();
+                        if (mqttException.getReasonCode() == MqttException.REASON_CODE_FAILED_AUTHENTICATION
+                                || mqttException.getReasonCode() == MqttException.REASON_CODE_INVALID_CLIENT_ID
+                                || mqttException.getReasonCode() == MqttException.REASON_CODE_NOT_AUTHORIZED) {
+                            logger.info("Authentication exception encountered.");
+                            authenticationException = true;
+                        }
+                    }
+                    return authenticationException;
+                }
+
+            }, initialDelay, reconnectInterval, TimeUnit.SECONDS);
+        }
+        return autoConnect;
+    }
+
+    private void stopConnectionMonitorTask() {
+        if (this.connectionMonitorFuture != null && !this.connectionMonitorFuture.isDone()) {
+
+            logger.info("Reconnect task running. Stopping it");
+
+            this.connectionMonitorFuture.cancel(true);
+        }
     }
 
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.MqttClientServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.MqttClientServiceCfg")
@@ -473,5 +550,10 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 @Option(label = "memory", value = "memory"), @Option(label = "file", value = "file") })
         String persistenceType() default "memory";
 
+        @AttributeDefinition(name = "%autoConnect", description = "%autoConnectDesc")
+        boolean autoConnect() default false;
+
+        @AttributeDefinition(name = "%connectDelay", cardinality = 0, description = "%connectDelayDesc", required = false)
+        int connectDelay() default 60;
     }
 }
