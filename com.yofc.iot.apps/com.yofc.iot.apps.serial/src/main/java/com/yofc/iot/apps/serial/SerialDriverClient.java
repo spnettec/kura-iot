@@ -38,7 +38,7 @@ public class SerialDriverClient {
         comPort.setFlowControl(this.flowControl);
         comPort.setParity(this.parity);
         comPort.setNumStopBits(this.stopBits);
-        comPort.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
+        comPort.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 100, 100);
         comPort.openPort();
         if (!comPort.isOpen())
             throw new RuntimeException("open port faileried");
@@ -63,7 +63,7 @@ public class SerialDriverClient {
         buffer.flip();
         byte[] result = new byte[buffer.remaining()];
         buffer.get(result);
-        while (comPort.bytesAvailable() > 0) {
+        if (comPort.bytesAvailable() > 0) {
             byte[] readBuffer = new byte[comPort.bytesAvailable()];
             comPort.readBytes(readBuffer, readBuffer.length);
         }
@@ -72,16 +72,17 @@ public class SerialDriverClient {
             throw new RuntimeException("read sen command error: no bytes sent");
         int bytesNum = 0;
         int tryNum = 0;
-        while ((bytesNum = comPort.bytesAvailable()) <= 0 && tryNum < 200) {
+        while ((bytesNum = comPort.bytesAvailable()) <= 0 && tryNum < 5) {
             tryNum++;
             try {
-                Thread.sleep(10);
+                Thread.sleep(1);
             } catch (InterruptedException e) {
             }
         }
         if (bytesNum <= 0) {
-            logger.error("read error: no bytes return");
-            throw new RuntimeException("write error: no bytes return");
+            // logger.error("read error: no bytes return");
+            // throw new RuntimeException("write error: no bytes return");
+            return "";
         }
         byte[] byes = new byte[bytesNum];
         comPort.readBytes(byes, byes.length);
@@ -93,7 +94,9 @@ public class SerialDriverClient {
             if (byes[4] == 1) {
                 return readTag(tagName, tagReadLength);
             } else {
-                logger.error("read error,error code:{}", CRC16Util.byte2HexStr(byes[4]));
+                String code = CRC16Util.byte2HexStr(byes[4]);
+                if (code != null && !code.equals("80"))
+                    logger.error("read error,error code:{}", CRC16Util.byte2HexStr(byes[4]));
                 return "";
             }
         } else {

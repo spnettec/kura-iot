@@ -154,7 +154,7 @@ public class SerialDriver implements Driver, ConfigurableComponent {
                     String readata = this.state.client.readTag(tagName, tagReadLength);
                     fillRecord(readata, record);
                 } catch (Exception e) {
-                    logger.error("EIP PLC read error", e);
+                    logger.error("Serial tag read error", e);
                     record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     record.setTimestamp(System.currentTimeMillis());
                 }

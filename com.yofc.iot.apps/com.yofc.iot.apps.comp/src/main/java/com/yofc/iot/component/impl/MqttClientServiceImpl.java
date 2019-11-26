@@ -21,7 +21,6 @@ import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
 import org.eclipse.kura.ssl.SslManagerService;
 import org.eclipse.kura.system.SystemService;
-import org.eclipse.kura.wire.WireRecord;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
@@ -324,7 +323,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     }
 
     @Override
-    public Integer publish(String topic, int qos, boolean retain, List<WireRecord> wireRecords) throws KuraException {
+    public Integer publish(String topic, int qos, boolean retain, Object wireRecords) throws KuraException {
         byte[] payload = JSON.toJSONBytes(wireRecords);
         MqttMessage message = new MqttMessage();
         message.setPayload(payload);
