@@ -9,7 +9,6 @@ import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
-import org.eclipse.kura.wire.WireEmitter;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireHelperService;
 import org.eclipse.kura.wire.WireReceiver;
@@ -28,7 +27,6 @@ import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.osgi.service.wireadmin.Consumer;
-import org.osgi.service.wireadmin.Producer;
 import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +44,7 @@ import io.vertx.ext.web.client.WebClient;
 
 @Designate(factory = true, ocd = MqttClientPublisherCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
-        ConfigurableComponent.class, WireComponent.class, WireEmitter.class, WireReceiver.class, Producer.class,
+        ConfigurableComponent.class, WireComponent.class, WireReceiver.class,
         Consumer.class }, property = { "kura.ui.service.hide:Boolean=true" })
 /*
  * property = {
@@ -56,7 +54,7 @@ import io.vertx.ext.web.client.WebClient;
  * "input.cardinality.default:Integer=1" }
  * 
  */
-public class MqttClientPublisher implements WireEmitter, WireReceiver, ConfigurableComponent {
+public class MqttClientPublisher implements WireReceiver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(MqttClientPublisher.class);
     private static final String TOPIC_PATTERN_STRING = "\\$([^\\s/]+)";
@@ -164,8 +162,7 @@ public class MqttClientPublisher implements WireEmitter, WireReceiver, Configura
                     return;
 
                 this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(), output);
-                this.wireSupport.emit(wireEnvelope.getRecords());
-                logger.debug("Publish MQTT {}, data {}", topic, output);
+                logger.debug("Publish topic: {}, data: {}", topic, output);
             } catch (Exception e) {
                 logger.error("Failured to execute script", e);
             }
@@ -173,11 +170,10 @@ public class MqttClientPublisher implements WireEmitter, WireReceiver, Configura
             try {
                 Map<String, Object> output = Utils.toMap(wireEnvelope.getRecords());
                 this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(), output);
-                logger.debug("Publish MQTT {}, data {}", topic, output);
+                logger.debug("Publish topic: {}, data: {}", topic, output);
             } catch (KuraException e) {
                 logger.error("Failed to marshal payload", e);
             }
-            this.wireSupport.emit(wireEnvelope.getRecords());
 
         }
     }
@@ -198,16 +194,6 @@ public class MqttClientPublisher implements WireEmitter, WireReceiver, Configura
         }
         matcher.appendTail(buffer);
         return buffer.toString();
-    }
-
-    @Override
-    public Object polled(Wire wire) {
-        return this.wireSupport.polled(wire);
-    }
-
-    @Override
-    public void consumersConnected(Wire[] wires) {
-        this.wireSupport.consumersConnected(wires);
     }
 
     @Override

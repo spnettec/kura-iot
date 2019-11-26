@@ -411,7 +411,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        logger.info("message delivery Complete token:{}", token);
+        logger.debug("message delivery Complete token:{}", token);
     }
 
     private boolean startConnectionMonitorTask() {
