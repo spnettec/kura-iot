@@ -1,18 +1,12 @@
 package com.yofc.iot.component.impl;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.eclipse.kura.message.KuraPayload;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEmitter;
@@ -48,7 +42,6 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 
 @Designate(factory = true, ocd = MqttClientPublisherCfg.class)
@@ -158,69 +151,34 @@ public class MqttClientPublisher implements WireEmitter, WireReceiver, Configura
             logger.error("mqttClientService not attched");
             return;
         }
-
+        WireRecord wireRecord = wireEnvelope.getRecords().get(0);
+        String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
         if (!this.scriptSource.equals("")) {
             try {
                 script.setProperty("input", wireEnvelope);
-                List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
-                for (WireRecord record : wireEnvelope.getRecords()) {
-                    Map<String, TypedValue<?>> mapCopy = record.getProperties();
-                    outputEnvelopeWrapper.add(new WireRecord(mapCopy));
-                }
+                Map<String, Object> outputEnvelopeWrapper = Utils.toMap(wireEnvelope.getRecords());
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
                 Object output = script.getProperty("output");
                 if (output == null)
                     return;
-                if (output instanceof List) {
-                    List<?> outputList = (List<?>) output;
-                    if (outputList.isEmpty())
-                        return;
-                    if (outputList.get(0) instanceof WireRecord) {
-                        for (Object record : outputList) {
-                            WireRecord wireRecord = (WireRecord) record;
-                            String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                            this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(),
-                                    buildKuraPayload(wireRecord).metrics());
-                            this.wireSupport.emit(wireEnvelope.getRecords());
-                            logger.info("Publish MQTT {}", topic);
-                        }
-                    }
-                } else if (output instanceof JsonObject) {
-                    WireRecord wireRecord = Utils.toWireRecord((JsonObject) output);
-                    String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                    this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(),
-                            buildKuraPayload(wireRecord).metrics());
-                    this.wireSupport.emit(wireEnvelope.getRecords());
-                    logger.info("Publish MQTT {}", topic);
-                }
 
+                this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(), output);
+                this.wireSupport.emit(wireEnvelope.getRecords());
+                logger.info("Publish MQTT {}", topic);
             } catch (Exception e) {
                 logger.error("Failured to execute script", e);
             }
         } else {
-            for (WireRecord record : wireEnvelope.getRecords()) {
-                String topic = fillTopicPlaceholders(this.properties.mqttTopic(), record);
-
-                try {
-                    this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(),
-                            buildKuraPayload(record).metrics());
-                } catch (KuraException e) {
-                    logger.error("Failed to marshal payload", e);
-                }
-                this.wireSupport.emit(wireEnvelope.getRecords());
-                logger.info("Publish MQTT {}", topic);
+            try {
+                this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(),
+                        Utils.toMap(wireEnvelope.getRecords()));
+            } catch (KuraException e) {
+                logger.error("Failed to marshal payload", e);
             }
+            this.wireSupport.emit(wireEnvelope.getRecords());
+            logger.info("Publish MQTT {}", topic);
         }
-    }
-
-    private KuraPayload buildKuraPayload(final WireRecord wireRecord) {
-        requireNonNull(wireRecord, "Wire Record cannot be null");
-        final KuraPayload kuraPayload = new KuraPayload();
-        for (final Entry<String, TypedValue<?>> entry : wireRecord.getProperties().entrySet()) {
-            kuraPayload.addMetric(entry.getKey(), entry.getValue().getValue());
-        }
-        return kuraPayload;
     }
 
     private String fillTopicPlaceholders(String topic, WireRecord wireRecord) {

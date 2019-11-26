@@ -178,13 +178,16 @@ public class Utils {
 
     }
 
-    public static JsonObject toJson(List<WireRecord> list) {
+    public static Map<String, Object> toMap(List<WireRecord> list) {
         Stream<Map<String, Object>> properties = list.stream()
                 .map(record -> record.getProperties().entrySet().stream().collect(Collectors.toMap(
                         functionWrapper(Map.Entry::getKey), functionWrapper(entry -> entry.getValue().getValue()))));
-        Map<String, Object> merged = properties.map(Map::entrySet).flatMap(Set::stream)
+        return properties.map(Map::entrySet).flatMap(Set::stream)
                 .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey), functionWrapper(Map.Entry::getValue)));
-        return new JsonObject(merged);
+    }
+
+    public static JsonObject toJson(List<WireRecord> list) {
+        return new JsonObject(toMap(list));
 
     }
 
