@@ -165,19 +165,20 @@ public class MqttClientPublisher implements WireEmitter, WireReceiver, Configura
 
                 this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(), output);
                 this.wireSupport.emit(wireEnvelope.getRecords());
-                logger.debug("Publish MQTT {}", topic);
+                logger.debug("Publish MQTT {}, data {}", topic, output);
             } catch (Exception e) {
                 logger.error("Failured to execute script", e);
             }
         } else {
             try {
-                this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(),
-                        Utils.toMap(wireEnvelope.getRecords()));
+                Map<String, Object> output = Utils.toMap(wireEnvelope.getRecords());
+                this.mqttClientService.publish(topic, this.properties.qos(), this.properties.retain(), output);
+                logger.debug("Publish MQTT {}, data {}", topic, output);
             } catch (KuraException e) {
                 logger.error("Failed to marshal payload", e);
             }
             this.wireSupport.emit(wireEnvelope.getRecords());
-            logger.debug("Publish MQTT {}", topic);
+
         }
     }
 
