@@ -38,7 +38,7 @@ public class SerialDriverClient {
         comPort.setFlowControl(this.flowControl);
         comPort.setParity(this.parity);
         comPort.setNumStopBits(this.stopBits);
-        comPort.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 100, 100);
+        comPort.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
         comPort.openPort();
         if (!comPort.isOpen())
             throw new RuntimeException("open port faileried");
@@ -72,17 +72,16 @@ public class SerialDriverClient {
             throw new RuntimeException("read sen command error: no bytes sent");
         int bytesNum = 0;
         int tryNum = 0;
-        while ((bytesNum = comPort.bytesAvailable()) <= 0 && tryNum < 5) {
+        while ((bytesNum = comPort.bytesAvailable()) <= 0 && tryNum < 20) {
             tryNum++;
             try {
-                Thread.sleep(1);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
             }
         }
         if (bytesNum <= 0) {
-            // logger.error("read error: no bytes return");
-            // throw new RuntimeException("write error: no bytes return");
-            return "";
+            logger.error("read error: no bytes return");
+            throw new RuntimeException("write error: no bytes return");
         }
         byte[] byes = new byte[bytesNum];
         comPort.readBytes(byes, byes.length);
