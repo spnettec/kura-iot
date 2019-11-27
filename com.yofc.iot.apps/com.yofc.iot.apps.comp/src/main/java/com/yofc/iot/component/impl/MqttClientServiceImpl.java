@@ -324,6 +324,9 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public Integer publish(String topic, int qos, boolean retain, Object wireRecords) throws KuraException {
+        if (!isConnected()) {
+            throw new KuraNotConnectedException("client not connected, can't publish");
+        }
         byte[] payload = JSON.toJSONBytes(wireRecords);
         MqttMessage message = new MqttMessage();
         message.setPayload(payload);
@@ -354,8 +357,8 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void subscribe(String topicFilter, int qos) throws KuraException {
-        if (this.mqttClient == null || !this.mqttClient.isConnected()) {
-            throw new KuraNotConnectedException("Not connected");
+        if (!isConnected()) {
+            throw new KuraNotConnectedException("client not connected, can't subscribe");
         }
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilter, qos);
 
@@ -376,8 +379,8 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void subscribe(String topicFilters[], int qos[]) throws KuraException {
-        if (this.mqttClient == null || !this.mqttClient.isConnected()) {
-            throw new KuraNotConnectedException("Not connected");
+        if (!isConnected()) {
+            throw new KuraNotConnectedException("client not connected, can't subscribe");
         }
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilters, qos);
 
