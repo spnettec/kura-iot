@@ -68,11 +68,14 @@ public class SerialDriverClient {
             comPort.readBytes(readBuffer, readBuffer.length);
         }
         int retrunNum = comPort.writeBytes(result, result.length);
+
         if (retrunNum <= 0)
             throw new RuntimeException("read sen command error: no bytes sent");
-        int bytesNum = 0;
+
+        int bytesNum = comPort.bytesAvailable();
         int tryNum = 0;
-        while ((bytesNum = comPort.bytesAvailable()) <= 0 && tryNum < 20) {
+        while (bytesNum <= 0 && tryNum < 2) {
+            bytesNum = comPort.bytesAvailable();
             tryNum++;
             try {
                 Thread.sleep(10);

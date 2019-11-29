@@ -121,7 +121,7 @@ public class SerialDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public synchronized void read(List<ChannelRecord> records) throws ConnectionException {
+    public void read(List<ChannelRecord> records) throws ConnectionException {
         if (this.state.client == null || !this.state.client.isConnected()) {
             connect();
         }
