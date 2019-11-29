@@ -210,9 +210,11 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 if (!this.registerTopcs.isEmpty())
                     this.mqttClient.unsubscribe(this.registerTopcs.toArray(new String[0]));
                 this.mqttClient.setCallback(null);
-                this.mqttClient.disconnect(0);
-                this.mqttClient.close();
-                logger.info("Closed");
+                if (this.mqttClient.isConnected()) {
+                    this.mqttClient.disconnect(0);
+                    this.mqttClient.close();
+                    logger.info("Close Client");
+                }
             } catch (MqttException e) {
                 logger.warn("Cannot close client", e);
             } finally {
