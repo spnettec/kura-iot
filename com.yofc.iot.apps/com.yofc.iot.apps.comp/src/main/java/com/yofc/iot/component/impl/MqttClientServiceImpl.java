@@ -80,14 +80,14 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     private ScheduledFuture<?> connectionMonitorFuture;
 
     @Activate
-    public void start(Config properties) {
+    public void start(Config properties) throws KuraConnectException {
         this.preConfig = properties;
         this.connectionMonitorExecutor = Executors.newSingleThreadScheduledExecutor();
         updateConfig(properties);
     }
 
     @Modified
-    public void update(Config properties) {
+    public void update(Config properties) throws KuraConnectException {
         if (this.preConfig != null && properties.toString().equals(this.preConfig.toString()))
             return;
         closeMqttClient();
@@ -231,7 +231,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         }
     }
 
-    private void updateConfig(Config properties) {
+    private void updateConfig(Config properties) throws KuraConnectException {
         if (!properties.activate()) {
             closeMqttClient();
             return;
@@ -319,7 +319,10 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
             throw new IllegalStateException("Invalid MQTT client configuration: persistenceType: " + pType);
         }
         this.clientConf = new MqttClientConfiguration(brokerUrl, clientId, pType, conOpt);
-        startConnectionMonitorTask();
+        if (this.preConfig.autoConnect())
+            startConnectionMonitorTask();
+        else
+            this.connect();
     }
 
     @Override
