@@ -77,7 +77,9 @@ public class ValueChangeComponent implements WireEmitter, WireReceiver, Configur
     }
 
     public synchronized void updated(final ValueChangeComponentCfg properties) {
-        final String[] v = properties.tags();
+        String[] v = properties.tags();
+        if (v.length == 1)
+            v = v[0].split(",");
         tagNames = Arrays.stream(v).filter(tag -> tag != null && !"".equals(tag)).collect(Collectors.toList());
         isOr = "or".equals(properties.type());
     }
