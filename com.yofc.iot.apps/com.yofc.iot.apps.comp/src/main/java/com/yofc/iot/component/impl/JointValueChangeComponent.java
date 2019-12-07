@@ -89,7 +89,9 @@ public class JointValueChangeComponent implements WireEmitter, WireReceiver, Con
     public synchronized void updated(final JointValueChangeComponentCfg properties) {
         tagNames = new ArrayList<>();
         this.wiresMap.clear();
-        final String[] v = properties.tags();
+        String[] v = properties.tags();
+        if (v.length == 1)
+            v = v[0].split(",");
         tagNames = Arrays.stream(v).filter(tag -> tag != null && !"".equals(tag)).collect(Collectors.toList());
         isOrType = properties.type();
         isBarrier = properties.barrier();
