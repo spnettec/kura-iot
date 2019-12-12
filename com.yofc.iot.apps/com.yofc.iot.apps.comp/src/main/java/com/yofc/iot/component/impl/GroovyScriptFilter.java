@@ -10,12 +10,10 @@
 package com.yofc.iot.component.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEmitter;
 import org.eclipse.kura.wire.WireEnvelope;
@@ -40,6 +38,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson.JSON;
 import com.yofc.iot.component.impl.GroovyScriptFilter.GroovyScriptFilterCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
@@ -137,11 +136,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
             try {
                 script.setProperty("input", wireEnvelope);
-                List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
-                for (WireRecord record : wireEnvelope.getRecords()) {
-                    Map<String, TypedValue<?>> mapCopy = record.getProperties();
-                    outputEnvelopeWrapper.add(new WireRecord(mapCopy));
-                }
+                Map<String, Object> outputEnvelopeWrapper = Utils.toMap(wireEnvelope.getRecords());
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
                 Object output = script.getProperty("output");
@@ -156,6 +151,11 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
                     }
                 } else if (output instanceof JsonObject) {
                     this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
+                } else if (output instanceof Map) {
+                    this.wireSupport.emit(Utils.toWireRecords((Map<String, Object>) output));
+                } else {
+                    Map<String, Object> map = JSON.parseObject(JSON.toJSONString(output));
+                    this.wireSupport.emit(Utils.toWireRecords(map));
                 }
             } catch (Exception e) {
                 logger.warn("Failed to execute script", e);

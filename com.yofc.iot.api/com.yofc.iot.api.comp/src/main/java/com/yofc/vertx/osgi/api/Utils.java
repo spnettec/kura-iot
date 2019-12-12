@@ -1,7 +1,15 @@
 package com.yofc.vertx.osgi.api;
 
+import static java.lang.String.format;
+import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,12 +23,20 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.kura.db.H2DbService;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireRecord;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import io.netty.util.CharsetUtil;
 import io.vertx.core.buffer.Buffer;
@@ -29,6 +45,8 @@ import io.vertx.core.json.JsonObject;
 public class Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
+    private static final BundleContext bundleContext = FrameworkUtil.getBundle(Utils.class).getBundleContext();
 
     public static <T> T executeWithTCCLSwitch(Callable<T> action) throws Exception {
         final ClassLoader original = Thread.currentThread().getContextClassLoader();
@@ -195,19 +213,90 @@ public class Utils {
         return toJson(wireEnvelope.getRecords());
     }
 
-    public static WireRecord toWireRecord(JsonObject object) {
-        Map<String, TypedValue<?>> mapWireRecord = object.getMap().entrySet().stream()
+    public static WireRecord toWireRecord(Map<String, Object> map) {
+        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream()
                 .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey),
                         functionWrapper(entry -> TypedValues.newTypedValue(entry.getValue()))));
         return new WireRecord(mapWireRecord);
+    }
+
+    public static WireRecord toWireRecord(JsonObject object) {
+        return toWireRecord(object.getMap());
     }
 
     public static List<WireRecord> toWireRecords(JsonObject object) {
         return getWireRecords(toWireRecord(object));
     }
 
+    public static List<WireRecord> toWireRecords(Map<String, Object> object) {
+        return getWireRecords(toWireRecord(object));
+    }
+
     public static String utf8ToAscii(String utf8String) {
         return new String(utf8String.getBytes(CharsetUtil.UTF_8), CharsetUtil.US_ASCII);
+    }
+
+    public static Object excuteQuerySQL(String pid, String sql) throws InvalidSyntaxException, SQLException {
+        final String filter = format("(%s=%s)", KURA_SERVICE_PID, pid);
+        Collection<ServiceReference<H2DbService>> refs = bundleContext.getServiceReferences(H2DbService.class, filter);
+        if (refs.isEmpty())
+            throw new InvalidSyntaxException("can not find H2DbService instance", filter);
+        if (refs.size() > 1) {
+            for (ServiceReference<H2DbService> unref : refs)
+                bundleContext.ungetService(unref);
+            throw new InvalidSyntaxException("find mutipile H2DbService instance", filter);
+        }
+        ServiceReference<H2DbService> ref = refs.iterator().next();
+        try {
+        H2DbService h2DbService = bundleContext.getService(ref);
+        return h2DbService.withConnection(c -> {
+            try (final Statement stmt = c.createStatement(); final ResultSet resultSet = stmt.executeQuery(sql)) {
+                JSONArray jsonArray = new JSONArray();
+                while (resultSet.next()) {
+                    int totalRows = resultSet.getMetaData().getColumnCount();
+                    JSONObject obj = new JSONObject();
+                    for (int i = 0; i < totalRows; i++) {
+                        obj.put(resultSet.getMetaData().getColumnLabel(i + 1).toLowerCase(),
+                                resultSet.getObject(i + 1));
+                        jsonArray.add(obj);
+                    }
+                }
+                return jsonArray;
+            } catch (Exception e) {
+                logger.error("sql error:{}", e);
+            }
+            return (Void) null;
+        });
+        }finally {
+            bundleContext.ungetService(ref);
+        }
+
+    }
+
+    public static void excuteSQL(String pid, String sql) throws InvalidSyntaxException, SQLException {
+        final String filter = format("(%s=%s)", KURA_SERVICE_PID, pid);
+        Collection<ServiceReference<H2DbService>> refs = bundleContext.getServiceReferences(H2DbService.class, filter);
+        if (refs.isEmpty())
+            throw new InvalidSyntaxException("can not find H2DbService instance", filter);
+        if (refs.size() > 1) {
+            for (ServiceReference<H2DbService> unref : refs)
+                bundleContext.ungetService(unref);
+            throw new InvalidSyntaxException("find mutipile H2DbService instance", filter);
+        }
+        ServiceReference<H2DbService> ref = refs.iterator().next();
+        try {
+            H2DbService h2DbService = bundleContext.getService(ref);
+            h2DbService.withConnection(c -> {
+                try (final PreparedStatement stmt = c.prepareStatement(sql)) {
+                    stmt.execute();
+                    c.commit();
+                    return (Void) null;
+                }
+            });
+        } finally {
+            bundleContext.ungetService(ref);
+        }
+
     }
 
     public static <T, R, E extends Exception> Function<T, R> functionWrapper(FunctionWithException<T, R, E> fe) {
