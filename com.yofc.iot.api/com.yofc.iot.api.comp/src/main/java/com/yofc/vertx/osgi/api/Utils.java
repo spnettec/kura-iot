@@ -3,8 +3,10 @@ package com.yofc.vertx.osgi.api;
 import static java.lang.String.format;
 import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -214,9 +216,8 @@ public class Utils {
     }
 
     public static WireRecord toWireRecord(Map<String, Object> map) {
-        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream()
-                .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey),
-                        functionWrapper(entry -> TypedValues.newTypedValue(entry.getValue()))));
+        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream().collect(Collectors
+                .toMap(functionWrapper(Map.Entry::getKey), functionWrapper(entry -> newTypedValue(entry.getValue()))));
         return new WireRecord(mapWireRecord);
     }
 
@@ -248,26 +249,26 @@ public class Utils {
         }
         ServiceReference<H2DbService> ref = refs.iterator().next();
         try {
-        H2DbService h2DbService = bundleContext.getService(ref);
-        return h2DbService.withConnection(c -> {
-            try (final Statement stmt = c.createStatement(); final ResultSet resultSet = stmt.executeQuery(sql)) {
-                JSONArray jsonArray = new JSONArray();
-                while (resultSet.next()) {
-                    int totalRows = resultSet.getMetaData().getColumnCount();
-                    JSONObject obj = new JSONObject();
-                    for (int i = 0; i < totalRows; i++) {
-                        obj.put(resultSet.getMetaData().getColumnLabel(i + 1).toLowerCase(),
-                                resultSet.getObject(i + 1));
+            H2DbService h2DbService = bundleContext.getService(ref);
+            return h2DbService.withConnection(c -> {
+                try (final Statement stmt = c.createStatement(); final ResultSet resultSet = stmt.executeQuery(sql)) {
+                    JSONArray jsonArray = new JSONArray();
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int totalRows = metaData.getColumnCount();
+                    while (resultSet.next()) {
+                        JSONObject obj = new JSONObject();
+                        for (int i = 0; i < totalRows; i++) {
+                            obj.put(metaData.getColumnLabel(i + 1).toLowerCase(), resultSet.getObject(i + 1));
+                        }
                         jsonArray.add(obj);
                     }
+                    return jsonArray;
+                } catch (Exception e) {
+                    logger.error("sql error:{}", e);
                 }
-                return jsonArray;
-            } catch (Exception e) {
-                logger.error("sql error:{}", e);
-            }
-            return (Void) null;
-        });
-        }finally {
+                return (Void) null;
+            });
+        } finally {
             bundleContext.ungetService(ref);
         }
 
@@ -337,6 +338,27 @@ public class Utils {
             return Integer.MIN_VALUE;
         }
         return (int) value;
+    }
+
+    public static TypedValue<?> newTypedValue(final Object value) {
+        if (value instanceof Boolean) {
+            return TypedValues.newBooleanValue((Boolean) value);
+        } else if (value instanceof byte[]) {
+            return TypedValues.newByteArrayValue((byte[]) value);
+        } else if (value instanceof Float) {
+            return TypedValues.newFloatValue((Float) value);
+        } else if (value instanceof Double) {
+            return TypedValues.newDoubleValue((Double) value);
+        } else if (value instanceof Integer) {
+            return TypedValues.newIntegerValue((Integer) value);
+        } else if (value instanceof Long) {
+            return TypedValues.newLongValue((Long) value);
+        } else if (value instanceof String) {
+            return TypedValues.newStringValue((String) value);
+        } else if (value instanceof BigDecimal)
+            return TypedValues.newDoubleValue(((BigDecimal) value).doubleValue());
+
+        throw new IllegalArgumentException("Cannot convert to TypedValue");
     }
 
 }

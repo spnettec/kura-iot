@@ -148,6 +148,11 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
                         return;
                     if (outputList.get(0) instanceof WireRecord) {
                         this.wireSupport.emit((List<WireRecord>) outputList);
+                    } else {
+                        for (Object o : outputList) {
+                            Map<String, Object> map = JSON.parseObject(JSON.toJSONString(o));
+                            this.wireSupport.emit(Utils.toWireRecords(map));
+                        }
                     }
                 } else if (output instanceof JsonObject) {
                     this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
