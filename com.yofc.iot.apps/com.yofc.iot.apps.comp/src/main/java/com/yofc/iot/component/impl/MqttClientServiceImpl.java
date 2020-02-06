@@ -327,11 +327,20 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
             this.connect();
     }
 
+    private void checkConnected() throws KuraNotConnectedException {
+        if (!isConnected()) {
+            if (this.connectionMonitorFuture == null || this.connectionMonitorFuture.isDone()) {
+                startConnectionMonitorTask();
+                throw new KuraNotConnectedException("client not connected, can't publish");
+            } else
+                throw new IllegalStateException("ConnectionMonitorTask is running, can't publish");
+
+        }
+    }
+
     @Override
     public Integer publish(String topic, int qos, boolean retain, Object wireRecords) throws KuraException {
-        if (!isConnected()) {
-            throw new KuraNotConnectedException("client not connected, can't publish");
-        }
+        checkConnected();
         byte[] payload = JSON.toJSONBytes(wireRecords);
         MqttMessage message = new MqttMessage();
         message.setPayload(payload);
@@ -362,9 +371,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void subscribe(String topicFilter, int qos) throws KuraException {
-        if (!isConnected()) {
-            throw new KuraNotConnectedException("client not connected, can't subscribe");
-        }
+        checkConnected();
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilter, qos);
 
         try {
@@ -384,9 +391,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void subscribe(String topicFilters[], int qos[]) throws KuraException {
-        if (!isConnected()) {
-            throw new KuraNotConnectedException("client not connected, can't subscribe");
-        }
+        checkConnected();
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilters, qos);
 
         try {
