@@ -96,17 +96,22 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     private void dumpProperties(final HttpProxyComponentCfg properties) {
         String ip = properties.ip();
         int port = properties.port();
+        long timeout = properties.timeout();
         String routeContext = properties.routeUrl();
         String proxyContext = properties.context();
 
-        proxyRoute.configure(routeContext, proxyContext, -1, false, ip, port, 2000L);
+        proxyRoute.configure(routeContext, proxyContext, -1, false, ip, port, timeout);
         proxyRoute.addPreListener((context, proxyReq, buffer) -> {
+            if (prePort.listConnectedWires().isEmpty())
+                return null;
             final WireEnvelope outputEnvelope = this.wireSupport
                     .createWireEnvelope(Utils.bufferToWireRecords("paras", buffer));
             prePort.emit(outputEnvelope);
             return null;
         });
         proxyRoute.addPostListener((context, serverResponse, buffer) -> {
+            if (postPort.listConnectedWires().isEmpty())
+                return null;
             final WireEnvelope outputEnvelope = this.wireSupport
                     .createWireEnvelope(Utils.bufferToWireRecords("results", buffer));
             postPort.emit(outputEnvelope);
@@ -145,6 +150,9 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
 
         @AttributeDefinition(name = "%routeUrl", description = "%routeUrlDesc")
         String routeUrl() default "/*";
+
+        @AttributeDefinition(name = "%timeout", description = "%timeoutDesc")
+        long timeout() default 2000L;
     }
 
 }
