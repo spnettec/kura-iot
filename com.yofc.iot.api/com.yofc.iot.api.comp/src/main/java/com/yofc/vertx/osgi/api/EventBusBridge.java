@@ -119,13 +119,13 @@ public class EventBusBridge {
     public static EventBusBridge connect(URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler,
             int maxSocketFrameSize, Vertx vertx) {
         return connect(-1, null, endPoint, onOpenHandler,
-                new HttpClientOptions().setMaxWebsocketFrameSize(maxSocketFrameSize), vertx);
+                new HttpClientOptions().setMaxWebSocketFrameSize(maxSocketFrameSize), vertx);
     }
 
     public static EventBusBridge connect(int port, String host, URI endPoint,
             io.vertx.core.Handler<EventBusBridge> onOpenHandler, HttpClientOptions options, Vertx vertx) {
         HttpClientOptions actualOptions = options == null
-                ? new HttpClientOptions().setMaxWebsocketFrameSize(MAX_SOCKET_FRAME_SIZE)
+                ? new HttpClientOptions().setMaxWebSocketFrameSize(MAX_SOCKET_FRAME_SIZE)
                 : options;
         int actualPort = guessPort(port, endPoint, actualOptions);
         String actualHost = guessHost(host, endPoint, actualOptions);
