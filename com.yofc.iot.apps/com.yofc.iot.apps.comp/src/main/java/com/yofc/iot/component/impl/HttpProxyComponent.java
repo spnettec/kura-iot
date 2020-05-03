@@ -97,10 +97,12 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
         String ip = properties.ip();
         int port = properties.port();
         long timeout = properties.timeout();
+        boolean isSSL = properties.isSSL();
+        int order = properties.order();
         String routeContext = properties.routeUrl();
         String proxyContext = properties.context();
 
-        proxyRoute.configure(routeContext, proxyContext, -1, false, ip, port, timeout);
+        proxyRoute.configure(routeContext, proxyContext, order, isSSL, ip, port, timeout);
         proxyRoute.addPreListener((context, proxyReq, buffer) -> {
             if (prePort.listConnectedWires().isEmpty())
                 return null;
@@ -150,6 +152,12 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
 
         @AttributeDefinition(name = "%routeUrl", description = "%routeUrlDesc")
         String routeUrl() default "/*";
+
+        @AttributeDefinition(name = "%ssl", description = "%sslDesc")
+        boolean isSSL() default false;
+
+        @AttributeDefinition(name = "%order", description = "%orderDesc")
+        int order() default -1;
 
         @AttributeDefinition(name = "%timeout", description = "%timeoutDesc")
         long timeout() default 2000L;

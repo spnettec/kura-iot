@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Kislay Verma.
+ * Copyright 2020 heyoulin.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package com.yofc.vertx.osgi;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -31,6 +34,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Route;
@@ -115,7 +119,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         }
         Buffer responseBuffer = Buffer.buffer();
         Buffer requestBuffer = Buffer.buffer();
-        long timeoutToUse = this.timeout == null ? 1000L : this.timeout;
+        long timeoutToUse = this.timeout == null ? 2000L : this.timeout;
         int defaultPort = this.isSsl ? 443 : 80;
         int portToUse = (this.targetPort == null) ? defaultPort : this.targetPort;
         String url = serverRequest.uri();
@@ -123,7 +127,12 @@ public class ProxyRouteImpl implements ProxyRoute {
             url = url.substring(context.length());
         logger.debug("request:{}", url);
         HttpClientRequest clientRequest = client.request(serverRequest.method(), portToUse, targetHost, url)
-                .setTimeout(timeoutToUse).setChunked(true);
+                .setTimeout(timeoutToUse);// .setChunked(true);
+        final String hostString = serverRequest.getHeader("Host");
+
+        if (serverRequest.method() == HttpMethod.OTHER) {
+            clientRequest.setRawMethod(serverRequest.rawMethod());
+        }
         client.connectionHandler(connection -> connection.exceptionHandler(ex -> {
             String errMsg = ex.getMessage();
             if (errMsg == null) {
@@ -136,17 +145,26 @@ public class ProxyRouteImpl implements ProxyRoute {
             if (!serverResponse.closed() && !serverResponse.ended())
                 serverResponse.end("request error:" + errMsg);
         }));
-        serverResponse.setChunked(true);
+        // serverResponse.setChunked(true);
         serverRequest.handler(requestData -> {
             clientRequest.write(requestData);
             requestBuffer.appendBuffer(requestData);
         });
         serverRequest.headers().entries().forEach(entry -> {
-            if (entry.getKey().equalsIgnoreCase("host"))
-                clientRequest.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
-            else if (entry.getKey().equalsIgnoreCase("referer")) {
-                String referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
-                        entry.getValue());
+            if (entry.getKey().equalsIgnoreCase("host")) {
+                // clientRequest.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
+            } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
+                if (entry.getValue() != null && entry.getValue().equals("chunked"))
+                    clientRequest.setChunked(true);
+                clientRequest.putHeader(entry.getKey(), entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("referer")) {
+                String referer = entry.getValue();
+                try {
+                    referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
+                            entry.getValue(), this.isSsl,true);
+                } catch (MalformedURLException e) {
+
+                }
                 clientRequest.putHeader(entry.getKey(), referer);
             } else
                 clientRequest.putHeader(entry.getKey(), entry.getValue());
@@ -162,8 +180,31 @@ public class ProxyRouteImpl implements ProxyRoute {
         clientRequest.handler(clientResponse -> {
             serverResponse.setStatusCode(clientResponse.statusCode());
             serverResponse.setStatusMessage(clientResponse.statusMessage());
-            clientResponse.headers().entries()
-                    .forEach(entry -> serverResponse.putHeader(entry.getKey(), entry.getValue()));
+            clientResponse.headers().entries().forEach(entry -> {
+                if (entry.getKey().equalsIgnoreCase("host")) {
+                    // nothing
+                } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
+                    if (entry.getValue() != null && entry.getValue().equals("chunked"))
+                        serverResponse.setChunked(true);
+                    serverResponse.putHeader(entry.getKey(), entry.getValue());
+                } else if (entry.getKey().equalsIgnoreCase("location")) {
+                    String value = entry.getValue();
+                    try {
+                        String[] hostStrings = hostString.split(":");
+                        String rawHost = hostStrings[0];
+                        String rawPort = "80";
+                        if (hostString.length() > 1) {
+                            rawPort = hostStrings[1];
+                        } else if (this.isSsl)
+                            rawPort = "443";
+                        value = replaceDomainAndPort(rawHost, rawPort, entry.getValue(), this.isSsl,false);
+                    } catch (MalformedURLException e) {
+
+                    }
+                    serverResponse.putHeader(entry.getKey(), value);
+                } else
+                    serverResponse.putHeader(entry.getKey(), entry.getValue());
+            });
             clientResponse.handler(responseData -> {
                 serverResponse.write(responseData);
                 responseBuffer.appendBuffer(responseData);
@@ -183,26 +224,21 @@ public class ProxyRouteImpl implements ProxyRoute {
         });
     }
 
-    public static String replaceDomainAndPort(String domain, String port, String url) {
+    public static String replaceDomainAndPort(String domain, String port, String url, boolean isSSL,boolean isRequest)
+            throws MalformedURLException {
         StringBuilder urBak = new StringBuilder();
-        if (url.indexOf("//") != -1) {
-            String[] splitTemp = url.split("//");
-            urBak.append(splitTemp[0] + "//");
-            if (port != null && !port.equals("")) {
-                urBak.append(domain + ":" + port);
-            } else {
-                urBak.append(domain);
-            }
+        URL tempUurl = new URL(url);
+        String path = tempUurl.getPath();
+        if (isRequest && isSSL)
+            urBak.append("https://");
+        else
+            urBak.append("http://");
+        urBak.append(domain);
+        if (port != null && !port.equals(""))
+            urBak.append(":" + port);
+        if (path != null && !path.equals(""))
+            urBak.append(path);
 
-            if (splitTemp.length >= 1 && splitTemp[1].indexOf('/') != -1) {
-                String[] urlTemp2 = splitTemp[1].split("/");
-                if (urlTemp2.length > 1) {
-                    for (int i = 1; i < urlTemp2.length; i++) {
-                        urBak.append("/" + urlTemp2[i]);
-                    }
-                }
-            }
-        }
         return urBak.toString();
     }
 
