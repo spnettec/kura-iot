@@ -82,7 +82,7 @@ public class VertxActivatorBase {
                 String aaa = ctx.getBodyAsString();
                 ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                 ctx.response().setStatusCode(400).setStatusMessage("parameter error" + aaa).end();
-                logger.error("Rest Body Error:{}", e);
+                logger.error("Rest Body Error", e);
                 return;
             }
             String assetPid = body.getString("assetPid");
@@ -99,7 +99,7 @@ public class VertxActivatorBase {
                 } catch (Exception e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                     ctx.response().setStatusCode(400).setStatusMessage(Utils.utf8ToAscii(e.getMessage())).end();
-                    logger.error("Read Tag Error:{}", e);
+                    logger.error("Read Tag Error", e);
                 }
                 break;
             case "writeTags":
@@ -125,7 +125,7 @@ public class VertxActivatorBase {
                 } catch (Exception e) {
                     ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                     ctx.response().setStatusCode(400).setStatusMessage(e.getMessage()).end();
-                    logger.error("Write Tag Error:{}", e);
+                    logger.error("Write Tag Error", e);
                 }
                 break;
             default:

@@ -97,7 +97,6 @@ public class AssetHelpImpl implements AssetHelp {
     public JsonObject readTags(String assetPid, String... tagNames) throws KuraException {
         JsonObject json = new JsonObject();
         Asset asset = getAsset(assetPid);
-        Objects.nonNull(asset);
         List<ChannelRecord> records;
         records = asset.read(Arrays.asList(tagNames).stream().collect(Collectors.toSet()));
         for (ChannelRecord record : records) {

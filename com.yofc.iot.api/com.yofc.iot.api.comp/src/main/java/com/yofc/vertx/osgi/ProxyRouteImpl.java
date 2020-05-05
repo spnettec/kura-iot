@@ -152,7 +152,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         });
         serverRequest.headers().entries().forEach(entry -> {
             if (entry.getKey().equalsIgnoreCase("host")) {
-                // clientRequest.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
+                clientRequest.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
             } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
                 if (entry.getValue() != null && entry.getValue().equals("chunked"))
                     clientRequest.setChunked(true);
@@ -161,7 +161,7 @@ public class ProxyRouteImpl implements ProxyRoute {
                 String referer = entry.getValue();
                 try {
                     referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
-                            entry.getValue(), this.isSsl,true);
+                            entry.getValue(), this.isSsl, true);
                 } catch (MalformedURLException e) {
 
                 }
@@ -182,7 +182,7 @@ public class ProxyRouteImpl implements ProxyRoute {
             serverResponse.setStatusMessage(clientResponse.statusMessage());
             clientResponse.headers().entries().forEach(entry -> {
                 if (entry.getKey().equalsIgnoreCase("host")) {
-                    // nothing
+                    serverResponse.putHeader(entry.getKey(), hostString);
                 } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
                     if (entry.getValue() != null && entry.getValue().equals("chunked"))
                         serverResponse.setChunked(true);
@@ -197,7 +197,7 @@ public class ProxyRouteImpl implements ProxyRoute {
                             rawPort = hostStrings[1];
                         } else if (this.isSsl)
                             rawPort = "443";
-                        value = replaceDomainAndPort(rawHost, rawPort, entry.getValue(), this.isSsl,false);
+                        value = replaceDomainAndPort(rawHost, rawPort, entry.getValue(), this.isSsl, false);
                     } catch (MalformedURLException e) {
 
                     }
@@ -224,7 +224,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         });
     }
 
-    public static String replaceDomainAndPort(String domain, String port, String url, boolean isSSL,boolean isRequest)
+    public static String replaceDomainAndPort(String domain, String port, String url, boolean isSSL, boolean isRequest)
             throws MalformedURLException {
         StringBuilder urBak = new StringBuilder();
         URL tempUurl = new URL(url);

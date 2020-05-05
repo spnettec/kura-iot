@@ -85,7 +85,7 @@ public class AgvVerticle extends AbstractVerticle {
 
     public void sendAndReply(Buffer message, long timeOut, Handler<AsyncResult<Buffer>> handler) {
         promise = Promise.promise();
-        promise.future().setHandler(handler);
+        promise.future().onComplete(handler);
         write(message);
         vertx.setTimer(timeOut, l -> {
             if (!promise.future().isComplete())

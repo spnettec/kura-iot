@@ -32,7 +32,7 @@ public class VertxActivator implements ConfigurableComponent {
     private Vertx vertx;
     @Reference
     private Router router;
-    private volatile HttpServer server;
+    private HttpServer server;
 
     @Activate
     public void start(BundleContext context, Config properties) {
