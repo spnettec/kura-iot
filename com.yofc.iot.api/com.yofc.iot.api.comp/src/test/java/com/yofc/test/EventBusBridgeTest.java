@@ -25,7 +25,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 
 public class EventBusBridgeTest {
@@ -43,7 +43,7 @@ public class EventBusBridgeTest {
 
         // events specific to THOPs are made available over the bridge
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-        BridgeOptions options = new BridgeOptions();
+        SockJSBridgeOptions options = new SockJSBridgeOptions();
         options.addOutboundPermitted(new PermittedOptions().setAddress("test"))
                 .addInboundPermitted(new PermittedOptions().setAddress("test"))
                 .addOutboundPermitted(new PermittedOptions().setAddress("end"))

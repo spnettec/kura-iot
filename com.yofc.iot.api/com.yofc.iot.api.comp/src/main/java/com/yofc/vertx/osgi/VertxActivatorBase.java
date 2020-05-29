@@ -29,7 +29,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 
 /**
@@ -135,7 +135,7 @@ public class VertxActivatorBase {
         }, false));
 
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-        BridgeOptions options = new BridgeOptions();
+        SockJSBridgeOptions options = new SockJSBridgeOptions();
         options.addOutboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
         options.addInboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
         sockJSHandler.bridge(options, event -> {
