@@ -504,7 +504,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         boolean activate() default false;
 
         @AttributeDefinition(name = "%brokerUrl", cardinality = 0, description = "%brokerUrlDesc", required = true)
-        String brokeUrl() default "mqtt://localhost:1883/";
+        String brokeUrl() default "tcp://localhost:1883";
 
         @AttributeDefinition(name = "%username", cardinality = 0, description = "%usernameDesc", required = false)
         String username() default "";
