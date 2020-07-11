@@ -180,13 +180,13 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-xml</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
