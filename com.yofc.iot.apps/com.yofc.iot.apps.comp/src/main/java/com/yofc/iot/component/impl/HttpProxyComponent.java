@@ -30,8 +30,6 @@ import com.yofc.iot.component.impl.HttpProxyComponent.HttpProxyComponentCfg;
 import com.yofc.vertx.osgi.api.ProxyRoute;
 import com.yofc.vertx.osgi.api.Utils;
 
-import io.vertx.ext.web.Router;
-
 /**
  *
  * @author heyoulin
@@ -59,8 +57,6 @@ import io.vertx.ext.web.Router;
                 "input.cardinality.default:Integer=0" })
 public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
 
-    @Reference
-    private Router router;
     @Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
     private ComponentServiceObjects<ProxyRoute> proxyRouteRef;
     private ProxyRoute proxyRoute;

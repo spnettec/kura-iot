@@ -112,7 +112,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             AuthHandler basicAuthHandler = BasicAuth.create(users);
             route.handler(basicAuthHandler);
         }
-        route.handler(BodyHandler.create()).blockingHandler(this::handleResult, false);
+        route.handler(BodyHandler.create()).handler(this::handleResult).failureHandler(this::doProxyRequestFailure);
         scriptSource = properties.script();
 
         if (scriptSource.equals("")) {
@@ -128,10 +128,16 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             try {
                 script = shell.parse(scriptSource);
             } catch (Exception e) {
-                logger.error("Script parse error:{}", e);
+                logger.error("Script parse error", e);
                 scriptSource = null;
             }
         }
+    }
+
+    private void doProxyRequestFailure(RoutingContext failureroutingContext) {
+        logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
+        failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
+                : failureroutingContext.failure().getMessage());
     }
 
     @Deactivate

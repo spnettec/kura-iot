@@ -73,7 +73,7 @@ public class VertxActivatorBase {
         routes.add(router.route().handler(CorsHandler.create(".*").allowCredentials(true).allowedHeaders(allowedHeaders)
                 .allowedMethods(allowedMethods)));
         routes.add(router.route("/static/*").handler(StaticHandler.create("webroot")));
-        routes.add(router.post("/api/:method").handler(BodyHandler.create()).blockingHandler(ctx -> {
+        routes.add(router.post("/api/:method").handler(BodyHandler.create()).handler(ctx -> {
             String method = ctx.request().getParam("method");
             JsonObject body = null;
             try {
@@ -132,7 +132,7 @@ public class VertxActivatorBase {
                 ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                 ctx.response().setStatusCode(405).setStatusMessage("method not suported").end();
             }
-        }, false));
+        }));
 
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
         SockJSBridgeOptions options = new SockJSBridgeOptions();
