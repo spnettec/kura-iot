@@ -14,7 +14,7 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>3.9.1</vertx.version>
+        <vertx.version>3.9.2</vertx.version>
         <netty.version>4.1.50.Final</netty.version>
         <self4j.version>1.7.30</self4j.version>
         <logback.version>1.2.3</logback.version>
@@ -202,17 +202,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.0</version>
+                    <version>3.8.1</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>11</source>
+                        <target>11</target>
                     </configuration>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>4.2.1</version>
+                    <version>5.1.1</version>
                 </plugin>
 
                 <plugin>

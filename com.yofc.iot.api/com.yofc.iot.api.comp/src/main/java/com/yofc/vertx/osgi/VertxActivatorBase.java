@@ -72,8 +72,8 @@ public class VertxActivatorBase {
         allowedMethods.add(HttpMethod.OPTIONS);
         routes.add(router.route().handler(CorsHandler.create(".*").allowCredentials(true).allowedHeaders(allowedHeaders)
                 .allowedMethods(allowedMethods)));
-        routes.add(router.route("/static/*").handler(StaticHandler.create("webroot")));
-        routes.add(router.post("/api/:method").handler(BodyHandler.create()).handler(ctx -> {
+        routes.add(router.route("/static/*").order(100).handler(StaticHandler.create("webroot")));
+        routes.add(router.post("/api/:method").order(100).handler(BodyHandler.create()).handler(ctx -> {
             String method = ctx.request().getParam("method");
             JsonObject body = null;
             try {
