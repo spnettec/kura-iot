@@ -12,7 +12,7 @@ public class MqttClientConfiguration {
     public enum PersistenceType {
         FILE,
         MEMORY
-    };
+    }
 
     public MqttClientConfiguration(String brokerUrl, String clientId, PersistenceType persistenceType,
             MqttConnectOptions connectOptions) {
