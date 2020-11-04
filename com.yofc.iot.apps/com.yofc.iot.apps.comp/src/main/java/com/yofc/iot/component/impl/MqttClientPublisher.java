@@ -22,6 +22,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
@@ -72,7 +73,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
     private Script script;
     @Reference
     private AssetHelp assetHelp;
-    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, unbind = "unbindMqttClientService")
+    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, unbind = "unbindMqttClientService")
     private volatile MqttClientService mqttClientService;
     private MqttClientPublisherCfg properties;
 
