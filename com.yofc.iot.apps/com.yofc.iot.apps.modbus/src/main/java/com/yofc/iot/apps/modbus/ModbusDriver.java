@@ -356,7 +356,9 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
         }
         Properties prop = new Properties();
         String modbusProtocol = currentOptions.protocol();
+        int respTimeOut = currentOptions.respTimeout();
         prop.setProperty("connectionType", modbusProtocol);
+        prop.setProperty("respTimeout", String.valueOf(respTimeOut));
         boolean isTCP = "TCP-RTU".equals(modbusProtocol) || "TCP/IP".equals(modbusProtocol);
         if (isTCP) {
             int iport = currentOptions.tcpPort();
@@ -449,6 +451,9 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%tcpPort", description = "%tcpPortDesc")
         int tcpPort() default 502;
+
+        @AttributeDefinition(name = "%respTimeout", description = "%respTimeoutDesc")
+        int respTimeout() default 1000;
 
     }
 
