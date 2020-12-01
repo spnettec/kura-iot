@@ -23,12 +23,14 @@ import org.eclipse.kura.protocol.modbus.ModbusProtocolDeviceService;
 import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
+import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceScope;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -47,17 +49,13 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
     private static final Logger logger = LoggerFactory.getLogger(ModbusDriver.class);
     private Properties modbusProperties = null;
     private Properties preModbusProperties = null;
-    @Reference(unbind = "unbindModbusProtocolDeviceService")
+    @Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+    private ComponentServiceObjects<ModbusProtocolDeviceService> modbusProtocolDeviceServiceRef;
     private ModbusProtocolDeviceService protocolDevice;
-
-    public void unbindModbusProtocolDeviceService(final ModbusProtocolDeviceService protocolDevice) {
-        if (this.protocolDevice == protocolDevice) {
-            this.protocolDevice = null;
-        }
-    }
 
     @Activate
     protected synchronized void activate(final Config properties) {
+        this.protocolDevice = modbusProtocolDeviceServiceRef.getService();
         logger.info("Activating Modbus Driver...");
         this.modbusProperties = this.getModbusProperties(properties);
         this.preModbusProperties = this.modbusProperties;
@@ -80,8 +78,11 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             disconnect();
         } catch (final ConnectionException e) {
             logger.error("Error while disconnecting...", e);
-            return;
+        } finally{
+            modbusProtocolDeviceServiceRef.ungetService(this.protocolDevice);
+            this.protocolDevice = null;
         }
+        
         logger.debug("Deactivating Modbus Driver.....Done");
     }
 
