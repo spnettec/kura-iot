@@ -78,11 +78,11 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
             disconnect();
         } catch (final ConnectionException e) {
             logger.error("Error while disconnecting...", e);
-        } finally{
+        } finally {
             modbusProtocolDeviceServiceRef.ungetService(this.protocolDevice);
             this.protocolDevice = null;
         }
-        
+
         logger.debug("Deactivating Modbus Driver.....Done");
     }
 
@@ -166,9 +166,11 @@ public class ModbusDriver implements Driver, ConfigurableComponent {
                 else if (RegisterType.DISCRETE.name().equals(registerType)) {
                     boolean[] disReadata = this.protocolDevice.readDiscreteInputs(slaveAddr, dataAddress, count);
                     fillRecord(disReadata, record);
+                    return;
                 } else if (RegisterType.COILS.name().equals(registerType)) {
                     boolean[] coilsReadata = this.protocolDevice.readCoils(slaveAddr, dataAddress, count);
                     fillRecord(coilsReadata, record);
+                    return;
                 } else
                     throw new ConnectionException("not supported RegisterType:" + registerType);
                 fillRecord(readata, record);
