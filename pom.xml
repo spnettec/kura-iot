@@ -25,11 +25,13 @@
         <groovy.version>3.0.6</groovy.version>
         <h2.version>1.4.200</h2.version>
         <paho.version>1.2.5</paho.version>
+        <osgi.service.version>1.4.0</osgi.service.version>
         <fastjson.version>1.2.75</fastjson.version>
         <log4j-api.version>2.14.0</log4j-api.version>
         <junit-platform-engine.version>1.7.0</junit-platform-engine.version>
         <self4j.version>1.7.30</self4j.version>
         <logback.version>1.2.3</logback.version>
+        <kura.protocol.modbus.version>2.0.200</kura.protocol.modbus.version>
     </properties>
     <repositories>
         <repository>
@@ -90,20 +92,30 @@
                 <version>6.0.0</version>
                 <scope>provided</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.service.component</artifactId>
+                <version>${osgi.service.version}</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.service.component.annotations</artifactId>
-                <version>1.3.0</version>
+                <version>${osgi.service.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.service.metatype.annotations</artifactId>
-                <version>1.3.0</version>
+                <version>${osgi.service.version}</version>
                 <scope>provided</scope>
             </dependency>
-
+            <dependency>
+                <groupId>org.eclipse.kura</groupId>
+                <artifactId>org.eclipse.kura.protocol.modbus</artifactId>
+                <version>${kura.protocol.modbus.version}</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
