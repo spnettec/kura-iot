@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.vertx.osgi.VertxActivator.Config;
+import com.yofc.vertx.osgi.api.Utils;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -40,10 +41,12 @@ public class VertxActivator implements ConfigurableComponent {
             stop(context);
             return;
         }
-        server = vertx.createHttpServer();
-        int port = properties.port();
+        Utils.executeWithTCCLSwitch(() -> {
+            server = vertx.createHttpServer();
+            int port = properties.port();
 
-        server.requestHandler(router).listen(port);
+            server.requestHandler(router).listen(port);
+        });
     }
 
     @Modified

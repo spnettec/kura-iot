@@ -13,6 +13,13 @@ import java.util.concurrent.atomic.LongAdder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.digitalpetri.netty.fsm.ChannelActions;
+import com.digitalpetri.netty.fsm.ChannelFsm;
+import com.digitalpetri.netty.fsm.ChannelFsmConfig;
+import com.digitalpetri.netty.fsm.ChannelFsmFactory;
+import com.digitalpetri.netty.fsm.Event;
+import com.digitalpetri.netty.fsm.State;
+import com.digitalpetri.strictmachine.FsmContext;
 import com.yofc.iot.apps.enip.codec.EnipCodec;
 import com.yofc.iot.apps.enip.commands.Command;
 import com.yofc.iot.apps.enip.commands.CommandCode;
@@ -22,13 +29,6 @@ import com.yofc.iot.apps.enip.commands.SendRRData;
 import com.yofc.iot.apps.enip.commands.SendUnitData;
 import com.yofc.iot.apps.enip.commands.UnRegisterSession;
 import com.yofc.iot.apps.enip.util.IntUtil;
-import com.yofc.netty.fsm.ChannelActions;
-import com.yofc.netty.fsm.ChannelFsm;
-import com.yofc.netty.fsm.ChannelFsmConfig;
-import com.yofc.netty.fsm.ChannelFsmFactory;
-import com.yofc.netty.fsm.Event;
-import com.yofc.netty.fsm.State;
-import com.yofc.state.machine.FsmContext;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -237,6 +237,15 @@ public class EtherNetIpClient {
     }
 
     private final class EnipChannelActions implements ChannelActions {
+        
+        @Override
+        public CompletableFuture<Void> keepAlive(FsmContext<State, Event> ctx, Channel channel) {
+            return listIdentity().whenComplete((li, ex) -> {
+                if (ex != null) {
+                    logger.debug("Keep alive failed: {}", ex.getMessage(), ex);
+                }
+            }).thenApply(li -> null);
+        }
 
         @Override
         public CompletableFuture<Channel> connect(FsmContext<State, Event> ctx) {
@@ -272,15 +281,6 @@ public class EtherNetIpClient {
             });
 
             return disconnectFuture;
-        }
-
-        @Override
-        public CompletableFuture<Void> keepAlive(FsmContext<State, Event> ctx, Channel channel) {
-            return listIdentity().whenComplete((li, ex) -> {
-                if (ex != null) {
-                    logger.debug("Keep alive failed: {}", ex.getMessage(), ex);
-                }
-            }).thenApply(li -> null);
         }
 
     }

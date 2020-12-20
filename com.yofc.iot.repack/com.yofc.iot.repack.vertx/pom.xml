@@ -173,12 +173,6 @@
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-jwt</artifactId>
-            <version>${vertx.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.vertx</groupId>
             <artifactId>vertx-jdbc-client</artifactId>
             <version>${vertx.version}</version>
         </dependency>
@@ -201,11 +195,6 @@
             <groupId>com.mchange</groupId>
             <artifactId>mchange-commons-java</artifactId>
             <version>${mchange-commons-java.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-sql-common</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
@@ -296,71 +285,8 @@
                             io.reactivex.internal.disposables;resolution:=optional;version="[2.2,3)",
                             io.swagger.v3.oas.models;resolution:=optional;version="[2.0,3)",
 
-                            io.vertx.codegen.annotations;version="[3.6,4)";resolution:=optional,
-
-                            io.vertx.amqpbridge;resolution:=optional,
-                            io.vertx.cassandra;resolution:=optional,
-                            io.vertx.circuitbreaker;resolution:=optional;version="[3.6,4)",
-                            io.vertx.codegen;resolution:=optional;version="[3.6,4)",
-                            io.vertx.codegen.doc;resolution:=optional;version="[3.6,4)",
-                            io.vertx.codegen.type;resolution:=optional;version="[3.6,4)",
-                            io.vertx.config;resolution:=optional,
-                            io.vertx.ext.asyncsql;resolution:=optional,
-                            io.vertx.ext.auth.htpasswd;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.auth.jdbc;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.auth.mongo;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.auth.shiro;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.consul;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.dropwizard;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.eventbus.bridge.tcp;resolution:=optional,
-                            io.vertx.ext.healthchecks;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.jdbc;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.mail;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.mongo;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.shell;resolution:=optional,
-                            io.vertx.ext.shell.cli;resolution:=optional,
-                            io.vertx.ext.shell.command;resolution:=optional,
-                            io.vertx.ext.shell.session;resolution:=optional,
-                            io.vertx.ext.shell.system;resolution:=optional,
-                            io.vertx.ext.shell.term;resolution:=optional,
-                            io.vertx.ext.sql;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.stomp;resolution:=optional,
-                            io.vertx.ext.unit;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.unit.collect;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.unit.report;resolution:=optional;version="[3.6,4)",
-
-                            io.vertx.kafka.admin;resolution:=optional,
-                            io.vertx.kafka.client.common;resolution:=optional,
-                            io.vertx.kafka.client.consumer;resolution:=optional,
-                            io.vertx.kafka.client.producer;resolution:=optional,
-                            io.vertx.lang.reactivex;resolution:=optional;version="[3.6,4)",
-                            io.vertx.lang.rx;resolution:=optional;version="[3.6,4)",
-                            io.vertx.micrometer;resolution:=optional;version="[3.6,4)",
-                            io.vertx.rabbitmq;resolution:=optional,
-                            io.vertx.reactivex;resolution:=optional;version="[3.6,4)",
-
-                            io.vertx.reactivex.impl;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.kafka.client.producer;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.mqtt;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.mqtt.messages;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.redis;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.servicediscovery;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.servicediscovery.spi;resolution:=optional;version="[3.6,4)",
-                            io.vertx.redis;resolution:=optional;version="[3.6,4)",
-                            io.vertx.redis.op;resolution:=optional;version="[3.6,4)",
-                            io.vertx.redis.sentinel;resolution:=optional;version="[3.6,4)",
-                            io.vertx.servicediscovery;resolution:=optional,
-                            io.vertx.servicediscovery.spi;resolution:=optional,
-                            io.vertx.servicediscovery.types;resolution:=optional,
-
-                            io.vertx.ext.jdbc.spi;resolution:=optional;version="[3.6,4)",
-                            io.vertx.rx.java;resolution:=optional,
-                            io.vertx.core.net;version="[3.6,4)",
-                            io.vertx.ext.auth.htdigest;resolution:=optional;version="[3.6,4)",
-                            io.vertx.ext.auth.jwt;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.cassandra;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.ext.web.api.contract.openapi3;resolution:=optional;version="[3.6,4)",
-                            io.vertx.reactivex.kafka.client.consumer;resolution:=optional;version="[3.6,4)",
+                            
+                           
                             io.agroal.api;resolution:=optional;version="[1.1,2)",
                             io.agroal.api.configuration;resolution:=optional;version="[1.1,2)",
                             io.agroal.api.configuration.supplier;resolution:=optional;version="[1.1,2)",
@@ -374,10 +300,10 @@
                             org.mvel2.integration.impl;resolution:=optional;version="[2.3,3)",
                             org.mvel2.templates;resolution:=optional;version="[2.3,3)",
                             org.mvel2.templates.res;resolution:=optional;version="[2.3,3)",
-                            io.vertx.codegen.generators.cheatsheet;resolution:=optional;version="[3.6,4)",
-                            io.vertx.codegen.generators.dataobjecthelper;resolution:=optional;version="[3.6,4)",
-                            io.vertx.codegen.generators.mvel;resolution:=optional;version="[3.6,4)",
-                            io.vertx.codegen.overloadcheck;resolution:=optional;version="[3.6,4)",
+                            io.vertx.codegen.generators.cheatsheet;resolution:=optional;version="[3.6,5)",
+                            io.vertx.codegen.generators.dataobjecthelper;resolution:=optional;version="[3.6,5)",
+                            io.vertx.codegen.generators.mvel;resolution:=optional;version="[3.6,5)",
+                            io.vertx.codegen.overloadcheck;resolution:=optional;version="[3.6,5)",
                             com.mchange.v2.c3p0;resolution:=optional,
                             com.mchange.v2.c3p0.cfg;resolution:=optional,
                             com.mchange.v2.c3p0.impl;resolution:=optional,

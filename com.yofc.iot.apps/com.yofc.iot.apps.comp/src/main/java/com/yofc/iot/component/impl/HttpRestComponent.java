@@ -43,7 +43,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 
 /**
@@ -109,10 +109,10 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         route = router.route(routeString);
         if (!usersString.equals("")) {
             JsonArray users = parseUsers(usersString);
-            AuthHandler basicAuthHandler = BasicAuth.create(users);
+            AuthenticationHandler basicAuthHandler = BasicAuth.create(users);
             route.handler(basicAuthHandler);
         }
-        route.handler(BodyHandler.create()).handler(this::handleResult).failureHandler(this::doProxyRequestFailure);
+        route.handler(BodyHandler.create()).handler(this::handleResult).failureHandler(this::handleRequestFailure);
         scriptSource = properties.script();
 
         if (scriptSource.equals("")) {
@@ -134,7 +134,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         }
     }
 
-    private void doProxyRequestFailure(RoutingContext failureroutingContext) {
+    private void handleRequestFailure(RoutingContext failureroutingContext) {
         logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
         failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
                 : failureroutingContext.failure().getMessage());

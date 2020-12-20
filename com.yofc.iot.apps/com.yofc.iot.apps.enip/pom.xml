@@ -104,6 +104,16 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.digitalpetri.fsm</groupId>
+            <artifactId>strict-machine</artifactId>
+            <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.digitalpetri.netty</groupId>
+            <artifactId>netty-channel-fsm</artifactId>
+            <version>0.4</version>
+        </dependency>
+        <dependency>
           <groupId>io.vertx</groupId>
           <artifactId>vertx-junit5</artifactId>
           <version>${vertx.version}</version>

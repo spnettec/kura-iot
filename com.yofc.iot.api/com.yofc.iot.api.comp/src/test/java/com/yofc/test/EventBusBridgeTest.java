@@ -161,7 +161,7 @@ public class EventBusBridgeTest {
 
         bridge = EventBusBridge.connect(URI.create("http://localhost:8765/bridge"), eb -> {
             eb.registerHandler("replyTest", msg -> {
-                msg.reply("bubu", reply -> {
+                msg.replyAndRequest("bubu", reply -> {
                     reply.result().reply("roger");
                     adder.increment();
                 });

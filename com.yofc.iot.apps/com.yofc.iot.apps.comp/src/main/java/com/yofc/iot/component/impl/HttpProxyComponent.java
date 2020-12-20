@@ -76,12 +76,12 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     @Activate
     public void active(final ComponentContext ctx, HttpProxyComponentCfg properties) {
         proxyRoute = proxyRouteRef.getService();
-        dumpProperties(properties);
         this.wireSupport = (MultiportWireSupport) this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
         final List<EmitterPort> emitterPorts = this.wireSupport.getEmitterPorts();
         this.prePort = emitterPorts.get(0);
         this.postPort = emitterPorts.get(1);
+        dumpProperties(properties);
     }
 
     @Modified
@@ -99,22 +99,24 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
         String proxyContext = properties.context();
 
         proxyRoute.configure(routeContext, proxyContext, order, isSSL, ip, port, timeout);
-        proxyRoute.addPreListener((context, proxyReq, buffer) -> {
-            if (prePort.listConnectedWires().isEmpty())
+        if (prePort != null && prePort.listConnectedWires() != null && !prePort.listConnectedWires().isEmpty()) {
+            proxyRoute.addPreListener((context, proxyReq, buffer) -> {
+                final WireEnvelope outputEnvelope = this.wireSupport
+                        .createWireEnvelope(Utils.bufferToWireRecords("paras", buffer));
+                prePort.emit(outputEnvelope);
                 return null;
-            final WireEnvelope outputEnvelope = this.wireSupport
-                    .createWireEnvelope(Utils.bufferToWireRecords("paras", buffer));
-            prePort.emit(outputEnvelope);
-            return null;
-        });
-        proxyRoute.addPostListener((context, serverResponse, buffer) -> {
-            if (postPort.listConnectedWires().isEmpty())
+            });
+        }
+        if (postPort != null && postPort.listConnectedWires() != null && !postPort.listConnectedWires().isEmpty()) {
+            proxyRoute.addPostListener((context, serverResponse, buffer) -> {
+                if (postPort.listConnectedWires().isEmpty())
+                    return null;
+                final WireEnvelope outputEnvelope = this.wireSupport
+                        .createWireEnvelope(Utils.bufferToWireRecords("results", buffer));
+                postPort.emit(outputEnvelope);
                 return null;
-            final WireEnvelope outputEnvelope = this.wireSupport
-                    .createWireEnvelope(Utils.bufferToWireRecords("results", buffer));
-            postPort.emit(outputEnvelope);
-            return null;
-        });
+            });
+        }
 
     }
 

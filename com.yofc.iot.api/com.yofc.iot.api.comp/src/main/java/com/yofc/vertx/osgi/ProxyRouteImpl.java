@@ -34,9 +34,10 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -109,7 +110,6 @@ public class ProxyRouteImpl implements ProxyRoute {
         logger.info("ProxyRouteImpl active");
     }
 
-    @SuppressWarnings("deprecation")
     private void doProxyRequest(RoutingContext routingContext) {
         HttpServerRequest serverRequest = routingContext.request();
         HttpServerResponse serverResponse = routingContext.response();
@@ -126,13 +126,12 @@ public class ProxyRouteImpl implements ProxyRoute {
         if (!context.equals("") && url.startsWith(context))
             url = url.substring(context.length());
         logger.debug("request:{}", url);
-        HttpClientRequest clientRequest = client.request(serverRequest.method(), portToUse, targetHost, url)
-                .setTimeout(timeoutToUse);// .setChunked(true);
-        final String hostString = serverRequest.getHeader("Host");
+        final String targetUrl = url;
+        RequestOptions requestOptions = new RequestOptions();
+        requestOptions.setHost(targetHost);
+        requestOptions.setPort(portToUse);
+        requestOptions.setTimeout(timeoutToUse);
 
-        if (serverRequest.method() == HttpMethod.OTHER) {
-            clientRequest.setRawMethod(serverRequest.rawMethod());
-        }
         client.connectionHandler(connection -> connection.exceptionHandler(ex -> {
             String errMsg = ex.getMessage();
             if (errMsg == null) {
@@ -145,83 +144,115 @@ public class ProxyRouteImpl implements ProxyRoute {
             if (!serverResponse.closed() && !serverResponse.ended())
                 serverResponse.end("request error:" + errMsg);
         }));
-        // serverResponse.setChunked(true);
-        serverRequest.handler(requestData -> {
-            clientRequest.write(requestData);
-            requestBuffer.appendBuffer(requestData);
-        });
-        serverRequest.headers().entries().forEach(entry -> {
-            if (entry.getKey().equalsIgnoreCase("host")) {
-                clientRequest.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
-            } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
-                if (entry.getValue() != null && entry.getValue().equals("chunked"))
-                    clientRequest.setChunked(true);
-                clientRequest.putHeader(entry.getKey(), entry.getValue());
-            } else if (entry.getKey().equalsIgnoreCase("referer")) {
-                String referer = entry.getValue();
-                try {
-                    referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
-                            entry.getValue(), this.isSsl, true);
-                } catch (MalformedURLException e) {
-
-                }
-                clientRequest.putHeader(entry.getKey(), referer);
-            } else
-                clientRequest.putHeader(entry.getKey(), entry.getValue());
-        });
-
-        serverRequest.endHandler(v -> {
-            if (preListener != null)
-                preListener.apply(routingContext, clientRequest, requestBuffer);
-            clientRequest.end();
-        });
 
         serverRequest.exceptionHandler(routingContext::fail);
-        clientRequest.handler(clientResponse -> {
-            serverResponse.setStatusCode(clientResponse.statusCode());
-            serverResponse.setStatusMessage(clientResponse.statusMessage());
-            clientResponse.headers().entries().forEach(entry -> {
+
+        client.request(requestOptions).onSuccess(clientRequest -> {
+            serverRequest.resume();
+            serverRequest.handler(requestData -> {
+                // clientRequest.write(requestData);
+                requestBuffer.appendBuffer(requestData);
+            });
+            serverRequest.endHandler(v -> {
+                if (preListener != null)
+                    preListener.apply(routingContext, clientRequest, requestBuffer);
+                clientRequest.end(requestBuffer);
+
+            });
+            final String hostString = serverRequest.getHeader("Host");
+
+            serverRequest.headers().entries().forEach(entry -> {
                 if (entry.getKey().equalsIgnoreCase("host")) {
-                    serverResponse.putHeader(entry.getKey(), hostString);
+                    requestOptions.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
                 } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
                     if (entry.getValue() != null && entry.getValue().equals("chunked"))
-                        serverResponse.setChunked(true);
-                    serverResponse.putHeader(entry.getKey(), entry.getValue());
-                } else if (entry.getKey().equalsIgnoreCase("location")) {
-                    String value = entry.getValue();
+                        clientRequest.setChunked(true);
+                    clientRequest.putHeader(entry.getKey(), entry.getValue());
+                } else if (entry.getKey().equalsIgnoreCase("referer")) {
+                    String referer = entry.getValue();
                     try {
-                        String[] hostStrings = hostString.split(":");
-                        String rawHost = hostStrings[0];
-                        String rawPort = "80";
-                        if (hostString.length() > 1) {
-                            rawPort = hostStrings[1];
-                        } else if (this.isSsl)
-                            rawPort = "443";
-                        value = replaceDomainAndPort(rawHost, rawPort, entry.getValue(), this.isSsl, false);
+                        referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
+                                entry.getValue(), this.isSsl, true);
                     } catch (MalformedURLException e) {
 
                     }
-                    serverResponse.putHeader(entry.getKey(), value);
+                    clientRequest.putHeader(entry.getKey(), referer);
                 } else
-                    serverResponse.putHeader(entry.getKey(), entry.getValue());
+                    clientRequest.putHeader(entry.getKey(), entry.getValue());
             });
-            clientResponse.handler(responseData -> {
-                serverResponse.write(responseData);
-                responseBuffer.appendBuffer(responseData);
-            });
-            clientResponse.endHandler(v -> {
-                if (postListener != null)
-                    postListener.apply(routingContext, serverResponse, responseBuffer);
-                if (!serverResponse.ended())
-                    serverResponse.end();
-            });
-            clientResponse.exceptionHandler(error -> serverResponse.write(error.getMessage()));
-        });
+            clientRequest.setHost(targetHost);
+            clientRequest.setPort(portToUse);
+            clientRequest.setTimeout(timeoutToUse);
+            clientRequest.setMethod(serverRequest.method());
+            clientRequest.setURI(targetUrl);
+            clientRequest.response().onComplete(res -> {
+                if (res.failed()) {
+                    responseBuffer.appendString(res.cause().getMessage());
+                    if (postListener != null) {
+                        postListener.apply(routingContext, serverResponse, responseBuffer);
+                    }
+                    if (!serverResponse.closed() && !serverResponse.ended()) {
+                        serverResponse.write(responseBuffer);
+                        serverResponse.end();
+                    }
+                }
+                HttpClientResponse clientResponse = res.result();
+                serverResponse.setStatusCode(clientResponse.statusCode());
+                serverResponse.setStatusMessage(clientResponse.statusMessage());
+                clientResponse.headers().entries().forEach(entry -> {
+                    if (entry.getKey().equalsIgnoreCase("host")) {
+                        serverResponse.putHeader(entry.getKey(), hostString);
+                    } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
+                        if (entry.getValue() != null && entry.getValue().equals("chunked"))
+                            serverResponse.setChunked(true);
+                        serverResponse.putHeader(entry.getKey(), entry.getValue());
+                    } else if (entry.getKey().equalsIgnoreCase("location")) {
+                        String value = entry.getValue();
+                        try {
+                            String[] hostStrings = hostString.split(":");
+                            String rawHost = hostStrings[0];
+                            String rawPort = "80";
+                            if (hostString.length() > 1) {
+                                rawPort = hostStrings[1];
+                            } else if (this.isSsl)
+                                rawPort = "443";
+                            value = replaceDomainAndPort(rawHost, rawPort, entry.getValue() + context, this.isSsl,
+                                    false);
+                        } catch (MalformedURLException e) {
 
-        clientRequest.exceptionHandler(error -> {
-            if (!serverResponse.closed() && !serverResponse.ended())
+                        }
+                        serverResponse.putHeader(entry.getKey(), value);
+                    } else
+                        serverResponse.putHeader(entry.getKey(), entry.getValue());
+                });
+                clientResponse.handler(responseData -> {
+                    // serverResponse.write(responseData);
+                    responseBuffer.appendBuffer(responseData);
+                });
+                clientResponse.endHandler(v -> {
+                    if (postListener != null)
+                        postListener.apply(routingContext, serverResponse, responseBuffer);
+                    if (!serverResponse.closed() && !serverResponse.ended()) {
+                        serverResponse.write(responseBuffer);
+                        serverResponse.end();
+                    }
+                });
+            }).onFailure(error -> {
+                serverRequest.resume();
+                if (!serverResponse.closed() && !serverResponse.ended()) {
+                    serverResponse.write(error.getMessage());
+                    serverResponse.end();
+                }
+            });
+
+        }).onFailure(error -> {
+            serverRequest.resume();
+            if (!serverResponse.closed() && !serverResponse.ended()) {
                 serverResponse.end("request error:" + error.getMessage());
+                serverResponse.end();
+            }
         });
+        serverRequest.pause();
     }
 
     public static String replaceDomainAndPort(String domain, String port, String url, boolean isSSL, boolean isRequest)

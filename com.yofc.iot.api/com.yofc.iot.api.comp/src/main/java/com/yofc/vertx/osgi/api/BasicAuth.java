@@ -5,25 +5,25 @@ import org.apache.commons.lang3.StringUtils;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.impl.BasicAuthHandlerImpl;
 
 public class BasicAuth extends BasicAuthHandlerImpl {
 
-    public BasicAuth(AuthProvider authProvider, String realm) {
+    public BasicAuth(AuthenticationProvider authProvider, String realm) {
         super(authProvider, realm);
     }
 
-    public static AuthHandler create(JsonObject config) {
+    public static AuthenticationHandler create(JsonObject config) {
         return new BasicAuth(authenticateBasic(config), config.getString("realm", "yofc-iot-gateway"));
     }
 
-    public static AuthHandler create(JsonArray config) {
+    public static AuthenticationHandler create(JsonArray config) {
         return new BasicAuth(authenticateBasic(config), "yofc-iot-gateway");
     }
 
-    private static AuthProvider authenticateBasic(JsonObject config) {
+    private static AuthenticationProvider authenticateBasic(JsonObject config) {
         return (authInfo, resultHandler) -> {
             String storedUsername = config.getString("username");
             String storedPassword = config.getString("password");
@@ -44,7 +44,7 @@ public class BasicAuth extends BasicAuthHandlerImpl {
         };
     }
 
-    private static AuthProvider authenticateBasic(JsonArray config) {
+    private static AuthenticationProvider authenticateBasic(JsonArray config) {
         return (authInfo, resultHandler) -> {
             if (config == null || config.size() == 0) {
                 resultHandler.handle(Future.failedFuture("Credentials not set in configuration."));

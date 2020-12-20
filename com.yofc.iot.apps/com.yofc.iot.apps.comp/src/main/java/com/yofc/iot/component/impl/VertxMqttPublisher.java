@@ -64,6 +64,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 
 @Designate(factory = true, ocd = VertxMqttPublisherCfg.class)
@@ -94,7 +95,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
     @Reference
     private AssetService assetService;
     private Script script;
-    private ModifyMqttClient mqttClient;
+    private MqttClient mqttClient;
     private VertxMqttPublisherCfg properties;
     @Reference
     private CryptoService cryptoService;
@@ -323,7 +324,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                     options.setPassword(properties.password());
                     return;
                 }
-            mqttClient = ModifyMqttClient.create(vertx, options);
+            mqttClient = MqttClient.create(vertx, options);
         }
 
         mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost(), ackMes -> {

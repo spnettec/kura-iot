@@ -25,7 +25,6 @@ import com.yofc.iot.apps.enip.cip.structs.CIPData;
 import com.yofc.iot.apps.enip.logix.services.ReadTagFragmentedService;
 import com.yofc.iot.apps.enip.logix.services.ReadTagService;
 import com.yofc.iot.apps.enip.logix.services.WriteTagService;
-import com.yofc.netty.fsm.NotConnectedException;
 import com.yofc.vertx.osgi.api.Utils;
 
 public class EIPDriverClient {
@@ -224,7 +223,7 @@ public class EIPDriverClient {
                     pool.release(connection);
                 }
             } else {
-                if (ex instanceof NotConnectedException) {
+                if ("not connected".equals(ex.getMessage())) {
                     executeMultiMessagesWithFuture(service, completFuture);
                     logger.info("first get connection failer agin");
                 } else if (ex instanceof CipResponseException) {
@@ -263,13 +262,11 @@ public class EIPDriverClient {
                     pool.release(connection);
                 }
             } else {
-                if (ex instanceof NotConnectedException)
-                    if (EIPDriverClient.this.isConnected()) {
-                        logger.info("can't connect,reconnect");
-                        pool.expired();
-                        client.disconnect();
-                    }
-
+                if ("not connected".equals(ex.getMessage()) && EIPDriverClient.this.isConnected()) {
+                    logger.info("can't connect,reconnect");
+                    pool.expired();
+                    client.disconnect();
+                }
                 completFuture.completeExceptionally(ex);
             }
         }));

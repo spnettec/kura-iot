@@ -12,7 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vertx.core.AsyncResult;
+import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -22,6 +23,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.core.Promise;
 
 /**
  * Simple event bus bridge using Vert.x websockets.
@@ -406,52 +408,20 @@ public class EventBusBridge {
         }
 
         @Override
-        public void reply(Object message) {
-            this.reply(message, new DeliveryOptions(), null);
+        public void reply(@Nullable Object message, DeliveryOptions options) {
+            replyAndRequest(message, options);
         }
 
-        @Override
-        public <R> void reply(Object message, Handler<AsyncResult<Message<R>>> replyHandler) {
-            this.reply(message, new DeliveryOptions(), replyHandler);
-        }
-
-        @Override
-        public void reply(Object message, DeliveryOptions options) {
-            this.reply(message, options, null);
-        }
-
-        @Override
-        public <R> void reply(Object message, DeliveryOptions deliveryOptions,
-                Handler<AsyncResult<Message<R>>> replyHandler) {
+        public <R> Future<Message<R>> replyAndRequest(@Nullable Object message, DeliveryOptions options) {
+            Promise<Message<R>> result = Promise.promise();
             if (this.replyAddress != null) {
-                EventBusBridge.this.send(replyAddress, message.toString(), (result, eb) -> {
-                    if (replyHandler != null) {
-                        replyHandler.handle(new AsyncResult<Message<R>>() {
-
-                            @SuppressWarnings({ "rawtypes", "unchecked" })
-                            @Override
-                            public Message<R> result() {
-                                return new EventBusMessage(result);
-                            }
-
-                            @Override
-                            public Throwable cause() {
-                                return null;
-                            }
-
-                            @Override
-                            public boolean succeeded() {
-                                return true;
-                            }
-
-                            @Override
-                            public boolean failed() {
-                                return false;
-                            }
-                        });
-                    }
+                EventBusBridge.this.send(replyAddress, message.toString(), (msg, eb) -> {
+                    @SuppressWarnings({ "rawtypes", "unchecked" })
+                    Message<R> eventMsg = new EventBusMessage(msg);
+                    result.complete(eventMsg);
                 });
             }
+            return result.future();
         }
 
         @Override
@@ -474,6 +444,7 @@ public class EventBusBridge {
         public Message<JsonObject> asJson() {
             return (Message<JsonObject>) this;
         }
+
     }
 
 }

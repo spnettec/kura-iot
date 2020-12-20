@@ -197,6 +197,7 @@
                          !kotlin.*,
                          !net.sf.*,
                          !org.hibernate.*,
+                         !io.vertx.codegen.annotations,
                          *
                         </Import-Package>
                     </instructions>
