@@ -3,6 +3,7 @@ package com.yofc.iot.component.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
@@ -36,6 +37,7 @@ import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -84,7 +86,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @SuppressWarnings("unchecked")
     @Activate
     public void active(final ComponentContext ctx, final HttpRestComponentCfg properties) {
-        update(properties);
+        updated(properties);
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
 
@@ -92,13 +94,11 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     @Modified
     protected void updated(final HttpRestComponentCfg properties) {
-        update(properties);
         if (webClient != null) {
             webClient.close();
-            webClient = WebClient.create(vertx);
-        } else
-            webClient = WebClient.create(vertx);
-
+        }
+        webClient = WebClient.create(vertx);
+        update(properties);
     }
 
     private void update(final HttpRestComponentCfg properties) {
@@ -112,7 +112,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             AuthenticationHandler basicAuthHandler = BasicAuth.create(users);
             route.handler(basicAuthHandler);
         }
-        route.handler(BodyHandler.create()).handler(this::handleResult).failureHandler(this::handleRequestFailure);
+        route.handler(this::handleResult100Continue).handler(BodyHandler.create()).handler(this::handleResult)
+                .failureHandler(this::handleRequestFailure);
         scriptSource = properties.script();
 
         if (scriptSource.equals("")) {
@@ -167,6 +168,16 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         this.wireSupport.consumersConnected(wires);
     }
 
+    private void handleResult100Continue(RoutingContext routingContext) {
+        HttpServerRequest request = routingContext.request();
+        HttpServerResponse response = routingContext.response();
+        String expect = request.getHeader("Expect");
+        if (expect != null && expect.equalsIgnoreCase("100-Continue")) {
+            response.writeContinue();
+        }
+        routingContext.next();
+    }
+
     private void handleResult(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
         if (scriptSource == null) {
@@ -178,13 +189,15 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             response.end("No response exceuted");
             return;
         }
+        Object output = null;
         try {
             script.setProperty("routingContext", routingContext);
             String outputName = "result";
             script.setProperty(outputName, null);
             script.run();
-            Object output = script.getProperty(outputName);
-            if (output != null) {
+            output = script.getProperty(outputName);
+
+            if (output != null && !(output instanceof CompletableFuture)) {
                 wireSupport.emit(Utils.getWireRecords(Utils.objectToWireRecord(outputName, output)));
             }
         } catch (Exception e) {
@@ -192,7 +205,16 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             if (!response.ended())
                 response.end(e.toString());
         } finally {
-            if (!response.ended())
+            if (output instanceof CompletableFuture) {
+                @SuppressWarnings("unchecked")
+                CompletableFuture<Object> future = (CompletableFuture<Object>) output;
+                future.whenComplete((obj, e) -> {
+                    if (e != null)
+                        response.end(e.toString());
+                    else
+                        response.end();
+                });
+            } else if (!response.ended())
                 response.end("No return information");
         }
     }
