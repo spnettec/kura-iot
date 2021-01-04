@@ -198,6 +198,7 @@
                          !net.sf.*,
                          !org.hibernate.*,
                          !io.vertx.codegen.annotations,
+                         io.vertx.core.streams,
                          *
                         </Import-Package>
                     </instructions>

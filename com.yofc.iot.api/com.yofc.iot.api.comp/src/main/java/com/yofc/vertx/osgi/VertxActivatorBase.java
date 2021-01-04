@@ -134,15 +134,10 @@ public class VertxActivatorBase {
             }
         }));
 
-        SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-        SockJSBridgeOptions options = new SockJSBridgeOptions();
-        options.addOutboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
-        options.addInboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
-        sockJSHandler.bridge(options, event -> {
-            event.complete(true);
-        });
-        routes.add(router.route("/bridge/*").handler(sockJSHandler));
-
+        SockJSBridgeOptions opts = new SockJSBridgeOptions()
+                .addInboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"))
+                .addOutboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
+        routes.add(router.mountSubRouter("/bridge", SockJSHandler.create(vertx).bridge(opts)));
         rtRegistration = context.registerService(Router.class, router, null);
 
     }
