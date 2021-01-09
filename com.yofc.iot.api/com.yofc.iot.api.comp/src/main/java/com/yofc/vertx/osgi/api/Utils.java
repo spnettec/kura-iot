@@ -121,9 +121,8 @@ public class Utils {
     }
 
     public static TypedValue<?> getValue(String name, List<WireRecord> records) {
-        Optional<WireRecord> value = records.stream().filter(record -> {
-            return record.getProperties().containsKey(name);
-        }).findFirst();
+        Optional<WireRecord> value = records.stream().filter(record -> record.getProperties().containsKey(name))
+                .findFirst();
         if (!value.isPresent())
             return null;
         return value.get().getProperties().get(name);
@@ -144,9 +143,9 @@ public class Utils {
         TypedValue<?> assertName = properties.get("assetName");
         if (assertName == null)
             return record;
-        Map<String, TypedValue<?>> map = properties.entrySet().stream().filter(v -> {
-            return !v.getKey().equals("assetName");
-        }).collect(Collectors.toMap(k -> assertName.getValue().toString() + "." + k.getKey(), Map.Entry::getValue));
+        Map<String, TypedValue<?>> map = properties.entrySet().stream().filter(v -> !v.getKey().equals("assetName"))
+                .collect(Collectors.toMap(k -> assertName.getValue().toString() + "." + k.getKey(),
+                        Map.Entry::getValue));
         return new WireRecord(map);
     }
 
@@ -264,7 +263,7 @@ public class Utils {
                     }
                     return jsonArray;
                 } catch (Exception e) {
-                    logger.error("sql error:{}", e);
+                    logger.error("sql error", e);
                 }
                 return (Void) null;
             });
