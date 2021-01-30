@@ -14,24 +14,24 @@ import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
 
-public class AgvVerticle extends AbstractVerticle {
+public class SocketVerticle extends AbstractVerticle {
 
-    private static final Logger logger = LoggerFactory.getLogger(AgvVerticle.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocketVerticle.class);
     private NetSocket socket;
     private Handler<Buffer> handler;
     private String host = "127.0.0.1";
-    private int port = 3000;
+    private int port = 8000;
     Promise<Buffer> promise;
 
-    public AgvVerticle() {
+    public SocketVerticle() {
 
     }
 
-    public AgvVerticle(String host) {
+    public SocketVerticle(String host) {
         this.host = host;
     }
 
-    public AgvVerticle(String host, int port) {
+    public SocketVerticle(String host, int port) {
         this.host = host;
         this.port = port;
     }
@@ -67,10 +67,6 @@ public class AgvVerticle extends AbstractVerticle {
     private void handlerBuffer(Buffer buffer) {
         if (promise != null && !promise.future().isComplete())
             promise.complete(buffer);
-        int head = buffer.getUnsignedShortLE(0);
-        if (head == 10011) {
-            write(buffer);
-        }
         if (handler != null)
             handler.handle(buffer);
     }
@@ -80,6 +76,10 @@ public class AgvVerticle extends AbstractVerticle {
     }
 
     public void write(Buffer buffer) {
+        socket.write(buffer);
+    }
+
+    public void write(String buffer) {
         socket.write(buffer);
     }
 
@@ -93,35 +93,13 @@ public class AgvVerticle extends AbstractVerticle {
         });
     }
 
-    public Buffer get10003DataBuf(int orderNo, int orderStep, int taskType, int productType, int priority,
-            int vehicleType, int vehicleNo, int nextTag, int paraNum, int paraPosRecv, int paraOpRecv, int paraPosSend,
-            int paraOpSend) {
-        Buffer buf = Buffer.buffer();
-        buf.appendUnsignedShortLE(10003);
-        buf.appendUnsignedIntLE(orderNo);
-        buf.appendUnsignedShortLE(orderStep);
-        buf.appendUnsignedShortLE(taskType);
-        buf.appendUnsignedShortLE(productType);
-        buf.appendUnsignedShortLE(priority);
-        buf.appendUnsignedShortLE(vehicleType);
-        buf.appendUnsignedShortLE(vehicleNo);
-        buf.appendUnsignedShortLE(nextTag);
-        buf.appendUnsignedShortLE(paraNum);
-        buf.appendUnsignedShortLE(paraPosRecv);
-        buf.appendUnsignedShortLE(paraOpRecv);
-        buf.appendUnsignedShortLE(paraPosSend);
-        buf.appendUnsignedShortLE(paraOpSend);
-        buf.appendUnsignedShortLE(checkSum(buf));
-        return buf;
-    }
-
-    private static int checkSum(Buffer buf) {
-        int sum = 0;
-        if (buf != null) {
-            for (int i = 0; i < buf.length(); i++) {
-                sum += buf.getByte(i);
-            }
-        }
-        return sum & 0xff;
+    public void sendAndReply(String message, long timeOut, Handler<AsyncResult<Buffer>> handler) {
+        promise = Promise.promise();
+        promise.future().onComplete(handler);
+        socket.write(message);
+        vertx.setTimer(timeOut, l -> {
+            if (!promise.future().isComplete())
+                promise.fail(new TimeoutException());
+        });
     }
 }
