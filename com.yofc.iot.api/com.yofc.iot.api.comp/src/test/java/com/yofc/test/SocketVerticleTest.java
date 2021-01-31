@@ -7,19 +7,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @ExtendWith(VertxExtension.class)
 public class SocketVerticleTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(SocketVerticleTest.class);
     private SocketVerticle agv;
 
     @BeforeEach
@@ -39,23 +37,24 @@ public class SocketVerticleTest {
 
     @Test
     @Timeout(value = 10000, timeUnit = TimeUnit.SECONDS)
-    @DisplayName("AGV协议测试")
+    @DisplayName("Vertx协议测试")
     public void testMyApplication(Vertx vertx, VertxTestContext context) {
 
         agv.addHandle(buffer -> {
-            String result = buffer.toString();
-            if (result != null && result.startsWith("FEED")) {
-                System.out.println("返回监听: " + buffer.toString());
-            }
-        });
-        agv.sendAndReply("GEO GO\r\n", 2000, handler -> {
-            if (handler.failed()) {
-                logger.error("error", handler.cause());
-                return;
-            }
-            Buffer receive = handler.result();
+            System.out.println("返回监听: " + buffer);
 
-            System.out.println("返回应答: " + receive.toString());
+        });
+        vertx.setPeriodic(2500, l -> {
+            double random = Math.random();
+            agv.sendAndReply(random + ":GEO GO\r\n", handler -> {
+                if (handler.failed()) {
+                    log.error("error", handler.cause());
+                    return;
+                }
+                String receive = handler.result();
+
+                System.out.println("发送：" + random + ":GEO GO" + "--返回应答: " + receive.toString());
+            });
         });
     }
 
