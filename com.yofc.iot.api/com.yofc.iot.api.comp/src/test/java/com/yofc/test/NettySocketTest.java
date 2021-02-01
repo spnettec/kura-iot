@@ -1,6 +1,5 @@
 package com.yofc.test;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
@@ -45,7 +44,7 @@ class NettySocketTest {
         client.addLister(msg -> {
             System.out.println("返回监听: " + msg);
         });
-        new ScheduledThreadPoolExecutor(2).scheduleAtFixedRate(() -> {
+        vertx.setPeriodic(1000, l -> {
             double random = Math.random();
             client.sendMessage(random + ":CONNECTION?\r\n").addListener(handler -> {
                 if (!handler.isSuccess()) {
@@ -56,8 +55,8 @@ class NettySocketTest {
 
                 System.out.println("发送：" + random + ":CONNECTION" + "--返回心跳: " + receive.toString());
             });
-        }, 0, 1, TimeUnit.SECONDS);
-        new ScheduledThreadPoolExecutor(2).scheduleAtFixedRate(() -> {
+        });
+        vertx.setPeriodic(2500, l -> {
             double random = Math.random();
             client.sendMessage(random + ":GEO GO\r\n").addListener(handler -> {
                 if (!handler.isSuccess()) {
@@ -68,7 +67,6 @@ class NettySocketTest {
 
                 System.out.println("发送：" + random + ":GEO GO" + "--返回应答: " + receive.toString());
             });
-        }, 0, 2500, TimeUnit.MILLISECONDS);
-
+        });
     }
 }

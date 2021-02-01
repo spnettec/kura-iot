@@ -16,15 +16,15 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @ExtendWith(VertxExtension.class)
-public class SocketVerticleTest {
+public class VerxSocketTest {
 
-    private SocketVerticle agv;
+    private VerxSocketClient client;
 
     @BeforeEach
     @DisplayName("开始")
     public void setUp(Vertx vertx, VertxTestContext context) {
-        agv = new SocketVerticle("10.211.55.3", 8000);
-        vertx.deployVerticle(agv, context.succeeding(id -> {
+        client = new VerxSocketClient("10.211.55.3", 8000);
+        vertx.deployVerticle(client, context.succeeding(id -> {
             context.completeNow();
         }));
     }
@@ -40,13 +40,25 @@ public class SocketVerticleTest {
     @DisplayName("Vertx协议测试")
     public void testMyApplication(Vertx vertx, VertxTestContext context) {
 
-        agv.addHandle(buffer -> {
+        client.addHandle(buffer -> {
             System.out.println("返回监听: " + buffer);
 
         });
+        vertx.setPeriodic(1000, t -> {
+            double random = Math.random();
+            client.sendAndReply(random + ":CONNECTION?\r\n", handler -> {
+                if (handler.failed()) {
+                    log.error("error", handler.cause());
+                    return;
+                }
+                String receive = handler.result();
+
+                System.out.println("发送：" + random + ":CONNECTION?" + "--返回心跳: " + receive.toString());
+            });
+        });
         vertx.setPeriodic(2500, l -> {
             double random = Math.random();
-            agv.sendAndReply(random + ":GEO GO\r\n", handler -> {
+            client.sendAndReply(random + ":GEO GO\r\n", handler -> {
                 if (handler.failed()) {
                     log.error("error", handler.cause());
                     return;

@@ -59,7 +59,11 @@ public class NettySocketClient {
      * 发送消息
      */
     public Future<String> sendMessage(String msg) {
-        return nettyClientHandler.sendMessage(msg);
+        return sendMessage(msg, 5000);
+    }
+
+    public Future<String> sendMessage(String msg, long timeOut) {
+        return nettyClientHandler.sendMessage(msg, timeOut);
     }
 
     public void addLister(Consumer<String> consumer) {
@@ -213,15 +217,15 @@ public class NettySocketClient {
             this.ctx.close();
         }
 
-        public Future<String> sendMessage(String message) {
+        public Future<String> sendMessage(String message, long timeOut) {
             if (this.ctx == null)
                 throw new IllegalStateException();
             if (message == null || "".equals(message))
                 throw new IllegalStateException();
-            return sendMessage(message, ctx.executor().newPromise());
+            return sendMessage(message, ctx.executor().newPromise(), timeOut);
         }
 
-        public Future<String> sendMessage(String message, Promise<String> promise) {
+        public Future<String> sendMessage(String message, Promise<String> promise, long timeOut) {
             synchronized (this) {
                 String key = null;
                 String[] msgs = message.split(":", 2);
@@ -236,7 +240,7 @@ public class NettySocketClient {
                     }
                     Timer timer = new HashedWheelTimer();
                     TimePromise tp = new TimePromise(promise, timer);
-                    timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), 10, TimeUnit.SECONDS);
+                    timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut, TimeUnit.SECONDS);
 
                     if (messageList.offer(tp)) {
                         ctx.writeAndFlush(message);
@@ -253,7 +257,7 @@ public class NettySocketClient {
                     } else {
                         Timer timer = new HashedWheelTimer();
                         TimePromise tp = new TimePromise(promise, timer);
-                        timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), 10, TimeUnit.SECONDS);
+                        timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut, TimeUnit.SECONDS);
                         messageMap.put(key, tp);
                         // Connection open and message accepted
                         ctx.writeAndFlush(key + ":" + message);
