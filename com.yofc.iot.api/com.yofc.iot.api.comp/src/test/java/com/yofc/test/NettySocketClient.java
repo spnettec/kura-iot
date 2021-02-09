@@ -122,7 +122,7 @@ public class NettySocketClient {
                             }
                         }
                     }).sync();
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             log.error(e);
             doConnect();
         }

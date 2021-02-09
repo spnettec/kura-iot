@@ -14,15 +14,15 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.0.0</vertx.version>
+        <vertx.version>4.0.2</vertx.version>
         <netty.version>4.1.58.Final</netty.version>
-        <shiro-core.version>1.7.0</shiro-core.version>
+        <shiro-core.version>1.7.1</shiro-core.version>
         <reactive-streams.version>1.0.3</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
-        <HikariCP.version>3.4.5</HikariCP.version>
+        <HikariCP.version>4.0.1</HikariCP.version>
         <rxjava.version>2.2.20</rxjava.version>
-        <groovy.version>3.0.6</groovy.version>
+        <groovy.version>3.0.7</groovy.version>
         <h2.version>1.4.200</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.4.0</osgi.service.version>

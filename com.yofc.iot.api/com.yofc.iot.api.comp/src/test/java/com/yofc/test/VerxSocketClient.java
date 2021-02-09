@@ -100,11 +100,13 @@ public class VerxSocketClient extends AbstractVerticle {
     private Handler<AsyncResult<NetSocket>> handleConnection(Promise<Void> startPromise, VerxSocketClient client) {
         return (result) -> {
             if (result.failed()) {
-                log.error("连接失败...", result.cause());
-                socket.handler(null);
-                socket.exceptionHandler(null);
-                socket.closeHandler(null);
-                client.doConnect(null);
+                log.error("连接失败...重新尝试");
+                if (socket != null) {
+                    socket.handler(null);
+                    socket.exceptionHandler(null);
+                    socket.closeHandler(null);
+                }
+                client.doConnect(startPromise);
 
             } else {
                 log.info("连接到服务器:{},端口:{} 成功", this.host, this.port);
@@ -116,7 +118,7 @@ public class VerxSocketClient extends AbstractVerticle {
                     socket.handler(null);
                     socket.exceptionHandler(null);
                     socket.closeHandler(null);
-                    client.doConnect(null);
+                    client.doConnect(startPromise);
                 });
                 socket.exceptionHandler(e -> {
                     log.error(e);
