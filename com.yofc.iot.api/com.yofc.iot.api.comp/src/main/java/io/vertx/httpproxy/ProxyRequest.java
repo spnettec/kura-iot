@@ -27,52 +27,60 @@ import io.vertx.httpproxy.impl.ProxyRequestImpl;
 import java.util.function.Function;
 
 /**
+ *
+ * Handles the interoperability of the <b>request</b> between the <i><b>user agent</b></i> and the <i><b>origin</b></i>.
+ *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
 public interface ProxyRequest {
 
-  static ProxyRequest reverseProxy(HttpServerRequest request) {
-    request.pause();
-    ProxyRequestImpl proxyRequest = new ProxyRequestImpl(request);
-    return proxyRequest;
+  /**
+   * Create a new {@code ProxyRequest} instance, the outbound request will be paused.
+   *
+   * @param outboundRequest the {@code HttpServerRequest} of the <i><b>user agent</b></i>
+   * @return a reference to this, so the API can be used fluently
+   */
+  static ProxyRequest reverseProxy(HttpServerRequest outboundRequest) {
+    outboundRequest.pause();
+    return new ProxyRequestImpl(outboundRequest);
   }
 
   /**
-   * @return the HTTP version of the edge request
+   * @return the HTTP version of the outbound request
    */
   HttpVersion version();
 
   /**
-   * @return the edge request absolute URI
+   * @return the absolute URI of the outbound request
    */
   String absoluteURI();
 
   /**
-   * @return the HTTP method to be sent to the origin server
+   * @return the HTTP method to be sent to the <i><b>origin</b></i> server.
    */
   HttpMethod getMethod();
 
   /**
-   * Set the HTTP method to be sent to the origin server.
+   * Set the HTTP method to be sent to the <i><b>origin</b></i> server.
    *
-   * <p>The initial HTTP method value is the edge request HTTP method.
+   * <p>The initial HTTP method value is the outbound request HTTP method.
    *
-   * @param method the new method
+   * @param method the new HTTP method
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   ProxyRequest setMethod(HttpMethod method);
 
   /**
-   * @return the request URI to be sent to the origin server
+   * @return the request URI to be sent to the <i><b>origin</b></i> server.
    */
   String getURI();
 
   /**
-   * Set the request URI to be sent to the origin server.
+   * Set the request URI to be sent to the <i><b>origin</b></i> server.
    *
-   * <p>The initial request URI value is the edge request URI.
+   * <p>The initial request URI value is the <i><b>outbound</b></i> request URI.
    *
    * @param uri the new URI
    * @return a reference to this, so the API can be used fluently
@@ -81,14 +89,14 @@ public interface ProxyRequest {
   ProxyRequest setURI(String uri);
 
   /**
-   * @return the request body to be sent to the origin server
+   * @return the request body to be sent to the <i><b>origin</b></i> server.
    */
   Body getBody();
 
   /**
-   * Set the request body to be sent to the origin server.
+   * Set the request body to be sent to the <i><b>origin</b></i> server.
    *
-   * <p>The initial request body value is the edge request body.
+   * <p>The initial request body value is the <i><b>outbound</b></i> request body.
    *
    * @param body the new body
    * @return a reference to this, so the API can be used fluently
@@ -98,7 +106,7 @@ public interface ProxyRequest {
 
   /**
    * @return the headers that will be sent to the origin server, the returned headers can be modified. The headers
-   *         map is populated with the edge request headers
+   *         map is populated with the outbound request headers
    */
   MultiMap headers();
 
@@ -116,7 +124,7 @@ public interface ProxyRequest {
   /**
    * Set a body filter.
    *
-   * <p> The body filter can rewrite the request body sent to the origin server.
+   * <p> The body filter can rewrite the request body sent to the <i><b>origin</b></i> server.
    *
    * @param filter the filter
    * @return a reference to this, so the API can be used fluently
@@ -125,13 +133,13 @@ public interface ProxyRequest {
   ProxyRequest bodyFilter(Function<ReadStream<Buffer>, ReadStream<Buffer>> filter);
 
   /**
-   * Proxy this request and response to the origin server using the specified request.
+   * Proxy this outbound request and response to the <i><b>origin</b></i> server using the specified inbound request.
    *
-   * @param request the request connected to the origin server
+   * @param inboundRequest the request connected to the <i><b>origin</b></i> server
    * @param completionHandler the completion handler
    */
-  default void proxy(HttpClientRequest request, Handler<AsyncResult<Void>> completionHandler) {
-    send(request, ar -> {
+  default void proxy(HttpClientRequest inboundRequest, Handler<AsyncResult<Void>> completionHandler) {
+    send(inboundRequest, ar -> {
       if (ar.succeeded()) {
         ProxyResponse resp = ar.result();
         resp.send(completionHandler);
@@ -142,14 +150,14 @@ public interface ProxyRequest {
   }
 
   /**
-   * Send this request to the origin server using the specified request.
+   * Send this request to the <i><b>origin</b></i> server using the specified inbound request.
    *
-   * <p> The {@code completionHandler} will be called with the proxy response sent by the origin server.
+   * <p> The {@code completionHandler} will be called with the proxy response sent by the <i><b>origin</b></i>.
    *
-   * @param request the request connected to the origin server
+   * @param inboundRequest the request connected to the <i><b>origin</b></i> server
    * @param completionHandler the completion handler
    */
-  void send(HttpClientRequest request, Handler<AsyncResult<ProxyResponse>> completionHandler);
+  void send(HttpClientRequest inboundRequest, Handler<AsyncResult<ProxyResponse>> completionHandler);
 
   /**
    * Release the proxy request.
@@ -162,9 +170,14 @@ public interface ProxyRequest {
   ProxyRequest release();
 
   /**
-   * Create and return a default proxy response.
+   * @return the outbound HTTP server request
+   */
+  HttpServerRequest outboundRequest();
+
+  /**
+   * Create and return the proxy response.
    *
-   * @return a default proxy response
+   * @return the proxy response
    */
   ProxyResponse response();
 

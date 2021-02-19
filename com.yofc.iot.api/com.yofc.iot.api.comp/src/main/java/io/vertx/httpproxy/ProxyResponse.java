@@ -10,8 +10,6 @@
  */
 package io.vertx.httpproxy;
 
-import java.util.function.Function;
-
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
@@ -21,109 +19,129 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 
+import java.util.function.Function;
+
 /**
+ *
+ * Handles the interoperability of the <b>response</b> between the <i><b>origin</b></i> and the <i><b>user agent</b></i>.
+ *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
 public interface ProxyResponse {
 
-    /**
-     * @return the proxy request
-     */
-    ProxyRequest request();
+  /**
+   *
+   * Return the corresponding {@code ProxyRequest}.
+   *
+   * @return the proxy request
+   */
+  ProxyRequest request();
 
-    /**
-     * @return the status code to be sent to the edge client
-     */
-    int getStatusCode();
+  /**
+   * Get the status code.
+   *
+   * @return the status code to be sent to the <i><b>user agent</b></i>
+   */
+  int getStatusCode();
 
-    /**
-     * Set the status code to be sent to the edge client.
-     *
-     * <p>
-     * The initial value is the origin response status code.
-     *
-     * @param sc
-     *               the status code
-     * @return a reference to this, so the API can be used fluently
-     */
-    @Fluent
-    ProxyResponse setStatusCode(int sc);
+  /**
+   * Set the status code to be sent to the <i><b>user agent</b></i>.
+   *
+   * <p> The initial value is the inbound response status code.
+   *
+   * @param sc the status code
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ProxyResponse setStatusCode(int sc);
 
-    /**
-     * @return the headers that will be sent to the edge client, the returned headers can be modified. The headers
-     *         map is populated with the origin response headers
-     */
-    MultiMap headers();
+  /**
+   * Get the status message.
+   *
+   * @return the status message to be sent to the <i><b>user agent</b></i>
+   */
+  String getStatusMessage();
 
-    /**
-     * Put an HTTP header
-     *
-     * @param name
-     *                  The header name
-     * @param value
-     *                  The header value
-     * @return a reference to this, so the API can be used fluently
-     */
-    @GenIgnore
-    @Fluent
-    ProxyResponse putHeader(CharSequence name, CharSequence value);
+  /**
+   * Set the status message to be sent to the <i><b>user agent</b></i>.
+   *
+   * <p> The initial value is the inbound response status message.
+   *
+   * @param statusMessage the status message
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ProxyResponse setStatusMessage(String statusMessage);
 
-    /**
-     * @return the response body to be sent to the edge client
-     */
-    Body getBody();
+  /**
+   * @return the headers that will be sent to the <i><b>user agent</b></i>, the returned headers can be modified. The headers
+   *         map is populated with the inbound response headers
+   */
+  MultiMap headers();
 
-    /**
-     * Set the request body to be sent to the edge client.
-     *
-     * <p>
-     * The initial request body value is the origin response body.
-     *
-     * @param body
-     *                 the new body
-     * @return a reference to this, so the API can be used fluently
-     */
-    @Fluent
-    ProxyResponse setBody(Body body);
+  /**
+   * Put an HTTP header.
+   *
+   * @param name  The header name
+   * @param value The header value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @GenIgnore
+  @Fluent
+  ProxyResponse putHeader(CharSequence name, CharSequence value);
 
-    /**
-     * Set a body filter.
-     *
-     * <p>
-     * The body filter can rewrite the response body sent to the edge client.
-     *
-     * @param filter
-     *                   the filter
-     * @return a reference to this, so the API can be used fluently
-     */
-    @Fluent
-    ProxyResponse bodyFilter(Function<ReadStream<Buffer>, ReadStream<Buffer>> filter);
+  /**
+   * Get the body of the response.
+   *
+   * @return the response body to be sent to the <i><b>user agent</b></i>
+   */
+  Body getBody();
 
-    boolean publicCacheControl();
+  /**
+   * Set the request body to be sent to the <i><b>user agent</b></i>.
+   *
+   * <p>The initial request body value is the outbound response body.
+   *
+   * @param body the new body
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ProxyResponse setBody(Body body);
 
-    long maxAge();
+  /**
+   * Set a body filter.
+   *
+   * <p> The body filter can rewrite the response body sent to the <i><b>user agent</b></i>.
+   *
+   * @param filter the filter
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  ProxyResponse bodyFilter(Function<ReadStream<Buffer>, ReadStream<Buffer>> filter);
 
-    /**
-     * @return the {@code etag} sent by the origin response
-     */
-    String etag();
+  boolean publicCacheControl();
 
-    /**
-     * Send the proxy response to the edge client.
-     *
-     * @param completionHandler
-     *                              the handler to be called when the response has been sent
-     */
-    void send(Handler<AsyncResult<Void>> completionHandler);
+  long maxAge();
 
-    /**
-     * Release the proxy response.
-     *
-     * <p>
-     * The HTTP client response is resumed, no HTTP server response is sent.
-     */
-    @Fluent
-    ProxyResponse release();
+  /**
+   * @return the {@code etag} sent by the <i><b>origin</b></i> response
+   */
+  String etag();
+
+  /**
+   * Send the proxy response to the <i><b>user agent</b></i>.
+   *
+   * @param completionHandler the handler to be called when the response has been sent
+   */
+  void send(Handler<AsyncResult<Void>> completionHandler);
+
+  /**
+   * Release the proxy response.
+   *
+   * <p> The HTTP client inbound response is resumed, no HTTP inbound server response is sent.
+   */
+  @Fluent
+  ProxyResponse release();
 
 }

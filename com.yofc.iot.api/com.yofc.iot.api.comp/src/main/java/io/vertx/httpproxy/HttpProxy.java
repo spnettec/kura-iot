@@ -21,28 +21,60 @@ import io.vertx.core.net.SocketAddress;
 import java.util.function.Function;
 
 /**
+ * Handles the HTTP reverse proxy logic between the <i><b>user agent</b></i> and the <i><b>origin</b></i>.
+ * <p>
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
 public interface HttpProxy extends Handler<HttpServerRequest> {
 
+  /**
+   * Create a new {@code HttpProxy} instance.
+   *
+   * @param client the {@code HttpClient} that forwards <i><b>outbound</b></i> requests to the <i><b>origin</b></i>.
+   * @return a reference to this, so the API can be used fluently.
+   */
   static HttpProxy reverseProxy2(HttpClient client) {
     return new io.vertx.httpproxy.impl.HttpProxyImpl(client);
   }
 
+  /**
+   * Set the {@code SocketAddress} of the <i><b>origin</b></i>.
+   *
+   * @param address the {@code SocketAddress} of the <i><b>origin</b></i>
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   default HttpProxy target(SocketAddress address) {
     return selector(req -> Future.succeededFuture(address));
   }
 
+  /**
+   * Set the host name and port number of the <i><b>origin</b></i>.
+   *
+   * @param port the port number of the <i><b>origin</b></i> server
+   * @param host the host name of the <i><b>origin</b></i> server
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   default HttpProxy target(int port, String host) {
     return target(SocketAddress.inetSocketAddress(port, host));
   }
 
+  /**
+   * Set a selector that resolves the <i><b>origin</b></i> address based on the <i><b>outbound</b></i> request.
+   *
+   * @param selector the selector
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   HttpProxy selector(Function<HttpServerRequest, Future<SocketAddress>> selector);
 
-  void handle(HttpServerRequest request);
+  /**
+   * Handle the <i><b>outbound</b></i> {@code HttpServerRequest}.
+   *
+   * @param outboundRequest the outbound {@code HttpServerRequest}
+   */
+  void handle(HttpServerRequest outboundRequest);
 
 }
