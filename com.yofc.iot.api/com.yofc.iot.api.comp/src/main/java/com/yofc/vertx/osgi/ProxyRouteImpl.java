@@ -136,10 +136,19 @@ public class ProxyRouteImpl implements ProxyRoute {
 
         client.request(requestOptions).onSuccess(clientReq -> {
             proxyReq.setURI(targetUrl);
+            proxyReq.bodyFilter(buf -> {
+                if (preListener != null) {
+                    buf.handler(buffer -> preListener.apply(routingContext, clientReq, buffer));
+                }
+                return buf;
+            });
             proxyReq.send(clientReq, ar -> {
                 if (ar.succeeded()) {
                     ProxyResponse resp = ar.result();
                     resp.bodyFilter(buf -> {
+                        if (postListener != null) {
+                            buf.handler(buffer -> postListener.apply(routingContext, serverResponse, buffer));
+                        }
                         return buf;
                     });
                     resp.send(h -> {
