@@ -46,7 +46,7 @@ import io.vertx.ext.web.client.WebClient;
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
 public class TextSocketClientServiceImpl implements TextSocketClientService, ConfigurableComponent {
 
-    private static final Logger logger = LoggerFactory.getLogger(MqttClientServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TextSocketClientServiceImpl.class);
     @Reference
     private Vertx vertx;
     private NetClient netClient;
