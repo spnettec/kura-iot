@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.iot.component.api.MqttClientService;
+import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.MqttClientPublisher.MqttClientPublisherCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
@@ -73,6 +74,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
     private Script script;
     @Reference
     private AssetHelp assetHelp;
+    private ServieTool serviceTool = new ServieTool();
     @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, unbind = "unbindMqttClientService")
     private volatile MqttClientService mqttClientService;
     private MqttClientPublisherCfg properties;
@@ -104,6 +106,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
     @Deactivate
     public void deactivate() {
         logger.info("Deactivating Script Filter...");
+        serviceTool.ungetServices();
         if (webClient != null) {
             webClient.close();
             webClient = null;
@@ -114,6 +117,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
     @Modified
     public synchronized void updated(final MqttClientPublisherCfg properties) throws KuraException {
         logger.info("Updating Script Filter...");
+        serviceTool.ungetServices();
         this.properties = properties;
 
         scriptSource = properties.script();
@@ -129,6 +133,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
             binding.setVariable("logger", logger);
             binding.setVariable("webClient", webClient);
             binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("serviceTool", serviceTool);
             binding.setVariable("vertx", vertx);
             try {
                 script = shell.parse(scriptSource);

@@ -52,6 +52,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.VertxMqttPublisher.VertxMqttPublisherCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
@@ -103,6 +104,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
     private Marshaller jsonMarshaller;
     @Reference
     private AssetHelp assetHelp;
+    private ServieTool serviceTool = new ServieTool();
     private long timerId = 0;
     private Map<String, Long> topicTime = new ConcurrentHashMap<>();
 
@@ -128,6 +130,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
     @Deactivate
     public void deactivate() {
         logger.info("Deactivating Script Filter...");
+        serviceTool.ungetServices();
         if (webClient != null) {
             webClient.close();
             webClient = null;
@@ -138,6 +141,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
 
     @Modified
     public synchronized void updated(final VertxMqttPublisherCfg properties) throws KuraException {
+        serviceTool.ungetServices();
         logger.info("Updating Script Filter...");
         this.properties = properties;
 
@@ -154,11 +158,12 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
             binding.setVariable("logger", logger);
             binding.setVariable("webClient", webClient);
             binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("serviceTool", serviceTool);
             binding.setVariable("vertx", vertx);
             try {
                 script = shell.parse(scriptSource);
             } catch (Exception e) {
-                logger.error("Script parse error:{}", e);
+                logger.error("Script parse error", e);
                 scriptSource = null;
             }
             logger.info("Updating Script Filter... Done");

@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSON;
+import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.GroovyScriptFilter.GroovyScriptFilterCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
@@ -69,6 +70,8 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @Reference
     private AssetHelp assetHelp;
 
+    private ServieTool serviceTool = new ServieTool();
+
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
             this.wireHelperService = null;
@@ -90,6 +93,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @Deactivate
     public void deactivate() {
         logger.info("Deactivating Script Filter...");
+        serviceTool.ungetServices();
         if (webClient != null) {
             webClient.close();
             webClient = null;
@@ -100,6 +104,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
     @Modified
     public synchronized void updated(final GroovyScriptFilterCfg properties) {
         logger.info("Updating Script Filter...");
+        serviceTool.ungetServices();
         scriptSource = properties.script();
 
         if (!scriptSource.equals("")) {
@@ -114,11 +119,12 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             binding.setVariable("logger", logger);
             binding.setVariable("webClient", webClient);
             binding.setVariable("assetHelp", assetHelp);
+            binding.setVariable("serviceTool", serviceTool);
             binding.setVariable("vertx", vertx);
             try {
                 script = shell.parse(scriptSource);
             } catch (Exception e) {
-                logger.error("Script parse error:{}", e);
+                logger.error("Script parse error", e);
                 scriptSource = null;
             }
             logger.info("Updating Script Filter... Done");

@@ -27,6 +27,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.HttpRestComponent.HttpRestComponentCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.BasicAuth;
@@ -77,6 +78,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @Reference
     private AssetHelp assetHelp;
 
+    private ServieTool serviceTool = new ServieTool();
+
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
             this.wireHelperService = null;
@@ -102,6 +105,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     }
 
     private void update(final HttpRestComponentCfg properties) {
+        serviceTool.ungetServices();
         String routeString = properties.route();
         String usersString = properties.users();
         usersString = usersString == null ? "" : usersString;
@@ -122,6 +126,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
+            binding.setVariable("serviceTool", serviceTool);
             binding.setVariable("wireSupport", wireSupport);
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
@@ -143,6 +148,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     @Deactivate
     public void deactivate(final ComponentContext ctx) {
+        serviceTool.ungetServices();
         destroyRoute();
         if (webClient != null) {
             webClient.close();
@@ -211,8 +217,12 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                 future.whenComplete((obj, e) -> {
                     if (e != null)
                         response.end(e.toString());
-                    else
-                        response.end();
+                    else {
+                        if (obj == null)
+                            response.end();
+                        else
+                            response.end(obj.toString());
+                    }
                 });
             } else if (!response.ended())
                 response.end("No return information");
