@@ -215,15 +215,24 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 socket = result.result();
                 TextSocketClientServiceImpl.this.closed = false;
                 socket.closeHandler(h -> {
-                    logger.info("Closed");
+                    TextSocketClientServiceImpl.this.closed = true;
+                    logger.info("连接到服务器:{},端口:{},服务:{} 连接丢失", properties.host(), properties.port(),
+                            this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
                     socket.handler(null);
                     socket.exceptionHandler(null);
                     socket.closeHandler(null);
-                    TextSocketClientServiceImpl.this.doConnect(properties);
+                    vertx.setTimer(properties.reconnectInterval(),
+                            l -> TextSocketClientServiceImpl.this.doConnect(properties));
                 });
                 socket.exceptionHandler(e -> {
+                    TextSocketClientServiceImpl.this.closed = true;
                     logger.info("连接到服务器:{},端口:{},服务:{} 连接错误", properties.host(), properties.port(),
-                            this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
+                            this.mapProperties.get(ServieTool.KURA_SERVICE_PID), e);
+                    socket.handler(null);
+                    socket.exceptionHandler(null);
+                    socket.closeHandler(null);
+                    vertx.setTimer(properties.reconnectInterval(),
+                            l -> TextSocketClientServiceImpl.this.doConnect(properties));
                 });
 
                 socket.handler(this::handlerBuffer);
