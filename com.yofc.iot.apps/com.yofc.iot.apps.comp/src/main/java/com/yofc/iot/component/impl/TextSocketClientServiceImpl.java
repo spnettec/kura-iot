@@ -51,7 +51,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     private Vertx vertx;
     private NetClient netClient;
     private NetSocket socket;
-    NetClientOptions options;
+    private NetClientOptions options;
     private Handler<String> handler;
     private Config preConfig = null;
     private Map<String, Object> mapProperties;
@@ -173,7 +173,8 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         options.setReconnectInterval(properties.reconnectInterval());// 每一次尝试间隔
         options.setLogActivity(true);
         options.setReuseAddress(true);
-        logger.info("启动...");
+        logger.info("正在启动服务器....:{},端口:{},服务:{}", properties.host(), properties.port(),
+                this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
         doConnect(properties);
     }
 
@@ -502,7 +503,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 + "if (msgs.length > 1) {" + "     readMsg.setKey(msgs[0]);" + "     readMsg.setMsg(msgs[1]);"
                 + "} else if (msgs.length == 1) {" + "      readMsg.setMsg(msgs[0]);" + "}" + "        "
                 + "if (readMsg.getMsg() != null && (readMsg.getMsg().startsWith(\"FEED\"))) {"
-                + "    if (handler != null) {" + "        handler.handle(message);"
+                + "    if (handler != null) {" + "        handler.handle(readMsg.getMsg());"
                 + "        readMsg.setHandled(true);" + "      }" + "}";
 
     }
