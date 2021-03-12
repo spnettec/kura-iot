@@ -121,8 +121,14 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("serviceTool", serviceTool);
             binding.setVariable("vertx", vertx);
+            if (!"".equals(properties.initScript())) {
+                scriptSource = scriptSource + "\r\ndef initComponent(){\r\n" + properties.initScript() + "\r\n}";
+            }
             try {
                 script = shell.parse(scriptSource);
+                if (!"".equals(properties.initScript())) {
+                    script.invokeMethod("initComponent", null);
+                }
             } catch (Exception e) {
                 logger.error("Script parse error", e);
                 scriptSource = null;
@@ -201,6 +207,9 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
         @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)
         String script() default "";
+
+        @AttributeDefinition(name = "%initScript", cardinality = 0, description = "%initScriptDesc", required = false)
+        String initScript() default "";
     }
 
 }

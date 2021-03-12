@@ -33,6 +33,7 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -178,39 +179,33 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         doConnect(properties);
     }
 
-    private void doConnect(Config properties) {
+    private Future<Void> doConnect(Config properties) {
+        Promise<Void> connectPromise = Promise.promise();
         if (!closed) {
-            return;
+            connectPromise.complete();
+            return connectPromise.future();
         }
         if (netClient != null) {
             netClient.close();
             netClient = null;
         }
+
         netClient = vertx.createNetClient(options);
-        netClient.connect(properties.port(), properties.host(), handleConnection(properties));
+        netClient.connect(properties.port(), properties.host(), handleConnection(properties, connectPromise));
+        return connectPromise.future();
     }
 
-    private Handler<AsyncResult<NetSocket>> handleConnection(Config properties) {
+    private Handler<AsyncResult<NetSocket>> handleConnection(Config properties, Promise<Void> connectPromise) {
         return result -> {
             if (result.failed()) {
-                if (TextSocketClientServiceImpl.this.times.incrementAndGet() >= properties.reconnectAttempts()) {
+                connectPromise.fail(result.cause());
+                if (properties.reconnectAttempts() > 0) {
                     logger.info("连接到服务器:{},端口:{},服务:{} 失败次数超过:{}次，服务停止，请重新启动", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID), properties.reconnectAttempts());
                     return;
                 }
-                logger.info("连接到服务器:{},端口:{},服务:{} 失败，重新尝试，次数:{}", properties.host(), properties.port(),
-                        this.mapProperties.get(ServieTool.KURA_SERVICE_PID),
-                        TextSocketClientServiceImpl.this.times.get());
-                if (socket != null) {
-                    socket.handler(null);
-                    socket.exceptionHandler(null);
-                    socket.closeHandler(null);
-                }
-
-                vertx.setTimer(properties.reconnectInterval(),
-                        l -> TextSocketClientServiceImpl.this.doConnect(properties));
-
             } else {
+                connectPromise.complete();
                 logger.info("连接到服务器:{},端口:{},服务:{} 成功", properties.host(), properties.port(),
                         this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
                 socket = result.result();
@@ -222,8 +217,8 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                     socket.handler(null);
                     socket.exceptionHandler(null);
                     socket.closeHandler(null);
-                    vertx.setTimer(properties.reconnectInterval(),
-                            l -> TextSocketClientServiceImpl.this.doConnect(properties));
+                    // vertx.setTimer(properties.reconnectInterval(),
+                    // l -> TextSocketClientServiceImpl.this.doConnect(properties));
                 });
                 socket.exceptionHandler(e -> {
                     TextSocketClientServiceImpl.this.closed = true;
@@ -232,8 +227,8 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                     socket.handler(null);
                     socket.exceptionHandler(null);
                     socket.closeHandler(null);
-                    vertx.setTimer(properties.reconnectInterval(),
-                            l -> TextSocketClientServiceImpl.this.doConnect(properties));
+                    // vertx.setTimer(properties.reconnectInterval(),
+                    // l -> TextSocketClientServiceImpl.this.doConnect(properties));
                 });
 
                 socket.handler(this::handlerBuffer);
@@ -251,12 +246,10 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
             return;
         }
         if (key == null || "".equals(key)) {
-            if (messageList != null) {
-                TimePromise tp = messageList.poll();
-                if (tp != null) {
-                    tp.getPromise().complete(message);
-                    vertx.cancelTimer(tp.getTimer());
-                }
+            TimePromise tp = messageList.poll();
+            if (tp != null) {
+                tp.getPromise().complete(message);
+                vertx.cancelTimer(tp.getTimer());
             }
         } else {
             if (messageMap != null) {
@@ -283,10 +276,9 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     }
 
     @Override
-    public void sendAndReply(String message, Handler<AsyncResult<String>> handler) throws KuraConnectException {
-        if (closed)
-            throw new KuraConnectException("read error,not Connected");
-        sendAndReply(message, 5000, handler);
+    public void sendAndReply(String message, Handler<AsyncResult<String>> handler) {
+
+        sendAndReply(message, 10000, handler);
     }
 
     private String convertWriteMessage(String message) {
@@ -321,6 +313,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
             if (!readScriptSource.equals("")) {
 
                 try {
+                    readScript.setProperty("handler", handler);
                     readScript.setProperty("readMsg", readMsg);
                     readScript.run();
                     ReadMsg readMessage = (ReadMsg) readScript.getProperty("readMsg");
@@ -334,32 +327,24 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     }
 
     @Override
-    public void sendAndReply(String message, long timeOut, Handler<AsyncResult<String>> handler)
-            throws KuraConnectException {
-        message = convertWriteMessage(message);
-        if (closed)
-            throw new KuraConnectException("read error,not Connected");
-        synchronized (this) {
+    public void sendAndReply(String message, long timeOut, Handler<AsyncResult<String>> handler) {
+        this.doConnect(preConfig).onComplete(v -> {
+            String covertMessage = convertWriteMessage(message);
             String key = null;
-            String[] msgs = message.split(":", 2);
+            String[] msgs = covertMessage.split(":", 2);
             if (msgs.length > 1) {
                 key = msgs[0];
-                message = msgs[1];
+                covertMessage = msgs[1];
             }
             Promise<String> promise = Promise.promise();
             promise.future().onComplete(handler);
             if (key == null || "".equals(key)) {
-                if (messageList == null) {
-                    promise.fail(new IllegalStateException());
-                    return;
-                }
-
                 TimePromise tp = new TimePromise(promise, 0L);
                 Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
                 tp.setTimer(timer);
 
                 if (messageList.offer(tp)) {
-                    socket.write(message);
+                    socket.write(covertMessage);
                 } else {
                     vertx.cancelTimer(timer);
                     promise.fail(new BufferOverflowException());
@@ -372,10 +357,13 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                     Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
                     tp.setTimer(timer);
                     messageMap.put(key, tp);
-                    socket.write(key + ":" + message);
+                    socket.write(key + ":" + covertMessage);
                 }
             }
-        }
+            if (v.failed() && !promise.future().isComplete()) {
+                promise.fail(v.cause());
+            }
+        });
     }
 
     class ReadMsg {

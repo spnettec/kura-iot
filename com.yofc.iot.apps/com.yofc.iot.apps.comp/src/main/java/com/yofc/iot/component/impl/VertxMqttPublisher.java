@@ -213,7 +213,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                             mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
                                     MqttQoS.AT_MOST_ONCE, false, false);
                             this.wireSupport.emit(wireEnvelope.getRecords());
-                            logger.info("Publish MQTT {}", topic);
+                            logger.debug("Publish MQTT {}", topic);
                         }
                     }
                 } else if (output instanceof JsonObject) {
@@ -225,7 +225,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                     mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
                             false, false);
                     this.wireSupport.emit(wireEnvelope.getRecords());
-                    logger.info("Publish MQTT {}", topic);
+                    logger.debug("Publish MQTT {}", topic);
                 }
 
             } catch (Exception e) {

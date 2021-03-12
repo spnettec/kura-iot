@@ -36,6 +36,8 @@ import com.yofc.vertx.osgi.api.Utils;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServerRequest;
@@ -131,8 +133,14 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             binding.setVariable("assetHelp", assetHelp);
             binding.setVariable("vertx", vertx);
             binding.setVariable("webClient", webClient);
+            if (!"".equals(properties.initScript())) {
+                scriptSource = scriptSource + "\r\ndef initComponent(){\r\n" + properties.initScript() + "\r\n}";
+            }
             try {
                 script = shell.parse(scriptSource);
+                if (!"".equals(properties.initScript())) {
+                    script.invokeMethod("initComponent", null);
+                }
             } catch (Exception e) {
                 logger.error("Script parse error", e);
                 scriptSource = null;
@@ -211,19 +219,43 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             if (!response.ended())
                 response.end(e.toString());
         } finally {
-            if (output instanceof CompletableFuture) {
-                @SuppressWarnings("unchecked")
-                CompletableFuture<Object> future = (CompletableFuture<Object>) output;
-                future.whenComplete((obj, e) -> {
-                    if (e != null)
-                        response.end(e.toString());
-                    else {
-                        if (obj == null)
-                            response.end();
+            if (output != null) {
+                if (output instanceof CompletableFuture) {
+                    @SuppressWarnings("unchecked")
+                    CompletableFuture<Object> future = (CompletableFuture<Object>) output;
+                    future.whenComplete((obj, e) -> {
+                        if (e != null)
+                            response.end(e.toString());
+                        else {
+                            if (obj == null)
+                                response.end();
+                            else
+                                response.end(obj.toString());
+                        }
+                    });
+                } else if (output instanceof Promise) {
+                    @SuppressWarnings("unchecked")
+                    Promise<Object> promise = (Promise<Object>) output;
+                    promise.future().onComplete(v -> {
+                        if (v.failed())
+                            response.end(v.cause().getMessage());
                         else
-                            response.end(obj.toString());
-                    }
-                });
+                            response.end(v.result().toString());
+                    });
+
+                } else if (output instanceof Future) {
+                    @SuppressWarnings("unchecked")
+                    Future<Object> future = (Future<Object>) output;
+                    future.onComplete(v -> {
+                        if (v.failed())
+                            response.end(v.cause().getMessage());
+                        else
+                            response.end(v.result().toString());
+                    });
+
+                } else {
+                    response.end(output.toString());
+                }
             } else if (!response.ended())
                 response.end("No return information");
         }
@@ -258,8 +290,11 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.HttpRestComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.HttpRestComponentCfg")
     @interface HttpRestComponentCfg {
 
-        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = true)
+        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)
         String script() default "def aa=1";
+
+        @AttributeDefinition(name = "%initScript", cardinality = 0, description = "%initScriptDesc", required = false)
+        String initScript() default "";
 
         @AttributeDefinition(name = "%route", description = "%routeDesc", required = true)
         String route() default "/demo/*";
