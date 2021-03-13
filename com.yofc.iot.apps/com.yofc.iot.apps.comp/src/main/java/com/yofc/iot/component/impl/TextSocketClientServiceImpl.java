@@ -3,12 +3,12 @@ package com.yofc.iot.component.impl;
 import java.nio.BufferOverflowException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.kura.KuraConnectException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
@@ -51,13 +51,12 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     @Reference
     private Vertx vertx;
     private NetClient netClient;
-    private NetSocket socket;
+    private Optional<NetSocket> socket = Optional.empty();
+    private Optional<Future<NetSocket>> connectTask = Optional.empty();
     private NetClientOptions options;
     private Handler<String> handler;
     private Config preConfig = null;
     private Map<String, Object> mapProperties;
-    private volatile boolean closed = true;
-    private AtomicInteger times = new AtomicInteger(0);
     private String writeScriptSource = "";
     private String readScriptSource = "";
     private Script writeScript;
@@ -99,12 +98,14 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         closeSocketClient();
     }
 
-    private void closeSocketClient() {
+    private synchronized void closeSocketClient() {
         serviceTool.ungetServices();
-        closed = true;
-        times.set(0);
-        if (socket != null) {
-            socket.close();
+        if (socket.isPresent()) {
+            socket.get().close();
+            socket = Optional.empty();
+        }
+        if (this.connectTask.isPresent()) {
+            this.connectTask = Optional.empty();
         }
         if (netClient != null) {
             netClient.close();
@@ -166,7 +167,6 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 logger.info("Updating read Script Filter... Done");
             }
         }
-        times.set(0);
         options = new NetClientOptions();
         options.setTcpKeepAlive(true);
         options.setConnectTimeout(properties.connectTimeout());
@@ -176,13 +176,16 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         options.setReuseAddress(true);
         logger.info("正在启动服务器....:{},端口:{},服务:{}", properties.host(), properties.port(),
                 this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
-        doConnect(properties);
+        connectTask = Optional.of(doConnect(properties));
     }
 
-    private Future<Void> doConnect(Config properties) {
-        Promise<Void> connectPromise = Promise.promise();
-        if (!closed) {
-            connectPromise.complete();
+    private synchronized Future<NetSocket> doConnect(Config properties) {
+        if (this.connectTask.isPresent() && !this.connectTask.get().isComplete()) {
+            return this.connectTask.get();
+        }
+        Promise<NetSocket> connectPromise = Promise.promise();
+        if (socket.isPresent()) {
+            connectPromise.complete(socket.get());
             return connectPromise.future();
         }
         if (netClient != null) {
@@ -192,46 +195,38 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
 
         netClient = vertx.createNetClient(options);
         netClient.connect(properties.port(), properties.host(), handleConnection(properties, connectPromise));
+        this.connectTask = Optional.of(connectPromise.future());
         return connectPromise.future();
     }
 
-    private Handler<AsyncResult<NetSocket>> handleConnection(Config properties, Promise<Void> connectPromise) {
+    private Handler<AsyncResult<NetSocket>> handleConnection(Config properties, Promise<NetSocket> connectPromise) {
         return result -> {
             if (result.failed()) {
                 connectPromise.fail(result.cause());
+                TextSocketClientServiceImpl.this.closeSocketClient();
                 if (properties.reconnectAttempts() > 0) {
                     logger.info("连接到服务器:{},端口:{},服务:{} 失败次数超过:{}次，服务停止，请重新启动", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID), properties.reconnectAttempts());
                     return;
                 }
             } else {
-                connectPromise.complete();
+                NetSocket netSocket = result.result();
+                connectPromise.complete(netSocket);
                 logger.info("连接到服务器:{},端口:{},服务:{} 成功", properties.host(), properties.port(),
                         this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
-                socket = result.result();
-                TextSocketClientServiceImpl.this.closed = false;
-                socket.closeHandler(h -> {
-                    TextSocketClientServiceImpl.this.closed = true;
+                socket = Optional.of(netSocket);
+                netSocket.closeHandler(h -> {
                     logger.info("连接到服务器:{},端口:{},服务:{} 连接丢失", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
-                    socket.handler(null);
-                    socket.exceptionHandler(null);
-                    socket.closeHandler(null);
-                    // vertx.setTimer(properties.reconnectInterval(),
-                    // l -> TextSocketClientServiceImpl.this.doConnect(properties));
+                    TextSocketClientServiceImpl.this.closeSocketClient();
                 });
-                socket.exceptionHandler(e -> {
-                    TextSocketClientServiceImpl.this.closed = true;
+                netSocket.exceptionHandler(e -> {
                     logger.info("连接到服务器:{},端口:{},服务:{} 连接错误", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID), e);
-                    socket.handler(null);
-                    socket.exceptionHandler(null);
-                    socket.closeHandler(null);
-                    // vertx.setTimer(properties.reconnectInterval(),
-                    // l -> TextSocketClientServiceImpl.this.doConnect(properties));
+                    TextSocketClientServiceImpl.this.closeSocketClient();
                 });
 
-                socket.handler(this::handlerBuffer);
+                netSocket.handler(this::handlerBuffer);
             }
         };
 
@@ -269,10 +264,22 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     }
 
     @Override
-    public void write(String message) throws KuraConnectException {
-        if (closed)
-            throw new KuraConnectException("Write error,not Connected");
-        socket.write(message);
+    public void write(String message) {
+        this.doConnect(preConfig).onSuccess(v -> v.write(message));
+    }
+
+    @Override
+    public void write(String message, Handler<AsyncResult<Void>> handler) {
+        this.doConnect(preConfig).onComplete(v -> {
+            Promise<Void> promise = Promise.promise();
+            promise.future().onComplete(handler);
+            if (v.failed()) {
+                promise.fail(v.cause());
+                return;
+            }
+            promise.complete();
+            v.result().write(message);
+        });
     }
 
     @Override
@@ -329,6 +336,12 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     @Override
     public void sendAndReply(String message, long timeOut, Handler<AsyncResult<String>> handler) {
         this.doConnect(preConfig).onComplete(v -> {
+            Promise<String> promise = Promise.promise();
+            promise.future().onComplete(handler);
+            if (v.failed()) {
+                promise.fail(v.cause());
+                return;
+            }
             String covertMessage = convertWriteMessage(message);
             String key = null;
             String[] msgs = covertMessage.split(":", 2);
@@ -336,15 +349,13 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 key = msgs[0];
                 covertMessage = msgs[1];
             }
-            Promise<String> promise = Promise.promise();
-            promise.future().onComplete(handler);
             if (key == null || "".equals(key)) {
                 TimePromise tp = new TimePromise(promise, 0L);
                 Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
                 tp.setTimer(timer);
 
                 if (messageList.offer(tp)) {
-                    socket.write(covertMessage);
+                    v.result().write(covertMessage);
                 } else {
                     vertx.cancelTimer(timer);
                     promise.fail(new BufferOverflowException());
@@ -357,12 +368,10 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                     Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
                     tp.setTimer(timer);
                     messageMap.put(key, tp);
-                    socket.write(key + ":" + covertMessage);
+                    v.result().write(key + ":" + covertMessage);
                 }
             }
-            if (v.failed() && !promise.future().isComplete()) {
-                promise.fail(v.cause());
-            }
+
         });
     }
 
