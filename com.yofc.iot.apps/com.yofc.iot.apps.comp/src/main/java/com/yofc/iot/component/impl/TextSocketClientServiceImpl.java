@@ -53,7 +53,6 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     private NetClient netClient;
     private Optional<NetSocket> socket = Optional.empty();
     private Optional<Future<NetSocket>> connectTask = Optional.empty();
-    private NetClientOptions options;
     private Handler<String> handler;
     private Config preConfig = null;
     private Map<String, Object> mapProperties;
@@ -167,13 +166,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 logger.info("Updating read Script Filter... Done");
             }
         }
-        options = new NetClientOptions();
-        options.setTcpKeepAlive(true);
-        options.setConnectTimeout(properties.connectTimeout());
-        options.setReconnectAttempts(properties.reconnectAttempts());// 尝试次数
-        options.setReconnectInterval(properties.reconnectInterval());// 每一次尝试间隔
-        options.setLogActivity(true);
-        options.setReuseAddress(true);
+
         logger.info("正在启动服务器....:{},端口:{},服务:{}", properties.host(), properties.port(),
                 this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
         connectTask = Optional.of(doConnect(properties));
@@ -192,7 +185,13 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
             netClient.close();
             netClient = null;
         }
-
+        NetClientOptions options = new NetClientOptions();
+        options.setTcpKeepAlive(true);
+        options.setConnectTimeout(properties.connectTimeout());
+        options.setReconnectAttempts(properties.reconnectAttempts());// 尝试次数
+        options.setReconnectInterval(properties.reconnectInterval());// 每一次尝试间隔
+        options.setLogActivity(true);
+        options.setReuseAddress(true);
         netClient = vertx.createNetClient(options);
         netClient.connect(properties.port(), properties.host(), handleConnection(properties, connectPromise));
         this.connectTask = Optional.of(connectPromise.future());
