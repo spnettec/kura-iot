@@ -150,6 +150,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private void handleRequestFailure(RoutingContext failureroutingContext) {
         logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
+        int code = failureroutingContext.statusCode();
+        failureroutingContext.response().setStatusCode(code);
         failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
                 : failureroutingContext.failure().getMessage());
     }
