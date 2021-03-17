@@ -15,6 +15,7 @@ public class ServieTool {
     public static final String KURA_SERVICE_PID = "kura.service.pid";
     private final BundleContext bundleContext;
     private Map<String, ServiceReference<?>> refsMap = new HashMap<>();
+    private Map<String, Object> dataMap = new HashMap<>();
 
     public ServieTool() {
         this.bundleContext = FrameworkUtil.getBundle(ServieTool.class).getBundleContext();
@@ -54,5 +55,13 @@ public class ServieTool {
     public void ungetServices() {
         refsMap.forEach((key, ref) -> this.bundleContext.ungetService(ref));
         refsMap.clear();
+    }
+
+    public Map<String, Object> getDataMap() {
+        return dataMap;
+    }
+
+    public void clearDataMap() {
+        dataMap.clear();
     }
 }
