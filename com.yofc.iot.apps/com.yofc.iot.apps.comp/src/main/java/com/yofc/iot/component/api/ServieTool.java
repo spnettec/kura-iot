@@ -24,8 +24,10 @@ public class ServieTool {
     @SuppressWarnings("unchecked")
     public Object getServiceByPid(String pid) {
         ServiceReference<?> ref = refsMap.get(pid);
-        if (ref != null)
+        if (ref != null) {
             this.bundleContext.ungetService(ref);
+            refsMap.remove(pid);
+        }
         final String filter = format("(%s=%s)", KURA_SERVICE_PID, pid);
         ServiceReference<?>[] refs;
         try {
@@ -33,13 +35,16 @@ public class ServieTool {
         } catch (InvalidSyntaxException e) {
             return null;
         }
-        if (refs == null)
+        if (refs == null) {
             return null;
-        if (refs.length > 1)
+        }
+        if (refs.length > 1) {
             return null;
+        }
         Object service = getService((ServiceReference<Object>) refs[0]);
-        if (service != null)
+        if (service != null) {
             refsMap.put(pid, refs[0]);
+        }
         return service;
     }
 
@@ -53,7 +58,7 @@ public class ServieTool {
     }
 
     public void ungetServices() {
-        refsMap.forEach((key, ref) -> this.bundleContext.ungetService(ref));
+        refsMap.forEach((key, ref) -> ServieTool.this.bundleContext.ungetService(ref));
         refsMap.clear();
     }
 
