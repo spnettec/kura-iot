@@ -20,10 +20,8 @@ package com.yofc.iot.apps.plc.api.messages;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Base type for all messages sent from the plc4x system to a connected plc.
- */
+/** Base type for all messages sent from the plc4x system to a connected plc. */
 public interface PlcRequest extends PlcMessage {
 
-    CompletableFuture<? extends PlcResponse> execute();
+  CompletableFuture<? extends PlcResponse> execute();
 }

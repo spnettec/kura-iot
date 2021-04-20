@@ -22,8 +22,8 @@ import io.vertx.core.streams.ReadStream;
 import java.util.function.Function;
 
 /**
- *
- * Handles the interoperability of the <b>response</b> between the <i><b>origin</b></i> and the <i><b>user agent</b></i>.
+ * Handles the interoperability of the <b>response</b> between the <i><b>origin</b></i> and the
+ * <i><b>user agent</b></i>.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
@@ -31,7 +31,6 @@ import java.util.function.Function;
 public interface ProxyResponse {
 
   /**
-   *
    * Return the corresponding {@code ProxyRequest}.
    *
    * @return the proxy request
@@ -48,7 +47,7 @@ public interface ProxyResponse {
   /**
    * Set the status code to be sent to the <i><b>user agent</b></i>.
    *
-   * <p> The initial value is the inbound response status code.
+   * <p>The initial value is the inbound response status code.
    *
    * @param sc the status code
    * @return a reference to this, so the API can be used fluently
@@ -66,7 +65,7 @@ public interface ProxyResponse {
   /**
    * Set the status message to be sent to the <i><b>user agent</b></i>.
    *
-   * <p> The initial value is the inbound response status message.
+   * <p>The initial value is the inbound response status message.
    *
    * @param statusMessage the status message
    * @return a reference to this, so the API can be used fluently
@@ -75,15 +74,15 @@ public interface ProxyResponse {
   ProxyResponse setStatusMessage(String statusMessage);
 
   /**
-   * @return the headers that will be sent to the <i><b>user agent</b></i>, the returned headers can be modified. The headers
-   *         map is populated with the inbound response headers
+   * @return the headers that will be sent to the <i><b>user agent</b></i>, the returned headers can
+   *     be modified. The headers map is populated with the inbound response headers
    */
   MultiMap headers();
 
   /**
    * Put an HTTP header.
    *
-   * @param name  The header name
+   * @param name The header name
    * @param value The header value
    * @return a reference to this, so the API can be used fluently
    */
@@ -112,7 +111,7 @@ public interface ProxyResponse {
   /**
    * Set a body filter.
    *
-   * <p> The body filter can rewrite the response body sent to the <i><b>user agent</b></i>.
+   * <p>The body filter can rewrite the response body sent to the <i><b>user agent</b></i>.
    *
    * @param filter the filter
    * @return a reference to this, so the API can be used fluently
@@ -124,9 +123,7 @@ public interface ProxyResponse {
 
   long maxAge();
 
-  /**
-   * @return the {@code etag} sent by the <i><b>origin</b></i> response
-   */
+  /** @return the {@code etag} sent by the <i><b>origin</b></i> response */
   String etag();
 
   /**
@@ -139,9 +136,8 @@ public interface ProxyResponse {
   /**
    * Release the proxy response.
    *
-   * <p> The HTTP client inbound response is resumed, no HTTP inbound server response is sent.
+   * <p>The HTTP client inbound response is resumed, no HTTP inbound server response is sent.
    */
   @Fluent
   ProxyResponse release();
-
 }

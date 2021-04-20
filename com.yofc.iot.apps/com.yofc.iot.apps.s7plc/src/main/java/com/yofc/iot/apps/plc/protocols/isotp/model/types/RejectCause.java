@@ -22,31 +22,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum RejectCause {
-    REASON_NOT_SPECIFIED((byte) 0x00),
-    INVALID_PARAMETER_CODE((byte) 0x01),
-    INVALID_TPDU_TYPE((byte) 0x02),
-    INVALID_PARAMETER_TYPE((byte) 0x03);
+  REASON_NOT_SPECIFIED((byte) 0x00),
+  INVALID_PARAMETER_CODE((byte) 0x01),
+  INVALID_TPDU_TYPE((byte) 0x02),
+  INVALID_PARAMETER_TYPE((byte) 0x03);
 
-    private static final Map<Byte, RejectCause> map;
-    static {
-        map = new HashMap<>();
-        for (RejectCause rejectCause : RejectCause.values()) {
-            map.put(rejectCause.code, rejectCause);
-        }
+  private static final Map<Byte, RejectCause> map;
+
+  static {
+    map = new HashMap<>();
+    for (RejectCause rejectCause : RejectCause.values()) {
+      map.put(rejectCause.code, rejectCause);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    RejectCause(byte code) {
-        this.code = code;
-    }
+  RejectCause(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static RejectCause valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static RejectCause valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

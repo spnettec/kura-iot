@@ -13,13 +13,12 @@
 package etherip.driver;
 
 public enum ABPlcDataType {
-
-    BOOL,
-    SINT,
-    INT,
-    DINT,
-    REAL,
-    BITS,
-    STRUCT,
-    STRUCT_STRING;
+  BOOL,
+  SINT,
+  INT,
+  DINT,
+  REAL,
+  BITS,
+  STRUCT,
+  STRUCT_STRING
 }

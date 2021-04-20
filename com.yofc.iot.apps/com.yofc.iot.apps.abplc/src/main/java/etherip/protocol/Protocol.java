@@ -12,6 +12,4 @@ package etherip.protocol;
  *
  * @author Kay Kasemir
  */
-public interface Protocol extends ProtocolEncoder, ProtocolDecoder
-{
-}
+public interface Protocol extends ProtocolEncoder, ProtocolDecoder {}

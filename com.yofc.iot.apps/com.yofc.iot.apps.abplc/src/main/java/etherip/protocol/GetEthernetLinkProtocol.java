@@ -15,52 +15,58 @@ import io.netty.buffer.ByteBuf;
  * Ethernet Link Object decoder
  *
  * @see CIP_VOL2_1.4: 5-4.3.2
- *      <p>
- *      Table 5-4.4 Interface Flags Reserved: Shall be set to zero
+ *     <p>Table 5-4.4 Interface Flags Reserved: Shall be set to zero
  * @author László Pataki
  */
 public class GetEthernetLinkProtocol extends ProtocolAdapter {
 
-    private EthernetLink ethernetLink;
+  private EthernetLink ethernetLink;
 
-    @Override
-    public void decode(final ByteBuf buf) {
-        this.ethernetLink = new EthernetLink();
+  @Override
+  public void decode(final ByteBuf buf) {
+    this.ethernetLink = new EthernetLink();
 
-        byte[] raw = new byte[4];
+    byte[] raw = new byte[4];
 
-        buf.readBytes(raw);
-        this.ethernetLink.setInterfaceSpeed(Integer.valueOf(raw[3] & 0xFF) + Integer.valueOf(raw[2] & 0xFF)
-                + Integer.valueOf(raw[1] & 0xFF) + Integer.valueOf(raw[0] & 0xFF));
+    buf.readBytes(raw);
+    this.ethernetLink.setInterfaceSpeed(
+        Integer.valueOf(raw[3] & 0xFF)
+            + Integer.valueOf(raw[2] & 0xFF)
+            + Integer.valueOf(raw[1] & 0xFF)
+            + Integer.valueOf(raw[0] & 0xFF));
 
-        buf.readBytes(raw);
-        final InterfaceFlags interfaceFlags = new InterfaceFlags();
-        interfaceFlags.setActiveLink(((raw[0] >> 0) & 0x1) == 1);
-        interfaceFlags.setFullDuplex(((raw[0] >> 1) & 0x1) == 1);
-        interfaceFlags.setNegotiationStatus((short) ((raw[0] >> 2) & 0x7));
-        interfaceFlags.setManualSettingRequiresReset(((raw[0] >> 5) & 0x1) == 1);
-        interfaceFlags.setLocalHardwareFault(((raw[0] >> 6) & 0x1) == 1);
-        // Reserved: Shall be set to zero
-        this.ethernetLink.setInterfaceFlags(interfaceFlags);
+    buf.readBytes(raw);
+    final InterfaceFlags interfaceFlags = new InterfaceFlags();
+    interfaceFlags.setActiveLink(((raw[0] >> 0) & 0x1) == 1);
+    interfaceFlags.setFullDuplex(((raw[0] >> 1) & 0x1) == 1);
+    interfaceFlags.setNegotiationStatus((short) ((raw[0] >> 2) & 0x7));
+    interfaceFlags.setManualSettingRequiresReset(((raw[0] >> 5) & 0x1) == 1);
+    interfaceFlags.setLocalHardwareFault(((raw[0] >> 6) & 0x1) == 1);
+    // Reserved: Shall be set to zero
+    this.ethernetLink.setInterfaceFlags(interfaceFlags);
 
-        raw = new byte[6];
-        buf.readBytes(raw);
-        String formatStr = ":%02X";
-        this.ethernetLink.setPhysicalAddress(String.format("%02X", raw[0]) + String.format(formatStr, raw[1])
-                + String.format(formatStr, raw[2]) + String.format(":%02X", raw[3]) + String.format(formatStr, raw[4])
-                + String.format(formatStr, raw[5]));
+    raw = new byte[6];
+    buf.readBytes(raw);
+    String formatStr = ":%02X";
+    this.ethernetLink.setPhysicalAddress(
+        String.format("%02X", raw[0])
+            + String.format(formatStr, raw[1])
+            + String.format(formatStr, raw[2])
+            + String.format(":%02X", raw[3])
+            + String.format(formatStr, raw[4])
+            + String.format(formatStr, raw[5]));
 
-        // Skip remaining bytes
-        /*
-         * final int rest = available - 4 - 4 - 6;
-         * if (rest > 0) {
-         * buf.position(buf.position() + rest);
-         * }
-         */
-    }
+    // Skip remaining bytes
+    /*
+     * final int rest = available - 4 - 4 - 6;
+     * if (rest > 0) {
+     * buf.position(buf.position() + rest);
+     * }
+     */
+  }
 
-    /** @return Value read from response */
-    public final EthernetLink getValue() {
-        return this.ethernetLink;
-    }
+  /** @return Value read from response */
+  public final EthernetLink getValue() {
+    return this.ethernetLink;
+  }
 }

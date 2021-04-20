@@ -18,60 +18,59 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages.items;
 
+import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
-
 public class DefaultLocalDateTimeFieldItem extends BaseDefaultFieldItem<LocalDateTime> {
 
-    public DefaultLocalDateTimeFieldItem(LocalDateTime... values) {
-        super(values);
-    }
+  public DefaultLocalDateTimeFieldItem(LocalDateTime... values) {
+    super(values);
+  }
 
-    @Override
-    public Object getObject(int index) {
-        return getValue(index);
-    }
+  @Override
+  public Object getObject(int index) {
+    return getValue(index);
+  }
 
-    @Override
-    public boolean isValidTime(int index) {
-        return isValidDateTime(index);
-    }
+  @Override
+  public boolean isValidTime(int index) {
+    return isValidDateTime(index);
+  }
 
-    @Override
-    public LocalTime getTime(int index) {
-        if (!isValidTime(index)) {
-            throw new PlcIncompatibleDatatypeException(LocalTime.class, index);
-        }
-        return getValue(index).toLocalTime();
+  @Override
+  public LocalTime getTime(int index) {
+    if (!isValidTime(index)) {
+      throw new PlcIncompatibleDatatypeException(LocalTime.class, index);
     }
+    return getValue(index).toLocalTime();
+  }
 
-    @Override
-    public boolean isValidDate(int index) {
-        return isValidDateTime(index);
+  @Override
+  public boolean isValidDate(int index) {
+    return isValidDateTime(index);
+  }
+
+  @Override
+  public LocalDate getDate(int index) {
+    if (!isValidTime(index)) {
+      throw new PlcIncompatibleDatatypeException(LocalDate.class, index);
     }
+    return getValue(index).toLocalDate();
+  }
 
-    @Override
-    public LocalDate getDate(int index) {
-        if (!isValidTime(index)) {
-            throw new PlcIncompatibleDatatypeException(LocalDate.class, index);
-        }
-        return getValue(index).toLocalDate();
+  @Override
+  public boolean isValidDateTime(int index) {
+    return getValue(index) != null;
+  }
+
+  @Override
+  public LocalDateTime getDateTime(int index) {
+    if (!isValidTime(index)) {
+      throw new PlcIncompatibleDatatypeException(LocalDateTime.class, index);
     }
-
-    @Override
-    public boolean isValidDateTime(int index) {
-        return getValue(index) != null;
-    }
-
-    @Override
-    public LocalDateTime getDateTime(int index) {
-        if (!isValidTime(index)) {
-            throw new PlcIncompatibleDatatypeException(LocalDateTime.class, index);
-        }
-        return getValue(index);
-    }
-
+    return getValue(index);
+  }
 }

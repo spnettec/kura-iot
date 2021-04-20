@@ -17,30 +17,30 @@ import io.netty.buffer.ByteBuf;
  */
 public class GetHexStringDataProtocol extends ProtocolAdapter {
 
-    private String value;
+  private String value;
 
-    @Override
-    public void decode(final ByteBuf buf) {
-        final int len = buf.readableBytes();
-        final byte[] raw = new byte[len];
-        buf.readBytes(raw);
-        StringBuilder stringBuilder = new StringBuilder();
+  @Override
+  public void decode(final ByteBuf buf) {
+    final int len = buf.readableBytes();
+    final byte[] raw = new byte[len];
+    buf.readBytes(raw);
+    StringBuilder stringBuilder = new StringBuilder();
 
-        for (final byte item : raw) {
-            stringBuilder.append(String.format("%02X ", item));
-        }
-        this.value = stringBuilder.toString();
-
-        // Skip remaining bytes
-        /*
-         * final int rest = available - len;
-         * if (rest > 0) {
-         * buf.position(buf.position() + rest);
-         * }
-         */
+    for (final byte item : raw) {
+      stringBuilder.append(String.format("%02X ", item));
     }
+    this.value = stringBuilder.toString();
 
-    public final String getValue() {
-        return this.value;
-    }
+    // Skip remaining bytes
+    /*
+     * final int rest = available - len;
+     * if (rest > 0) {
+     * buf.position(buf.position() + rest);
+     * }
+     */
+  }
+
+  public final String getValue() {
+    return this.value;
+  }
 }

@@ -24,29 +24,32 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterError;
 
 public class CpuServicesResponseParameter extends CpuServicesParameter {
 
-    private byte dataUnitReferenceNumber;
-    private boolean lastDataUnit;
-    private ParameterError error;
+  private final byte dataUnitReferenceNumber;
+  private final boolean lastDataUnit;
+  private final ParameterError error;
 
-    public CpuServicesResponseParameter(CpuServicesParameterFunctionGroup functionGroup,
-            CpuServicesParameterSubFunctionGroup subFunctionGroup, byte sequenceNumber, byte dataUnitReferenceNumber,
-            boolean lastDataUnit, ParameterError error) {
-        super(functionGroup, subFunctionGroup, sequenceNumber);
-        this.dataUnitReferenceNumber = dataUnitReferenceNumber;
-        this.lastDataUnit = lastDataUnit;
-        this.error = error;
-    }
+  public CpuServicesResponseParameter(
+      CpuServicesParameterFunctionGroup functionGroup,
+      CpuServicesParameterSubFunctionGroup subFunctionGroup,
+      byte sequenceNumber,
+      byte dataUnitReferenceNumber,
+      boolean lastDataUnit,
+      ParameterError error) {
+    super(functionGroup, subFunctionGroup, sequenceNumber);
+    this.dataUnitReferenceNumber = dataUnitReferenceNumber;
+    this.lastDataUnit = lastDataUnit;
+    this.error = error;
+  }
 
-    public byte getDataUnitReferenceNumber() {
-        return dataUnitReferenceNumber;
-    }
+  public byte getDataUnitReferenceNumber() {
+    return dataUnitReferenceNumber;
+  }
 
-    public boolean isLastDataUnit() {
-        return lastDataUnit;
-    }
+  public boolean isLastDataUnit() {
+    return lastDataUnit;
+  }
 
-    public ParameterError getError() {
-        return error;
-    }
-
+  public ParameterError getError() {
+    return error;
+  }
 }

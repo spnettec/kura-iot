@@ -19,29 +19,28 @@ under the License.
 package com.yofc.iot.apps.plc.api.exceptions;
 
 /**
- * Base exception for all protocol related exceptions.
- * This is usually if the messages themselves are malformed, contain incorrect information or
- * any other problems occur which are related to the protocol being implemented.
+ * Base exception for all protocol related exceptions. This is usually if the messages themselves
+ * are malformed, contain incorrect information or any other problems occur which are related to the
+ * protocol being implemented.
  */
 public class PlcProtocolException extends PlcException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PlcProtocolException(String message) {
-        super(message);
-    }
+  public PlcProtocolException(String message) {
+    super(message);
+  }
 
-    public PlcProtocolException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public PlcProtocolException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public PlcProtocolException(Throwable cause) {
-        super(cause);
-    }
+  public PlcProtocolException(Throwable cause) {
+    super(cause);
+  }
 
-    public PlcProtocolException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
+  public PlcProtocolException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

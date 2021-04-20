@@ -17,29 +17,29 @@ import io.netty.buffer.ByteBuf;
  */
 public class ListIdentiesProtocol extends ProtocolAdapter {
 
-    private Identity[] identities;
+  private Identity[] identities;
 
-    @Override
-    public void decode(final ByteBuf buf) {
-        // Decode reply to ListIdentity
-        final int count = buf.readShortLE();
+  @Override
+  public void decode(final ByteBuf buf) {
+    // Decode reply to ListIdentity
+    final int count = buf.readShortLE();
 
-        this.identities = new Identity[count];
-        for (int i = 0; i < count; ++i) {
-            final byte[] raw = new byte[22];
-            buf.readBytes(raw);
+    this.identities = new Identity[count];
+    for (int i = 0; i < count; ++i) {
+      final byte[] raw = new byte[22];
+      buf.readBytes(raw);
 
-            final GetIdentityProtocol getIdentityProtocol = new GetIdentityProtocol();
-            getIdentityProtocol.decode(buf);
+      final GetIdentityProtocol getIdentityProtocol = new GetIdentityProtocol();
+      getIdentityProtocol.decode(buf);
 
-            final Identity identity = getIdentityProtocol.getValue();
+      final Identity identity = getIdentityProtocol.getValue();
 
-            this.identities[i] = identity;
-        }
+      this.identities[i] = identity;
     }
+  }
 
-    /** @return {@link Service}s supported by device */
-    public final Identity[] getIdentities() {
-        return this.identities;
-    }
+  /** @return {@link Service}s supported by device */
+  public final Identity[] getIdentities() {
+    return this.identities;
+  }
 }

@@ -20,7 +20,6 @@ package com.yofc.iot.apps.plc.api.messages;
 
 public interface PlcUnsubscriptionResponse extends PlcResponse {
 
-    @Override
-    PlcUnsubscriptionRequest getRequest();
-
+  @Override
+  PlcUnsubscriptionRequest getRequest();
 }

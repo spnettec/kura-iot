@@ -16,19 +16,19 @@ import etherip.protocol.ListServicesProtocol.Service;
  */
 public class ListServices extends Encapsulation {
 
-    private final ListServicesProtocol list_services;
+  private final ListServicesProtocol list_services;
 
-    public ListServices() {
-        this(new ListServicesProtocol());
-    }
+  public ListServices() {
+    this(new ListServicesProtocol());
+  }
 
-    private ListServices(final ListServicesProtocol list_services) {
-        super(Command.LIST_SERVICES, 0, list_services);
-        this.list_services = list_services;
-    }
+  private ListServices(final ListServicesProtocol list_services) {
+    super(Command.LIST_SERVICES, 0, list_services);
+    this.list_services = list_services;
+  }
 
-    /** @return {@link Service}s supported by device */
-    public final Service[] getServices() {
-        return this.list_services.getServices();
-    }
+  /** @return {@link Service}s supported by device */
+  public final Service[] getServices() {
+    return this.list_services.getServices();
+  }
 }

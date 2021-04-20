@@ -22,6 +22,5 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterType;
 
 public interface S7Parameter {
 
-    ParameterType getType();
-
+  ParameterType getType();
 }

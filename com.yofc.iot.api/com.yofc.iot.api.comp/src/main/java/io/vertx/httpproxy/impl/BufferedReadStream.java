@@ -16,11 +16,11 @@ import io.vertx.core.streams.ReadStream;
 
 public class BufferedReadStream implements ReadStream<Buffer> {
 
+  private final Buffer content;
   private long demand = 0L;
   private Handler<Void> endHandler;
   private Handler<Buffer> handler;
   private boolean ended = false;
-  private final Buffer content;
 
   public BufferedReadStream() {
     this.content = Buffer.buffer();

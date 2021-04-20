@@ -12,23 +12,20 @@ package etherip;
  *
  * @author Kay Kasemir
  */
-public interface TagListener
-{
-    /**
-     * Tag was read
-     * <p>
-     * Current value of the tag should reflect value on the device.
-     *
-     * @param tag
-     *            Tag
-     */
-    public void tagUpdate(Tag tag);
+public interface TagListener {
+  /**
+   * Tag was read
+   *
+   * <p>Current value of the tag should reflect value on the device.
+   *
+   * @param tag Tag
+   */
+  void tagUpdate(Tag tag);
 
-    /**
-     * Tag could not be read or written.
-     *
-     * @param tag
-     *            Tag
-     */
-    public void tagError(Tag tag);
+  /**
+   * Tag could not be read or written.
+   *
+   * @param tag Tag
+   */
+  void tagError(Tag tag);
 }

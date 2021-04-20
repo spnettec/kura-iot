@@ -18,135 +18,138 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages.items;
 
+import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
-
 public class DefaultIntegerFieldItem extends BaseDefaultFieldItem<Integer> {
 
-    public DefaultIntegerFieldItem(Integer... values) {
-        super(values);
-    }
+  public DefaultIntegerFieldItem(Integer... values) {
+    super(values);
+  }
 
-    @Override
-    public Object getObject(int index) {
-        return getValue(index);
-    }
+  @Override
+  public Object getObject(int index) {
+    return getValue(index);
+  }
 
-    @Override
-    public boolean isValidBoolean(int index) {
-        return getValue(index) != null;
-    }
+  @Override
+  public boolean isValidBoolean(int index) {
+    return getValue(index) != null;
+  }
 
-    @Override
-    public Boolean getBoolean(int index) {
-        if (!isValidBoolean(index)) {
-            throw new PlcIncompatibleDatatypeException(Boolean.class, index);
-        }
-        return getValue(index) != 0L;
+  @Override
+  public Boolean getBoolean(int index) {
+    if (!isValidBoolean(index)) {
+      throw new PlcIncompatibleDatatypeException(Boolean.class, index);
     }
+    return getValue(index) != 0L;
+  }
 
-    @Override
-    public boolean isValidByte(int index) {
-        Integer value = getValue(index);
-        return (value != null) && (value <= Byte.MAX_VALUE) && (value >= Byte.MIN_VALUE);
+  @Override
+  public boolean isValidByte(int index) {
+    Integer value = getValue(index);
+    return (value != null) && (value <= Byte.MAX_VALUE) && (value >= Byte.MIN_VALUE);
+  }
+
+  @Override
+  public Byte getByte(int index) {
+    if (!isValidByte(index)) {
+      throw new PlcIncompatibleDatatypeException(Byte.class, index);
     }
+    return getValue(index).byteValue();
+  }
 
-    @Override
-    public Byte getByte(int index) {
-        if (!isValidByte(index)) {
-            throw new PlcIncompatibleDatatypeException(Byte.class, index);
-        }
-        return getValue(index).byteValue();
+  @Override
+  public boolean isValidShort(int index) {
+    Integer value = getValue(index);
+    return (value != null) && (value <= Short.MAX_VALUE) && (value >= Short.MIN_VALUE);
+  }
+
+  @Override
+  public Short getShort(int index) {
+    if (!isValidShort(index)) {
+      throw new PlcIncompatibleDatatypeException(Short.class, index);
     }
+    return getValue(index).shortValue();
+  }
 
-    @Override
-    public boolean isValidShort(int index) {
-        Integer value = getValue(index);
-        return (value != null) && (value <= Short.MAX_VALUE) && (value >= Short.MIN_VALUE);
+  @Override
+  public boolean isValidInteger(int index) {
+    return getValue(index) != null;
+  }
+
+  @Override
+  public Integer getInteger(int index) {
+    if (!isValidInteger(index)) {
+      throw new PlcIncompatibleDatatypeException(Integer.class, index);
     }
+    return getValue(index);
+  }
 
-    @Override
-    public Short getShort(int index) {
-        if (!isValidShort(index)) {
-            throw new PlcIncompatibleDatatypeException(Short.class, index);
-        }
-        return getValue(index).shortValue();
+  @Override
+  public boolean isValidLong(int index) {
+    return isValidInteger(index);
+  }
+
+  @Override
+  public Long getLong(int index) {
+    if (!isValidFloat(index)) {
+      throw new PlcIncompatibleDatatypeException(Long.class, index);
     }
+    return getValue(index).longValue();
+  }
 
-    @Override
-    public boolean isValidInteger(int index) {
-        return getValue(index) != null;
+  @Override
+  public boolean isValidBigInteger(int index) {
+    return isValidInteger(index);
+  }
+
+  @Override
+  public BigInteger getBigInteger(int index) {
+    if (!isValidBigInteger(index)) {
+      throw new PlcIncompatibleDatatypeException(BigInteger.class, index);
     }
+    return BigInteger.valueOf(getValue(index));
+  }
 
-    @Override
-    public Integer getInteger(int index) {
-        if (!isValidInteger(index)) {
-            throw new PlcIncompatibleDatatypeException(Integer.class, index);
-        }
-        return getValue(index);
+  @Override
+  public boolean isValidFloat(int index) {
+    return isValidInteger(index);
+  }
+
+  @Override
+  public Float getFloat(int index) {
+    if (!isValidFloat(index)) {
+      throw new PlcIncompatibleDatatypeException(Float.class, index);
     }
+    return getValue(index).floatValue();
+  }
 
-    @Override
-    public boolean isValidLong(int index) {
-        return isValidInteger(index);
+  @Override
+  public boolean isValidDouble(int index) {
+    return isValidInteger(index);
+  }
+
+  @Override
+  public Double getDouble(int index) {
+    if (!isValidDouble(index)) {
+      throw new PlcIncompatibleDatatypeException(Double.class, index);
     }
+    return getValue(index).doubleValue();
+  }
 
-    @Override
-    public Long getLong(int index) {
-        if (!isValidFloat(index)) {
-            throw new PlcIncompatibleDatatypeException(Long.class, index);
-        }
-        return getValue(index).longValue();
+  @Override
+  public boolean isValidBigDecimal(int index) {
+    return isValidInteger(index);
+  }
+
+  @Override
+  public BigDecimal getBigDecimal(int index) {
+    if (!isValidBigDecimal(index)) {
+      throw new PlcIncompatibleDatatypeException(BigDecimal.class, index);
     }
-
-    public boolean isValidBigInteger(int index) {
-        return isValidInteger(index);
-    }
-
-    public BigInteger getBigInteger(int index) {
-        if (!isValidBigInteger(index)) {
-            throw new PlcIncompatibleDatatypeException(BigInteger.class, index);
-        }
-        return BigInteger.valueOf(getValue(index));
-    }
-
-    @Override
-    public boolean isValidFloat(int index) {
-        return isValidInteger(index);
-    }
-
-    @Override
-    public Float getFloat(int index) {
-        if (!isValidFloat(index)) {
-            throw new PlcIncompatibleDatatypeException(Float.class, index);
-        }
-        return getValue(index).floatValue();
-    }
-
-    @Override
-    public boolean isValidDouble(int index) {
-        return isValidInteger(index);
-    }
-
-    @Override
-    public Double getDouble(int index) {
-        if (!isValidDouble(index)) {
-            throw new PlcIncompatibleDatatypeException(Double.class, index);
-        }
-        return getValue(index).doubleValue();
-    }
-
-    public boolean isValidBigDecimal(int index) {
-        return isValidInteger(index);
-    }
-
-    public BigDecimal getBigDecimal(int index) {
-        if (!isValidBigDecimal(index)) {
-            throw new PlcIncompatibleDatatypeException(BigDecimal.class, index);
-        }
-        return new BigDecimal(getValue(index));
-    }
-
+    return new BigDecimal(getValue(index));
+  }
 }

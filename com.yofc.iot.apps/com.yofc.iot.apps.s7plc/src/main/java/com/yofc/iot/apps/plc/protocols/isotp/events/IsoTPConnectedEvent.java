@@ -18,5 +18,4 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.events;
 
-public class IsoTPConnectedEvent {
-}
+public class IsoTPConnectedEvent {}

@@ -33,10 +33,11 @@ class BufferingReadStream implements ReadStream<Buffer> {
   @Override
   public ReadStream<Buffer> handler(Handler<Buffer> handler) {
     if (handler != null) {
-      stream.handler(buff -> {
-        content.appendBuffer(buff);
-        handler.handle(buff);
-      });
+      stream.handler(
+          buff -> {
+            content.appendBuffer(buff);
+            handler.handle(buff);
+          });
     } else {
       stream.handler(null);
     }
@@ -64,9 +65,10 @@ class BufferingReadStream implements ReadStream<Buffer> {
   @Override
   public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
     if (endHandler != null) {
-      stream.endHandler(v -> {
-        endHandler.handle(null);
-      });
+      stream.endHandler(
+          v -> {
+            endHandler.handle(null);
+          });
     } else {
       stream.endHandler(null);
     }

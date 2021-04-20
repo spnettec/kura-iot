@@ -18,23 +18,19 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.yofc.iot.apps.plc.api.messages.PlcWriteRequest;
 import com.yofc.iot.apps.plc.api.messages.PlcWriteResponse;
 
-/**
- * Interface implemented by all PlcConnections that are able to write to remote resources.
- */
+import java.util.concurrent.CompletableFuture;
+
+/** Interface implemented by all PlcConnections that are able to write to remote resources. */
 public interface PlcWriter {
 
-    /**
-     * Writes a given value to a PLC.
-     *
-     * @param writeRequest
-     *            object describing the type, location and value that whould be written.
-     * @return a {@link CompletableFuture} giving async access to the response of the write operation.
-     */
-    CompletableFuture<PlcWriteResponse> write(PlcWriteRequest writeRequest);
-
+  /**
+   * Writes a given value to a PLC.
+   *
+   * @param writeRequest object describing the type, location and value that whould be written.
+   * @return a {@link CompletableFuture} giving async access to the response of the write operation.
+   */
+  CompletableFuture<PlcWriteResponse> write(PlcWriteRequest writeRequest);
 }

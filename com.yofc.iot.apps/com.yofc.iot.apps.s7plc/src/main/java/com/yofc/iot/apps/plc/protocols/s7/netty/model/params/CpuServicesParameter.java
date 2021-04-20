@@ -24,32 +24,33 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterType;
 
 public abstract class CpuServicesParameter implements S7Parameter {
 
-    private CpuServicesParameterFunctionGroup functionGroup;
-    private CpuServicesParameterSubFunctionGroup subFunctionGroup;
-    private byte sequenceNumber;
+  private final CpuServicesParameterFunctionGroup functionGroup;
+  private final CpuServicesParameterSubFunctionGroup subFunctionGroup;
+  private final byte sequenceNumber;
 
-    public CpuServicesParameter(CpuServicesParameterFunctionGroup functionGroup,
-            CpuServicesParameterSubFunctionGroup subFunctionGroup, byte sequenceNumber) {
-        this.functionGroup = functionGroup;
-        this.subFunctionGroup = subFunctionGroup;
-        this.sequenceNumber = sequenceNumber;
-    }
+  public CpuServicesParameter(
+      CpuServicesParameterFunctionGroup functionGroup,
+      CpuServicesParameterSubFunctionGroup subFunctionGroup,
+      byte sequenceNumber) {
+    this.functionGroup = functionGroup;
+    this.subFunctionGroup = subFunctionGroup;
+    this.sequenceNumber = sequenceNumber;
+  }
 
-    @Override
-    public ParameterType getType() {
-        return ParameterType.CPU_SERVICES;
-    }
+  @Override
+  public ParameterType getType() {
+    return ParameterType.CPU_SERVICES;
+  }
 
-    public CpuServicesParameterFunctionGroup getFunctionGroup() {
-        return functionGroup;
-    }
+  public CpuServicesParameterFunctionGroup getFunctionGroup() {
+    return functionGroup;
+  }
 
-    public CpuServicesParameterSubFunctionGroup getSubFunctionGroup() {
-        return subFunctionGroup;
-    }
+  public CpuServicesParameterSubFunctionGroup getSubFunctionGroup() {
+    return subFunctionGroup;
+  }
 
-    public byte getSequenceNumber() {
-        return sequenceNumber;
-    }
-
+  public byte getSequenceNumber() {
+    return sequenceNumber;
+  }
 }

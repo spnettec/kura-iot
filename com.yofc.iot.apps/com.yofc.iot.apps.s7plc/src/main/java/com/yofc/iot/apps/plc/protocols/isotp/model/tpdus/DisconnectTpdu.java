@@ -18,31 +18,33 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
 
 public abstract class DisconnectTpdu extends Tpdu {
 
-    private final short destinationReference;
-    private final short sourceReference;
+  private final short destinationReference;
+  private final short sourceReference;
 
-    public DisconnectTpdu(TpduCode tpduCode, short destinationReference, short sourceReference,
-            List<Parameter> parameters, ByteBuf userData) {
-        super(tpduCode, parameters, userData);
-        this.destinationReference = destinationReference;
-        this.sourceReference = sourceReference;
-    }
+  public DisconnectTpdu(
+      TpduCode tpduCode,
+      short destinationReference,
+      short sourceReference,
+      List<Parameter> parameters,
+      ByteBuf userData) {
+    super(tpduCode, parameters, userData);
+    this.destinationReference = destinationReference;
+    this.sourceReference = sourceReference;
+  }
 
-    public short getDestinationReference() {
-        return destinationReference;
-    }
+  public short getDestinationReference() {
+    return destinationReference;
+  }
 
-    public short getSourceReference() {
-        return sourceReference;
-    }
-
+  public short getSourceReference() {
+    return sourceReference;
+  }
 }

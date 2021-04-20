@@ -5,47 +5,53 @@ import java.util.List;
 
 public final class TemplateInstance implements Serializable {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private final String name;
-    private final int symbolType;
-    private final TemplateAttributes attributes;
-    private final List<TemplateMember> members;
+  /** */
+  private static final long serialVersionUID = 1L;
 
-    public TemplateInstance(String name, int symbolType, TemplateAttributes attributes, List<TemplateMember> members) {
+  private final String name;
+  private final int symbolType;
+  private final TemplateAttributes attributes;
+  private final List<TemplateMember> members;
 
-        this.name = name;
-        this.symbolType = symbolType;
-        this.attributes = attributes;
-        this.members = members;
-    }
+  public TemplateInstance(
+      String name, int symbolType, TemplateAttributes attributes, List<TemplateMember> members) {
 
-    public String getName() {
-        return name;
-    }
+    this.name = name;
+    this.symbolType = symbolType;
+    this.attributes = attributes;
+    this.members = members;
+  }
 
-    public int getSymbolType() {
-        return symbolType;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public TemplateAttributes getAttributes() {
-        return attributes;
-    }
+  public int getSymbolType() {
+    return symbolType;
+  }
 
-    public List<TemplateMember> getMembers() {
-        return members;
-    }
+  public TemplateAttributes getAttributes() {
+    return attributes;
+  }
 
-    public int getInstanceId() {
-        return symbolType & 0x0FFF;
-    }
+  public List<TemplateMember> getMembers() {
+    return members;
+  }
 
-    @Override
-    public String toString() {
-        return "TemplateInstance{" + "name='" + name + '\'' + ", attributes=" + attributes + ", members=" + members
-                + '}';
-    }
+  public int getInstanceId() {
+    return symbolType & 0x0FFF;
+  }
 
+  @Override
+  public String toString() {
+    return "TemplateInstance{"
+        + "name='"
+        + name
+        + '\''
+        + ", attributes="
+        + attributes
+        + ", members="
+        + members
+        + '}';
+  }
 }

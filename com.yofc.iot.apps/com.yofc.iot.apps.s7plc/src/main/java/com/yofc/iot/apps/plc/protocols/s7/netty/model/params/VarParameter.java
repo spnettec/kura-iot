@@ -18,37 +18,35 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.model.params;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.params.items.VarParameterItem;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterType;
 
+import java.util.List;
+
 /**
- * "Command" Message to inform PLC of wanted operation.
- * Also contains {@link VarParameter#items} that hold detailed information on the "Command", e.g.,
- * addresses to read or to write to.
+ * "Command" Message to inform PLC of wanted operation. Also contains {@link VarParameter#items}
+ * that hold detailed information on the "Command", e.g., addresses to read or to write to.
  */
 public class VarParameter implements S7Parameter {
 
-    private final ParameterType type;
-    private final List<VarParameterItem> items;
+  private final ParameterType type;
+  private final List<VarParameterItem> items;
 
-    public VarParameter(ParameterType type, List<VarParameterItem> items) {
-        this.type = type;
-        this.items = items;
-    }
+  public VarParameter(ParameterType type, List<VarParameterItem> items) {
+    this.type = type;
+    this.items = items;
+  }
 
-    @Override
-    public ParameterType getType() {
-        return type;
-    }
+  @Override
+  public ParameterType getType() {
+    return type;
+  }
 
-    public List<VarParameterItem> getItems() {
-        return items;
-    }
+  public List<VarParameterItem> getItems() {
+    return items;
+  }
 
-    public void mergeParameter(VarParameter otherParameter) {
-        items.addAll(otherParameter.getItems());
-    }
-
+  public void mergeParameter(VarParameter otherParameter) {
+    items.addAll(otherParameter.getItems());
+  }
 }

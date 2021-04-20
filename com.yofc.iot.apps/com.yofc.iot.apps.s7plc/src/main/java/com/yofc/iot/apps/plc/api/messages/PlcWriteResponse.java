@@ -20,7 +20,6 @@ package com.yofc.iot.apps.plc.api.messages;
 
 public interface PlcWriteResponse extends PlcFieldResponse {
 
-    @Override
-    PlcWriteRequest getRequest();
-
+  @Override
+  PlcWriteRequest getRequest();
 }

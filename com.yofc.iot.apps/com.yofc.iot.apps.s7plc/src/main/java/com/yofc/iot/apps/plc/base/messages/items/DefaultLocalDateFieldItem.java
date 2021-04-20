@@ -18,32 +18,31 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages.items;
 
-import java.time.LocalDate;
-
 import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
+
+import java.time.LocalDate;
 
 public class DefaultLocalDateFieldItem extends BaseDefaultFieldItem<LocalDate> {
 
-    public DefaultLocalDateFieldItem(LocalDate... values) {
-        super(values);
-    }
+  public DefaultLocalDateFieldItem(LocalDate... values) {
+    super(values);
+  }
 
-    @Override
-    public Object getObject(int index) {
-        return getValue(index);
-    }
+  @Override
+  public Object getObject(int index) {
+    return getValue(index);
+  }
 
-    @Override
-    public boolean isValidDate(int index) {
-        return getValue(index) != null;
-    }
+  @Override
+  public boolean isValidDate(int index) {
+    return getValue(index) != null;
+  }
 
-    @Override
-    public LocalDate getDate(int index) {
-        if (!isValidDate(index)) {
-            throw new PlcIncompatibleDatatypeException(LocalDate.class, index);
-        }
-        return getValue(index);
+  @Override
+  public LocalDate getDate(int index) {
+    if (!isValidDate(index)) {
+      throw new PlcIncompatibleDatatypeException(LocalDate.class, index);
     }
-
+    return getValue(index);
+  }
 }

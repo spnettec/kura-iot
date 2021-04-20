@@ -18,33 +18,35 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.model.messages;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.params.S7Parameter;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads.S7Payload;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.MessageType;
 
-/**
- * Response from S7 PLC that additionally contains error information.
- */
+import java.util.List;
+
+/** Response from S7 PLC that additionally contains error information. */
 public class S7ResponseMessage extends S7Message {
 
-    private final byte errorClass;
-    private final byte errorCode;
+  private final byte errorClass;
+  private final byte errorCode;
 
-    public S7ResponseMessage(MessageType messageType, short tpduReference, List<S7Parameter> s7Parameters,
-            List<S7Payload> s7Payloads, byte errorClass, byte errorCode) {
-        super(messageType, tpduReference, s7Parameters, s7Payloads);
-        this.errorClass = errorClass;
-        this.errorCode = errorCode;
-    }
+  public S7ResponseMessage(
+      MessageType messageType,
+      short tpduReference,
+      List<S7Parameter> s7Parameters,
+      List<S7Payload> s7Payloads,
+      byte errorClass,
+      byte errorCode) {
+    super(messageType, tpduReference, s7Parameters, s7Payloads);
+    this.errorClass = errorClass;
+    this.errorCode = errorCode;
+  }
 
-    public byte getErrorClass() {
-        return errorClass;
-    }
+  public byte getErrorClass() {
+    return errorClass;
+  }
 
-    public byte getErrorCode() {
-        return errorCode;
-    }
-
+  public byte getErrorCode() {
+    return errorCode;
+  }
 }

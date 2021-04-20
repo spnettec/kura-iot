@@ -23,7 +23,7 @@ class HttpUtils {
     if (te != null) {
       boolean chunked = false;
       for (String val : te) {
-        if (val.equals("chunked")) {
+        if ("chunked".equals(val)) {
           chunked = true;
         } else {
           return null;

@@ -22,45 +22,50 @@ import java.util.Objects;
 
 public class PlcUsernamePasswordAuthentication implements PlcAuthentication {
 
-    private final String username;
-    private final String password;
+  private final String username;
+  private final String password;
 
-    public PlcUsernamePasswordAuthentication(String username, String password) {
-        Objects.requireNonNull(username, "User name must not be null");
-        Objects.requireNonNull(password, "Password must not be null");
-        this.username = username;
-        this.password = password;
+  public PlcUsernamePasswordAuthentication(String username, String password) {
+    Objects.requireNonNull(username, "User name must not be null");
+    Objects.requireNonNull(password, "Password must not be null");
+    this.username = username;
+    this.password = password;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  @Override
+  public final boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-
-    public String getUsername() {
-        return username;
+    if (!(o instanceof PlcUsernamePasswordAuthentication)) {
+      return false;
     }
+    PlcUsernamePasswordAuthentication that = (PlcUsernamePasswordAuthentication) o;
+    return Objects.equals(username, that.username) && Objects.equals(password, that.password);
+  }
 
-    public String getPassword() {
-        return password;
-    }
+  @Override
+  public final int hashCode() {
+    return Objects.hash(username, password);
+  }
 
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof PlcUsernamePasswordAuthentication)) {
-            return false;
-        }
-        PlcUsernamePasswordAuthentication that = (PlcUsernamePasswordAuthentication) o;
-        return Objects.equals(username, that.username) && Objects.equals(password, that.password);
-    }
-
-    @Override
-    public final int hashCode() {
-        return Objects.hash(username, password);
-    }
-
-    @Override
-    public String toString() {
-        return "PlcUsernamePasswordAuthentication{" + "username='" + username + '\'' + ", password='"
-                + "*****************" + '\'' + '}';
-    }
-
+  @Override
+  public String toString() {
+    return "PlcUsernamePasswordAuthentication{"
+        + "username='"
+        + username
+        + '\''
+        + ", password='"
+        + "*****************"
+        + '\''
+        + '}';
+  }
 }

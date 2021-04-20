@@ -18,24 +18,23 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.messages;
 
-import java.util.Collection;
-
 import com.yofc.iot.apps.plc.api.model.PlcField;
 import com.yofc.iot.apps.plc.api.types.PlcResponseCode;
 
+import java.util.Collection;
+
 /**
- * Base type for all response messages sent as response for a prior request
- * from a plc to the plc4x system.
+ * Base type for all response messages sent as response for a prior request from a plc to the plc4x
+ * system.
  */
 public interface PlcFieldResponse extends PlcResponse {
 
-    @Override
-    PlcFieldRequest getRequest();
+  @Override
+  PlcFieldRequest getRequest();
 
-    Collection<String> getFieldNames();
+  Collection<String> getFieldNames();
 
-    PlcField getField(String name);
+  PlcField getField(String name);
 
-    PlcResponseCode getResponseCode(String name);
-
+  PlcResponseCode getResponseCode(String name);
 }

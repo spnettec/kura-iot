@@ -23,9 +23,10 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.CpuServicesParameter
 
 public class CpuServicesRequestParameter extends CpuServicesParameter {
 
-    public CpuServicesRequestParameter(CpuServicesParameterFunctionGroup functionGroup,
-            CpuServicesParameterSubFunctionGroup subFunctionGroup, byte sequenceNumber) {
-        super(functionGroup, subFunctionGroup, sequenceNumber);
-    }
-
+  public CpuServicesRequestParameter(
+      CpuServicesParameterFunctionGroup functionGroup,
+      CpuServicesParameterSubFunctionGroup subFunctionGroup,
+      byte sequenceNumber) {
+    super(functionGroup, subFunctionGroup, sequenceNumber);
+  }
 }

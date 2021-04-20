@@ -22,19 +22,18 @@ import com.yofc.iot.apps.plc.protocols.isotp.model.types.ParameterCode;
 
 public class ChecksumParameter implements Parameter {
 
-    private final byte checksum;
+  private final byte checksum;
 
-    public ChecksumParameter(byte checksum) {
-        this.checksum = checksum;
-    }
+  public ChecksumParameter(byte checksum) {
+    this.checksum = checksum;
+  }
 
-    @Override
-    public ParameterCode getType() {
-        return ParameterCode.CHECKSUM;
-    }
+  @Override
+  public ParameterCode getType() {
+    return ParameterCode.CHECKSUM;
+  }
 
-    public byte getChecksum() {
-        return checksum;
-    }
-
+  public byte getChecksum() {
+    return checksum;
+  }
 }

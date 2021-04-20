@@ -9,9 +9,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
 
-/**
- * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
- */
+/** @author <a href="mailto:julien@julienviet.com">Julien Viet</a> */
 @ModuleGen(name = "vertx-http-proxy", groupPackage = "io.vertx")
 package io.vertx.httpproxy;
 

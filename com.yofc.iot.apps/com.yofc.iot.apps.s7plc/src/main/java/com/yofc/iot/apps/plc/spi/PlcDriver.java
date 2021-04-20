@@ -23,47 +23,40 @@ import com.yofc.iot.apps.plc.api.authentication.PlcAuthentication;
 import com.yofc.iot.apps.plc.api.exceptions.PlcConnectionException;
 
 /**
- * General interface defining the minimal methods required for adding a new type of driver to the PLC4J system.
+ * General interface defining the minimal methods required for adding a new type of driver to the
+ * PLC4J system.
  *
- * <b>Note that each driver has to add a service file called org.apache.plc4x.java.spi.PlcDriver to
- * src/main/resources/META-INF which contains the fully qualified classname in order to get loaded
- * by the PlcDriverManager instances.</b>
+ * <p><b>Note that each driver has to add a service file called org.apache.plc4x.java.spi.PlcDriver
+ * to src/main/resources/META-INF which contains the fully qualified classname in order to get
+ * loaded by the PlcDriverManager instances.</b>
  */
 public interface PlcDriver {
 
-    /**
-     * @return code of the implemented protocol. This is usually a lot shorter than the String returned
-     *         by @see #getProtocolName().
-     */
-    String getProtocolCode();
+  /**
+   * @return code of the implemented protocol. This is usually a lot shorter than the String
+   *     returned by @see #getProtocolName().
+   */
+  String getProtocolCode();
 
-    /**
-     * @return name of the implemented protocol.
-     */
-    String getProtocolName();
+  /** @return name of the implemented protocol. */
+  String getProtocolName();
 
-    /**
-     * Connects to a PLC using the given plc connection string.
-     * 
-     * @param url
-     *            plc connection string.
-     * @return PlcConnection object.
-     * @throws PlcConnectionException
-     *             an exception if the connection attempt failed.
-     */
-    PlcConnection connect(String url) throws PlcConnectionException;
+  /**
+   * Connects to a PLC using the given plc connection string.
+   *
+   * @param url plc connection string.
+   * @return PlcConnection object.
+   * @throws PlcConnectionException an exception if the connection attempt failed.
+   */
+  PlcConnection connect(String url) throws PlcConnectionException;
 
-    /**
-     * Connects to a PLC using the given plc connection string using given authentication credentials.
-     * 
-     * @param url
-     *            plc connection string.
-     * @param authentication
-     *            authentication credentials.
-     * @return PlcConnection object.
-     * @throws PlcConnectionException
-     *             an exception if the connection attempt failed.
-     */
-    PlcConnection connect(String url, PlcAuthentication authentication) throws PlcConnectionException;
-
+  /**
+   * Connects to a PLC using the given plc connection string using given authentication credentials.
+   *
+   * @param url plc connection string.
+   * @param authentication authentication credentials.
+   * @return PlcConnection object.
+   * @throws PlcConnectionException an exception if the connection attempt failed.
+   */
+  PlcConnection connect(String url, PlcAuthentication authentication) throws PlcConnectionException;
 }

@@ -22,30 +22,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum DeviceGroup {
-    PG_OR_PC((byte) 0x01),
-    OS((byte) 0x02),
-    OTHERS((byte) 0x03);
+  PG_OR_PC((byte) 0x01),
+  OS((byte) 0x02),
+  OTHERS((byte) 0x03);
 
-    private static final Map<Byte, DeviceGroup> map;
-    static {
-        map = new HashMap<>();
-        for (DeviceGroup deviceGroup : DeviceGroup.values()) {
-            map.put(deviceGroup.code, deviceGroup);
-        }
+  private static final Map<Byte, DeviceGroup> map;
+
+  static {
+    map = new HashMap<>();
+    for (DeviceGroup deviceGroup : DeviceGroup.values()) {
+      map.put(deviceGroup.code, deviceGroup);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    DeviceGroup(byte code) {
-        this.code = code;
-    }
+  DeviceGroup(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static DeviceGroup valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static DeviceGroup valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

@@ -4,42 +4,49 @@ import java.io.Serializable;
 
 public final class TemplateMember implements Serializable {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private final String name;
-    private final int infoWord;
-    private final int symbolType;
-    private final int offset;
+  /** */
+  private static final long serialVersionUID = 1L;
 
-    public TemplateMember(String name, int infoWord, int symbolType, int offset) {
-        this.name = name;
-        this.infoWord = infoWord;
-        this.symbolType = symbolType;
-        this.offset = offset;
-    }
+  private final String name;
+  private final int infoWord;
+  private final int symbolType;
+  private final int offset;
 
-    public String getName() {
-        return name;
-    }
+  public TemplateMember(String name, int infoWord, int symbolType, int offset) {
+    this.name = name;
+    this.infoWord = infoWord;
+    this.symbolType = symbolType;
+    this.offset = offset;
+  }
 
-    public int getInfoWord() {
-        return infoWord;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public int getSymbolType() {
-        return symbolType;
-    }
+  public int getInfoWord() {
+    return infoWord;
+  }
 
-    public int getOffset() {
-        return offset;
-    }
+  public int getSymbolType() {
+    return symbolType;
+  }
 
-    @Override
-    public String toString() {
-        return "TemplateMember{" + "name='" + name + '\'' + ", infoWord=" + infoWord + ", symbolType=" + symbolType
-                + ", offset=" + offset + '}';
-    }
+  public int getOffset() {
+    return offset;
+  }
 
+  @Override
+  public String toString() {
+    return "TemplateMember{"
+        + "name='"
+        + name
+        + '\''
+        + ", infoWord="
+        + infoWord
+        + ", symbolType="
+        + symbolType
+        + ", offset="
+        + offset
+        + '}';
+  }
 }

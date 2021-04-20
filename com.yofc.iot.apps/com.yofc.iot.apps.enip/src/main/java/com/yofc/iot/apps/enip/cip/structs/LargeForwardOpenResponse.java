@@ -1,91 +1,108 @@
 package com.yofc.iot.apps.enip.cip.structs;
 
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 public class LargeForwardOpenResponse {
 
-    private final int o2tConnectionId;
-    private final int t2oConnectionId;
-    private final int connectionSerialNumber;
-    private final int originatorVendorId;
-    private final long originatorSerialNumber;
-    private final Duration o2tApi;
-    private final Duration t2oApi;
-    private final int applicationReplySize;
-    private final ByteBuf applicationReply;
+  private final int o2tConnectionId;
+  private final int t2oConnectionId;
+  private final int connectionSerialNumber;
+  private final int originatorVendorId;
+  private final long originatorSerialNumber;
+  private final Duration o2tApi;
+  private final Duration t2oApi;
+  private final int applicationReplySize;
+  private final ByteBuf applicationReply;
 
-    public LargeForwardOpenResponse(int o2tConnectionId, int t2oConnectionId, int connectionSerialNumber,
-            int originatorVendorId, long originatorSerialNumber, Duration o2tApi, Duration t2oApi,
-            int applicationReplySize, ByteBuf applicationReply) {
+  public LargeForwardOpenResponse(
+      int o2tConnectionId,
+      int t2oConnectionId,
+      int connectionSerialNumber,
+      int originatorVendorId,
+      long originatorSerialNumber,
+      Duration o2tApi,
+      Duration t2oApi,
+      int applicationReplySize,
+      ByteBuf applicationReply) {
 
-        this.o2tConnectionId = o2tConnectionId;
-        this.t2oConnectionId = t2oConnectionId;
-        this.connectionSerialNumber = connectionSerialNumber;
-        this.originatorVendorId = originatorVendorId;
-        this.originatorSerialNumber = originatorSerialNumber;
-        this.o2tApi = o2tApi;
-        this.t2oApi = t2oApi;
-        this.applicationReplySize = applicationReplySize;
-        this.applicationReply = applicationReply;
-    }
+    this.o2tConnectionId = o2tConnectionId;
+    this.t2oConnectionId = t2oConnectionId;
+    this.connectionSerialNumber = connectionSerialNumber;
+    this.originatorVendorId = originatorVendorId;
+    this.originatorSerialNumber = originatorSerialNumber;
+    this.o2tApi = o2tApi;
+    this.t2oApi = t2oApi;
+    this.applicationReplySize = applicationReplySize;
+    this.applicationReply = applicationReply;
+  }
 
-    public int getO2tConnectionId() {
-        return o2tConnectionId;
-    }
+  public static LargeForwardOpenResponse decode(ByteBuf buffer) {
+    int o2tConnectionId = buffer.readIntLE();
+    int t2oConnectionId = buffer.readIntLE();
+    int connectionSerialNumber = buffer.readUnsignedShortLE();
+    int originatorVendorId = buffer.readUnsignedShortLE();
+    long originatorSerialNumber = buffer.readUnsignedIntLE();
+    long o2tActualPacketInterval =
+        TimeUnit.MICROSECONDS.convert(buffer.readUnsignedIntLE(), TimeUnit.MILLISECONDS);
+    long t2oActualPacketInterval =
+        TimeUnit.MICROSECONDS.convert(buffer.readUnsignedIntLE(), TimeUnit.MILLISECONDS);
+    int applicationReplySize = buffer.readUnsignedByte();
+    buffer.skipBytes(1); // reserved
 
-    public int getT2oConnectionId() {
-        return t2oConnectionId;
-    }
+    ByteBuf applicationReply =
+        applicationReplySize > 0
+            ? buffer.readSlice(applicationReplySize).copy()
+            : Unpooled.EMPTY_BUFFER;
 
-    public int getConnectionSerialNumber() {
-        return connectionSerialNumber;
-    }
+    return new LargeForwardOpenResponse(
+        o2tConnectionId,
+        t2oConnectionId,
+        connectionSerialNumber,
+        originatorVendorId,
+        originatorSerialNumber,
+        Duration.ofMillis(o2tActualPacketInterval),
+        Duration.ofMillis(t2oActualPacketInterval),
+        applicationReplySize,
+        applicationReply);
+  }
 
-    public int getOriginatorVendorId() {
-        return originatorVendorId;
-    }
+  public int getO2tConnectionId() {
+    return o2tConnectionId;
+  }
 
-    public long getOriginatorSerialNumber() {
-        return originatorSerialNumber;
-    }
+  public int getT2oConnectionId() {
+    return t2oConnectionId;
+  }
 
-    public Duration getO2tApi() {
-        return o2tApi;
-    }
+  public int getConnectionSerialNumber() {
+    return connectionSerialNumber;
+  }
 
-    public Duration getT2oApi() {
-        return t2oApi;
-    }
+  public int getOriginatorVendorId() {
+    return originatorVendorId;
+  }
 
-    public int getApplicationReplySize() {
-        return applicationReplySize;
-    }
+  public long getOriginatorSerialNumber() {
+    return originatorSerialNumber;
+  }
 
-    public ByteBuf getApplicationReply() {
-        return applicationReply;
-    }
+  public Duration getO2tApi() {
+    return o2tApi;
+  }
 
-    public static LargeForwardOpenResponse decode(ByteBuf buffer) {
-        int o2tConnectionId = buffer.readIntLE();
-        int t2oConnectionId = buffer.readIntLE();
-        int connectionSerialNumber = buffer.readUnsignedShortLE();
-        int originatorVendorId = buffer.readUnsignedShortLE();
-        long originatorSerialNumber = buffer.readUnsignedIntLE();
-        long o2tActualPacketInterval = TimeUnit.MICROSECONDS.convert(buffer.readUnsignedIntLE(), TimeUnit.MILLISECONDS);
-        long t2oActualPacketInterval = TimeUnit.MICROSECONDS.convert(buffer.readUnsignedIntLE(), TimeUnit.MILLISECONDS);
-        int applicationReplySize = buffer.readUnsignedByte();
-        buffer.skipBytes(1); // reserved
+  public Duration getT2oApi() {
+    return t2oApi;
+  }
 
-        ByteBuf applicationReply = applicationReplySize > 0 ? buffer.readSlice(applicationReplySize).copy()
-                : Unpooled.EMPTY_BUFFER;
+  public int getApplicationReplySize() {
+    return applicationReplySize;
+  }
 
-        return new LargeForwardOpenResponse(o2tConnectionId, t2oConnectionId, connectionSerialNumber,
-                originatorVendorId, originatorSerialNumber, Duration.ofMillis(o2tActualPacketInterval),
-                Duration.ofMillis(t2oActualPacketInterval), applicationReplySize, applicationReply);
-    }
-
+  public ByteBuf getApplicationReply() {
+    return applicationReply;
+  }
 }

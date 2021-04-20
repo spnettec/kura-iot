@@ -19,10 +19,10 @@ under the License.
 package com.yofc.iot.apps.plc.api.messages;
 
 /**
- * Base type for all response messages sent as response for a prior request
- * from a plc to the plc4x system.
+ * Base type for all response messages sent as response for a prior request from a plc to the plc4x
+ * system.
  */
 public interface PlcResponse extends PlcMessage {
 
-    PlcRequest getRequest();
+  PlcRequest getRequest();
 }

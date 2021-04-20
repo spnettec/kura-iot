@@ -18,28 +18,25 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.exceptions;
 
-/**
- * Most generic type of plc4x exception. All plc4x exceptions are derived from
- * PlcException.
- */
+/** Most generic type of plc4x exception. All plc4x exceptions are derived from PlcException. */
 public class PlcException extends Exception {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PlcException(String message) {
-        super(message);
-    }
+  public PlcException(String message) {
+    super(message);
+  }
 
-    public PlcException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public PlcException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public PlcException(Throwable cause) {
-        super(cause);
-    }
+  public PlcException(Throwable cause) {
+    super(cause);
+  }
 
-    public PlcException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
+  public PlcException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

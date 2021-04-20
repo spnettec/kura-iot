@@ -20,21 +20,17 @@ package com.yofc.iot.apps.plc.api.messages;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Request to read one or more values from a plc.
- */
+/** Request to read one or more values from a plc. */
 public interface PlcReadRequest extends PlcFieldRequest {
 
+  @Override
+  CompletableFuture<? extends PlcReadResponse> execute();
+
+  interface Builder extends PlcRequestBuilder {
+
     @Override
-    CompletableFuture<? extends PlcReadResponse> execute();
+    PlcReadRequest build();
 
-    interface Builder extends PlcRequestBuilder {
-
-        @Override
-        PlcReadRequest build();
-
-        Builder addItem(String name, String fieldQuery);
-
-    }
-
+    Builder addItem(String name, String fieldQuery);
+  }
 }

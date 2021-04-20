@@ -12,11 +12,8 @@ package etherip.protocol;
  *
  * @author Kay Kasemir
  */
-public class RegisterSession extends Encapsulation
-{
-    public RegisterSession()
-    {
-        super(Encapsulation.Command.REGISTER_SESSION, 0,
-                new RegisterSessionProtocol());
-    }
+public class RegisterSession extends Encapsulation {
+  public RegisterSession() {
+    super(Encapsulation.Command.REGISTER_SESSION, 0, new RegisterSessionProtocol());
+  }
 }

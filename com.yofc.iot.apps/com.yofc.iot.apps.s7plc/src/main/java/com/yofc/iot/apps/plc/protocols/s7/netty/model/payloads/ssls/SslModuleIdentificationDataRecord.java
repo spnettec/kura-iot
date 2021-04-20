@@ -20,47 +20,51 @@ package com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads.ssls;
 
 public class SslModuleIdentificationDataRecord implements SslDataRecord {
 
-    public static final short INDEX_MODULE = 0x0001;
-    public static final short INDEX_BASIC_HARDWARE = 0x0006;
-    public static final short INDEX_BASIC_FIRMWARE = 0x0007;
+  public static final short INDEX_MODULE = 0x0001;
+  public static final short INDEX_BASIC_HARDWARE = 0x0006;
+  public static final short INDEX_BASIC_FIRMWARE = 0x0007;
 
-    private short index;
-    private String articleNumber;
-    private short bgType;
-    private short moduleOrOsVersion;
-    private short pgDescriptionFileVersion;
+  private final short index;
+  private final String articleNumber;
+  private final short bgType;
+  private final short moduleOrOsVersion;
+  private final short pgDescriptionFileVersion;
 
-    public SslModuleIdentificationDataRecord(short index, String articleNumber, short bgType, short moduleOrOsVersion, short pgDescriptionFileVersion) {
-        this.index = index;
-        this.articleNumber = articleNumber;
-        this.bgType = bgType;
-        this.moduleOrOsVersion = moduleOrOsVersion;
-        this.pgDescriptionFileVersion = pgDescriptionFileVersion;
-    }
+  public SslModuleIdentificationDataRecord(
+      short index,
+      String articleNumber,
+      short bgType,
+      short moduleOrOsVersion,
+      short pgDescriptionFileVersion) {
+    this.index = index;
+    this.articleNumber = articleNumber;
+    this.bgType = bgType;
+    this.moduleOrOsVersion = moduleOrOsVersion;
+    this.pgDescriptionFileVersion = pgDescriptionFileVersion;
+  }
 
-    @Override
-    public short getLengthInWords() {
-        return 14;
-    }
+  @Override
+  public short getLengthInWords() {
+    return 14;
+  }
 
-    public short getIndex() {
-        return index;
-    }
+  public short getIndex() {
+    return index;
+  }
 
-    public String getArticleNumber() {
-        return articleNumber;
-    }
+  public String getArticleNumber() {
+    return articleNumber;
+  }
 
-    public short getBgType() {
-        return bgType;
-    }
+  public short getBgType() {
+    return bgType;
+  }
 
-    public short getModuleOrOsVersion() {
-        return moduleOrOsVersion;
-    }
+  public short getModuleOrOsVersion() {
+    return moduleOrOsVersion;
+  }
 
-    public short getPgDescriptionFileVersion() {
-        return pgDescriptionFileVersion;
-    }
-
+  public short getPgDescriptionFileVersion() {
+    return pgDescriptionFileVersion;
+  }
 }

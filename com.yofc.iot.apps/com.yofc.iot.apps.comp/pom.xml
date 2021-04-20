@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.yofc.iot</groupId>
@@ -57,64 +57,64 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-buffer</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-http</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-resolver</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-common</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-handler</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-handler-proxy</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler-proxy</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-codec-http2</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http2</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-resolver-dns</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-transport</artifactId>
-          <version>${netty.version}</version>
-          <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
@@ -130,9 +130,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-             <groupId>io.vertx</groupId>
-             <artifactId>vertx-web-client</artifactId>
-             <version>${vertx.version}</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-client</artifactId>
+            <version>${vertx.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -211,26 +211,27 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true
+                        </Bundle-SymbolicName>
                         <_exportcontents>
-                             com.yofc.iot.component.api.*;-noimport:=true
+                            com.yofc.iot.component.api.*;-noimport:=true
                         </_exportcontents>
-                        
+
                         <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <Import-Package>
-                             org.h2;version="[1.4.197,1.5.200)",
-                             org.h2.api;version="[1.4.197,1.5.200)",
-                             org.h2.jdbcx;version="[1.4.197,1.5.200)",
-                             org.h2.tools;version="[1.4.197,1.5.200)",
-                             groovy.lang;version="[2.5,4)",
-                             *
+                            org.h2;version="[1.4.197,1.5.200)",
+                            org.h2.api;version="[1.4.197,1.5.200)",
+                            org.h2.jdbcx;version="[1.4.197,1.5.200)",
+                            org.h2.tools;version="[1.4.197,1.5.200)",
+                            groovy.lang;version="[2.5,4)",
+                            *
                         </Import-Package>
                         <Include-Resource>
                             OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
                             {maven-resources}
                         </Include-Resource>
-                        
+
                     </instructions>
                 </configuration>
             </plugin>

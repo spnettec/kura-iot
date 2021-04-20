@@ -21,32 +21,30 @@ package com.yofc.iot.apps.plc.protocols.s7.netty.model.types;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * (Values determined by evaluating generated ".pcap" files)
- */
+/** (Values determined by evaluating generated ".pcap" files) */
 public enum SpecificationType {
-    VARIABLE_SPECIFICATION((byte) 0x12);
+  VARIABLE_SPECIFICATION((byte) 0x12);
 
-    private static final Map<Byte, SpecificationType> map;
-    static {
-        map = new HashMap<>();
-        for (SpecificationType specificationType : SpecificationType.values()) {
-            map.put(specificationType.code, specificationType);
-        }
+  private static final Map<Byte, SpecificationType> map;
+
+  static {
+    map = new HashMap<>();
+    for (SpecificationType specificationType : SpecificationType.values()) {
+      map.put(specificationType.code, specificationType);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    SpecificationType(byte code) {
-        this.code = code;
-    }
+  SpecificationType(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static SpecificationType valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static SpecificationType valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

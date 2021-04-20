@@ -18,19 +18,16 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.params;
 
-/**
- * Base class for calling and called TSAPs
- */
+/** Base class for calling and called TSAPs */
 public abstract class TsapParameter implements Parameter {
 
-    private final short tsapId;
+  private final short tsapId;
 
-    public TsapParameter(short tsapId) {
-        this.tsapId = tsapId;
-    }
+  public TsapParameter(short tsapId) {
+    this.tsapId = tsapId;
+  }
 
-    public short getTsapId() {
-        return tsapId;
-    }
-
+  public short getTsapId() {
+    return tsapId;
+  }
 }

@@ -18,262 +18,270 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-
 import com.yofc.iot.apps.plc.api.exceptions.PlcRuntimeException;
 import com.yofc.iot.apps.plc.api.messages.PlcWriteRequest;
 import com.yofc.iot.apps.plc.api.messages.PlcWriteResponse;
 import com.yofc.iot.apps.plc.api.model.PlcField;
 import com.yofc.iot.apps.plc.base.connection.PlcFieldHandler;
 import com.yofc.iot.apps.plc.base.messages.items.BaseDefaultFieldItem;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 public class DefaultPlcWriteRequest implements InternalPlcWriteRequest, InternalPlcFieldRequest {
 
+  private final PlcWriter writer;
+  private final LinkedHashMap<String, Pair<PlcField, BaseDefaultFieldItem>> fields;
+
+  protected DefaultPlcWriteRequest(
+      PlcWriter writer, LinkedHashMap<String, Pair<PlcField, BaseDefaultFieldItem>> fields) {
+    this.writer = writer;
+    this.fields = fields;
+  }
+
+  @Override
+  public CompletableFuture<PlcWriteResponse> execute() {
+    return writer.write(this);
+  }
+
+  @Override
+  public int getNumberOfFields() {
+    return fields.size();
+  }
+
+  @Override
+  public LinkedHashSet<String> getFieldNames() {
+    // TODO: Check if this already is a LinkedHashSet.
+    return new LinkedHashSet<>(fields.keySet());
+  }
+
+  @Override
+  public PlcField getField(String name) {
+    return fields.get(name).getKey();
+  }
+
+  @Override
+  public List<PlcField> getFields() {
+    return fields.values().stream()
+        .map(Pair::getKey)
+        .collect(Collectors.toCollection(LinkedList::new));
+  }
+
+  @Override
+  public BaseDefaultFieldItem getFieldItem(String name) {
+    return fields.get(name).getValue();
+  }
+
+  @Override
+  public List<BaseDefaultFieldItem> getFieldItems() {
+    return fields.values().stream()
+        .map(Pair::getValue)
+        .collect(Collectors.toCollection(LinkedList::new));
+  }
+
+  @Override
+  public List<Pair<String, PlcField>> getNamedFields() {
+    return fields.entrySet().stream()
+        .map(
+            stringPairEntry ->
+                Pair.of(stringPairEntry.getKey(), stringPairEntry.getValue().getKey()))
+        .collect(Collectors.toCollection(LinkedList::new));
+  }
+
+  @Override
+  public List<Triple<String, PlcField, BaseDefaultFieldItem>> getNamedFieldTriples() {
+    return fields.entrySet().stream()
+        .map(
+            stringPairEntry ->
+                Triple.of(
+                    stringPairEntry.getKey(),
+                    stringPairEntry.getValue().getKey(),
+                    stringPairEntry.getValue().getValue()))
+        .collect(Collectors.toCollection(LinkedList::new));
+  }
+
+  @Override
+  public int getNumberOfValues(String name) {
+    return fields.get(name).getValue().getNumberOfValues();
+  }
+
+  public static class Builder implements PlcWriteRequest.Builder {
+
     private final PlcWriter writer;
-    private final LinkedHashMap<String, Pair<PlcField, BaseDefaultFieldItem>> fields;
+    private final PlcFieldHandler fieldHandler;
+    private final Map<String, BuilderItem<Object>> fields;
+    private final Map<Class<?>, BiFunction<PlcField, Object[], BaseDefaultFieldItem>> handlerMap;
 
-    protected DefaultPlcWriteRequest(PlcWriter writer,
-            LinkedHashMap<String, Pair<PlcField, BaseDefaultFieldItem>> fields) {
-        this.writer = writer;
-        this.fields = fields;
+    public Builder(PlcWriter writer, PlcFieldHandler fieldHandler) {
+      this.writer = writer;
+      this.fieldHandler = fieldHandler;
+      fields = new TreeMap<>();
+      handlerMap = new HashMap<>();
+      handlerMap.put(Boolean.class, fieldHandler::encodeBoolean);
+      handlerMap.put(Byte.class, fieldHandler::encodeByte);
+      handlerMap.put(Short.class, fieldHandler::encodeShort);
+      handlerMap.put(Integer.class, fieldHandler::encodeInteger);
+      handlerMap.put(BigInteger.class, fieldHandler::encodeBigInteger);
+      handlerMap.put(Long.class, fieldHandler::encodeLong);
+      handlerMap.put(Float.class, fieldHandler::encodeFloat);
+      handlerMap.put(Double.class, fieldHandler::encodeDouble);
+      handlerMap.put(BigDecimal.class, fieldHandler::encodeBigDecimal);
+      handlerMap.put(String.class, fieldHandler::encodeString);
+      handlerMap.put(LocalTime.class, fieldHandler::encodeTime);
+      handlerMap.put(LocalDate.class, fieldHandler::encodeDate);
+      handlerMap.put(LocalDateTime.class, fieldHandler::encodeDateTime);
+      handlerMap.put(byte[].class, fieldHandler::encodeByteArray);
+      handlerMap.put(Byte[].class, fieldHandler::encodeByteArray);
     }
 
     @Override
-    public CompletableFuture<PlcWriteResponse> execute() {
-        return writer.write(this);
+    public Builder addItem(String name, String fieldQuery, Boolean... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeBoolean);
     }
 
     @Override
-    public int getNumberOfFields() {
-        return fields.size();
+    public Builder addItem(String name, String fieldQuery, Byte... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeByte);
     }
 
     @Override
-    public LinkedHashSet<String> getFieldNames() {
-        // TODO: Check if this already is a LinkedHashSet.
-        return new LinkedHashSet<>(fields.keySet());
+    public Builder addItem(String name, String fieldQuery, Short... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeShort);
     }
 
     @Override
-    public PlcField getField(String name) {
-        return fields.get(name).getKey();
+    public Builder addItem(String name, String fieldQuery, Integer... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeInteger);
     }
 
     @Override
-    public List<PlcField> getFields() {
-        return fields.values().stream().map(Pair::getKey).collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    public BaseDefaultFieldItem getFieldItem(String name) {
-        return fields.get(name).getValue();
+    public PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigInteger... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeBigInteger);
     }
 
     @Override
-    public List<BaseDefaultFieldItem> getFieldItems() {
-        return fields.values().stream().map(Pair::getValue).collect(Collectors.toCollection(LinkedList::new));
+    public Builder addItem(String name, String fieldQuery, Long... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeLong);
     }
 
     @Override
-    public List<Pair<String, PlcField>> getNamedFields() {
-        return fields.entrySet().stream()
-                .map(stringPairEntry -> Pair.of(stringPairEntry.getKey(), stringPairEntry.getValue().getKey()))
-                .collect(Collectors.toCollection(LinkedList::new));
+    public Builder addItem(String name, String fieldQuery, Float... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeFloat);
     }
 
     @Override
-    public List<Triple<String, PlcField, BaseDefaultFieldItem>> getNamedFieldTriples() {
-        return fields
-                .entrySet().stream().map(stringPairEntry -> Triple.of(stringPairEntry.getKey(),
-                        stringPairEntry.getValue().getKey(), stringPairEntry.getValue().getValue()))
-                .collect(Collectors.toCollection(LinkedList::new));
+    public Builder addItem(String name, String fieldQuery, Double... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeDouble);
     }
 
     @Override
-    public int getNumberOfValues(String name) {
-        return fields.get(name).getValue().getNumberOfValues();
+    public Builder addItem(String name, String fieldQuery, BigDecimal... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeBigDecimal);
     }
 
-    public static class Builder implements PlcWriteRequest.Builder {
-
-        private final PlcWriter writer;
-        private final PlcFieldHandler fieldHandler;
-        private final Map<String, BuilderItem<Object>> fields;
-        private final Map<Class<?>, BiFunction<PlcField, Object[], BaseDefaultFieldItem>> handlerMap;
-
-        public Builder(PlcWriter writer, PlcFieldHandler fieldHandler) {
-            this.writer = writer;
-            this.fieldHandler = fieldHandler;
-            fields = new TreeMap<>();
-            handlerMap = new HashMap<>();
-            handlerMap.put(Boolean.class, fieldHandler::encodeBoolean);
-            handlerMap.put(Byte.class, fieldHandler::encodeByte);
-            handlerMap.put(Short.class, fieldHandler::encodeShort);
-            handlerMap.put(Integer.class, fieldHandler::encodeInteger);
-            handlerMap.put(BigInteger.class, fieldHandler::encodeBigInteger);
-            handlerMap.put(Long.class, fieldHandler::encodeLong);
-            handlerMap.put(Float.class, fieldHandler::encodeFloat);
-            handlerMap.put(Double.class, fieldHandler::encodeDouble);
-            handlerMap.put(BigDecimal.class, fieldHandler::encodeBigDecimal);
-            handlerMap.put(String.class, fieldHandler::encodeString);
-            handlerMap.put(LocalTime.class, fieldHandler::encodeTime);
-            handlerMap.put(LocalDate.class, fieldHandler::encodeDate);
-            handlerMap.put(LocalDateTime.class, fieldHandler::encodeDateTime);
-            handlerMap.put(byte[].class, fieldHandler::encodeByteArray);
-            handlerMap.put(Byte[].class, fieldHandler::encodeByteArray);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Boolean... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeBoolean);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Byte... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeByte);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Short... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeShort);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Integer... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeInteger);
-        }
-
-        @Override
-        public PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigInteger... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeBigInteger);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Long... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeLong);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Float... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeFloat);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Double... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeDouble);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, BigDecimal... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeBigDecimal);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, String... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeString);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, LocalTime... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeTime);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, LocalDate... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeDate);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, LocalDateTime... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, byte[]... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeByteArray);
-        }
-
-        @Override
-        public Builder addItem(String name, String fieldQuery, Byte[]... values) {
-            return addItem(name, fieldQuery, values, fieldHandler::encodeByteArray);
-        }
-
-        @Override
-        public <T> Builder addItem(String name, String fieldQuery, @SuppressWarnings("unchecked") T... values) {
-            Objects.requireNonNull(values);
-            Class<?> checkedClazz = null;
-            for (T value : values) {
-                if (checkedClazz == null) {
-                    checkedClazz = value.getClass();
-                }
-                if (value.getClass() != checkedClazz) {
-                    throw new IllegalArgumentException(
-                            "Invalid class found " + value.getClass() + ". should all be " + checkedClazz);
-                }
-            }
-            BiFunction<PlcField, Object[], BaseDefaultFieldItem> plcFieldFieldItemBiFunction = handlerMap
-                    .get(checkedClazz);
-            if (plcFieldFieldItemBiFunction == null) {
-                throw new IllegalArgumentException("no field handler for " + checkedClazz + " found");
-            }
-            return addItem(name, fieldQuery, values, plcFieldFieldItemBiFunction);
-        }
-
-        @Override
-        public PlcWriteRequest build() {
-            LinkedHashMap<String, Pair<PlcField, BaseDefaultFieldItem>> parsedFields = new LinkedHashMap<>();
-            fields.forEach((name, builderItem) -> {
-                // Compile the query string.
-                PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);
-                // Encode the payload.
-                // TODO: Depending on the field type, handle the FieldItem creation differently.
-                BaseDefaultFieldItem fieldItem = builderItem.encoder.apply(parsedField, builderItem.values);
-                parsedFields.put(name, new ImmutablePair<>(parsedField, fieldItem));
-            });
-            return new DefaultPlcWriteRequest(writer, parsedFields);
-        }
-
-        private Builder addItem(String name, String fieldQuery, Object[] values,
-                BiFunction<PlcField, Object[], BaseDefaultFieldItem> encoder) {
-            if (fields.containsKey(name)) {
-                throw new PlcRuntimeException("Duplicate field definition '" + name + "'");
-            }
-            fields.put(name, new BuilderItem<>(fieldQuery, values, encoder));
-            return this;
-        }
-
-        private static class BuilderItem<T> {
-
-            private final String fieldQuery;
-            private final T[] values;
-            private final BiFunction<PlcField, T[], BaseDefaultFieldItem> encoder;
-
-            private BuilderItem(String fieldQuery, T[] values,
-                    BiFunction<PlcField, T[], BaseDefaultFieldItem> encoder) {
-                this.fieldQuery = fieldQuery;
-                this.values = values;
-                this.encoder = encoder;
-            }
-        }
-
+    @Override
+    public Builder addItem(String name, String fieldQuery, String... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeString);
     }
 
+    @Override
+    public Builder addItem(String name, String fieldQuery, LocalTime... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeTime);
+    }
+
+    @Override
+    public Builder addItem(String name, String fieldQuery, LocalDate... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeDate);
+    }
+
+    @Override
+    public Builder addItem(String name, String fieldQuery, LocalDateTime... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeDateTime);
+    }
+
+    @Override
+    public Builder addItem(String name, String fieldQuery, byte[]... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeByteArray);
+    }
+
+    @Override
+    public Builder addItem(String name, String fieldQuery, Byte[]... values) {
+      return addItem(name, fieldQuery, values, fieldHandler::encodeByteArray);
+    }
+
+    @Override
+    public <T> Builder addItem(
+        String name, String fieldQuery, @SuppressWarnings("unchecked") T... values) {
+      Objects.requireNonNull(values);
+      Class<?> checkedClazz = null;
+      for (T value : values) {
+        if (checkedClazz == null) {
+          checkedClazz = value.getClass();
+        }
+        if (value.getClass() != checkedClazz) {
+          throw new IllegalArgumentException(
+              "Invalid class found " + value.getClass() + ". should all be " + checkedClazz);
+        }
+      }
+      BiFunction<PlcField, Object[], BaseDefaultFieldItem> plcFieldFieldItemBiFunction =
+          handlerMap.get(checkedClazz);
+      if (plcFieldFieldItemBiFunction == null) {
+        throw new IllegalArgumentException("no field handler for " + checkedClazz + " found");
+      }
+      return addItem(name, fieldQuery, values, plcFieldFieldItemBiFunction);
+    }
+
+    @Override
+    public PlcWriteRequest build() {
+      LinkedHashMap<String, Pair<PlcField, BaseDefaultFieldItem>> parsedFields =
+          new LinkedHashMap<>();
+      fields.forEach(
+          (name, builderItem) -> {
+            // Compile the query string.
+            PlcField parsedField = fieldHandler.createField(builderItem.fieldQuery);
+            // Encode the payload.
+            // TODO: Depending on the field type, handle the FieldItem creation differently.
+            BaseDefaultFieldItem fieldItem =
+                builderItem.encoder.apply(parsedField, builderItem.values);
+            parsedFields.put(name, new ImmutablePair<>(parsedField, fieldItem));
+          });
+      return new DefaultPlcWriteRequest(writer, parsedFields);
+    }
+
+    private Builder addItem(
+        String name,
+        String fieldQuery,
+        Object[] values,
+        BiFunction<PlcField, Object[], BaseDefaultFieldItem> encoder) {
+      if (fields.containsKey(name)) {
+        throw new PlcRuntimeException("Duplicate field definition '" + name + "'");
+      }
+      fields.put(name, new BuilderItem<>(fieldQuery, values, encoder));
+      return this;
+    }
+
+    private static class BuilderItem<T> {
+
+      private final String fieldQuery;
+      private final T[] values;
+      private final BiFunction<PlcField, T[], BaseDefaultFieldItem> encoder;
+
+      private BuilderItem(
+          String fieldQuery, T[] values, BiFunction<PlcField, T[], BaseDefaultFieldItem> encoder) {
+        this.fieldQuery = fieldQuery;
+        this.values = values;
+        this.encoder = encoder;
+      }
+    }
+  }
 }

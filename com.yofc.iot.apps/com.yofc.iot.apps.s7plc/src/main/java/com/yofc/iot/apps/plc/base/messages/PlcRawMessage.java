@@ -22,25 +22,24 @@ import io.netty.buffer.ByteBuf;
 
 public class PlcRawMessage implements PlcProtocolMessage {
 
-    private final ByteBuf userData;
-    private final PlcProtocolMessage parent;
+  private final ByteBuf userData;
+  private final PlcProtocolMessage parent;
 
-    public PlcRawMessage(ByteBuf userData) {
-        this(userData, null);
-    }
+  public PlcRawMessage(ByteBuf userData) {
+    this(userData, null);
+  }
 
-    public PlcRawMessage(ByteBuf userData, PlcProtocolMessage parent) {
-        this.userData = userData;
-        this.parent = parent;
-    }
+  public PlcRawMessage(ByteBuf userData, PlcProtocolMessage parent) {
+    this.userData = userData;
+    this.parent = parent;
+  }
 
-    public ByteBuf getUserData() {
-        return userData;
-    }
+  public ByteBuf getUserData() {
+    return userData;
+  }
 
-    @Override
-    public PlcProtocolMessage getParent() {
-        return parent;
-    }
-
+  @Override
+  public PlcProtocolMessage getParent() {
+    return parent;
+  }
 }

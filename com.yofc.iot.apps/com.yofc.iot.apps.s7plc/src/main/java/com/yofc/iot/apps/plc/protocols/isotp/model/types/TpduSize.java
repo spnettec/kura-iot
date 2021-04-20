@@ -22,57 +22,57 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum TpduSize {
-    SIZE_128((byte) 0x07, 128),
-    SIZE_256((byte) 0x08, 256),
-    SIZE_512((byte) 0x09, 512),
-    SIZE_1024((byte) 0x0a, 1024),
-    SIZE_2048((byte) 0x0b, 2048),
-    SIZE_4096((byte) 0x0c, 4096),
-    SIZE_8192((byte) 0x0d, 8192);
+  SIZE_128((byte) 0x07, 128),
+  SIZE_256((byte) 0x08, 256),
+  SIZE_512((byte) 0x09, 512),
+  SIZE_1024((byte) 0x0a, 1024),
+  SIZE_2048((byte) 0x0b, 2048),
+  SIZE_4096((byte) 0x0c, 4096),
+  SIZE_8192((byte) 0x0d, 8192);
 
-    private static final Map<Byte, TpduSize> map;
-    static {
-        map = new HashMap<>();
-        for (TpduSize tpduSize : TpduSize.values()) {
-            map.put(tpduSize.code, tpduSize);
-        }
+  private static final Map<Byte, TpduSize> map;
+
+  static {
+    map = new HashMap<>();
+    for (TpduSize tpduSize : TpduSize.values()) {
+      map.put(tpduSize.code, tpduSize);
     }
+  }
 
-    private final byte code;
-    private final int value;
+  private final byte code;
+  private final int value;
 
-    TpduSize(byte code, int value) {
-        this.code = code;
-        this.value = value;
+  TpduSize(byte code, int value) {
+    this.code = code;
+    this.value = value;
+  }
+
+  public static TpduSize valueForGivenSize(int pduSize) {
+    if (pduSize <= 0) {
+      throw new IllegalArgumentException("PduSize has to be greater than 0");
     }
-
-    public byte getCode() {
-        return code;
+    for (TpduSize tpduSize : values()) {
+      if (tpduSize.getValue() >= pduSize) {
+        return tpduSize;
+      }
     }
+    // If the requested pdu size is greater than 8MB,
+    // Simply use that as the given size is simple a
+    // requested size, if the remote responds with a
+    // lower value the application has to live with
+    // this anyway.
+    return SIZE_8192;
+  }
 
-    public int getValue() {
-        return value;
-    }
+  public static TpduSize valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static TpduSize valueForGivenSize(int pduSize) {
-        if (pduSize <= 0) {
-            throw new IllegalArgumentException("PduSize has to be greater than 0");
-        }
-        for (TpduSize tpduSize : values()) {
-            if (tpduSize.getValue() >= pduSize) {
-                return tpduSize;
-            }
-        }
-        // If the requested pdu size is greater than 8MB,
-        // Simply use that as the given size is simple a
-        // requested size, if the remote responds with a
-        // lower value the application has to live with
-        // this anyway.
-        return SIZE_8192;
-    }
+  public byte getCode() {
+    return code;
+  }
 
-    public static TpduSize valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public int getValue() {
+    return value;
+  }
 }

@@ -18,23 +18,22 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.messages;
 
+import com.yofc.iot.apps.plc.api.model.PlcField;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.yofc.iot.apps.plc.api.model.PlcField;
-
 public interface PlcFieldRequest extends PlcRequest {
 
-    @Override
-    CompletableFuture<? extends PlcFieldResponse> execute();
+  @Override
+  CompletableFuture<? extends PlcFieldResponse> execute();
 
-    int getNumberOfFields();
+  int getNumberOfFields();
 
-    LinkedHashSet<String> getFieldNames();
+  LinkedHashSet<String> getFieldNames();
 
-    PlcField getField(String name);
+  PlcField getField(String name);
 
-    List<PlcField> getFields();
-
+  List<PlcField> getFields();
 }

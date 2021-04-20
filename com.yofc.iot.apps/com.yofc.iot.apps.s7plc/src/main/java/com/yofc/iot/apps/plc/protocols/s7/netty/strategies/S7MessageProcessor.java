@@ -18,21 +18,22 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.strategies;
 
-import java.util.Collection;
-
 import com.yofc.iot.apps.plc.api.exceptions.PlcException;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.messages.S7RequestMessage;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.messages.S7ResponseMessage;
 
+import java.util.Collection;
+
 /**
- * Some times the messages being sent have to be manipulated before
- * being able to send them. For example eventually a request has to
- * be split up into multiple ones to respect the maximum PDU size.
+ * Some times the messages being sent have to be manipulated before being able to send them. For
+ * example eventually a request has to be split up into multiple ones to respect the maximum PDU
+ * size.
  */
 public interface S7MessageProcessor {
 
-    Collection<S7RequestMessage> processRequest(S7RequestMessage request, int pduSize) throws PlcException;
+  Collection<S7RequestMessage> processRequest(S7RequestMessage request, int pduSize)
+      throws PlcException;
 
-    S7ResponseMessage processResponse(S7RequestMessage request, S7ResponseMessage response) throws PlcException;
-
+  S7ResponseMessage processResponse(S7RequestMessage request, S7ResponseMessage response)
+      throws PlcException;
 }

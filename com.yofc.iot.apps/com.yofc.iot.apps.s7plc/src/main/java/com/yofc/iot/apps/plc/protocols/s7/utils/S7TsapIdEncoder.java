@@ -22,27 +22,26 @@ import com.yofc.iot.apps.plc.protocols.isotp.model.types.DeviceGroup;
 
 public class S7TsapIdEncoder {
 
-    private S7TsapIdEncoder() {
-        // Prevent this from being instantiated.
-    }
+  private S7TsapIdEncoder() {
+    // Prevent this from being instantiated.
+  }
 
-    public static short encodeS7TsapId(DeviceGroup deviceGroup, int rack, int slot) {
-        short firstByte = (short) (deviceGroup.getCode() << 8);
-        short secondByte = (short) ((rack << 4) | (slot & 0x0F));
-        return (short) (firstByte | secondByte);
-    }
+  public static short encodeS7TsapId(DeviceGroup deviceGroup, int rack, int slot) {
+    short firstByte = (short) (deviceGroup.getCode() << 8);
+    short secondByte = (short) ((rack << 4) | (slot & 0x0F));
+    return (short) (firstByte | secondByte);
+  }
 
-    public static DeviceGroup decodeDeviceGroup(short tsapId) {
-        byte deviceGroupCode = (byte) ((tsapId >> 8) & (0xFF));
-        return DeviceGroup.valueOf(deviceGroupCode);
-    }
+  public static DeviceGroup decodeDeviceGroup(short tsapId) {
+    byte deviceGroupCode = (byte) ((tsapId >> 8) & (0xFF));
+    return DeviceGroup.valueOf(deviceGroupCode);
+  }
 
-    public static int decodeRack(short tsapId) {
-        return (tsapId >> 4) & 0xF;
-    }
+  public static int decodeRack(short tsapId) {
+    return (tsapId >> 4) & 0xF;
+  }
 
-    public static int decodeSlot(short tsapId) {
-        return tsapId & 0xF;
-    }
-
+  public static int decodeSlot(short tsapId) {
+    return tsapId & 0xF;
+  }
 }

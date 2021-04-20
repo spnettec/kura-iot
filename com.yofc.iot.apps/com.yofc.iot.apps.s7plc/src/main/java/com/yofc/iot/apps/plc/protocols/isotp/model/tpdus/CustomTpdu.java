@@ -18,17 +18,15 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
 
 public class CustomTpdu extends Tpdu {
 
-    public CustomTpdu(Byte tpduCode, List<Parameter> parameters, ByteBuf userData) {
-        super(TpduCode.valueOf(tpduCode), parameters, userData);
-    }
-
+  public CustomTpdu(Byte tpduCode, List<Parameter> parameters, ByteBuf userData) {
+    super(TpduCode.valueOf(tpduCode), parameters, userData);
+  }
 }

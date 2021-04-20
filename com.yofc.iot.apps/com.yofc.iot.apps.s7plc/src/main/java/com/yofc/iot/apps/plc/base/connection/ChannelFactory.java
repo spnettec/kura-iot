@@ -20,14 +20,12 @@ package com.yofc.iot.apps.plc.base.connection;
 
 import com.yofc.iot.apps.plc.api.exceptions.PlcConnectionException;
 import com.yofc.iot.apps.plc.api.exceptions.PlcException;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 
 public interface ChannelFactory {
 
-    Channel createChannel(ChannelHandler channelHandler) throws PlcConnectionException;
+  Channel createChannel(ChannelHandler channelHandler) throws PlcConnectionException;
 
-    void ping() throws PlcException;
-
+  void ping() throws PlcException;
 }

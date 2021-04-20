@@ -16,9 +16,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-/**
- * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
- */
+/** @author <a href="mailto:julien@julienviet.com">Julien Viet</a> */
 public class ParseUtils {
 
   public static Date parseHeaderDate(String value) {
@@ -93,7 +91,7 @@ public class ParseUtils {
             return RFC_850_DATE_TIME().parse(value);
           }
           return null;
-        }  else if (c == ' ') {
+        } else if (c == ' ') {
           String s = value.substring(0, sep);
           if (parseWkday(s) != null) {
             // asctime-date

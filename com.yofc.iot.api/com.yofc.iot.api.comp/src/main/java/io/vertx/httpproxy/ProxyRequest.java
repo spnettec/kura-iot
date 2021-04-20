@@ -27,8 +27,8 @@ import io.vertx.httpproxy.impl.ProxyRequestImpl;
 import java.util.function.Function;
 
 /**
- *
- * Handles the interoperability of the <b>request</b> between the <i><b>user agent</b></i> and the <i><b>origin</b></i>.
+ * Handles the interoperability of the <b>request</b> between the <i><b>user agent</b></i> and the
+ * <i><b>origin</b></i>.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
@@ -46,19 +46,13 @@ public interface ProxyRequest {
     return new ProxyRequestImpl(outboundRequest);
   }
 
-  /**
-   * @return the HTTP version of the outbound request
-   */
+  /** @return the HTTP version of the outbound request */
   HttpVersion version();
 
-  /**
-   * @return the absolute URI of the outbound request
-   */
+  /** @return the absolute URI of the outbound request */
   String absoluteURI();
 
-  /**
-   * @return the HTTP method to be sent to the <i><b>origin</b></i> server.
-   */
+  /** @return the HTTP method to be sent to the <i><b>origin</b></i> server. */
   HttpMethod getMethod();
 
   /**
@@ -72,9 +66,7 @@ public interface ProxyRequest {
   @Fluent
   ProxyRequest setMethod(HttpMethod method);
 
-  /**
-   * @return the request URI to be sent to the <i><b>origin</b></i> server.
-   */
+  /** @return the request URI to be sent to the <i><b>origin</b></i> server. */
   String getURI();
 
   /**
@@ -88,9 +80,7 @@ public interface ProxyRequest {
   @Fluent
   ProxyRequest setURI(String uri);
 
-  /**
-   * @return the request body to be sent to the <i><b>origin</b></i> server.
-   */
+  /** @return the request body to be sent to the <i><b>origin</b></i> server. */
   Body getBody();
 
   /**
@@ -105,15 +95,15 @@ public interface ProxyRequest {
   ProxyRequest setBody(Body body);
 
   /**
-   * @return the headers that will be sent to the origin server, the returned headers can be modified. The headers
-   *         map is populated with the outbound request headers
+   * @return the headers that will be sent to the origin server, the returned headers can be
+   *     modified. The headers map is populated with the outbound request headers
    */
   MultiMap headers();
 
   /**
    * Put an HTTP header
    *
-   * @param name  The header name
+   * @param name The header name
    * @param value The header value
    * @return a reference to this, so the API can be used fluently
    */
@@ -124,7 +114,7 @@ public interface ProxyRequest {
   /**
    * Set a body filter.
    *
-   * <p> The body filter can rewrite the request body sent to the <i><b>origin</b></i> server.
+   * <p>The body filter can rewrite the request body sent to the <i><b>origin</b></i> server.
    *
    * @param filter the filter
    * @return a reference to this, so the API can be used fluently
@@ -133,45 +123,49 @@ public interface ProxyRequest {
   ProxyRequest bodyFilter(Function<ReadStream<Buffer>, ReadStream<Buffer>> filter);
 
   /**
-   * Proxy this outbound request and response to the <i><b>origin</b></i> server using the specified inbound request.
+   * Proxy this outbound request and response to the <i><b>origin</b></i> server using the specified
+   * inbound request.
    *
    * @param inboundRequest the request connected to the <i><b>origin</b></i> server
    * @param completionHandler the completion handler
    */
-  default void proxy(HttpClientRequest inboundRequest, Handler<AsyncResult<Void>> completionHandler) {
-    send(inboundRequest, ar -> {
-      if (ar.succeeded()) {
-        ProxyResponse resp = ar.result();
-        resp.send(completionHandler);
-      } else {
-        completionHandler.handle(ar.mapEmpty());
-      }
-    });
+  default void proxy(
+      HttpClientRequest inboundRequest, Handler<AsyncResult<Void>> completionHandler) {
+    send(
+        inboundRequest,
+        ar -> {
+          if (ar.succeeded()) {
+            ProxyResponse resp = ar.result();
+            resp.send(completionHandler);
+          } else {
+            completionHandler.handle(ar.mapEmpty());
+          }
+        });
   }
 
   /**
    * Send this request to the <i><b>origin</b></i> server using the specified inbound request.
    *
-   * <p> The {@code completionHandler} will be called with the proxy response sent by the <i><b>origin</b></i>.
+   * <p>The {@code completionHandler} will be called with the proxy response sent by the
+   * <i><b>origin</b></i>.
    *
    * @param inboundRequest the request connected to the <i><b>origin</b></i> server
    * @param completionHandler the completion handler
    */
-  void send(HttpClientRequest inboundRequest, Handler<AsyncResult<ProxyResponse>> completionHandler);
+  void send(
+      HttpClientRequest inboundRequest, Handler<AsyncResult<ProxyResponse>> completionHandler);
 
   /**
    * Release the proxy request.
    *
-   * <p> The HTTP server request is resumed, no HTTP server response is sent.
+   * <p>The HTTP server request is resumed, no HTTP server response is sent.
    *
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   ProxyRequest release();
 
-  /**
-   * @return the outbound HTTP server request
-   */
+  /** @return the outbound HTTP server request */
   HttpServerRequest outboundRequest();
 
   /**
@@ -180,5 +174,4 @@ public interface ProxyRequest {
    * @return the proxy response
    */
   ProxyResponse response();
-
 }

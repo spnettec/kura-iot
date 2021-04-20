@@ -25,34 +25,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CpuServicesParameterSubFunctionGroup {
+  READ_SSL((byte) 0x01);
 
-    READ_SSL((byte) 0x01);
+  private static final Logger logger =
+      LoggerFactory.getLogger(CpuServicesParameterSubFunctionGroup.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(CpuServicesParameterSubFunctionGroup.class);
+  private static final Map<Byte, CpuServicesParameterSubFunctionGroup> map;
 
-    private static final Map<Byte, CpuServicesParameterSubFunctionGroup> map;
-    static {
-        map = new HashMap<>();
-        for (CpuServicesParameterSubFunctionGroup cpuServicesParameterSubFunctionGroup : CpuServicesParameterSubFunctionGroup.values()) {
-            map.put(cpuServicesParameterSubFunctionGroup.code, cpuServicesParameterSubFunctionGroup);
-        }
+  static {
+    map = new HashMap<>();
+    for (CpuServicesParameterSubFunctionGroup cpuServicesParameterSubFunctionGroup :
+        CpuServicesParameterSubFunctionGroup.values()) {
+      map.put(cpuServicesParameterSubFunctionGroup.code, cpuServicesParameterSubFunctionGroup);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    CpuServicesParameterSubFunctionGroup(byte code) {
-        this.code = code;
+  CpuServicesParameterSubFunctionGroup(byte code) {
+    this.code = code;
+  }
+
+  public static CpuServicesParameterSubFunctionGroup valueOf(byte code) {
+    if (!map.containsKey(code)) {
+      logger.error("CpuServicesParameterSubFunctionGroup for code {} not found", code);
     }
+    return map.get(code);
+  }
 
-    public byte getCode() {
-        return code;
-    }
-
-    public static CpuServicesParameterSubFunctionGroup valueOf(byte code) {
-        if(!map.containsKey(code)) {
-            logger.error("CpuServicesParameterSubFunctionGroup for code {} not found", code);
-        }
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

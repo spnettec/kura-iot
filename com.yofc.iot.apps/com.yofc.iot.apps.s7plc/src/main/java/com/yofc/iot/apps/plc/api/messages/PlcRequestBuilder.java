@@ -20,5 +20,5 @@ package com.yofc.iot.apps.plc.api.messages;
 
 public interface PlcRequestBuilder {
 
-    PlcRequest build();
+  PlcRequest build();
 }

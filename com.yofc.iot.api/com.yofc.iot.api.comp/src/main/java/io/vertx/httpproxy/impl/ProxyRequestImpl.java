@@ -10,174 +10,178 @@
  */
 package io.vertx.httpproxy.impl;
 
-import java.util.function.Function;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.*;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.httpproxy.Body;
 import io.vertx.httpproxy.ProxyRequest;
 import io.vertx.httpproxy.ProxyResponse;
 
+import java.util.function.Function;
+
 public class ProxyRequestImpl implements ProxyRequest {
 
-    private HttpMethod method;
-    private HttpVersion version;
-    private String uri;
-    private String absoluteURI;
-    private Body body;
-    private MultiMap headers;
-    HttpClientRequest inboundRequest;
-    private HttpServerRequest outboundRequest;
+  private final HttpVersion version;
+  private final String absoluteURI;
+  private final MultiMap headers;
+  private final HttpServerRequest outboundRequest;
+  HttpClientRequest inboundRequest;
+  private HttpMethod method;
+  private String uri;
+  private Body body;
 
-    public ProxyRequestImpl(HttpServerRequest outboundRequest) {
+  public ProxyRequestImpl(HttpServerRequest outboundRequest) {
 
-        // Determine content length
-        long contentLength = -1L;
-        String contentLengthHeader = outboundRequest.getHeader(HttpHeaders.CONTENT_LENGTH);
-        if (contentLengthHeader != null) {
-            try {
-                contentLength = Long.parseLong(contentLengthHeader);
-            } catch (NumberFormatException e) {
-                // Ignore ???
-            }
-        }
-
-        this.method = outboundRequest.method();
-        this.version = outboundRequest.version();
-        this.body = Body.body(outboundRequest, contentLength);
-        this.uri = outboundRequest.uri();
-        this.headers = MultiMap.caseInsensitiveMultiMap().addAll(outboundRequest.headers());
-        this.absoluteURI = outboundRequest.absoluteURI();
-        this.outboundRequest = outboundRequest;
+    // Determine content length
+    long contentLength = -1L;
+    String contentLengthHeader = outboundRequest.getHeader(HttpHeaders.CONTENT_LENGTH);
+    if (contentLengthHeader != null) {
+      try {
+        contentLength = Long.parseLong(contentLengthHeader);
+      } catch (NumberFormatException e) {
+        // Ignore ???
+      }
     }
 
-    @Override
-    public HttpVersion version() {
-        return version;
-    }
+    this.method = outboundRequest.method();
+    this.version = outboundRequest.version();
+    this.body = Body.body(outboundRequest, contentLength);
+    this.uri = outboundRequest.uri();
+    this.headers = MultiMap.caseInsensitiveMultiMap().addAll(outboundRequest.headers());
+    this.absoluteURI = outboundRequest.absoluteURI();
+    this.outboundRequest = outboundRequest;
+  }
 
-    @Override
-    public String getURI() {
-        return uri;
-    }
+  @Override
+  public HttpVersion version() {
+    return version;
+  }
 
-    @Override
-    public ProxyRequest setURI(String uri) {
-        this.uri = uri;
-        return this;
-    }
+  @Override
+  public String getURI() {
+    return uri;
+  }
 
-    @Override
-    public Body getBody() {
-        return body;
-    }
+  @Override
+  public ProxyRequest setURI(String uri) {
+    this.uri = uri;
+    return this;
+  }
 
-    @Override
-    public ProxyRequest setBody(Body body) {
-        this.body = body;
-        return this;
-    }
+  @Override
+  public Body getBody() {
+    return body;
+  }
 
-    @Override
-    public String absoluteURI() {
-        return absoluteURI;
-    }
+  @Override
+  public ProxyRequest setBody(Body body) {
+    this.body = body;
+    return this;
+  }
 
-    @Override
-    public HttpMethod getMethod() {
-        return method;
-    }
+  @Override
+  public String absoluteURI() {
+    return absoluteURI;
+  }
 
-    @Override
-    public ProxyRequest setMethod(HttpMethod method) {
-        this.method = method;
-        return this;
-    }
+  @Override
+  public HttpMethod getMethod() {
+    return method;
+  }
 
-    @Override
-    public HttpServerRequest outboundRequest() {
-        return outboundRequest;
-    }
+  @Override
+  public ProxyRequest setMethod(HttpMethod method) {
+    this.method = method;
+    return this;
+  }
 
-    @Override
-    public ProxyRequest release() {
-        body.stream().resume();
-        headers.clear();
-        body = null;
-        return this;
-    }
+  @Override
+  public HttpServerRequest outboundRequest() {
+    return outboundRequest;
+  }
 
-    @Override
-    public ProxyResponse response() {
-        return new ProxyResponseImpl(this, outboundRequest.response());
-    }
+  @Override
+  public ProxyRequest release() {
+    body.stream().resume();
+    headers.clear();
+    body = null;
+    return this;
+  }
 
-    void sendRequest(Handler<AsyncResult<ProxyResponse>> responseHandler) {
+  @Override
+  public ProxyResponse response() {
+    return new ProxyResponseImpl(this, outboundRequest.response());
+  }
 
-        inboundRequest.response().<ProxyResponse> map(r -> {
-            r.pause(); // Pause it
-            return new ProxyResponseImpl(this, outboundRequest.response(), r);
-        }).onComplete(responseHandler);
+  void sendRequest(Handler<AsyncResult<ProxyResponse>> responseHandler) {
 
-        inboundRequest.setMethod(method);
-        inboundRequest.setURI(uri);
+    inboundRequest
+        .response()
+        .<ProxyResponse>map(
+            r -> {
+              r.pause(); // Pause it
+              return new ProxyResponseImpl(this, outboundRequest.response(), r);
+            })
+        .onComplete(responseHandler);
 
-        // Add all end-to-end headers
-        headers.forEach(header -> {
-            String name = header.getKey();
-            String value = header.getValue();
-            if (name.equalsIgnoreCase("host")) {
-                // Skip
-            } else {
-                inboundRequest.headers().add(name, value);
-            }
+    inboundRequest.setMethod(method);
+    inboundRequest.setURI(uri);
+
+    // Add all end-to-end headers
+    headers.forEach(
+        header -> {
+          String name = header.getKey();
+          String value = header.getValue();
+          if ("host".equalsIgnoreCase(name)) {
+            // Skip
+          } else {
+            inboundRequest.headers().add(name, value);
+          }
         });
 
-        long len = body.length();
-        if (len >= 0) {
-            inboundRequest.putHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(len));
-        } else {
-            inboundRequest.setChunked(true);
-        }
+    long len = body.length();
+    if (len >= 0) {
+      inboundRequest.putHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(len));
+    } else {
+      inboundRequest.setChunked(true);
+    }
 
-        Pipe<Buffer> pipe = body.stream().pipe();
-        pipe.endOnComplete(true);
-        pipe.endOnFailure(false);
-        pipe.to(inboundRequest, ar -> {
-            if (ar.failed()) {
-                inboundRequest.reset();
-            }
+    Pipe<Buffer> pipe = body.stream().pipe();
+    pipe.endOnComplete(true);
+    pipe.endOnFailure(false);
+    pipe.to(
+        inboundRequest,
+        ar -> {
+          if (ar.failed()) {
+            inboundRequest.reset();
+          }
         });
-    }
+  }
 
-    @Override
-    public ProxyRequest putHeader(CharSequence name, CharSequence value) {
-        headers.set(name, value);
-        return this;
-    }
+  @Override
+  public ProxyRequest putHeader(CharSequence name, CharSequence value) {
+    headers.set(name, value);
+    return this;
+  }
 
-    @Override
-    public MultiMap headers() {
-        return headers;
-    }
+  @Override
+  public MultiMap headers() {
+    return headers;
+  }
 
-    @Override
-    public ProxyRequest bodyFilter(Function<ReadStream<Buffer>, ReadStream<Buffer>> filter) {
-        return this;
-    }
+  @Override
+  public ProxyRequest bodyFilter(Function<ReadStream<Buffer>, ReadStream<Buffer>> filter) {
+    return this;
+  }
 
-    @Override
-    public void send(HttpClientRequest inboundRequest, Handler<AsyncResult<ProxyResponse>> completionHandler) {
-        this.inboundRequest = inboundRequest;
-        sendRequest(completionHandler);
-    }
+  @Override
+  public void send(
+      HttpClientRequest inboundRequest, Handler<AsyncResult<ProxyResponse>> completionHandler) {
+    this.inboundRequest = inboundRequest;
+    sendRequest(completionHandler);
+  }
 }

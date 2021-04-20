@@ -4,34 +4,35 @@ import io.netty.buffer.ByteBuf;
 
 public class ForwardCloseResponse {
 
-    private final int connectionSerialNumber;
-    private final int originatorVendorId;
-    private final long originatorSerialNumber;
+  private final int connectionSerialNumber;
+  private final int originatorVendorId;
+  private final long originatorSerialNumber;
 
-    public ForwardCloseResponse(int connectionSerialNumber, int originatorVendorId, long originatorSerialNumber) {
-        this.connectionSerialNumber = connectionSerialNumber;
-        this.originatorVendorId = originatorVendorId;
-        this.originatorSerialNumber = originatorSerialNumber;
-    }
+  public ForwardCloseResponse(
+      int connectionSerialNumber, int originatorVendorId, long originatorSerialNumber) {
+    this.connectionSerialNumber = connectionSerialNumber;
+    this.originatorVendorId = originatorVendorId;
+    this.originatorSerialNumber = originatorSerialNumber;
+  }
 
-    public int getConnectionSerialNumber() {
-        return connectionSerialNumber;
-    }
+  public static ForwardCloseResponse decode(ByteBuf buffer) {
+    int connectionSerialNumber = buffer.readUnsignedShortLE();
+    int originatorVendorId = buffer.readUnsignedShortLE();
+    long originatorSerialNumber = buffer.readUnsignedIntLE();
 
-    public int getOriginatorVendorId() {
-        return originatorVendorId;
-    }
+    return new ForwardCloseResponse(
+        connectionSerialNumber, originatorVendorId, originatorSerialNumber);
+  }
 
-    public long getOriginatorSerialNumber() {
-        return originatorSerialNumber;
-    }
+  public int getConnectionSerialNumber() {
+    return connectionSerialNumber;
+  }
 
-    public static ForwardCloseResponse decode(ByteBuf buffer) {
-        int connectionSerialNumber = buffer.readUnsignedShortLE();
-        int originatorVendorId = buffer.readUnsignedShortLE();
-        long originatorSerialNumber = buffer.readUnsignedIntLE();
+  public int getOriginatorVendorId() {
+    return originatorVendorId;
+  }
 
-        return new ForwardCloseResponse(connectionSerialNumber, originatorVendorId, originatorSerialNumber);
-    }
-
+  public long getOriginatorSerialNumber() {
+    return originatorSerialNumber;
+  }
 }

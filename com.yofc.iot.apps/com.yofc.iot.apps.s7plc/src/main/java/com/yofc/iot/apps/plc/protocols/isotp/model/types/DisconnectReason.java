@@ -22,43 +22,43 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum DisconnectReason {
-    // Reasons available for all classes:
-    REASON_NOT_SPECIFIED((byte) 0x00),
-    CONGESTION_AT_TSAP((byte) 0x01),
-    SESSION_ENTITY_NOT_ATACHED_TO_TSAP((byte) 0x02),
-    ADDRESS_UNKNOWN((byte) 0x03),
+  // Reasons available for all classes:
+  REASON_NOT_SPECIFIED((byte) 0x00),
+  CONGESTION_AT_TSAP((byte) 0x01),
+  SESSION_ENTITY_NOT_ATACHED_TO_TSAP((byte) 0x02),
+  ADDRESS_UNKNOWN((byte) 0x03),
 
-    // Reasons only available for classes 1 to 4:
-    NORMAL((byte) 0x80),
-    REMOTE_TRANSPORT_ENTITY_CONGESTION((byte) 0x81),
-    CONNECTION_NEGOTIATION_FAILED((byte) 0x82),
-    DUPLICATE_SOURCE_REFERENCE((byte) 0x83),
-    MISMATCHED_REFERENCES((byte) 0x84),
-    PROTOCOL_ERROR((byte) 0x85),
-    REFERENCE_OVERFLOW((byte) 0x87),
-    CONNECTION_REQUEST_REFUSED((byte) 0x88),
-    HEADER_OR_PARAMETER_LENGTH_INVALID((byte) 0x8A);
+  // Reasons only available for classes 1 to 4:
+  NORMAL((byte) 0x80),
+  REMOTE_TRANSPORT_ENTITY_CONGESTION((byte) 0x81),
+  CONNECTION_NEGOTIATION_FAILED((byte) 0x82),
+  DUPLICATE_SOURCE_REFERENCE((byte) 0x83),
+  MISMATCHED_REFERENCES((byte) 0x84),
+  PROTOCOL_ERROR((byte) 0x85),
+  REFERENCE_OVERFLOW((byte) 0x87),
+  CONNECTION_REQUEST_REFUSED((byte) 0x88),
+  HEADER_OR_PARAMETER_LENGTH_INVALID((byte) 0x8A);
 
-    private static final Map<Byte, DisconnectReason> map;
-    static {
-        map = new HashMap<>();
-        for (DisconnectReason disconnectReason : DisconnectReason.values()) {
-            map.put(disconnectReason.code, disconnectReason);
-        }
+  private static final Map<Byte, DisconnectReason> map;
+
+  static {
+    map = new HashMap<>();
+    for (DisconnectReason disconnectReason : DisconnectReason.values()) {
+      map.put(disconnectReason.code, disconnectReason);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    DisconnectReason(byte code) {
-        this.code = code;
-    }
+  DisconnectReason(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static DisconnectReason valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static DisconnectReason valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

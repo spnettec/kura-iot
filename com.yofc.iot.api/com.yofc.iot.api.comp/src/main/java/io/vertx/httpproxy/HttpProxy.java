@@ -21,8 +21,11 @@ import io.vertx.core.net.SocketAddress;
 import java.util.function.Function;
 
 /**
- * Handles the HTTP reverse proxy logic between the <i><b>user agent</b></i> and the <i><b>origin</b></i>.
+ * Handles the HTTP reverse proxy logic between the <i><b>user agent</b></i> and the
+ * <i><b>origin</b></i>.
+ *
  * <p>
+ *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
@@ -31,7 +34,8 @@ public interface HttpProxy extends Handler<HttpServerRequest> {
   /**
    * Create a new {@code HttpProxy} instance.
    *
-   * @param client the {@code HttpClient} that forwards <i><b>outbound</b></i> requests to the <i><b>origin</b></i>.
+   * @param client the {@code HttpClient} that forwards <i><b>outbound</b></i> requests to the
+   *     <i><b>origin</b></i>.
    * @return a reference to this, so the API can be used fluently.
    */
   static HttpProxy reverseProxy2(HttpClient client) {
@@ -62,7 +66,8 @@ public interface HttpProxy extends Handler<HttpServerRequest> {
   }
 
   /**
-   * Set a selector that resolves the <i><b>origin</b></i> address based on the <i><b>outbound</b></i> request.
+   * Set a selector that resolves the <i><b>origin</b></i> address based on the
+   * <i><b>outbound</b></i> request.
    *
    * @param selector the selector
    * @return a reference to this, so the API can be used fluently
@@ -75,6 +80,6 @@ public interface HttpProxy extends Handler<HttpServerRequest> {
    *
    * @param outboundRequest the outbound {@code HttpServerRequest}
    */
+  @Override
   void handle(HttpServerRequest outboundRequest);
-
 }

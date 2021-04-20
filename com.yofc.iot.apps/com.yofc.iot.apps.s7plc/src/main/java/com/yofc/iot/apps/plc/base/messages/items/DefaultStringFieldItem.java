@@ -22,26 +22,25 @@ import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
 
 public class DefaultStringFieldItem extends BaseDefaultFieldItem<String> {
 
-    public DefaultStringFieldItem(String... values) {
-        super(values);
-    }
+  public DefaultStringFieldItem(String... values) {
+    super(values);
+  }
 
-    @Override
-    public Object getObject(int index) {
-        return getValue(index);
-    }
+  @Override
+  public Object getObject(int index) {
+    return getValue(index);
+  }
 
-    @Override
-    public boolean isValidString(int index) {
-        return getValue(index) != null;
-    }
+  @Override
+  public boolean isValidString(int index) {
+    return getValue(index) != null;
+  }
 
-    @Override
-    public String getString(int index) {
-        if (!isValidString(index)) {
-            throw new PlcIncompatibleDatatypeException(String.class, index);
-        }
-        return getValue(index);
+  @Override
+  public String getString(int index) {
+    if (!isValidString(index)) {
+      throw new PlcIncompatibleDatatypeException(String.class, index);
     }
-
+    return getValue(index);
+  }
 }

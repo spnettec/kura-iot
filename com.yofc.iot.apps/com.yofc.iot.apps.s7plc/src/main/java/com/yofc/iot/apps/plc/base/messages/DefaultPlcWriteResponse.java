@@ -18,45 +18,45 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages;
 
-import java.util.Collection;
-import java.util.Map;
-
 import com.yofc.iot.apps.plc.api.model.PlcField;
 import com.yofc.iot.apps.plc.api.types.PlcResponseCode;
 
+import java.util.Collection;
+import java.util.Map;
+
 public class DefaultPlcWriteResponse implements InternalPlcWriteResponse {
 
-    private final InternalPlcWriteRequest request;
-    private final Map<String, PlcResponseCode> values;
+  private final InternalPlcWriteRequest request;
+  private final Map<String, PlcResponseCode> values;
 
-    public DefaultPlcWriteResponse(InternalPlcWriteRequest request, Map<String, PlcResponseCode> values) {
-        this.request = request;
-        this.values = values;
-    }
+  public DefaultPlcWriteResponse(
+      InternalPlcWriteRequest request, Map<String, PlcResponseCode> values) {
+    this.request = request;
+    this.values = values;
+  }
 
-    @Override
-    public Map<String, PlcResponseCode> getValues() {
-        return values;
-    }
+  @Override
+  public Map<String, PlcResponseCode> getValues() {
+    return values;
+  }
 
-    @Override
-    public InternalPlcWriteRequest getRequest() {
-        return request;
-    }
+  @Override
+  public InternalPlcWriteRequest getRequest() {
+    return request;
+  }
 
-    @Override
-    public Collection<String> getFieldNames() {
-        return request.getFieldNames();
-    }
+  @Override
+  public Collection<String> getFieldNames() {
+    return request.getFieldNames();
+  }
 
-    @Override
-    public PlcField getField(String name) {
-        return request.getField(name);
-    }
+  @Override
+  public PlcField getField(String name) {
+    return request.getField(name);
+  }
 
-    @Override
-    public PlcResponseCode getResponseCode(String name) {
-        return values.get(name);
-    }
-
+  @Override
+  public PlcResponseCode getResponseCode(String name) {
+    return values.get(name);
+  }
 }

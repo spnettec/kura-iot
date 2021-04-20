@@ -30,7 +30,13 @@ class Resource {
   final String etag;
   final Buffer content = Buffer.buffer();
 
-  Resource(String absoluteUri, int statusCode, String statusMessage, MultiMap headers, long timestamp, long maxAge) {
+  Resource(
+      String absoluteUri,
+      int statusCode,
+      String statusMessage,
+      MultiMap headers,
+      long timestamp,
+      long maxAge) {
     String lastModifiedHeader = headers.get(HttpHeaders.LAST_MODIFIED);
     this.absoluteUri = absoluteUri;
     this.statusCode = statusCode;
@@ -38,7 +44,8 @@ class Resource {
     this.headers = headers;
     this.timestamp = timestamp;
     this.maxAge = maxAge;
-    this.lastModified = lastModifiedHeader != null ? ParseUtils.parseHeaderDate(lastModifiedHeader) : null;
+    this.lastModified =
+        lastModifiedHeader != null ? ParseUtils.parseHeaderDate(lastModifiedHeader) : null;
     this.etag = headers.get(HttpHeaders.ETAG);
   }
 
@@ -47,8 +54,6 @@ class Resource {
     proxyResponse.setStatusMessage(statusMessage);
     proxyResponse.headers().addAll(headers);
     proxyResponse.setBody(Body.body(content));
-    proxyResponse.send(ar -> {
-
-    });
+    proxyResponse.send(ar -> {});
   }
 }

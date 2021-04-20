@@ -7,10 +7,10 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import static etherip.types.CNPath.Symbol;
-
 import etherip.types.CIPData;
 import etherip.types.CNService;
+
+import static etherip.types.CNPath.Symbol;
 
 /**
  * Message Router protocol for reading a tag
@@ -19,53 +19,49 @@ import etherip.types.CNService;
  */
 public class MRChipReadProtocol extends MessageRouterProtocol {
 
-    private final CIPReadDataProtocol reader;
+  private final CIPReadDataProtocol reader;
 
-    /**
-     * Initialize. Note that if trying to read an array this will only return the first item.
-     *
-     * @param tag
-     *            Name of tag to read
-     */
-    public MRChipReadProtocol(final String tag) {
-        this(tag, (short) 1);
-    }
+  /**
+   * Initialize. Note that if trying to read an array this will only return the first item.
+   *
+   * @param tag Name of tag to read
+   */
+  public MRChipReadProtocol(final String tag) {
+    this(tag, (short) 1);
+  }
 
-    /**
-     * Initialize. Use this constructor to retrieve an array.
-     *
-     * @param tag
-     *            Name of tag to read
-     * @param count
-     *            Number of elements to read (if it is an array)
-     */
-    public MRChipReadProtocol(final String tag, final short count) {
-        this(tag, new CIPReadDataProtocol(0, count));
-    }
+  /**
+   * Initialize. Use this constructor to retrieve an array.
+   *
+   * @param tag Name of tag to read
+   * @param count Number of elements to read (if it is an array)
+   */
+  public MRChipReadProtocol(final String tag, final short count) {
+    this(tag, new CIPReadDataProtocol(0, count));
+  }
 
-    private MRChipReadProtocol(CNService serviceid, final String tag, final CIPReadDataProtocol reader) {
-        super(serviceid, Symbol(tag), reader);
-        this.reader = reader;
-    }
+  private MRChipReadProtocol(
+      CNService serviceid, final String tag, final CIPReadDataProtocol reader) {
+    super(serviceid, Symbol(tag), reader);
+    this.reader = reader;
+  }
 
-    public MRChipReadProtocol(final String tag, final int startBytes, final short count) {
-        this(CNService.CIP_ReadDataFragmented, tag, new CIPReadDataProtocol(startBytes, count));
-    }
+  public MRChipReadProtocol(final String tag, final int startBytes, final short count) {
+    this(CNService.CIP_ReadDataFragmented, tag, new CIPReadDataProtocol(startBytes, count));
+  }
 
-    /**
-     * Initialize
-     *
-     * @param tag
-     *            Name of tag to read
-     * @param body
-     *            Protocol embedded in the message request/response
-     */
-    private MRChipReadProtocol(final String tag, final CIPReadDataProtocol reader) {
-        super(CNService.CIP_ReadData, Symbol(tag), reader);
-        this.reader = reader;
-    }
+  /**
+   * Initialize
+   *
+   * @param tag Name of tag to read
+   * @param body Protocol embedded in the message request/response
+   */
+  private MRChipReadProtocol(final String tag, final CIPReadDataProtocol reader) {
+    super(CNService.CIP_ReadData, Symbol(tag), reader);
+    this.reader = reader;
+  }
 
-    public CIPData getData() {
-        return this.reader.getData();
-    }
+  public CIPData getData() {
+    return this.reader.getData();
+  }
 }

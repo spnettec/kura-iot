@@ -22,6 +22,5 @@ import com.yofc.iot.apps.plc.protocols.isotp.model.types.ParameterCode;
 
 public interface Parameter {
 
-    ParameterCode getType();
-
+  ParameterCode getType();
 }

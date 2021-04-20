@@ -20,20 +20,18 @@ package com.yofc.iot.apps.plc.protocols.isotp.model;
 
 import com.yofc.iot.apps.plc.base.messages.PlcRawMessage;
 import com.yofc.iot.apps.plc.protocols.isotp.model.tpdus.Tpdu;
-
 import io.netty.buffer.ByteBuf;
 
 public class IsoTPMessage extends PlcRawMessage {
 
-    private final Tpdu tpdu;
+  private final Tpdu tpdu;
 
-    public IsoTPMessage(Tpdu tpdu, ByteBuf userData) {
-        super(userData);
-        this.tpdu = tpdu;
-    }
+  public IsoTPMessage(Tpdu tpdu, ByteBuf userData) {
+    super(userData);
+    this.tpdu = tpdu;
+  }
 
-    public Tpdu getTpdu() {
-        return tpdu;
-    }
-
+  public Tpdu getTpdu() {
+    return tpdu;
+  }
 }

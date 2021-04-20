@@ -8,51 +8,51 @@ import com.yofc.iot.apps.enip.cip.structs.LargeForwardOpenRequest;
 import com.yofc.iot.apps.enip.cip.structs.LargeForwardOpenResponse;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterRequest;
 import com.yofc.iot.apps.enip.cip.structs.MessageRouterResponse;
-
 import io.netty.buffer.ByteBuf;
 
 public class LargeForwardOpenService implements CipService<LargeForwardOpenResponse> {
 
-    public static final int SERVICE_CODE = 0x5B;
+  public static final int SERVICE_CODE = 0x5B;
 
-    private static final PaddedEPath CONNECTION_MANAGER_PATH = new PaddedEPath(new ClassId(0x06), new InstanceId(0x01));
+  private static final PaddedEPath CONNECTION_MANAGER_PATH =
+      new PaddedEPath(new ClassId(0x06), new InstanceId(0x01));
 
-    private final LargeForwardOpenRequest request;
+  private final LargeForwardOpenRequest request;
+  private LargeForwardOpenResponse responseData = null;
 
-    public LargeForwardOpenService(LargeForwardOpenRequest request) {
-        this.request = request;
+  public LargeForwardOpenService(LargeForwardOpenRequest request) {
+    this.request = request;
+  }
+
+  @Override
+  public void encodeRequest(ByteBuf buffer) {
+    MessageRouterRequest mrr =
+        new MessageRouterRequest(SERVICE_CODE, CONNECTION_MANAGER_PATH, this::encode);
+
+    MessageRouterRequest.encode(mrr, buffer);
+  }
+
+  @Override
+  public LargeForwardOpenResponse decodeResponse(ByteBuf buffer)
+      throws CipResponseException, PartialResponseException {
+    MessageRouterResponse mResponse = MessageRouterResponse.decode(buffer);
+
+    int generalStatus = mResponse.getGeneralStatus();
+
+    if (generalStatus == 0x00) {
+      this.responseData = LargeForwardOpenResponse.decode(mResponse.getData());
+      return this.responseData;
+    } else {
+      throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
     }
+  }
 
-    @Override
-    public void encodeRequest(ByteBuf buffer) {
-        MessageRouterRequest mrr = new MessageRouterRequest(SERVICE_CODE, CONNECTION_MANAGER_PATH, this::encode);
+  private void encode(ByteBuf buffer) {
+    LargeForwardOpenRequest.encode(request, buffer);
+  }
 
-        MessageRouterRequest.encode(mrr, buffer);
-    }
-
-    @Override
-    public LargeForwardOpenResponse decodeResponse(ByteBuf buffer)
-            throws CipResponseException, PartialResponseException {
-        MessageRouterResponse mResponse = MessageRouterResponse.decode(buffer);
-
-        int generalStatus = mResponse.getGeneralStatus();
-
-        if (generalStatus == 0x00) {
-            this.responseData = LargeForwardOpenResponse.decode(mResponse.getData());
-            return this.responseData;
-        } else {
-            throw new CipResponseException(generalStatus, mResponse.getAdditionalStatus());
-        }
-    }
-
-    private void encode(ByteBuf buffer) {
-        LargeForwardOpenRequest.encode(request, buffer);
-    }
-
-    private LargeForwardOpenResponse responseData = null;
-
-    @Override
-    public LargeForwardOpenResponse getResponseData() {
-        return responseData;
-    }
+  @Override
+  public LargeForwardOpenResponse getResponseData() {
+    return responseData;
+  }
 }

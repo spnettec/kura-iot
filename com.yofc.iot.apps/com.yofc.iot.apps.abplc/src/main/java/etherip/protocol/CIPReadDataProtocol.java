@@ -18,52 +18,49 @@ import io.netty.buffer.ByteBuf;
  */
 public class CIPReadDataProtocol extends ProtocolAdapter {
 
-    private CIPData data;
-    private final short count;
-    private final int startBytes;
+  private final short count;
+  private final int startBytes;
+  private CIPData data;
 
-    /**
-     * Create a read protocol message that requests a single element
-     */
-    public CIPReadDataProtocol() {
-        this.count = 1;
-        this.startBytes = 0;
+  /** Create a read protocol message that requests a single element */
+  public CIPReadDataProtocol() {
+    this.count = 1;
+    this.startBytes = 0;
+  }
+
+  /**
+   * Create a read protocol message that requests one or more elements if request is an array
+   *
+   * @param count
+   */
+  public CIPReadDataProtocol(final int start, final short count) {
+    this.count = count;
+    this.startBytes = start;
+  }
+
+  @Override
+  public void encode(final ByteBuf buf) {
+    buf.writeShortLE(this.count); // elements
+    if (this.startBytes > 0) {
+      buf.writeIntLE(this.startBytes);
     }
+  }
 
-    /**
-     * Create a read protocol message that requests one or more elements if request is an array
-     *
-     * @param count
-     */
+  @Override
+  public void decode(final ByteBuf buf) {
+    int available = buf.readableBytes();
+    if (available <= 0) {
+      this.data = null;
 
-    public CIPReadDataProtocol(final int start, final short count) {
-        this.count = count;
-        this.startBytes = start;
+      return;
     }
+    final CIPData.Type type = CIPData.Type.forCode(buf.readShortLE());
+    final byte[] raw = new byte[available - 2];
+    buf.readBytes(raw);
+    this.data = new CIPData(type, raw);
+  }
 
-    @Override
-    public void encode(final ByteBuf buf) {
-        buf.writeShortLE(this.count); // elements
-        if (this.startBytes > 0)
-            buf.writeIntLE(this.startBytes);
-    }
-
-    @Override
-    public void decode(final ByteBuf buf) {
-        int available = buf.readableBytes();
-        if (available <= 0) {
-            this.data = null;
-
-            return;
-        }
-        final CIPData.Type type = CIPData.Type.forCode(buf.readShortLE());
-        final byte[] raw = new byte[available - 2];
-        buf.readBytes(raw);
-        this.data = new CIPData(type, raw);
-
-    }
-
-    public final CIPData getData() {
-        return this.data;
-    }
+  public final CIPData getData() {
+    return this.data;
+  }
 }

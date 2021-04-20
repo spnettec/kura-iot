@@ -1,56 +1,58 @@
 package com.yofc.iot.apps.enip.cpf;
 
-import java.util.Arrays;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.Arrays;
 
 public final class CpfPacket {
 
-    private final CpfItem[] items;
+  private final CpfItem[] items;
 
-    public CpfPacket(CpfItem... items) {
-        this.items = items;
+  public CpfPacket(CpfItem... items) {
+    this.items = items;
+  }
+
+  public static ByteBuf encode(CpfPacket packet, ByteBuf buffer) {
+    buffer.writeShortLE(packet.getItems().length);
+
+    for (CpfItem item : packet.getItems()) {
+      CpfItem.encode(item, buffer);
     }
 
-    public CpfItem[] getItems() {
-        return items;
+    return buffer;
+  }
+
+  public static CpfPacket decode(ByteBuf buffer) {
+    int itemCount = buffer.readUnsignedShortLE();
+    CpfItem[] items = new CpfItem[itemCount];
+
+    for (int i = 0; i < itemCount; i++) {
+      items[i] = CpfItem.decode(buffer);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+    return new CpfPacket(items);
+  }
 
-        CpfPacket cpfPacket = (CpfPacket) o;
+  public CpfItem[] getItems() {
+    return items;
+  }
 
-        return Arrays.equals(items, cpfPacket.items);
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(items);
-    }
+    CpfPacket cpfPacket = (CpfPacket) o;
 
-    public static ByteBuf encode(CpfPacket packet, ByteBuf buffer) {
-        buffer.writeShortLE(packet.getItems().length);
+    return Arrays.equals(items, cpfPacket.items);
+  }
 
-        for (CpfItem item : packet.getItems()) {
-            CpfItem.encode(item, buffer);
-        }
-
-        return buffer;
-    }
-
-    public static CpfPacket decode(ByteBuf buffer) {
-        int itemCount = buffer.readUnsignedShortLE();
-        CpfItem[] items = new CpfItem[itemCount];
-
-        for (int i = 0; i < itemCount; i++) {
-            items[i] = CpfItem.decode(buffer);
-        }
-
-        return new CpfPacket(items);
-    }
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(items);
+  }
 }

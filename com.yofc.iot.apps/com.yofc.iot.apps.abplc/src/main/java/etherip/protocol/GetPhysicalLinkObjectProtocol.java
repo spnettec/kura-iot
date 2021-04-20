@@ -18,8 +18,6 @@ import io.netty.buffer.ByteBuf;
  */
 public class GetPhysicalLinkObjectProtocol extends CNClassPath {
 
-    @Override
-    public void encode(final ByteBuf buf) {
-
-    }
+  @Override
+  public void encode(final ByteBuf buf) {}
 }

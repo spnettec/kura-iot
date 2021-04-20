@@ -10,28 +10,26 @@
  */
 package io.vertx.httpproxy.impl;
 
-/**
- * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
- */
+/** @author <a href="mailto:julien@julienviet.com">Julien Viet</a> */
 public class CacheControl {
 
   private int maxAge;
-  private boolean _public;
+  private boolean public_;
 
   public CacheControl parse(String header) {
     maxAge = -1;
-    _public = false;
-    String[] parts = header.split(","); // No regex
+    public_ = false;
+    // No regex
+    String[] parts = header.split(",");
     for (String part : parts) {
       part = part.trim().toLowerCase();
       switch (part) {
         case "public":
-          _public = true;
+          public_ = true;
           break;
         default:
           if (part.startsWith("max-age=")) {
             maxAge = Integer.parseInt(part.substring(8));
-
           }
           break;
       }
@@ -44,7 +42,6 @@ public class CacheControl {
   }
 
   public boolean isPublic() {
-    return _public;
+    return public_;
   }
-
 }

@@ -18,44 +18,42 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base;
 
-import java.lang.reflect.Field;
-
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToMessageCodec;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageCodec;
+import java.lang.reflect.Field;
 
 public abstract class PlcMessageToMessageCodec<INBOUND_IN, OUTBOUND_IN>
-        extends MessageToMessageCodec<INBOUND_IN, OUTBOUND_IN> {
+    extends MessageToMessageCodec<INBOUND_IN, OUTBOUND_IN> {
 
-    private static final Logger logger = LoggerFactory.getLogger(PlcMessageToMessageCodec.class);
+  private static final Logger logger = LoggerFactory.getLogger(PlcMessageToMessageCodec.class);
 
-    private volatile ChannelHandler prevChannelHandler = null;
+  private volatile ChannelHandler prevChannelHandler = null;
 
-    public PlcMessageToMessageCodec() {
-    }
+  public PlcMessageToMessageCodec() {}
 
-    public PlcMessageToMessageCodec(Class<? extends INBOUND_IN> inboundMessageType,
-            Class<? extends OUTBOUND_IN> outboundMessageType) {
-        super(inboundMessageType, outboundMessageType);
-    }
+  public PlcMessageToMessageCodec(
+      Class<? extends INBOUND_IN> inboundMessageType,
+      Class<? extends OUTBOUND_IN> outboundMessageType) {
+    super(inboundMessageType, outboundMessageType);
+  }
 
-    protected ChannelHandler getPrevChannelHandler(ChannelHandlerContext ctx) {
-        if (prevChannelHandler == null) {
-            try {
-                Field prevField = FieldUtils.getField(ctx.getClass(), "prev", true);
-                if (prevField != null) {
-                    ChannelHandlerContext prevContext = (ChannelHandlerContext) prevField.get(ctx);
-                    prevChannelHandler = prevContext.handler();
-                }
-            } catch (Exception e) {
-                logger.error("Error accessing field 'prev'", e);
-            }
+  protected ChannelHandler getPrevChannelHandler(ChannelHandlerContext ctx) {
+    if (prevChannelHandler == null) {
+      try {
+        Field prevField = FieldUtils.getField(ctx.getClass(), "prev", true);
+        if (prevField != null) {
+          ChannelHandlerContext prevContext = (ChannelHandlerContext) prevField.get(ctx);
+          prevChannelHandler = prevContext.handler();
         }
-        return prevChannelHandler;
+      } catch (Exception e) {
+        logger.error("Error accessing field 'prev'", e);
+      }
     }
-
+    return prevChannelHandler;
+  }
 }

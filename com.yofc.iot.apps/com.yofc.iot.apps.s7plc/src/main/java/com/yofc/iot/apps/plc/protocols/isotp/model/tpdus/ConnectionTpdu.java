@@ -18,38 +18,41 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.ProtocolClass;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
 
 public abstract class ConnectionTpdu extends Tpdu {
 
-    private final short destinationReference;
-    private final short sourceReference;
-    private final ProtocolClass protocolClass;
+  private final short destinationReference;
+  private final short sourceReference;
+  private final ProtocolClass protocolClass;
 
-    public ConnectionTpdu(TpduCode tpduCode, short destinationReference, short sourceReference,
-            ProtocolClass protocolClass, List<Parameter> parameters, ByteBuf userData) {
-        super(tpduCode, parameters, userData);
-        this.destinationReference = destinationReference;
-        this.sourceReference = sourceReference;
-        this.protocolClass = protocolClass;
-    }
+  public ConnectionTpdu(
+      TpduCode tpduCode,
+      short destinationReference,
+      short sourceReference,
+      ProtocolClass protocolClass,
+      List<Parameter> parameters,
+      ByteBuf userData) {
+    super(tpduCode, parameters, userData);
+    this.destinationReference = destinationReference;
+    this.sourceReference = sourceReference;
+    this.protocolClass = protocolClass;
+  }
 
-    public short getDestinationReference() {
-        return destinationReference;
-    }
+  public short getDestinationReference() {
+    return destinationReference;
+  }
 
-    public short getSourceReference() {
-        return sourceReference;
-    }
+  public short getSourceReference() {
+    return sourceReference;
+  }
 
-    public ProtocolClass getProtocolClass() {
-        return protocolClass;
-    }
-
+  public ProtocolClass getProtocolClass() {
+    return protocolClass;
+  }
 }

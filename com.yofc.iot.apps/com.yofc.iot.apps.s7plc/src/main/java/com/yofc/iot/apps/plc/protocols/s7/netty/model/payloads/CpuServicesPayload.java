@@ -18,55 +18,57 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads.ssls.SslDataRecord;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.DataTransportErrorCode;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterType;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.SslId;
 
+import java.util.Collections;
+import java.util.List;
+
 public class CpuServicesPayload implements S7Payload {
 
-    private DataTransportErrorCode returnCode;
-    private SslId sslId;
-    private short sslIndex;
-    private List<SslDataRecord> sslDataRecords;
+  private final DataTransportErrorCode returnCode;
+  private final SslId sslId;
+  private final short sslIndex;
+  private final List<SslDataRecord> sslDataRecords;
 
-    public CpuServicesPayload(DataTransportErrorCode returnCode, SslId sslId, short sslIndex) {
-        this.returnCode = returnCode;
-        this.sslId = sslId;
-        this.sslIndex = sslIndex;
-        this.sslDataRecords = Collections.emptyList();
-    }
+  public CpuServicesPayload(DataTransportErrorCode returnCode, SslId sslId, short sslIndex) {
+    this.returnCode = returnCode;
+    this.sslId = sslId;
+    this.sslIndex = sslIndex;
+    this.sslDataRecords = Collections.emptyList();
+  }
 
-    public CpuServicesPayload(DataTransportErrorCode returnCode, SslId sslId, short sslIndex,
-            List<SslDataRecord> sslDataRecords) {
-        this.returnCode = returnCode;
-        this.sslId = sslId;
-        this.sslIndex = sslIndex;
-        this.sslDataRecords = sslDataRecords;
-    }
+  public CpuServicesPayload(
+      DataTransportErrorCode returnCode,
+      SslId sslId,
+      short sslIndex,
+      List<SslDataRecord> sslDataRecords) {
+    this.returnCode = returnCode;
+    this.sslId = sslId;
+    this.sslIndex = sslIndex;
+    this.sslDataRecords = sslDataRecords;
+  }
 
-    @Override
-    public ParameterType getType() {
-        return ParameterType.CPU_SERVICES;
-    }
+  @Override
+  public ParameterType getType() {
+    return ParameterType.CPU_SERVICES;
+  }
 
-    public DataTransportErrorCode getReturnCode() {
-        return returnCode;
-    }
+  public DataTransportErrorCode getReturnCode() {
+    return returnCode;
+  }
 
-    public SslId getSslId() {
-        return sslId;
-    }
+  public SslId getSslId() {
+    return sslId;
+  }
 
-    public short getSslIndex() {
-        return sslIndex;
-    }
+  public short getSslIndex() {
+    return sslIndex;
+  }
 
-    public List<SslDataRecord> getSslDataRecords() {
-        return sslDataRecords;
-    }
-
+  public List<SslDataRecord> getSslDataRecords() {
+    return sslDataRecords;
+  }
 }

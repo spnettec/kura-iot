@@ -23,26 +23,26 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.DataTransportSize;
 
 public class VarPayloadItem {
 
-    private final DataTransportErrorCode returnCode;
-    private final DataTransportSize dataTransportSize;
-    private final byte[] data;
+  private final DataTransportErrorCode returnCode;
+  private final DataTransportSize dataTransportSize;
+  private final byte[] data;
 
-    public VarPayloadItem(DataTransportErrorCode returnCode, DataTransportSize dataTransportSize, byte[] data) {
-        this.returnCode = returnCode;
-        this.dataTransportSize = dataTransportSize;
-        this.data = data;
-    }
+  public VarPayloadItem(
+      DataTransportErrorCode returnCode, DataTransportSize dataTransportSize, byte[] data) {
+    this.returnCode = returnCode;
+    this.dataTransportSize = dataTransportSize;
+    this.data = data;
+  }
 
-    public DataTransportErrorCode getReturnCode() {
-        return returnCode;
-    }
+  public DataTransportErrorCode getReturnCode() {
+    return returnCode;
+  }
 
-    public DataTransportSize getDataTransportSize() {
-        return dataTransportSize;
-    }
+  public DataTransportSize getDataTransportSize() {
+    return dataTransportSize;
+  }
 
-    public byte[] getData() {
-        return data;
-    }
-
+  public byte[] getData() {
+    return data;
+  }
 }

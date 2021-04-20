@@ -4,60 +4,64 @@ import io.netty.buffer.ByteBuf;
 
 public final class ElectronicKey {
 
-    private final int vendorId;
-    private final int deviceType;
-    private final int productCode;
-    private final boolean compatibilitySet;
-    private final short majorRevision;
-    private final short minorRevision;
+  private final int vendorId;
+  private final int deviceType;
+  private final int productCode;
+  private final boolean compatibilitySet;
+  private final short majorRevision;
+  private final short minorRevision;
 
-    public ElectronicKey(int vendorId, int deviceType, int productCode, boolean compatibilitySet, short majorRevision,
-            short minorRevision) {
+  public ElectronicKey(
+      int vendorId,
+      int deviceType,
+      int productCode,
+      boolean compatibilitySet,
+      short majorRevision,
+      short minorRevision) {
 
-        this.vendorId = vendorId;
-        this.deviceType = deviceType;
-        this.productCode = productCode;
-        this.compatibilitySet = compatibilitySet;
-        this.majorRevision = majorRevision;
-        this.minorRevision = minorRevision;
-    }
+    this.vendorId = vendorId;
+    this.deviceType = deviceType;
+    this.productCode = productCode;
+    this.compatibilitySet = compatibilitySet;
+    this.majorRevision = majorRevision;
+    this.minorRevision = minorRevision;
+  }
 
-    public int getVendorId() {
-        return vendorId;
-    }
+  public static ByteBuf encode(ElectronicKey key, ByteBuf buffer) {
+    buffer.writeShortLE(key.getVendorId());
+    buffer.writeShortLE(key.getDeviceType());
+    buffer.writeShortLE(key.getProductCode());
 
-    public int getDeviceType() {
-        return deviceType;
-    }
+    int majorRevisionAndCompatibility = key.isCompatibilitySet() ? 0x80 : 0x00;
+    majorRevisionAndCompatibility |= (key.getMajorRevision() & 0x7F);
 
-    public int getProductCode() {
-        return productCode;
-    }
+    buffer.writeByte(majorRevisionAndCompatibility);
+    buffer.writeByte(key.getMinorRevision());
 
-    public boolean isCompatibilitySet() {
-        return compatibilitySet;
-    }
+    return buffer;
+  }
 
-    public short getMajorRevision() {
-        return majorRevision;
-    }
+  public int getVendorId() {
+    return vendorId;
+  }
 
-    public short getMinorRevision() {
-        return minorRevision;
-    }
+  public int getDeviceType() {
+    return deviceType;
+  }
 
-    public static ByteBuf encode(ElectronicKey key, ByteBuf buffer) {
-        buffer.writeShortLE(key.getVendorId());
-        buffer.writeShortLE(key.getDeviceType());
-        buffer.writeShortLE(key.getProductCode());
+  public int getProductCode() {
+    return productCode;
+  }
 
-        int majorRevisionAndCompatibility = key.isCompatibilitySet() ? 0x80 : 0x00;
-        majorRevisionAndCompatibility |= (key.getMajorRevision() & 0x7F);
+  public boolean isCompatibilitySet() {
+    return compatibilitySet;
+  }
 
-        buffer.writeByte(majorRevisionAndCompatibility);
-        buffer.writeByte(key.getMinorRevision());
+  public short getMajorRevision() {
+    return majorRevision;
+  }
 
-        return buffer;
-    }
-
+  public short getMinorRevision() {
+    return minorRevision;
+  }
 }

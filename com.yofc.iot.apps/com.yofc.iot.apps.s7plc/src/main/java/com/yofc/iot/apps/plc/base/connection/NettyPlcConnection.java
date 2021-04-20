@@ -18,116 +18,116 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.connection;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import com.yofc.iot.apps.plc.api.exceptions.PlcConnectionException;
 import com.yofc.iot.apps.plc.api.exceptions.PlcException;
 import com.yofc.iot.apps.plc.api.exceptions.PlcIoException;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 public abstract class NettyPlcConnection extends AbstractPlcConnection {
 
-    /**
-     * a {@link HashedWheelTimer} shall be only instantiated once.
-     */
-    // TODO: maybe find a way to make this configurable per jvm
-    protected final static Timer timer = new HashedWheelTimer();
+  /** a {@link HashedWheelTimer} shall be only instantiated once. */
+  // TODO: maybe find a way to make this configurable per jvm
+  protected static final Timer timer = new HashedWheelTimer();
 
-    protected final ChannelFactory channelFactory;
+  protected final ChannelFactory channelFactory;
 
-    protected final boolean awaitSessionSetupComplete;
+  protected final boolean awaitSessionSetupComplete;
 
-    protected Channel channel;
+  protected Channel channel;
 
-    protected boolean connected;
+  protected boolean connected;
 
-    protected NettyPlcConnection(ChannelFactory channelFactory) {
-        this(channelFactory, false);
-    }
+  protected NettyPlcConnection(ChannelFactory channelFactory) {
+    this(channelFactory, false);
+  }
 
-    protected NettyPlcConnection(ChannelFactory channelFactory, boolean awaitSessionSetupComplete) {
-        this.channelFactory = channelFactory;
-        this.awaitSessionSetupComplete = awaitSessionSetupComplete;
-        this.connected = false;
-    }
+  protected NettyPlcConnection(ChannelFactory channelFactory, boolean awaitSessionSetupComplete) {
+    this.channelFactory = channelFactory;
+    this.awaitSessionSetupComplete = awaitSessionSetupComplete;
+    this.connected = false;
+  }
 
-    @Override
-    public void connect() throws PlcConnectionException {
-        try {
-            // As we don't just want to wait till the connection is established,
-            // define a future we can use to signal back that the s7 session is
-            // finished initializing.
-            CompletableFuture<Void> sessionSetupCompleteFuture = new CompletableFuture<>();
+  @Override
+  public void connect() throws PlcConnectionException {
+    try {
+      // As we don't just want to wait till the connection is established,
+      // define a future we can use to signal back that the s7 session is
+      // finished initializing.
+      CompletableFuture<Void> sessionSetupCompleteFuture = new CompletableFuture<>();
 
-            // Have the channel factory create a new channel instance.
-            channel = channelFactory.createChannel(getChannelHandler(sessionSetupCompleteFuture));
-            channel.closeFuture().addListener(future -> {
+      // Have the channel factory create a new channel instance.
+      channel = channelFactory.createChannel(getChannelHandler(sessionSetupCompleteFuture));
+      channel
+          .closeFuture()
+          .addListener(
+              future -> {
                 if (!sessionSetupCompleteFuture.isDone()) {
-                    sessionSetupCompleteFuture
-                            .completeExceptionally(new PlcIoException("Connection terminated by remote"));
+                  sessionSetupCompleteFuture.completeExceptionally(
+                      new PlcIoException("Connection terminated by remote"));
                 }
-            });
-            // Send an event to the pipeline telling the Protocol filters what's going on.
-            sendChannelCreatedEvent();
+              });
+      // Send an event to the pipeline telling the Protocol filters what's going on.
+      sendChannelCreatedEvent();
 
-            // Wait till the connection is established.
-            if (awaitSessionSetupComplete) {
-                sessionSetupCompleteFuture.get();
-            }
+      // Wait till the connection is established.
+      if (awaitSessionSetupComplete) {
+        sessionSetupCompleteFuture.get();
+      }
 
-            // Set the connection to "connected"
-            connected = true;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new PlcConnectionException(e);
-        } catch (ExecutionException e) {
-            throw new PlcConnectionException(e);
-        }
+      // Set the connection to "connected"
+      connected = true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new PlcConnectionException(e);
+    } catch (ExecutionException e) {
+      throw new PlcConnectionException(e);
     }
+  }
 
-    @Override
-    public CompletableFuture<Void> ping() {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        try {
-            // Relay the actual pinging to the channel factory ...
-            channelFactory.ping();
-            // If we got here, the ping was successful.
-            future.complete(null);
-        } catch (PlcException e) {
-            // If we got here, something went wrong.
-            future.completeExceptionally(e);
-        }
-        return future;
+  @Override
+  public CompletableFuture<Void> ping() {
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    try {
+      // Relay the actual pinging to the channel factory ...
+      channelFactory.ping();
+      // If we got here, the ping was successful.
+      future.complete(null);
+    } catch (PlcException e) {
+      // If we got here, something went wrong.
+      future.completeExceptionally(e);
     }
+    return future;
+  }
 
-    @Override
-    public void close() throws PlcConnectionException {
-        channel = null;
-        connected = false;
-    }
+  @Override
+  public void close() throws PlcConnectionException {
+    channel = null;
+    connected = false;
+  }
 
-    /**
-     * Check if the communication channel is active (channel.isActive()) and the driver for a given protocol
-     * has finished establishing the connection.
-     */
-    @Override
-    public boolean isConnected() {
-        return connected && channel.isActive();
-    }
+  /**
+   * Check if the communication channel is active (channel.isActive()) and the driver for a given
+   * protocol has finished establishing the connection.
+   */
+  @Override
+  public boolean isConnected() {
+    return connected && channel.isActive();
+  }
 
-    public Channel getChannel() {
-        return channel;
-    }
+  public Channel getChannel() {
+    return channel;
+  }
 
-    protected abstract ChannelHandler getChannelHandler(CompletableFuture<Void> sessionSetupCompleteFuture);
+  protected abstract ChannelHandler getChannelHandler(
+      CompletableFuture<Void> sessionSetupCompleteFuture);
 
-    protected void sendChannelCreatedEvent() {
-        // Implemented in sub-classes, if needed.
-    }
-
+  protected void sendChannelCreatedEvent() {
+    // Implemented in sub-classes, if needed.
+  }
 }

@@ -22,6 +22,5 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.VariableAddressingMo
 
 public interface VarParameterItem {
 
-    VariableAddressingMode getAddressingMode();
-
+  VariableAddressingMode getAddressingMode();
 }

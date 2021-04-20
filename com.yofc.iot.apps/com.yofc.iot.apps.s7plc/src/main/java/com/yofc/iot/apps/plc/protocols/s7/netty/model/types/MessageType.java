@@ -21,35 +21,33 @@ package com.yofc.iot.apps.plc.protocols.s7.netty.model.types;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * (Values determined by evaluating generated ".pcap" files)
- */
+/** (Values determined by evaluating generated ".pcap" files) */
 public enum MessageType {
-    JOB((byte) 0x01),
-    ACK((byte) 0x02),
-    ACK_DATA((byte) 0x03),
-    USER_DATA((byte) 0x07); /* Renamed from "Userdata" */
+  JOB((byte) 0x01),
+  ACK((byte) 0x02),
+  ACK_DATA((byte) 0x03),
+  USER_DATA((byte) 0x07); /* Renamed from "Userdata" */
 
-    private static final Map<Byte, MessageType> map;
-    static {
-        map = new HashMap<>();
-        for (MessageType messageType : MessageType.values()) {
-            map.put(messageType.code, messageType);
-        }
+  private static final Map<Byte, MessageType> map;
+
+  static {
+    map = new HashMap<>();
+    for (MessageType messageType : MessageType.values()) {
+      map.put(messageType.code, messageType);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    MessageType(byte code) {
-        this.code = code;
-    }
+  MessageType(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static MessageType valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static MessageType valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

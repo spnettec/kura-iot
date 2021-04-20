@@ -18,33 +18,34 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.messages;
 
+import com.yofc.iot.apps.plc.api.model.PlcSubscriptionHandle;
+
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
-import com.yofc.iot.apps.plc.api.model.PlcSubscriptionHandle;
-
 public interface PlcUnsubscriptionRequest extends PlcRequest {
 
+  @Override
+  CompletableFuture<PlcUnsubscriptionResponse> execute();
+
+  interface Builder extends PlcRequestBuilder {
+
     @Override
-    CompletableFuture<PlcUnsubscriptionResponse> execute();
+    PlcUnsubscriptionRequest build();
 
-    interface Builder extends PlcRequestBuilder {
+    /**
+     * TODO document me:
+     *
+     * @param plcSubscriptionHandle
+     * @return
+     */
+    PlcUnsubscriptionRequest.Builder addHandles(PlcSubscriptionHandle plcSubscriptionHandle);
 
-        @Override
-        PlcUnsubscriptionRequest build();
+    PlcUnsubscriptionRequest.Builder addHandles(
+        PlcSubscriptionHandle plcSubscriptionHandle1,
+        PlcSubscriptionHandle... plcSubscriptionHandles);
 
-        /**
-         * TODO document me:
-         *
-         * @param plcSubscriptionHandle
-         * @return
-         */
-        PlcUnsubscriptionRequest.Builder addHandles(PlcSubscriptionHandle plcSubscriptionHandle);
-
-        PlcUnsubscriptionRequest.Builder addHandles(PlcSubscriptionHandle plcSubscriptionHandle1,
-                PlcSubscriptionHandle... plcSubscriptionHandles);
-
-        PlcUnsubscriptionRequest.Builder addHandles(Collection<PlcSubscriptionHandle> plcSubscriptionHandle);
-    }
-
+    PlcUnsubscriptionRequest.Builder addHandles(
+        Collection<PlcSubscriptionHandle> plcSubscriptionHandle);
+  }
 }

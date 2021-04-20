@@ -20,65 +20,70 @@ import io.netty.buffer.ByteBuf;
  */
 public class CIPWriteDataProtocol extends ProtocolAdapter {
 
-    private final CIPData data;
-    private final int dataOffset;
-    private final short writeCount;
-    private int start;
+  private final CIPData data;
+  private final int dataOffset;
+  private final short writeCount;
+  private final int start;
 
-    public long getDataOffset() {
-        return dataOffset;
+  public CIPWriteDataProtocol(final CIPData data) {
+    this(data, (short) 0, 0, 0);
+  }
+
+  public CIPWriteDataProtocol(
+      final CIPData data, short writeCount, int start, final int dataOffset) {
+    this.data = data;
+    this.dataOffset = dataOffset;
+    this.writeCount = writeCount;
+    this.start = start;
+  }
+
+  public long getDataOffset() {
+    return dataOffset;
+  }
+
+  @Override
+  public void encode(final ByteBuf buf) {
+    int witeCountNum = writeCount;
+    if (witeCountNum <= 0) {
+      witeCountNum = this.data.getElementCount();
     }
+    buf.writeShortLE(this.data.getType().getCode());
+    // STRUCT already contains structure detail, elements etc.
+    // For other types, add the element count
+    this.data.getData().clear();
+    if (this.data.getType() == Type.STRUCT) {
 
-    public CIPWriteDataProtocol(final CIPData data) {
-        this(data, (short) 0, 0, 0);
+      final short struct_detail = this.data.getData().getShort();
+      if (struct_detail != Type.STRUCT_STRING.getCode()) {
+        throw new CodedcException(
+            "Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
+      }
+      // The data buffer contains the string as _read_:
+      // STRUCT, STRUCT_STRING, length, chars.
+      // It needs to be written as
+      // STRUCT, STRUCT_STRING, _elements_, length, chars.
+      buf.writeShortLE(struct_detail);
+
+      buf.writeShortLE((short) (this.data.getElementCount() + start));
+      if (dataOffset > 0) {
+        buf.writeIntLE(dataOffset);
+      }
+      // Copy length, chars from data into buf
+      int length = this.data.getData().remaining();
+      int offset = data.getData().limit() + 84 - (length > 84 ? 84 : length);
+      data.getData().limit(offset);
+      buf.writeBytes(this.data.getData());
+    } else {
+      int vSize = this.data.getType().getElementSize();
+      buf.writeShortLE((short) (this.data.getElementCount() + start));
+      if (dataOffset > 0) {
+        buf.writeIntLE(dataOffset);
+      }
+
+      int position = dataOffset - start * vSize;
+      int length = vSize * witeCountNum;
+
+      buf.writeBytes(this.data.getData().array(), position, length);
     }
-
-    public CIPWriteDataProtocol(final CIPData data, short writeCount, int start, final int dataOffset) {
-        this.data = data;
-        this.dataOffset = dataOffset;
-        this.writeCount = writeCount;
-        this.start = start;
-    }
-
-    @Override
-    public void encode(final ByteBuf buf) {
-        int witeCountNum = writeCount;
-        if (witeCountNum <= 0)
-            witeCountNum = this.data.getElementCount();
-        buf.writeShortLE(this.data.getType().getCode());
-        // STRUCT already contains structure detail, elements etc.
-        // For other types, add the element count
-        this.data.getData().clear();
-        if (this.data.getType() == Type.STRUCT) {
-
-            final short struct_detail = this.data.getData().getShort();
-            if (struct_detail != Type.STRUCT_STRING.getCode()) {
-                throw new CodedcException("Can only encode STRUCT_STRING, got 0x" + Integer.toHexString(struct_detail));
-            }
-            // The data buffer contains the string as _read_:
-            // STRUCT, STRUCT_STRING, length, chars.
-            // It needs to be written as
-            // STRUCT, STRUCT_STRING, _elements_, length, chars.
-            buf.writeShortLE(struct_detail);
-
-            buf.writeShortLE((short) (this.data.getElementCount() + start));
-            if (dataOffset > 0)
-                buf.writeIntLE(dataOffset);
-            // Copy length, chars from data into buf
-            int length = this.data.getData().remaining();
-            int offset = data.getData().limit() + 84 - (length > 84 ? 84 : length);
-            data.getData().limit(offset);
-            buf.writeBytes(this.data.getData());
-        } else {
-            int vSize = this.data.getType().getElementSize();
-            buf.writeShortLE((short) (this.data.getElementCount() + start));
-            if (dataOffset > 0)
-                buf.writeIntLE(dataOffset);
-
-            int position = dataOffset - start * vSize;
-            int length = vSize * witeCountNum;
-
-            buf.writeBytes(this.data.getData().array(), position, length);
-        }
-    }
+  }
 }

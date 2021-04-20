@@ -24,48 +24,46 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * (Values determined by evaluating generated ".pcap" files)
- */
+/** (Values determined by evaluating generated ".pcap" files) */
 public enum ParameterType {
-    CPU_SERVICES((byte) 0x00),
-    READ_VAR((byte) 0x04),
-    WRITE_VAR((byte) 0x05),
-    REQUEST_DOWNLOAD((byte) 0x1A),
-    DOWNLOAD_BLOCK((byte) 0x1B),
-    DOWNLOAD_ENDED((byte) 0x1C),
-    START_UPLOAD((byte) 0x1D),
-    UPLOAD((byte) 0x1E),
-    END_UPLOAD((byte) 0x1F),
-    PI_SERVICE((byte) 0x28),
-    PLC_STOP((byte) 0x29),
-    SETUP_COMMUNICATION((byte) 0xF0);
+  CPU_SERVICES((byte) 0x00),
+  READ_VAR((byte) 0x04),
+  WRITE_VAR((byte) 0x05),
+  REQUEST_DOWNLOAD((byte) 0x1A),
+  DOWNLOAD_BLOCK((byte) 0x1B),
+  DOWNLOAD_ENDED((byte) 0x1C),
+  START_UPLOAD((byte) 0x1D),
+  UPLOAD((byte) 0x1E),
+  END_UPLOAD((byte) 0x1F),
+  PI_SERVICE((byte) 0x28),
+  PLC_STOP((byte) 0x29),
+  SETUP_COMMUNICATION((byte) 0xF0);
 
-    private static final Logger logger = LoggerFactory.getLogger(ParameterType.class);
+  private static final Logger logger = LoggerFactory.getLogger(ParameterType.class);
 
-    private static final Map<Byte, ParameterType> map;
-    static {
-        map = new HashMap<>();
-        for (ParameterType parameterType : ParameterType.values()) {
-            map.put(parameterType.code, parameterType);
-        }
+  private static final Map<Byte, ParameterType> map;
+
+  static {
+    map = new HashMap<>();
+    for (ParameterType parameterType : ParameterType.values()) {
+      map.put(parameterType.code, parameterType);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    ParameterType(byte code) {
-        this.code = code;
+  ParameterType(byte code) {
+    this.code = code;
+  }
+
+  public static ParameterType valueOf(byte code) {
+    if (!map.containsKey(code)) {
+      logger.error("ParameterType for code {} not found", code);
     }
+    return map.get(code);
+  }
 
-    public byte getCode() {
-        return code;
-    }
-
-    public static ParameterType valueOf(byte code) {
-        if(!map.containsKey(code)) {
-            logger.error("ParameterType for code {} not found", code);
-        }
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

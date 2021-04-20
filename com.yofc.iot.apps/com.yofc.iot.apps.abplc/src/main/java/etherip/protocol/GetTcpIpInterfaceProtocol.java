@@ -7,15 +7,14 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import etherip.data.TcpIpInterface;
 import etherip.types.CNClassPath;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * TCP/IP Interface Object
@@ -25,57 +24,59 @@ import io.netty.buffer.ByteBuf;
  */
 public class GetTcpIpInterfaceProtocol extends ProtocolAdapter {
 
-    private TcpIpInterface tcpIpnterface;
+  public static final Logger log = LoggerFactory.getLogger(GetTcpIpInterfaceProtocol.class);
+  private TcpIpInterface tcpIpnterface;
 
-    public static final Logger log = LoggerFactory.getLogger(GetTcpIpInterfaceProtocol.class);
+  @Override
+  public void decode(final ByteBuf buf) {
+    this.tcpIpnterface = new TcpIpInterface();
+    short hostNameLength;
+    byte[] raw;
 
-    @Override
-    public void decode(final ByteBuf buf) {
-        this.tcpIpnterface = new TcpIpInterface();
-        short hostNameLength;
-        byte[] raw;
+    raw = new byte[4];
+    buf.readBytes(raw);
+    this.tcpIpnterface.setStatus(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
+    // available -= 4;
 
-        raw = new byte[4];
-        buf.readBytes(raw);
-        this.tcpIpnterface.setStatus(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
-        // available -= 4;
+    buf.readBytes(raw);
+    this.tcpIpnterface.setConfigurationCapability(
+        ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
+    // available -= 4;
 
-        buf.readBytes(raw);
-        this.tcpIpnterface.setConfigurationCapability(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
-        // available -= 4;
+    buf.readBytes(raw);
+    this.tcpIpnterface.setConfigurationControl(
+        ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
+    // available -= 4;
 
-        buf.readBytes(raw);
-        this.tcpIpnterface.setConfigurationControl(ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getInt());
-        // available -= 4;
+    final CNClassPath physicalLinkObject = new CNClassPath();
+    physicalLinkObject.decode(buf);
+    this.tcpIpnterface.setPhysicalLinkObject(physicalLinkObject);
+    // available -= this.tcpIpnterface.getPhysicalLinkObject().getResponseSize(buf);
 
-        final CNClassPath physicalLinkObject = new CNClassPath();
-        physicalLinkObject.decode(buf);
-        this.tcpIpnterface.setPhysicalLinkObject(physicalLinkObject);
-        // available -= this.tcpIpnterface.getPhysicalLinkObject().getResponseSize(buf);
+    final GetInterfaceConfigurationProtocol getInterfaceConfigurationProtocol =
+        new GetInterfaceConfigurationProtocol();
+    getInterfaceConfigurationProtocol.decode(buf);
+    this.tcpIpnterface.setInterfaceConfiguration(getInterfaceConfigurationProtocol.getValue());
+    // available -= getInterfaceConfigurationProtocol.getResponseSize(buf);
 
-        final GetInterfaceConfigurationProtocol getInterfaceConfigurationProtocol = new GetInterfaceConfigurationProtocol();
-        getInterfaceConfigurationProtocol.decode(buf);
-        this.tcpIpnterface.setInterfaceConfiguration(getInterfaceConfigurationProtocol.getValue());
-        // available -= getInterfaceConfigurationProtocol.getResponseSize(buf);
+    raw = new byte[2];
+    buf.readBytes(raw);
+    hostNameLength = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();
+    raw = new byte[hostNameLength];
+    buf.readBytes(raw);
+    this.tcpIpnterface.setHostName(new String(raw));
 
-        raw = new byte[2];
-        buf.readBytes(raw);
-        hostNameLength = ByteBuffer.wrap(raw).order(ByteOrder.LITTLE_ENDIAN).getShort();
-        raw = new byte[hostNameLength];
-        buf.readBytes(raw);
-        this.tcpIpnterface.setHostName(new String(raw));
+    log.info("TcpIpInterface value      : {}", this.tcpIpnterface);
 
-        log.info("TcpIpInterface value      : {}", this.tcpIpnterface);
+    // Skip remaining bytes
+    // final int rest = available - 1 - 2 - hostNameLength;
+    // if (rest > 0) {
+    // buf.position(buf.position() + rest);
+    // }
+  }
 
-        // Skip remaining bytes
-        // final int rest = available - 1 - 2 - hostNameLength;
-        // if (rest > 0) {
-        // buf.position(buf.position() + rest);
-        // }
-    }
-
-    /** @return Value read from response */
-    public final TcpIpInterface getValue() {
-        return this.tcpIpnterface;
-    }
+  /** @return Value read from response */
+  public final TcpIpInterface getValue() {
+    return this.tcpIpnterface;
+  }
 }

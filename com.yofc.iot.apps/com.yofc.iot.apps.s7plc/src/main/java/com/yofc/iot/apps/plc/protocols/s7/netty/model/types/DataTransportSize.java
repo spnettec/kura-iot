@@ -21,44 +21,42 @@ package com.yofc.iot.apps.plc.protocols.s7.netty.model.types;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * (Values determined by evaluating generated ".pcap" files)
- */
+/** (Values determined by evaluating generated ".pcap" files) */
 public enum DataTransportSize {
-    NULL((byte) 0x00, false),
-    BIT((byte) 0x03, true),
-    BYTE_WORD_DWORD((byte) 0x04, true),
-    INTEGER((byte) 0x05, true),
-    DINTEGER((byte) 0x06, false),
-    REAL((byte) 0x07, false),
-    OCTET_STRING((byte) 0x09, false);
+  NULL((byte) 0x00, false),
+  BIT((byte) 0x03, true),
+  BYTE_WORD_DWORD((byte) 0x04, true),
+  INTEGER((byte) 0x05, true),
+  DINTEGER((byte) 0x06, false),
+  REAL((byte) 0x07, false),
+  OCTET_STRING((byte) 0x09, false);
 
-    private static final Map<Byte, DataTransportSize> map;
-    static {
-        map = new HashMap<>();
-        for (DataTransportSize dataTransportSize : DataTransportSize.values()) {
-            map.put(dataTransportSize.code, dataTransportSize);
-        }
+  private static final Map<Byte, DataTransportSize> map;
+
+  static {
+    map = new HashMap<>();
+    for (DataTransportSize dataTransportSize : DataTransportSize.values()) {
+      map.put(dataTransportSize.code, dataTransportSize);
     }
+  }
 
-    private final byte code;
-    private final boolean sizeInBits;
+  private final byte code;
+  private final boolean sizeInBits;
 
-    DataTransportSize(byte code, boolean sizeInBits) {
-        this.code = code;
-        this.sizeInBits = sizeInBits;
-    }
+  DataTransportSize(byte code, boolean sizeInBits) {
+    this.code = code;
+    this.sizeInBits = sizeInBits;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static DataTransportSize valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public boolean isSizeInBits() {
-        return sizeInBits;
-    }
+  public byte getCode() {
+    return code;
+  }
 
-    public static DataTransportSize valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public boolean isSizeInBits() {
+    return sizeInBits;
+  }
 }

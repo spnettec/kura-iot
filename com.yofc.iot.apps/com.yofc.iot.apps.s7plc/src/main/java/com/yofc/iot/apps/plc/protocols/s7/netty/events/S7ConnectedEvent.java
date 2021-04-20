@@ -18,5 +18,4 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.events;
 
-public class S7ConnectedEvent {
-}
+public class S7ConnectedEvent {}

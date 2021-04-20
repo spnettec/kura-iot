@@ -22,121 +22,115 @@ import io.netty.util.ReferenceCountUtil;
  */
 public class MessageRouterProtocol extends ProtocolAdapter {
 
-    private final CNService service;
+  protected final Protocol body;
+  private final CNService service;
+  private final CNPath path;
+  private int status = 0;
 
-    private final CNPath path;
+  private int[] extStatus = new int[0];
 
-    protected final Protocol body;
+  private boolean partialTransfert = false;
 
-    private int status = 0;
+  private int payLoad;
 
-    private int[] extStatus = new int[0];
+  /**
+   * Initialize
+   *
+   * @param service Service for request
+   * @param path Path for request
+   * @param body Protocol embedded in the message request/response
+   */
+  public MessageRouterProtocol(final CNService service, final CNPath path, final Protocol body) {
+    this.service = service;
+    this.path = path;
+    this.body = body;
+  }
 
-    private boolean partialTransfert = false;
+  public int getPayLoad() {
+    return payLoad;
+  }
 
-    private int payLoad;
+  /** {@inheritDoc} */
+  // @Override
+  public int getRequestSize() {
+    ByteBuf buf = Unpooled.buffer(600);
+    try {
+      this.encode(buf);
+      return buf.writerIndex();
+    } finally {
+      ReferenceCountUtil.release(buf);
+    }
+  }
 
-    public int getPayLoad() {
-        return payLoad;
+  /**
+   * {@inheritDoc}
+   *
+   * @throws Exception
+   */
+  @Override
+  public void encode(final ByteBuf buf) {
+    buf.writeByte(this.service.getCode());
+    this.path.encode(buf);
+
+    this.body.encode(buf);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void decode(final ByteBuf buf) {
+    int available = buf.readableBytes();
+    final byte service_code = buf.readByte();
+    final CNService reply = CNService.forCode(service_code);
+    if (reply == null) {
+      throw new CodedcException(
+          "Received reply with unknown service code 0x" + Integer.toHexString(service_code));
+    }
+    if (!reply.isReply()) {
+      throw new CodedcException("Expected reply, got " + reply);
+    }
+    // int reserved
+    buf.readByte();
+    this.status = buf.readByte();
+    final int ext_status_size = buf.readByte();
+    this.extStatus = new int[ext_status_size];
+    for (int i = 0; i < ext_status_size; ++i) {
+      this.extStatus[i] = buf.readShortLE();
     }
 
-    /**
-     * Initialize
-     *
-     * @param service
-     *            Service for request
-     * @param path
-     *            Path for request
-     * @param body
-     *            Protocol embedded in the message request/response
-     */
-    public MessageRouterProtocol(final CNService service, final CNPath path, final Protocol body) {
-        this.service = service;
-        this.path = path;
-        this.body = body;
-    }
+    // Followed by data...
 
-    /** {@inheritDoc} */
-    // @Override
-    public int getRequestSize() {
-        ByteBuf buf = Unpooled.buffer(600);
-        try {
-            this.encode(buf);
-            return buf.writerIndex();
-        } finally {
-            ReferenceCountUtil.release(buf);
+    final CNService expected_reply = this.service.getReply();
+    if (this.status != 0) {
+      if (this.status == 6) { // Not an error, we need to ask for remaining
+        this.partialTransfert = true;
+      } else {
+        if (ext_status_size > 0) {
+          throw new CipException(this.status, this.extStatus[0]);
+        } else {
+          throw new CipException(this.status, 0);
         }
+      }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws Exception
-     */
-    @Override
-    public void encode(final ByteBuf buf) {
-        buf.writeByte(this.service.getCode());
-        this.path.encode(buf);
-
-        this.body.encode(buf);
+    if (expected_reply != null && expected_reply != reply) {
+      throw new CodedcException("Expected " + expected_reply + ", got " + reply);
     }
+    int bodySize = available - 4 - 2 * ext_status_size;
+    this.payLoad = bodySize - 2;
+    this.body.decode(buf);
+  }
 
-    /** {@inheritDoc} */
-    @Override
-    public void decode(final ByteBuf buf) {
-        int available = buf.readableBytes();
-        final byte service_code = buf.readByte();
-        final CNService reply = CNService.forCode(service_code);
-        if (reply == null) {
-            throw new CodedcException(
-                    "Received reply with unknown service code 0x" + Integer.toHexString(service_code));
-        }
-        if (!reply.isReply()) {
-            throw new CodedcException("Expected reply, got " + reply);
-        }
-        // int reserved
-        buf.readByte();
-        this.status = buf.readByte();
-        final int ext_status_size = buf.readByte();
-        this.extStatus = new int[ext_status_size];
-        for (int i = 0; i < ext_status_size; ++i) {
-            this.extStatus[i] = buf.readShortLE();
-        }
+  public boolean isPartialTransfert() {
+    return partialTransfert;
+  }
 
-        // Followed by data...
+  /** @return Status code of response */
+  public int getStatus() {
+    return this.status;
+  }
 
-        final CNService expected_reply = this.service.getReply();
-        if (this.status != 0) {
-            if (this.status == 6) { // Not an error, we need to ask for remaining
-                this.partialTransfert = true;
-            } else {
-                if (ext_status_size > 0) {
-                    throw new CipException(this.status, this.extStatus[0]);
-                } else {
-                    throw new CipException(this.status, 0);
-                }
-            }
-        }
-
-        if (expected_reply != null && expected_reply != reply) {
-            throw new CodedcException("Expected " + expected_reply + ", got " + reply);
-        }
-        int bodySize = available - 4 - 2 * ext_status_size;
-        this.payLoad = bodySize - 2;
-        this.body.decode(buf);
-    }
-
-    public boolean isPartialTransfert() {
-        return partialTransfert;
-    }
-
-    /** @return Status code of response */
-    public int getStatus() {
-        return this.status;
-    }
-
-    /** @return Extended status codes of response */
-    public int[] getExtendedStatus() {
-        return this.extStatus;
-    }
+  /** @return Extended status codes of response */
+  public int[] getExtendedStatus() {
+    return this.extStatus;
+  }
 }

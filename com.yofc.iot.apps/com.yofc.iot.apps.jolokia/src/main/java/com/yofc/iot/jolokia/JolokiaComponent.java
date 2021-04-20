@@ -16,8 +16,7 @@
 
 package com.yofc.iot.jolokia;
 
-import java.util.Hashtable;
-
+import com.yofc.iot.jolokia.JolokiaComponent.Config;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -27,12 +26,7 @@ import org.jolokia.osgi.security.BasicAuthenticator;
 import org.jolokia.osgi.servlet.JolokiaServlet;
 import org.jolokia.util.NetworkUtil;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.*;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
@@ -40,115 +34,120 @@ import org.osgi.service.metatype.annotations.AttributeType;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
-import com.yofc.iot.jolokia.JolokiaComponent.Config;
+import java.util.Hashtable;
 
 @Designate(ocd = Config.class)
 @Component(immediate = true, configurationPolicy = ConfigurationPolicy.REQUIRE)
 public class JolokiaComponent implements ConfigurableComponent {
 
-    private static final String REALM = "jolokia";
-    private static final String ALIAS = "/jolokia";
+  private static final String REALM = "jolokia";
+  private static final String ALIAS = "/jolokia";
 
-    private HttpService httpService;
-    private CryptoService cryptoService;
+  private HttpService httpService;
+  private CryptoService cryptoService;
+  private JolokiaServlet servlet;
 
-    @Reference
-    public void setHttpService(HttpService httpService) {
-        this.httpService = httpService;
+  @Reference
+  public void setHttpService(HttpService httpService) {
+    this.httpService = httpService;
+  }
+
+  @Reference
+  public void setCryptoService(CryptoService cryptoService) {
+    this.cryptoService = cryptoService;
+  }
+
+  private boolean isEnabled(final Config config) {
+
+    if (!config.enabled()) {
+      return false;
     }
 
-    @Reference
-    public void setCryptoService(CryptoService cryptoService) {
-        this.cryptoService = cryptoService;
+    if (config.user() == null || config.user().isEmpty()) {
+      return false;
     }
 
-    private JolokiaServlet servlet;
-
-    private boolean isEnabled(final Config config) {
-
-        if (!config.enabled()) {
-            return false;
-        }
-
-        if (config.user() == null || config.user().isEmpty()) {
-            return false;
-        }
-
-        final String password = decodePassword(config);
-        if (password == null || password.isEmpty()) {
-            return true;
-        }
-
-        return true;
+    final String password = decodePassword(config);
+    if (password == null || password.isEmpty()) {
+      return true;
     }
 
-    private void startServlet(final Config config, final BundleContext context) throws Exception {
+    return true;
+  }
 
-        if (!isEnabled(config)) {
-            return;
-        }
+  private void startServlet(final Config config, final BundleContext context) throws Exception {
 
-        final Hashtable<String, Object> initparams = new Hashtable<>();
-        initparams.put(ConfigKey.AGENT_ID.getKeyValue(), NetworkUtil.getAgentId(hashCode(), "kura"));
-
-        this.servlet = new JolokiaServlet(context);
-        this.httpService.registerServlet(ALIAS, this.servlet, initparams, createHttpContext(config));
-
+    if (!isEnabled(config)) {
+      return;
     }
 
-    private String decodePassword(final Config config) {
-        final String password = config.password();
-        if (password == null || password.isEmpty()) {
-            return null;
-        }
-        try {
-            return String.valueOf(this.cryptoService.decryptAes(config.password().toCharArray()));
-        } catch (final KuraException e) {
-            throw new RuntimeException("Failed to decode password", e);
-        }
+    final Hashtable<String, Object> initparams = new Hashtable<>();
+    initparams.put(ConfigKey.AGENT_ID.getKeyValue(), NetworkUtil.getAgentId(hashCode(), "kura"));
+
+    this.servlet = new JolokiaServlet(context);
+    this.httpService.registerServlet(ALIAS, this.servlet, initparams, createHttpContext(config));
+  }
+
+  private String decodePassword(final Config config) {
+    final String password = config.password();
+    if (password == null || password.isEmpty()) {
+      return null;
     }
-
-    private HttpContext createHttpContext(final Config config) throws Exception {
-        final BasicAuthenticator authenticator = new BasicAuthenticator(config.user(), decodePassword(config));
-        return new BasicAuthenticationHttpContext(REALM, authenticator);
+    try {
+      return String.valueOf(this.cryptoService.decryptAes(config.password().toCharArray()));
+    } catch (final KuraException e) {
+      throw new RuntimeException("Failed to decode password", e);
     }
+  }
 
-    private void stopServlet() {
+  private HttpContext createHttpContext(final Config config) throws Exception {
+    final BasicAuthenticator authenticator =
+        new BasicAuthenticator(config.user(), decodePassword(config));
+    return new BasicAuthenticationHttpContext(REALM, authenticator);
+  }
 
-        if (this.servlet != null) {
-            this.httpService.unregister(ALIAS);
-            this.servlet = null;
-        }
+  private void stopServlet() {
 
+    if (this.servlet != null) {
+      this.httpService.unregister(ALIAS);
+      this.servlet = null;
     }
+  }
 
-    @Activate
-    protected void activate(final Config config, final BundleContext context) throws Exception {
-        startServlet(config, context);
-    }
+  @Activate
+  protected void activate(final Config config, final BundleContext context) throws Exception {
+    startServlet(config, context);
+  }
 
-    @Modified
-    protected void modified(final Config config, final BundleContext context) throws Exception {
-        stopServlet();
-        startServlet(config, context);
-    }
+  @Modified
+  protected void modified(final Config config, final BundleContext context) throws Exception {
+    stopServlet();
+    startServlet(config, context);
+  }
 
-    @Deactivate
-    protected void deactivate() {
-    }
+  @Deactivate
+  protected void deactivate() {}
 
-    @ObjectClassDefinition(id = "com.yofc.iot.jolokia.JolokiaComponent", name = "Jolokia API", description = "The Jolokia API")
-    @interface Config {
+  @ObjectClassDefinition(
+      id = "com.yofc.iot.jolokia.JolokiaComponent",
+      name = "Jolokia API",
+      description = "The Jolokia API")
+  @interface Config {
 
-        @AttributeDefinition(name = "Enable", required = true, description = "Enables the Jolokia API.")
-        public boolean enabled() default true;
+    @AttributeDefinition(name = "Enable", required = true, description = "Enables the Jolokia API.")
+    boolean enabled() default true;
 
-        @AttributeDefinition(name = "Username", required = true, description = "The username used for authenticating clients.")
-        public String user() default "jolokia";
+    @AttributeDefinition(
+        name = "Username",
+        required = true,
+        description = "The username used for authenticating clients.")
+    String user() default "jolokia";
 
-        @AttributeDefinition(name = "Password", required = true, description = "The password used for authenticating clients.", type = AttributeType.PASSWORD)
-        public String password();
-
-    }
-
+    @AttributeDefinition(
+        name = "Password",
+        required = true,
+        description = "The password used for authenticating clients.",
+        type = AttributeType.PASSWORD)
+    String password();
+  }
 }

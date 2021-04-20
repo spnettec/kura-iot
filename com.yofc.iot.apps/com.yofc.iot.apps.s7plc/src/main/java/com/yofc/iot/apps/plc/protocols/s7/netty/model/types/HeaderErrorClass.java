@@ -22,34 +22,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum HeaderErrorClass {
-    NO_ERROR((byte) 0x00),
-    APPLICATION_RELATIONSHIP_ERROR((byte) 0x81),
-    OBJECT_DEFINITION_ERROR((byte) 0x82),
-    NO_RESSOURCES_AVAILABLE_ERROR((byte) 0x83),
-    ERROR_ON_SERVICE_PROCESSING((byte) 0x84),
-    ERROR_ON_SUPPLIES((byte) 0x85),
-    ACCESS_ERROR((byte) 0x87);
+  NO_ERROR((byte) 0x00),
+  APPLICATION_RELATIONSHIP_ERROR((byte) 0x81),
+  OBJECT_DEFINITION_ERROR((byte) 0x82),
+  NO_RESSOURCES_AVAILABLE_ERROR((byte) 0x83),
+  ERROR_ON_SERVICE_PROCESSING((byte) 0x84),
+  ERROR_ON_SUPPLIES((byte) 0x85),
+  ACCESS_ERROR((byte) 0x87);
 
-    private static final Map<Byte, HeaderErrorClass> map;
-    static {
-        map = new HashMap<>();
-        for (HeaderErrorClass headerErrorClass : HeaderErrorClass.values()) {
-            map.put(headerErrorClass.code, headerErrorClass);
-        }
+  private static final Map<Byte, HeaderErrorClass> map;
+
+  static {
+    map = new HashMap<>();
+    for (HeaderErrorClass headerErrorClass : HeaderErrorClass.values()) {
+      map.put(headerErrorClass.code, headerErrorClass);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    HeaderErrorClass(byte code) {
-        this.code = code;
-    }
+  HeaderErrorClass(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static HeaderErrorClass valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static HeaderErrorClass valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

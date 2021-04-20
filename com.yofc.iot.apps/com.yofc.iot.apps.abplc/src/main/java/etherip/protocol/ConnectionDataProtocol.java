@@ -7,10 +7,10 @@
  *******************************************************************************/
 package etherip.protocol;
 
-import static etherip.types.CNPath.ConnectionManager;
-
 import etherip.types.CNService;
 import io.netty.buffer.ByteBuf;
+
+import static etherip.types.CNPath.ConnectionManager;
 
 /**
  * @see CIP_Vol1_3.3: 3-5.5.5: Get_Connection_Data Service
@@ -18,32 +18,33 @@ import io.netty.buffer.ByteBuf;
  */
 public class ConnectionDataProtocol extends ProtocolAdapter {
 
-    private final ProtocolEncoder encoder;
+  private final ProtocolEncoder encoder;
 
-    private final Protocol body;
+  private final Protocol body;
 
-    public ConnectionDataProtocol(final Protocol body) {
-        this.encoder = new MessageRouterProtocol(CNService.Get_Connection_Data, ConnectionManager(),
-                new ProtocolAdapter());
-        this.body = body;
-    }
+  public ConnectionDataProtocol(final Protocol body) {
+    this.encoder =
+        new MessageRouterProtocol(
+            CNService.Get_Connection_Data, ConnectionManager(), new ProtocolAdapter());
+    this.body = body;
+  }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws Exception
-     */
-    @Override
-    public void encode(final ByteBuf buf) {
-        this.encoder.encode(buf);
+  /**
+   * {@inheritDoc}
+   *
+   * @throws Exception
+   */
+  @Override
+  public void encode(final ByteBuf buf) {
+    this.encoder.encode(buf);
 
-        final short connectionNumber = (short) 1;
-        buf.writeShortLE(connectionNumber);
-    }
+    final short connectionNumber = (short) 1;
+    buf.writeShortLE(connectionNumber);
+  }
 
-    /** {@inheritDoc} */
-    @Override
-    public void decode(final ByteBuf buf) {
-        this.body.decode(buf);
-    }
+  /** {@inheritDoc} */
+  @Override
+  public void decode(final ByteBuf buf) {
+    this.body.decode(buf);
+  }
 }

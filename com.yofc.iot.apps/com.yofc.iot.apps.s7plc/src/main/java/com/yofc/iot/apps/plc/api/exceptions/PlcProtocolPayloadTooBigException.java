@@ -20,38 +20,42 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcProtocolPayloadTooBigException extends PlcProtocolException {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1501999937686550994L;
-    private String protocolName;
-    private int maxSize;
-    private int actualSize;
-    private transient Object payload;
+  /** */
+  private static final long serialVersionUID = 1501999937686550994L;
 
-    public PlcProtocolPayloadTooBigException(String protocolName, int maxSize, int actualSize, Object payload) {
-        super("Payload for protocol '" + protocolName + "' with size " + actualSize + " exceeded allowed maximum of "
-                + maxSize);
-        this.protocolName = protocolName;
-        this.maxSize = maxSize;
-        this.actualSize = actualSize;
-        this.payload = payload;
-    }
+  private final String protocolName;
+  private final int maxSize;
+  private final int actualSize;
+  private final transient Object payload;
 
-    public String getProtocolName() {
-        return protocolName;
-    }
+  public PlcProtocolPayloadTooBigException(
+      String protocolName, int maxSize, int actualSize, Object payload) {
+    super(
+        "Payload for protocol '"
+            + protocolName
+            + "' with size "
+            + actualSize
+            + " exceeded allowed maximum of "
+            + maxSize);
+    this.protocolName = protocolName;
+    this.maxSize = maxSize;
+    this.actualSize = actualSize;
+    this.payload = payload;
+  }
 
-    public int getMaxSize() {
-        return maxSize;
-    }
+  public String getProtocolName() {
+    return protocolName;
+  }
 
-    public int getActualSize() {
-        return actualSize;
-    }
+  public int getMaxSize() {
+    return maxSize;
+  }
 
-    public Object getPayload() {
-        return payload;
-    }
+  public int getActualSize() {
+    return actualSize;
+  }
 
+  public Object getPayload() {
+    return payload;
+  }
 }

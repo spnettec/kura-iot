@@ -33,10 +33,10 @@ class ProxyResponseImpl implements ProxyResponse {
 
   private final ProxyRequestImpl request;
   private final HttpServerResponse outboundResponse;
+  private final MultiMap headers;
   private int statusCode;
   private String statusMessage;
   private Body body;
-  private final MultiMap headers;
   private HttpClientResponse inboundResponse;
   private long maxAge;
   private String etag;
@@ -51,7 +51,10 @@ class ProxyResponseImpl implements ProxyResponse {
     this.outboundResponse = outboundResponse;
   }
 
-  ProxyResponseImpl(ProxyRequestImpl request, HttpServerResponse outboundResponse, HttpClientResponse inboundResponse) {
+  ProxyResponseImpl(
+      ProxyRequestImpl request,
+      HttpServerResponse outboundResponse,
+      HttpClientResponse inboundResponse) {
 
     // Determine content length
     long contentLength = -1L;
@@ -79,12 +82,14 @@ class ProxyResponseImpl implements ProxyResponse {
       if (cacheControl.isPublic()) {
         publicCacheControl = true;
         if (cacheControl.maxAge() > 0) {
-          maxAge = (long)cacheControl.maxAge() * 1000;
+          maxAge = (long) cacheControl.maxAge() * 1000;
         } else {
           String dateHeader = inboundResponse.getHeader(HttpHeaders.DATE);
           String expiresHeader = inboundResponse.getHeader(HttpHeaders.EXPIRES);
           if (dateHeader != null && expiresHeader != null) {
-            maxAge = ParseUtils.parseHeaderDate(expiresHeader).getTime() - ParseUtils.parseHeaderDate(dateHeader).getTime();
+            maxAge =
+                ParseUtils.parseHeaderDate(expiresHeader).getTime()
+                    - ParseUtils.parseHeaderDate(dateHeader).getTime();
           }
         }
       }
@@ -170,7 +175,7 @@ class ProxyResponseImpl implements ProxyResponse {
     // Set stuff
     outboundResponse.setStatusCode(statusCode);
 
-    if(statusMessage != null) {
+    if (statusMessage != null) {
       outboundResponse.setStatusMessage(statusMessage);
     }
 
@@ -204,15 +209,18 @@ class ProxyResponseImpl implements ProxyResponse {
     outboundResponse.putHeader("warning", warningHeaders);
 
     // Handle other headers
-    headers.forEach(header -> {
-      String name = header.getKey();
-      String value = header.getValue();
-      if (name.equalsIgnoreCase("date") || name.equalsIgnoreCase("warning") || name.equalsIgnoreCase("transfer-encoding")) {
-        // Skip
-      } else {
-        outboundResponse.headers().add(name, value);
-      }
-    });
+    headers.forEach(
+        header -> {
+          String name = header.getKey();
+          String value = header.getValue();
+          if ("date".equalsIgnoreCase(name)
+              || "warning".equalsIgnoreCase(name)
+              || "transfer-encoding".equalsIgnoreCase(name)) {
+            // Skip
+          } else {
+            outboundResponse.headers().add(name, value);
+          }
+        });
 
     //
     if (body == null) {
@@ -245,12 +253,14 @@ class ProxyResponseImpl implements ProxyResponse {
     Pipe<Buffer> pipe = body.pipe();
     pipe.endOnSuccess(true);
     pipe.endOnFailure(false);
-    pipe.to(outboundResponse, ar -> {
-      if (ar.failed()) {
-        request.inboundRequest.reset();
-        outboundResponse.reset();
-      }
-      completionHandler.handle(ar);
-    });
+    pipe.to(
+        outboundResponse,
+        ar -> {
+          if (ar.failed()) {
+            request.inboundRequest.reset();
+            outboundResponse.reset();
+          }
+          completionHandler.handle(ar);
+        });
   }
 }

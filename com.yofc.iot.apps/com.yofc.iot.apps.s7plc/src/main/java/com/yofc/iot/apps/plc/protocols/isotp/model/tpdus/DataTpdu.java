@@ -18,36 +18,38 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.base.messages.PlcProtocolMessage;
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
 
 public class DataTpdu extends Tpdu {
 
-    private final boolean eot;
-    private final byte tpduRef;
+  private final boolean eot;
+  private final byte tpduRef;
 
-    public DataTpdu(boolean eot, byte tpduRef, List<Parameter> parameters, ByteBuf userData) {
-        this(eot, tpduRef, parameters, userData, null);
-    }
+  public DataTpdu(boolean eot, byte tpduRef, List<Parameter> parameters, ByteBuf userData) {
+    this(eot, tpduRef, parameters, userData, null);
+  }
 
-    public DataTpdu(boolean eot, byte tpduRef, List<Parameter> parameters, ByteBuf userData,
-            PlcProtocolMessage parent) {
-        super(TpduCode.DATA, parameters, userData, parent);
-        this.eot = eot;
-        this.tpduRef = tpduRef;
-    }
+  public DataTpdu(
+      boolean eot,
+      byte tpduRef,
+      List<Parameter> parameters,
+      ByteBuf userData,
+      PlcProtocolMessage parent) {
+    super(TpduCode.DATA, parameters, userData, parent);
+    this.eot = eot;
+    this.tpduRef = tpduRef;
+  }
 
-    public boolean isEot() {
-        return eot;
-    }
+  public boolean isEot() {
+    return eot;
+  }
 
-    public byte getTpduRef() {
-        return tpduRef;
-    }
-
+  public byte getTpduRef() {
+    return tpduRef;
+  }
 }

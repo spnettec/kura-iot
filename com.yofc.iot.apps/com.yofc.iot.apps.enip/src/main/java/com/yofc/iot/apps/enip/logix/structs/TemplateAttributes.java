@@ -4,42 +4,49 @@ import java.io.Serializable;
 
 public final class TemplateAttributes implements Serializable {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-    private final int handle;
-    private final int memberCount;
-    private final int objectDefinitionSize;
-    private final int structureSize;
+  /** */
+  private static final long serialVersionUID = 1L;
 
-    public TemplateAttributes(int handle, int memberCount, int objectDefinitionSize, int structureSize) {
-        this.handle = handle;
-        this.memberCount = memberCount;
-        this.objectDefinitionSize = objectDefinitionSize;
-        this.structureSize = structureSize;
-    }
+  private final int handle;
+  private final int memberCount;
+  private final int objectDefinitionSize;
+  private final int structureSize;
 
-    public int getHandle() {
-        return handle;
-    }
+  public TemplateAttributes(
+      int handle, int memberCount, int objectDefinitionSize, int structureSize) {
+    this.handle = handle;
+    this.memberCount = memberCount;
+    this.objectDefinitionSize = objectDefinitionSize;
+    this.structureSize = structureSize;
+  }
 
-    public int getMemberCount() {
-        return memberCount;
-    }
+  public int getHandle() {
+    return handle;
+  }
 
-    public int getObjectDefinitionSize() {
-        return objectDefinitionSize;
-    }
+  public int getMemberCount() {
+    return memberCount;
+  }
 
-    public int getStructureSize() {
-        return structureSize;
-    }
+  public int getObjectDefinitionSize() {
+    return objectDefinitionSize;
+  }
 
-    @Override
-    public String toString() {
-        return "TemplateAttributes{" + "handle=" + handle + ", memberCount=" + memberCount + ", objectDefinitionSize="
-                + objectDefinitionSize + ", structureSize=" + structureSize + '}';
-    }
+  public int getStructureSize() {
+    return structureSize;
+  }
 
+  @Override
+  public String toString() {
+    return "TemplateAttributes{"
+        + "handle="
+        + handle
+        + ", memberCount="
+        + memberCount
+        + ", objectDefinitionSize="
+        + objectDefinitionSize
+        + ", structureSize="
+        + structureSize
+        + '}';
+  }
 }

@@ -22,31 +22,30 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterType;
 
 public class SetupCommunicationParameter implements S7Parameter {
 
-    private final short maxAmqCaller;
-    private final short maxAmqCallee;
-    private final short pduLength;
+  private final short maxAmqCaller;
+  private final short maxAmqCallee;
+  private final short pduLength;
 
-    public SetupCommunicationParameter(short maxAmqCaller, short maxAmqCallee, short pduLength) {
-        this.maxAmqCaller = maxAmqCaller;
-        this.maxAmqCallee = maxAmqCallee;
-        this.pduLength = pduLength;
-    }
+  public SetupCommunicationParameter(short maxAmqCaller, short maxAmqCallee, short pduLength) {
+    this.maxAmqCaller = maxAmqCaller;
+    this.maxAmqCallee = maxAmqCallee;
+    this.pduLength = pduLength;
+  }
 
-    @Override
-    public ParameterType getType() {
-        return ParameterType.SETUP_COMMUNICATION;
-    }
+  @Override
+  public ParameterType getType() {
+    return ParameterType.SETUP_COMMUNICATION;
+  }
 
-    public short getMaxAmqCaller() {
-        return maxAmqCaller;
-    }
+  public short getMaxAmqCaller() {
+    return maxAmqCaller;
+  }
 
-    public short getMaxAmqCallee() {
-        return maxAmqCallee;
-    }
+  public short getMaxAmqCallee() {
+    return maxAmqCallee;
+  }
 
-    public short getPduLength() {
-        return pduLength;
-    }
-
+  public short getPduLength() {
+    return pduLength;
+  }
 }

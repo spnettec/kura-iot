@@ -18,44 +18,44 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads.items.VarPayloadItem;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.ParameterType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Used for writes to S7 as part of a Valid {@link org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage}
- * together
- * with a suitable {@link org.apache.plc4x.java.s7.netty.model.params.VarParameter} Object.
- * Contains the values to write as {@link VarPayloadItem}s.
+ * Used for writes to S7 as part of a Valid {@link
+ * org.apache.plc4x.java.s7.netty.model.messages.S7RequestMessage} together with a suitable {@link
+ * org.apache.plc4x.java.s7.netty.model.params.VarParameter} Object. Contains the values to write as
+ * {@link VarPayloadItem}s.
  */
 public class VarPayload implements S7Payload {
 
-    private final ParameterType parameterType;
+  private final ParameterType parameterType;
 
-    private final List<VarPayloadItem> payloadItems;
+  private final List<VarPayloadItem> payloadItems;
 
-    public VarPayload(ParameterType parameterType, List<VarPayloadItem> payloadItems) {
-        this.parameterType = parameterType;
-        this.payloadItems = payloadItems;
-    }
+  public VarPayload(ParameterType parameterType, List<VarPayloadItem> payloadItems) {
+    this.parameterType = parameterType;
+    this.payloadItems = payloadItems;
+  }
 
-    @Override
-    public ParameterType getType() {
-        return parameterType;
-    }
+  @Override
+  public ParameterType getType() {
+    return parameterType;
+  }
 
-    public List<VarPayloadItem> getItems() {
-        return payloadItems;
-    }
+  public List<VarPayloadItem> getItems() {
+    return payloadItems;
+  }
 
-    public VarPayload mergePayload(VarPayload otherPayload) {
-        List<VarPayloadItem> mergedItems = new ArrayList<>(payloadItems.size() + otherPayload.getItems().size());
-        mergedItems.addAll(payloadItems);
-        mergedItems.addAll(otherPayload.getItems());
+  public VarPayload mergePayload(VarPayload otherPayload) {
+    List<VarPayloadItem> mergedItems =
+        new ArrayList<>(payloadItems.size() + otherPayload.getItems().size());
+    mergedItems.addAll(payloadItems);
+    mergedItems.addAll(otherPayload.getItems());
 
-        return new VarPayload(parameterType, mergedItems);
-    }
-
+    return new VarPayload(parameterType, mergedItems);
+  }
 }

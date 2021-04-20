@@ -16,16 +16,16 @@ import io.netty.buffer.ByteBuf;
  */
 public class GetShortAttributeProtocol extends ProtocolAdapter {
 
-    private short value;
+  private short value;
 
-    /** {@inheritDoc} */
-    @Override
-    public void decode(final ByteBuf buf) {
-        this.value = buf.readShortLE();
-    }
+  /** {@inheritDoc} */
+  @Override
+  public void decode(final ByteBuf buf) {
+    this.value = buf.readShortLE();
+  }
 
-    /** @return Value read from response */
-    public final short getValue() {
-        return this.value;
-    }
+  /** @return Value read from response */
+  public final short getValue() {
+    return this.value;
+  }
 }

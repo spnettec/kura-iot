@@ -4,9 +4,9 @@ import org.eclipse.kura.KuraException;
 
 public interface MqttClientService {
 
-    public Integer publish(String topic, int qos, boolean retain, Object message) throws KuraException;
+  Integer publish(String topic, int qos, boolean retain, Object message) throws KuraException;
 
-    public void subscribe(String topic, int qos) throws KuraException;
+  void subscribe(String topic, int qos) throws KuraException;
 
-    public void subscribe(String topic[], int qos[]) throws KuraException;
+  void subscribe(String[] topic, int[] qos) throws KuraException;
 }

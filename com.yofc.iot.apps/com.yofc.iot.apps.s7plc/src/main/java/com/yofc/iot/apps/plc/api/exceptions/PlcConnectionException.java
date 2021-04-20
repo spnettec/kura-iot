@@ -20,23 +20,22 @@ package com.yofc.iot.apps.plc.api.exceptions;
 
 public class PlcConnectionException extends PlcException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PlcConnectionException(String message) {
-        super(message);
-    }
+  public PlcConnectionException(String message) {
+    super(message);
+  }
 
-    public PlcConnectionException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public PlcConnectionException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public PlcConnectionException(Throwable cause) {
-        super(cause);
-    }
+  public PlcConnectionException(Throwable cause) {
+    super(cause);
+  }
 
-    public PlcConnectionException(String message, Throwable cause, boolean enableSuppression,
-            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
+  public PlcConnectionException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

@@ -9,7 +9,7 @@ package etherip.protocol;
 
 import io.netty.buffer.ByteBuf;
 
-//TODO Implement CIP data types according to CPI_Vol_3.3: Appendix_C_Section_C-6.1.
+// TODO Implement CIP data types according to CPI_Vol_3.3: Appendix_C_Section_C-6.1.
 /**
  * Decode 4 byte length attributes.<br>
  *
@@ -18,16 +18,16 @@ import io.netty.buffer.ByteBuf;
  */
 public class GetIntAttributeProtocol extends ProtocolAdapter {
 
-    private int value;
+  private int value;
 
-    /** {@inheritDoc} */
-    @Override
-    public void decode(final ByteBuf buf) {
-        this.value = buf.readIntLE();
-    }
+  /** {@inheritDoc} */
+  @Override
+  public void decode(final ByteBuf buf) {
+    this.value = buf.readIntLE();
+  }
 
-    /** @return Value read from response */
-    public final int getValue() {
-        return this.value;
-    }
+  /** @return Value read from response */
+  public final int getValue() {
+    return this.value;
+  }
 }

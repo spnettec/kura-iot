@@ -18,27 +18,25 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.exceptions;
 
-/**
- * Base exception for all IO related exceptions.
- */
+/** Base exception for all IO related exceptions. */
 public class PlcIoException extends PlcException {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    public PlcIoException(String message) {
-        super(message);
-    }
+  public PlcIoException(String message) {
+    super(message);
+  }
 
-    public PlcIoException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public PlcIoException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public PlcIoException(Throwable cause) {
-        super(cause);
-    }
+  public PlcIoException(Throwable cause) {
+    super(cause);
+  }
 
-    public PlcIoException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
+  public PlcIoException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

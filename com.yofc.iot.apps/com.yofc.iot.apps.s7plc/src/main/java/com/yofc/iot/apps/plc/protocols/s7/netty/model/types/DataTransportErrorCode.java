@@ -25,38 +25,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum DataTransportErrorCode {
-    RESERVED((byte) 0x00),
-    OK((byte) 0xFF),
-    ACCESS_DENIED((byte) 0x03),
-    INVALID_ADDRESS((byte) 0x05),
-    DATA_TYPE_NOT_SUPPORTED((byte) 0x06),
-    NOT_FOUND((byte) 0x0A);
+  RESERVED((byte) 0x00),
+  OK((byte) 0xFF),
+  ACCESS_DENIED((byte) 0x03),
+  INVALID_ADDRESS((byte) 0x05),
+  DATA_TYPE_NOT_SUPPORTED((byte) 0x06),
+  NOT_FOUND((byte) 0x0A);
 
-    private static final Logger logger = LoggerFactory.getLogger(DataTransportErrorCode.class);
+  private static final Logger logger = LoggerFactory.getLogger(DataTransportErrorCode.class);
 
-    private static final Map<Byte, DataTransportErrorCode> map;
-    static {
-        map = new HashMap<>();
-        for (DataTransportErrorCode dataTransportErrorCode : DataTransportErrorCode.values()) {
-            map.put(dataTransportErrorCode.code, dataTransportErrorCode);
-        }
+  private static final Map<Byte, DataTransportErrorCode> map;
+
+  static {
+    map = new HashMap<>();
+    for (DataTransportErrorCode dataTransportErrorCode : DataTransportErrorCode.values()) {
+      map.put(dataTransportErrorCode.code, dataTransportErrorCode);
     }
+  }
 
-    private byte code;
+  private final byte code;
 
-    DataTransportErrorCode(byte code) {
-        this.code = code;
+  DataTransportErrorCode(byte code) {
+    this.code = code;
+  }
+
+  public static DataTransportErrorCode valueOf(byte code) {
+    if (!map.containsKey(code)) {
+      logger.error("No DataTransportErrorCode for code {}", code);
     }
+    return map.get(code);
+  }
 
-    public byte getCode() {
-        return code;
-    }
-
-    public static DataTransportErrorCode valueOf(byte code) {
-        if (!map.containsKey(code)) {
-            logger.error("No DataTransportErrorCode for code {}", code);
-        }
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

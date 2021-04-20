@@ -2,29 +2,27 @@ package etherip.util;
 
 public class CodedcException extends RuntimeException {
 
-    public CodedcException() {
-        super();
-    }
+  /** */
+  private static final long serialVersionUID = 1L;
 
-    public CodedcException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+  public CodedcException() {
+    super();
+  }
 
-    public CodedcException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public CodedcException(
+      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 
-    public CodedcException(String message) {
-        super(message);
-    }
+  public CodedcException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public CodedcException(Throwable cause) {
-        super(cause);
-    }
+  public CodedcException(String message) {
+    super(message);
+  }
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
-
+  public CodedcException(Throwable cause) {
+    super(cause);
+  }
 }

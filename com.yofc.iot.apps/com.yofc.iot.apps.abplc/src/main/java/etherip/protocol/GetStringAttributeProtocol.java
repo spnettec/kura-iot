@@ -17,31 +17,35 @@ import io.netty.buffer.ByteBuf;
  */
 public class GetStringAttributeProtocol extends ProtocolAdapter {
 
-    private String value;
+  private String value;
 
-    /** {@inheritDoc} */
-    @Override
-    public void decode(final ByteBuf buf) {
-        final int len = buf.readByte() & 0x7F;
-        if (len > buf.readableBytes()) {
-            throw new CodedcException(
-                    "String length of " + len + " exceeds remaining data (" + (buf.readableBytes()) + " bytes)");
-        }
-        final byte[] raw = new byte[len];
-        buf.readBytes(raw);
-        this.value = new String(raw);
-
-        // Skip remaining bytes
-        /*
-         * final int rest = available - 1 - len;
-         * if (rest > 0) {
-         * buf.position(buf.position() + rest);
-         * }
-         */
+  /** {@inheritDoc} */
+  @Override
+  public void decode(final ByteBuf buf) {
+    final int len = buf.readByte() & 0x7F;
+    if (len > buf.readableBytes()) {
+      throw new CodedcException(
+          "String length of "
+              + len
+              + " exceeds remaining data ("
+              + (buf.readableBytes())
+              + " bytes)");
     }
+    final byte[] raw = new byte[len];
+    buf.readBytes(raw);
+    this.value = new String(raw);
 
-    /** @return Value read from response */
-    public final String getValue() {
-        return this.value;
-    }
+    // Skip remaining bytes
+    /*
+     * final int rest = available - 1 - len;
+     * if (rest > 0) {
+     * buf.position(buf.position() + rest);
+     * }
+     */
+  }
+
+  /** @return Value read from response */
+  public final String getValue() {
+    return this.value;
+  }
 }

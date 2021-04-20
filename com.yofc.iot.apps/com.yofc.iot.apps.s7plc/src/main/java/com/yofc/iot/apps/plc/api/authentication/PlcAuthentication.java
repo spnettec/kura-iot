@@ -18,5 +18,4 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.authentication;
 
-public interface PlcAuthentication {
-}
+public interface PlcAuthentication {}

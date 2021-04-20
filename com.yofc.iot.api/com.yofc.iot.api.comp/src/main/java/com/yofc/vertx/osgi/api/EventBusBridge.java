@@ -1,17 +1,5 @@
 package com.yofc.vertx.osgi.api;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -24,427 +12,478 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Promise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simple event bus bridge using Vert.x websockets.
- * Note: Only Message&lt;JsonObject&gt; and Message<lt;String&gt; is supported
+ * Simple event bus bridge using Vert.x websockets. Note: Only Message&lt;JsonObject&gt; and
+ * Message<lt;String&gt; is supported
  *
- * Created by beders on 6/23/15.
+ * <p>Created by beders on 6/23/15.
  */
 public class EventBusBridge {
 
-    private static final Logger logger = LoggerFactory.getLogger(EventBusBridge.class);
+  static final int MAX_SOCKET_FRAME_SIZE = 2 * (int) Math.pow(2, 18); // 512K max payload
+  private static final Logger logger = LoggerFactory.getLogger(EventBusBridge.class);
+  Vertx vertx;
+  WebSocket webSocket;
+  long pingTimerID;
+  ConcurrentHashMap<String, List<DefaultHandler<?>>> handlers = new ConcurrentHashMap<>();
+  ConcurrentHashMap<String, DefaultHandler<?>> replyHandlers = new ConcurrentHashMap<>();
 
-    Vertx vertx;
-    WebSocket webSocket;
-    long pingTimerID;
-    ConcurrentHashMap<String, List<DefaultHandler<?>>> handlers = new ConcurrentHashMap<>();
-    ConcurrentHashMap<String, DefaultHandler<?>> replyHandlers = new ConcurrentHashMap<>();
+  private EventBusBridge(
+      int port,
+      String host,
+      URI endPoint,
+      io.vertx.core.Handler<EventBusBridge> onOpenHandler,
+      HttpClientOptions options,
+      Optional<Vertx> aVertx) {
 
-    static final int MAX_SOCKET_FRAME_SIZE = 2 * (int) Math.pow(2, 18); // 512K max payload
-
-    /** Create an event bus bridge using an absolute URL and default socket frame size (512K). */
-    public static EventBusBridge connect(URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler) {
-        return connect(-1, null, endPoint, onOpenHandler, null, null);
-    }
-
-    /**
-     * Create an event bus bridge using an absolute or relative URL with additional options.
-     * Note: If a relative URL is provided, defaultPort and defaultHost from options will be used!
-     * 
-     * @param endPoint
-     * @param onOpenHandler
-     * @param options
-     *                          http options. If you are connecting through SSL to a server with a self-signed
-     *                          certificate, use setTrustAll and verifyHost options.
-     * @return
-     */
-    public static EventBusBridge connect(URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler,
-            HttpClientOptions options) {
-        return connect(-1, null, endPoint, onOpenHandler, options, null);
-    }
-
-    /**
-     * Provide your own Vertx instance.
-     * 
-     * @see EventBusBridge#connect(URI, Handler)
-     *
-     */
-
-    public static EventBusBridge connect(URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler,
-            Vertx vertx) {
-        return connect(-1, null, endPoint, onOpenHandler, null, vertx);
-    }
-
-    /**
-     * Use this static method to connect through a proxy.
-     * 
-     * @param port
-     *                          port to use
-     * @param host
-     *                          the host to connect to
-     * @param endPoint
-     *                          the actual endpoint. Use an absolute URL when connecting through a proxy.
-     * @param onOpenHandler
-     * @param vertx
-     *                          a vertx instance (optional)
-     * @return
-     */
-    public static EventBusBridge connect(int port, String host, URI endPoint,
-            io.vertx.core.Handler<EventBusBridge> onOpenHandler, Vertx vertx) {
-        return connect(port, host, endPoint, onOpenHandler, null, vertx);
-    }
-
-    /**
-     * Use this static method to connect through a proxy.
-     * 
-     * @param port
-     *                          port to use
-     * @param host
-     *                          the host to connect to
-     * @param endPoint
-     *                          the actual endpoint. Use an absolute URL when connecting through a proxy.
-     * @param onOpenHandler
-     * @param options
-     * @return
-     */
-    public static EventBusBridge connect(int port, String host, URI endPoint,
-            io.vertx.core.Handler<EventBusBridge> onOpenHandler, HttpClientOptions options) {
-        return connect(port, host, endPoint, onOpenHandler, options, null);
-    }
-
-    public static EventBusBridge connect(URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler,
-            int maxSocketFrameSize) {
-        return connect(endPoint, onOpenHandler, maxSocketFrameSize, null);
-    }
-
-    public static EventBusBridge connect(URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler,
-            int maxSocketFrameSize, Vertx vertx) {
-        return connect(-1, null, endPoint, onOpenHandler,
-                new HttpClientOptions().setMaxWebSocketFrameSize(maxSocketFrameSize), vertx);
-    }
-
-    public static EventBusBridge connect(int port, String host, URI endPoint,
-            io.vertx.core.Handler<EventBusBridge> onOpenHandler, HttpClientOptions options, Vertx vertx) {
-        HttpClientOptions actualOptions = options == null
-                ? new HttpClientOptions().setMaxWebSocketFrameSize(MAX_SOCKET_FRAME_SIZE)
-                : options;
-        int actualPort = guessPort(port, endPoint, actualOptions);
-        String actualHost = guessHost(host, endPoint, actualOptions);
-        actualOptions.setSsl(guessSsl(endPoint, options));
-
-        return new EventBusBridge(actualPort, actualHost, endPoint, onOpenHandler, actualOptions,
-                Optional.ofNullable(vertx));
-    }
-
-    /** Guess port: It is either set explicitly, taken from the absolute URL or taken from the default options */
-    private static int guessPort(int port, URI endPoint, HttpClientOptions options) {
-        if (port != -1)
-            return port;
-        if (endPoint.isAbsolute()) {
-            if (endPoint.getPort() == -1) {
-                return portFromScheme(endPoint.getScheme());
-            } else {
-                return endPoint.getPort();
-            }
-        } else {
-            return options.getDefaultPort();
-        }
-    }
-
-    /** Guess host: It is either set explicitly, taken from the absolute URL or taken from the default options */
-    private static String guessHost(String host, URI endPoint, HttpClientOptions actualOptions) {
-        if (host == null || host.isEmpty()) {
-            if (endPoint.isAbsolute()) {
-                return endPoint.getHost();
-            } else {
-                return actualOptions.getDefaultHost();
-            }
-        } else {
-            return host;
-        }
-    }
-
-    /** Guess SSL: Either taken from scheme or set directly in options */
-    private static boolean guessSsl(URI endPoint, HttpClientOptions options) {
-        if (endPoint.isAbsolute()) {
-            return endPoint.getScheme().equals("https");
-        } else {
-            return options.isSsl();
-        }
-    }
-
-    private static int portFromScheme(String scheme) {
-        return scheme.equals("https") ? 443 : 80;
-    }
-
-    private EventBusBridge(int port, String host, URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler,
-            HttpClientOptions options, Optional<Vertx> aVertx) {
-
-        vertx = aVertx.orElse(Vertx.vertx());
-        vertx.createHttpClient(options).webSocket(port, host, endPoint.toString() + "/websocket", ar -> {
-            if (ar.succeeded()) {
+    vertx = aVertx.orElse(Vertx.vertx());
+    vertx
+        .createHttpClient(options)
+        .webSocket(
+            port,
+            host,
+            endPoint.toString() + "/websocket",
+            ar -> {
+              if (ar.succeeded()) {
                 webSocket = ar.result();
                 webSocket.handler(this::bufferReceived);
-                webSocket.closeHandler(it -> {
-                    if (pingTimerID != 0) {
+                webSocket.closeHandler(
+                    it -> {
+                      if (pingTimerID != 0) {
                         vertx.cancelTimer(pingTimerID);
-                    }
-                    handlers.clear();
-                    replyHandlers.clear();
-                });
+                      }
+                      handlers.clear();
+                      replyHandlers.clear();
+                    });
                 onOpenHandler.handle(EventBusBridge.this);
                 sendPing();
                 pingTimerID = vertx.setPeriodic(5000L, time -> sendPing());
-            }
+              }
+            });
+  }
 
-        });
+  /** Create an event bus bridge using an absolute URL and default socket frame size (512K). */
+  public static EventBusBridge connect(
+      URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler) {
+    return connect(-1, null, endPoint, onOpenHandler, null, null);
+  }
+
+  /**
+   * Create an event bus bridge using an absolute or relative URL with additional options. Note: If
+   * a relative URL is provided, defaultPort and defaultHost from options will be used!
+   *
+   * @param endPoint
+   * @param onOpenHandler
+   * @param options http options. If you are connecting through SSL to a server with a self-signed
+   *     certificate, use setTrustAll and verifyHost options.
+   * @return
+   */
+  public static EventBusBridge connect(
+      URI endPoint,
+      io.vertx.core.Handler<EventBusBridge> onOpenHandler,
+      HttpClientOptions options) {
+    return connect(-1, null, endPoint, onOpenHandler, options, null);
+  }
+
+  /**
+   * Provide your own Vertx instance.
+   *
+   * @see EventBusBridge#connect(URI, Handler)
+   */
+  public static EventBusBridge connect(
+      URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler, Vertx vertx) {
+    return connect(-1, null, endPoint, onOpenHandler, null, vertx);
+  }
+
+  /**
+   * Use this static method to connect through a proxy.
+   *
+   * @param port port to use
+   * @param host the host to connect to
+   * @param endPoint the actual endpoint. Use an absolute URL when connecting through a proxy.
+   * @param onOpenHandler
+   * @param vertx a vertx instance (optional)
+   * @return
+   */
+  public static EventBusBridge connect(
+      int port,
+      String host,
+      URI endPoint,
+      io.vertx.core.Handler<EventBusBridge> onOpenHandler,
+      Vertx vertx) {
+    return connect(port, host, endPoint, onOpenHandler, null, vertx);
+  }
+
+  /**
+   * Use this static method to connect through a proxy.
+   *
+   * @param port port to use
+   * @param host the host to connect to
+   * @param endPoint the actual endpoint. Use an absolute URL when connecting through a proxy.
+   * @param onOpenHandler
+   * @param options
+   * @return
+   */
+  public static EventBusBridge connect(
+      int port,
+      String host,
+      URI endPoint,
+      io.vertx.core.Handler<EventBusBridge> onOpenHandler,
+      HttpClientOptions options) {
+    return connect(port, host, endPoint, onOpenHandler, options, null);
+  }
+
+  public static EventBusBridge connect(
+      URI endPoint, io.vertx.core.Handler<EventBusBridge> onOpenHandler, int maxSocketFrameSize) {
+    return connect(endPoint, onOpenHandler, maxSocketFrameSize, null);
+  }
+
+  public static EventBusBridge connect(
+      URI endPoint,
+      io.vertx.core.Handler<EventBusBridge> onOpenHandler,
+      int maxSocketFrameSize,
+      Vertx vertx) {
+    return connect(
+        -1,
+        null,
+        endPoint,
+        onOpenHandler,
+        new HttpClientOptions().setMaxWebSocketFrameSize(maxSocketFrameSize),
+        vertx);
+  }
+
+  public static EventBusBridge connect(
+      int port,
+      String host,
+      URI endPoint,
+      io.vertx.core.Handler<EventBusBridge> onOpenHandler,
+      HttpClientOptions options,
+      Vertx vertx) {
+    HttpClientOptions actualOptions =
+        options == null
+            ? new HttpClientOptions().setMaxWebSocketFrameSize(MAX_SOCKET_FRAME_SIZE)
+            : options;
+    int actualPort = guessPort(port, endPoint, actualOptions);
+    String actualHost = guessHost(host, endPoint, actualOptions);
+    actualOptions.setSsl(guessSsl(endPoint, options));
+
+    return new EventBusBridge(
+        actualPort, actualHost, endPoint, onOpenHandler, actualOptions, Optional.ofNullable(vertx));
+  }
+
+  /**
+   * Guess port: It is either set explicitly, taken from the absolute URL or taken from the default
+   * options
+   */
+  private static int guessPort(int port, URI endPoint, HttpClientOptions options) {
+    if (port != -1) {
+      return port;
     }
-
-    protected void sendPing() {
-        if (webSocket != null) {
-            JsonObject msg = new JsonObject().put("type", "ping");
-            try {
-                webSocket.write(Buffer.buffer(msg.toString()));
-            } catch (IllegalStateException ise) {
-                vertx.cancelTimer(pingTimerID);
-            }
-        } else if (pingTimerID != 0) {
-            vertx.cancelTimer(pingTimerID);
-        }
+    if (endPoint.isAbsolute()) {
+      if (endPoint.getPort() == -1) {
+        return portFromScheme(endPoint.getScheme());
+      } else {
+        return endPoint.getPort();
+      }
+    } else {
+      return options.getDefaultPort();
     }
+  }
 
-    public EventBusBridge send(String address, String message) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("send", address, message, null);
-        return this;
+  /**
+   * Guess host: It is either set explicitly, taken from the absolute URL or taken from the default
+   * options
+   */
+  private static String guessHost(String host, URI endPoint, HttpClientOptions actualOptions) {
+    if (host == null || host.isEmpty()) {
+      if (endPoint.isAbsolute()) {
+        return endPoint.getHost();
+      } else {
+        return actualOptions.getDefaultHost();
+      }
+    } else {
+      return host;
     }
+  }
 
-    public EventBusBridge publish(String address, String message) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("publish", address, message, null);
-        return this;
+  /** Guess SSL: Either taken from scheme or set directly in options */
+  private static boolean guessSsl(URI endPoint, HttpClientOptions options) {
+    if (endPoint.isAbsolute()) {
+      return "https".equals(endPoint.getScheme());
+    } else {
+      return options.isSsl();
     }
+  }
 
-    public EventBusBridge send(String address, String message, EventHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("send", address, message, replyHandler);
-        return this;
-    }
+  private static int portFromScheme(String scheme) {
+    return "https".equals(scheme) ? 443 : 80;
+  }
 
-    public EventBusBridge publish(String address, String message, EventHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("publish", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge send(String address, String message, MessageHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("send", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge publish(String address, String message, MessageHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("publish", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge send(String address, JsonObject message) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("send", address, message, null);
-        return this;
-    }
-
-    public EventBusBridge publish(String address, JsonObject message) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("publish", address, message, null);
-        return this;
-    }
-
-    public EventBusBridge send(String address, JsonObject message, EventHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("send", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge publish(String address, JsonObject message, EventHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("publish", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge send(String address, JsonObject message, MessageHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("send", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge publish(String address, JsonObject message, MessageHandler<?> replyHandler) {
-        Objects.requireNonNull(webSocket);
-        sendMessage("publish", address, message, replyHandler);
-        return this;
-    }
-
-    public EventBusBridge registerHandler(String address, MessageHandler<?> messageHandler) {
-        return registerHandlerInternal(address, messageHandler);
-    }
-
-    public EventBusBridge registerHandler(String address, EventHandler<?> eventHandler) {
-        return registerHandlerInternal(address, eventHandler);
-    }
-
-    protected EventBusBridge registerHandlerInternal(String address, DefaultHandler<?> eventHandler) {
-        handlers.computeIfAbsent(address, key -> {
-            webSocket.write(Buffer.buffer(new JsonObject().put("type", "register").put("address", address).toString()));
-            return Collections.synchronizedList(new ArrayList<>());
-        }).add(eventHandler);
-        return this;
-    }
-
-    public EventBusBridge unregisterHandler(String address, MessageHandler<?> messageHandler) {
-        return unregisterHandlerInternal(address, messageHandler);
-    }
-
-    public EventBusBridge unregisterHandler(String address, EventHandler<?> eventHandler) {
-        return unregisterHandlerInternal(address, eventHandler);
-    }
-
-    protected EventBusBridge unregisterHandlerInternal(String address, DefaultHandler<?> eventHandler) {
-        List<DefaultHandler<?>> handlers = this.handlers.getOrDefault(address, Collections.emptyList());
-        handlers.remove(eventHandler);
-        if (handlers.isEmpty()) {
-            String unregisterMsg = new JsonObject().put("type", "unregister").put("address", address).toString();
-            webSocket.write(Buffer.buffer(unregisterMsg));
-        }
-        return this;
-    }
-
-    public void close() {
-        if (webSocket != null) {
-            webSocket.close();
-            webSocket = null;
-        }
-    }
-
-    private void sendMessage(String sendOrPublish, String address, Object message, DefaultHandler<?> replyHandler) {
-        JsonObject msg = new JsonObject().put("type", sendOrPublish).put("address", address).put("body", message);
-        if (replyHandler != null) {
-            String replyAddress = UUID.randomUUID().toString();
-            replyHandlers.put(replyAddress, replyHandler);
-            msg.put("replyAddress", replyAddress);
-        }
+  protected void sendPing() {
+    if (webSocket != null) {
+      JsonObject msg = new JsonObject().put("type", "ping");
+      try {
         webSocket.write(Buffer.buffer(msg.toString()));
+      } catch (IllegalStateException ise) {
+        vertx.cancelTimer(pingTimerID);
+      }
+    } else if (pingTimerID != 0) {
+      vertx.cancelTimer(pingTimerID);
+    }
+  }
+
+  public EventBusBridge send(String address, String message) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("send", address, message, null);
+    return this;
+  }
+
+  public EventBusBridge publish(String address, String message) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("publish", address, message, null);
+    return this;
+  }
+
+  public EventBusBridge send(String address, String message, EventHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("send", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge publish(String address, String message, EventHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("publish", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge send(String address, String message, MessageHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("send", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge publish(String address, String message, MessageHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("publish", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge send(String address, JsonObject message) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("send", address, message, null);
+    return this;
+  }
+
+  public EventBusBridge publish(String address, JsonObject message) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("publish", address, message, null);
+    return this;
+  }
+
+  public EventBusBridge send(String address, JsonObject message, EventHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("send", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge publish(String address, JsonObject message, EventHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("publish", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge send(String address, JsonObject message, MessageHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("send", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge publish(
+      String address, JsonObject message, MessageHandler<?> replyHandler) {
+    Objects.requireNonNull(webSocket);
+    sendMessage("publish", address, message, replyHandler);
+    return this;
+  }
+
+  public EventBusBridge registerHandler(String address, MessageHandler<?> messageHandler) {
+    return registerHandlerInternal(address, messageHandler);
+  }
+
+  public EventBusBridge registerHandler(String address, EventHandler<?> eventHandler) {
+    return registerHandlerInternal(address, eventHandler);
+  }
+
+  protected EventBusBridge registerHandlerInternal(String address, DefaultHandler<?> eventHandler) {
+    handlers
+        .computeIfAbsent(
+            address,
+            key -> {
+              webSocket.write(
+                  Buffer.buffer(
+                      new JsonObject().put("type", "register").put("address", address).toString()));
+              return Collections.synchronizedList(new ArrayList<>());
+            })
+        .add(eventHandler);
+    return this;
+  }
+
+  public EventBusBridge unregisterHandler(String address, MessageHandler<?> messageHandler) {
+    return unregisterHandlerInternal(address, messageHandler);
+  }
+
+  public EventBusBridge unregisterHandler(String address, EventHandler<?> eventHandler) {
+    return unregisterHandlerInternal(address, eventHandler);
+  }
+
+  protected EventBusBridge unregisterHandlerInternal(
+      String address, DefaultHandler<?> eventHandler) {
+    List<DefaultHandler<?>> handlers = this.handlers.getOrDefault(address, Collections.emptyList());
+    handlers.remove(eventHandler);
+    if (handlers.isEmpty()) {
+      String unregisterMsg =
+          new JsonObject().put("type", "unregister").put("address", address).toString();
+      webSocket.write(Buffer.buffer(unregisterMsg));
+    }
+    return this;
+  }
+
+  public void close() {
+    if (webSocket != null) {
+      webSocket.close();
+      webSocket = null;
+    }
+  }
+
+  private void sendMessage(
+      String sendOrPublish, String address, Object message, DefaultHandler<?> replyHandler) {
+    JsonObject msg =
+        new JsonObject().put("type", sendOrPublish).put("address", address).put("body", message);
+    if (replyHandler != null) {
+      String replyAddress = UUID.randomUUID().toString();
+      replyHandlers.put(replyAddress, replyHandler);
+      msg.put("replyAddress", replyAddress);
+    }
+    webSocket.write(Buffer.buffer(msg.toString()));
+  }
+
+  @SuppressWarnings("unchecked")
+  protected void bufferReceived(Buffer buffer) {
+    JsonObject msg = new JsonObject(buffer.toString());
+    String type = msg.getString("type");
+    if ("err".equals(type)) {
+      logger.error("Error message from the event bus bridge:{}", msg);
+      return;
+    }
+    String address = msg.getString("address");
+
+    @SuppressWarnings("rawtypes")
+    EventBusMessage result = new EventBusMessage(msg);
+    for (DefaultHandler<?> h : handlers.getOrDefault(address, Collections.emptyList())) {
+      result.deliverTo(h);
+    }
+    if (replyHandlers.containsKey(address)) {
+      DefaultHandler<?> replyHandler = replyHandlers.remove(address);
+      result.deliverTo(replyHandler);
+    }
+  }
+
+  public boolean isOpen() {
+    return webSocket != null;
+  }
+
+  public class EventBusMessage<T> implements Message<T> {
+
+    String address;
+    String replyAddress;
+    T body;
+    DefaultHandler<T> handler;
+
+    @SuppressWarnings("unchecked")
+    EventBusMessage(JsonObject json) {
+      address = json.getString("address");
+      replyAddress = json.getString("replyAddress", null);
+      body = (T) json.getValue("body");
+    }
+
+    EventBusMessage(Message<T> result) {
+      address = result.address();
+      replyAddress = result.replyAddress();
+      body = result.body();
+    }
+
+    @Override
+    public String address() {
+      return null;
+    }
+
+    @Override
+    public MultiMap headers() {
+      throw new UnsupportedOperationException("No headers supported");
+    }
+
+    @Override
+    public T body() {
+      return body;
+    }
+
+    @Override
+    public String replyAddress() {
+      return replyAddress;
+    }
+
+    @Override
+    public boolean isSend() {
+      return false;
+    }
+
+    @Override
+    public void reply(@Nullable Object message, DeliveryOptions options) {
+      replyAndRequest(message, options);
+    }
+
+    @Override
+    public <R> Future<Message<R>> replyAndRequest(
+        @Nullable Object message, DeliveryOptions options) {
+      Promise<Message<R>> result = Promise.promise();
+      if (this.replyAddress != null) {
+        EventBusBridge.this.send(
+            replyAddress,
+            message.toString(),
+            (msg, eb) -> {
+              @SuppressWarnings({"rawtypes", "unchecked"})
+              Message<R> eventMsg = new EventBusMessage(msg);
+              result.complete(eventMsg);
+            });
+      }
+      return result.future();
+    }
+
+    @Override
+    public void fail(int i, String s) {
+      throw new UnsupportedOperationException("Failure is not an option");
+    }
+
+    public void unregister() {
+      if (handler != null) {
+        handler.unregister(address, EventBusBridge.this);
+      }
+    }
+
+    private void deliverTo(DefaultHandler<T> handler) {
+      this.handler = handler; // give handler a chance to un-register
+      handler.invoke(this, EventBusBridge.this);
     }
 
     @SuppressWarnings("unchecked")
-    protected void bufferReceived(Buffer buffer) {
-        JsonObject msg = new JsonObject(buffer.toString());
-        String type = msg.getString("type");
-        if ("err".equals(type)) {
-            logger.error("Error message from the event bus bridge:{}", msg.toString());
-            return;
-        }
-        String address = msg.getString("address");
-
-        @SuppressWarnings("rawtypes")
-        EventBusMessage result = new EventBusMessage(msg);
-        for (DefaultHandler<?> h : handlers.getOrDefault(address, Collections.emptyList())) {
-            result.deliverTo(h);
-        }
-        if (replyHandlers.containsKey(address)) {
-            DefaultHandler<?> replyHandler = replyHandlers.remove(address);
-            result.deliverTo(replyHandler);
-        }
+    public Message<JsonObject> asJson() {
+      return (Message<JsonObject>) this;
     }
-
-    public boolean isOpen() {
-        return webSocket != null;
-    }
-
-    public class EventBusMessage<T> implements Message<T> {
-
-        String address;
-        String replyAddress;
-        T body;
-        DefaultHandler<T> handler;
-
-        @SuppressWarnings("unchecked")
-        EventBusMessage(JsonObject json) {
-            address = json.getString("address");
-            replyAddress = json.getString("replyAddress", null);
-            body = (T) json.getValue("body");
-        }
-
-        EventBusMessage(Message<T> result) {
-            address = result.address();
-            replyAddress = result.replyAddress();
-            body = result.body();
-        }
-
-        @Override
-        public String address() {
-            return null;
-        }
-
-        @Override
-        public MultiMap headers() {
-            throw new UnsupportedOperationException("No headers supported");
-        }
-
-        @Override
-        public T body() {
-            return body;
-        }
-
-        @Override
-        public String replyAddress() {
-            return replyAddress;
-        }
-
-        @Override
-        public boolean isSend() {
-            return false;
-        }
-
-        @Override
-        public void reply(@Nullable Object message, DeliveryOptions options) {
-            replyAndRequest(message, options);
-        }
-
-        public <R> Future<Message<R>> replyAndRequest(@Nullable Object message, DeliveryOptions options) {
-            Promise<Message<R>> result = Promise.promise();
-            if (this.replyAddress != null) {
-                EventBusBridge.this.send(replyAddress, message.toString(), (msg, eb) -> {
-                    @SuppressWarnings({ "rawtypes", "unchecked" })
-                    Message<R> eventMsg = new EventBusMessage(msg);
-                    result.complete(eventMsg);
-                });
-            }
-            return result.future();
-        }
-
-        @Override
-        public void fail(int i, String s) {
-            throw new UnsupportedOperationException("Failure is not an option");
-        }
-
-        public void unregister() {
-            if (handler != null) {
-                handler.unregister(address, EventBusBridge.this);
-            }
-        }
-
-        private void deliverTo(DefaultHandler<T> handler) {
-            this.handler = handler; // give handler a chance to un-register
-            handler.invoke(this, EventBusBridge.this);
-        }
-
-        @SuppressWarnings("unchecked")
-        public Message<JsonObject> asJson() {
-            return (Message<JsonObject>) this;
-        }
-
-    }
-
+  }
 }

@@ -23,19 +23,18 @@ import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduSize;
 
 public class TpduSizeParameter implements Parameter {
 
-    private final TpduSize tpduSize;
+  private final TpduSize tpduSize;
 
-    public TpduSizeParameter(TpduSize tpduSize) {
-        this.tpduSize = tpduSize;
-    }
+  public TpduSizeParameter(TpduSize tpduSize) {
+    this.tpduSize = tpduSize;
+  }
 
-    @Override
-    public ParameterCode getType() {
-        return ParameterCode.TPDU_SIZE;
-    }
+  @Override
+  public ParameterCode getType() {
+    return ParameterCode.TPDU_SIZE;
+  }
 
-    public TpduSize getTpduSize() {
-        return tpduSize;
-    }
-
+  public TpduSize getTpduSize() {
+    return tpduSize;
+  }
 }

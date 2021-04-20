@@ -27,47 +27,47 @@ import java.util.concurrent.CompletableFuture;
 
 public interface PlcWriteRequest extends PlcFieldRequest {
 
+  @Override
+  CompletableFuture<? extends PlcWriteResponse> execute();
+
+  int getNumberOfValues(String name);
+
+  interface Builder extends PlcRequestBuilder {
+
     @Override
-    CompletableFuture<? extends PlcWriteResponse> execute();
+    PlcWriteRequest build();
 
-    int getNumberOfValues(String name);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Boolean... values);
 
-    interface Builder extends PlcRequestBuilder {
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Byte... values);
 
-        @Override
-        PlcWriteRequest build();
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Short... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Boolean... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Integer... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Byte... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigInteger... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Short... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Long... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Integer... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Float... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigInteger... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Double... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Long... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigDecimal... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Float... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, String... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Double... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, LocalTime... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, BigDecimal... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, LocalDate... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, String... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, LocalDateTime... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, LocalTime... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, byte[]... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, LocalDate... values);
+    PlcWriteRequest.Builder addItem(String name, String fieldQuery, Byte[]... values);
 
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, LocalDateTime... values);
-
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, byte[]... values);
-
-        PlcWriteRequest.Builder addItem(String name, String fieldQuery, Byte[]... values);
-
-        <T> PlcWriteRequest.Builder addItem(String name, String fieldQuery, @SuppressWarnings("unchecked") T... values);
-    }
-
+    <T> PlcWriteRequest.Builder addItem(
+        String name, String fieldQuery, @SuppressWarnings("unchecked") T... values);
+  }
 }

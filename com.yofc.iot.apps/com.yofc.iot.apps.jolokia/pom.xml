@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.yofc.iot</groupId>
@@ -62,7 +62,7 @@
             <artifactId>org.eclipse.kura.api</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
@@ -86,12 +86,12 @@
                     <instructions>
                         <Bundle-Activator>com.yofc.iot.jolokia.Activator</Bundle-Activator>
                         <Embed-Dependency>*;scope=compile</Embed-Dependency>
-                       <Import-Package>
-                             org.osgi.framework;version="1.5.0",
-                             !org.osgi.service.framework,
-                             *
+                        <Import-Package>
+                            org.osgi.framework;version="1.5.0",
+                            !org.osgi.service.framework,
+                            *
                         </Import-Package>
-                        <Export-Package />
+                        <Export-Package/>
                     </instructions>
                 </configuration>
             </plugin>

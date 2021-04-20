@@ -20,6 +20,5 @@ package com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads.ssls;
 
 public interface SslDataRecord {
 
-    short getLengthInWords();
-
+  short getLengthInWords();
 }

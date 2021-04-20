@@ -18,26 +18,28 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.DisconnectReason;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
 
 public class DisconnectRequestTpdu extends DisconnectTpdu {
 
-    private final DisconnectReason disconnectReason;
+  private final DisconnectReason disconnectReason;
 
-    public DisconnectRequestTpdu(short destinationReference, short sourceReference, DisconnectReason disconnectReason,
-            List<Parameter> parameters, ByteBuf userData) {
-        super(TpduCode.DISCONNECT_REQUEST, destinationReference, sourceReference, parameters, userData);
-        this.disconnectReason = disconnectReason;
-    }
+  public DisconnectRequestTpdu(
+      short destinationReference,
+      short sourceReference,
+      DisconnectReason disconnectReason,
+      List<Parameter> parameters,
+      ByteBuf userData) {
+    super(TpduCode.DISCONNECT_REQUEST, destinationReference, sourceReference, parameters, userData);
+    this.disconnectReason = disconnectReason;
+  }
 
-    public DisconnectReason getDisconnectReason() {
-        return disconnectReason;
-    }
-
+  public DisconnectReason getDisconnectReason() {
+    return disconnectReason;
+  }
 }

@@ -16,15 +16,13 @@ import io.netty.buffer.ByteBuf;
  */
 public class ProtocolAdapter implements Protocol {
 
-    /** {@inheritDoc} */
-    @Override
-    public void encode(final ByteBuf buf) {
+  /** {@inheritDoc} */
+  @Override
+  public void encode(final ByteBuf buf) {}
 
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void decode(final ByteBuf buf) {
-        // NOP
-    }
+  /** {@inheritDoc} */
+  @Override
+  public void decode(final ByteBuf buf) {
+    // NOP
+  }
 }

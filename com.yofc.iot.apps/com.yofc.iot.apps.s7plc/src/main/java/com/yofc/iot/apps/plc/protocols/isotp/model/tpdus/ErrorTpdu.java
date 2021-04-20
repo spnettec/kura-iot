@@ -18,32 +18,33 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.RejectCause;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
 
 public class ErrorTpdu extends Tpdu {
 
-    private final short destinationReference;
-    private final RejectCause rejectCause;
+  private final short destinationReference;
+  private final RejectCause rejectCause;
 
-    public ErrorTpdu(short destinationReference, RejectCause rejectCause, List<Parameter> parameters,
-            ByteBuf userData) {
-        super(TpduCode.TPDU_ERROR, parameters, userData);
-        this.destinationReference = destinationReference;
-        this.rejectCause = rejectCause;
-    }
+  public ErrorTpdu(
+      short destinationReference,
+      RejectCause rejectCause,
+      List<Parameter> parameters,
+      ByteBuf userData) {
+    super(TpduCode.TPDU_ERROR, parameters, userData);
+    this.destinationReference = destinationReference;
+    this.rejectCause = rejectCause;
+  }
 
-    public short getDestinationReference() {
-        return destinationReference;
-    }
+  public short getDestinationReference() {
+    return destinationReference;
+  }
 
-    public RejectCause getRejectCause() {
-        return rejectCause;
-    }
-
+  public RejectCause getRejectCause() {
+    return rejectCause;
+  }
 }

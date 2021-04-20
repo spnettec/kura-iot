@@ -18,17 +18,16 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.messages;
 
-import java.util.Collection;
-
 import com.yofc.iot.apps.plc.api.model.PlcSubscriptionHandle;
+
+import java.util.Collection;
 
 public interface PlcSubscriptionResponse extends PlcFieldResponse {
 
-    @Override
-    PlcSubscriptionRequest getRequest();
+  @Override
+  PlcSubscriptionRequest getRequest();
 
-    PlcSubscriptionHandle getSubscriptionHandle(String name);
+  PlcSubscriptionHandle getSubscriptionHandle(String name);
 
-    Collection<PlcSubscriptionHandle> getSubscriptionHandles();
-
+  Collection<PlcSubscriptionHandle> getSubscriptionHandles();
 }

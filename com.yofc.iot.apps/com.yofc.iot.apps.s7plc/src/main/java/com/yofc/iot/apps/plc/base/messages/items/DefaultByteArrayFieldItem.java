@@ -18,41 +18,41 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages.items;
 
-import java.util.Objects;
-
 import com.yofc.iot.apps.plc.api.exceptions.PlcIncompatibleDatatypeException;
+
+import java.util.Objects;
 
 public class DefaultByteArrayFieldItem extends BaseDefaultFieldItem<Byte[]> {
 
-    public DefaultByteArrayFieldItem(Byte[]... values) {
-        super(values);
-        for (Byte[] value : values) {
-            Objects.requireNonNull(value);
-        }
+  public DefaultByteArrayFieldItem(Byte[]... values) {
+    super(values);
+    for (Byte[] value : values) {
+      Objects.requireNonNull(value);
     }
+  }
 
-    @Override
-    public Object getObject(int index) {
-        return getValue(index);
+  @Override
+  public Object getObject(int index) {
+    return getValue(index);
+  }
+
+  @Override
+  public boolean isValidByteArray(int index) {
+    Byte[] value = getValue(index);
+    return value != null;
+  }
+
+  @Override
+  public Byte[] getByteArray(int index) {
+    if (!isValidByteArray(index)) {
+      throw new PlcIncompatibleDatatypeException(Byte[].class, index);
     }
+    return getValue(index);
+  }
 
-    @Override
-    public boolean isValidByteArray(int index) {
-        Byte[] value = getValue(index);
-        return value != null;
-    }
+  // ToDo: extend conversion methods similar to @see {@link
+  // org.apache.plc4x.java.modbus.messages.items.DefaultModbusByteArrayFieldItem}
 
-    @Override
-    public Byte[] getByteArray(int index) {
-        if (!isValidByteArray(index)) {
-            throw new PlcIncompatibleDatatypeException(Byte[].class, index);
-        }
-        return getValue(index);
-    }
-
-    // ToDo: extend conversion methods similar to @see {@link
-    // org.apache.plc4x.java.modbus.messages.items.DefaultModbusByteArrayFieldItem}
-
-    // ToDo: implement endianness for correct handling of Byte Arrays at conversion
+  // ToDo: implement endianness for correct handling of Byte Arrays at conversion
 
 }

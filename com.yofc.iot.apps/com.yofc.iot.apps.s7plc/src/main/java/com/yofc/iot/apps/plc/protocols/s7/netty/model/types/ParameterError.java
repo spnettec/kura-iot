@@ -22,49 +22,49 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum ParameterError {
-    NO_ERROR((short) 0x0000),
-    INVALID_BLOCK_TYPE_NUMBER((short) 0x0110),
-    INVALID_PARAMETER((short) 0x0112),
-    PG_RESSOURCE_ERROR((short) 0x011A),
-    PLC_RESSOURCE_ERROR((short) 0x011B),
-    PROTOCOL_ERROR((short) 0x011C),
-    USER_BUFFER_TOO_SHORT((short) 0x011F),
-    REQUEST_ERROR((short) 0x0141),
-    VERSION_MISMATCH((short) 0x01C0),
-    NOT_IMPLEMENTED((short) 0x01F0),
-    L7_INVALID_CPU_STATE((short) 0x8001),
-    L7_PDU_SIZE_ERROR((short) 0x8500),
-    L7_INVALID_SZL_ID((short) 0xD401),
-    L7_INVALID_INDEX((short) 0xD402),
-    L7_DGS_CONNECTION_ALREADY_ANNOUNCED((short) 0xD403),
-    L7_MAX_USER_NB((short) 0xD404),
-    L7_DGS_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD405),
-    L7_NO_INFO((short) 0xD406),
-    L7_PRT_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD601),
-    L7_INVALID_VARIABLE_ADDRESS((short) 0xD801),
-    L7_UNKNOWN_REQUEST((short) 0xD802),
-    L7_INVALID_REQUEST_STATUS((short) 0xD803);
+  NO_ERROR((short) 0x0000),
+  INVALID_BLOCK_TYPE_NUMBER((short) 0x0110),
+  INVALID_PARAMETER((short) 0x0112),
+  PG_RESSOURCE_ERROR((short) 0x011A),
+  PLC_RESSOURCE_ERROR((short) 0x011B),
+  PROTOCOL_ERROR((short) 0x011C),
+  USER_BUFFER_TOO_SHORT((short) 0x011F),
+  REQUEST_ERROR((short) 0x0141),
+  VERSION_MISMATCH((short) 0x01C0),
+  NOT_IMPLEMENTED((short) 0x01F0),
+  L7_INVALID_CPU_STATE((short) 0x8001),
+  L7_PDU_SIZE_ERROR((short) 0x8500),
+  L7_INVALID_SZL_ID((short) 0xD401),
+  L7_INVALID_INDEX((short) 0xD402),
+  L7_DGS_CONNECTION_ALREADY_ANNOUNCED((short) 0xD403),
+  L7_MAX_USER_NB((short) 0xD404),
+  L7_DGS_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD405),
+  L7_NO_INFO((short) 0xD406),
+  L7_PRT_FUNCTION_PARAMETER_SYNTAX_ERROR((short) 0xD601),
+  L7_INVALID_VARIABLE_ADDRESS((short) 0xD801),
+  L7_UNKNOWN_REQUEST((short) 0xD802),
+  L7_INVALID_REQUEST_STATUS((short) 0xD803);
 
-    private static final Map<Short, ParameterError> map;
-    static {
-        map = new HashMap<>();
-        for (ParameterError parameterError : ParameterError.values()) {
-            map.put(parameterError.code, parameterError);
-        }
+  private static final Map<Short, ParameterError> map;
+
+  static {
+    map = new HashMap<>();
+    for (ParameterError parameterError : ParameterError.values()) {
+      map.put(parameterError.code, parameterError);
     }
+  }
 
-    private final short code;
+  private final short code;
 
-    ParameterError(short code) {
-        this.code = code;
-    }
+  ParameterError(short code) {
+    this.code = code;
+  }
 
-    public short getCode() {
-        return code;
-    }
+  public static ParameterError valueOf(short code) {
+    return map.get(code);
+  }
 
-    public static ParameterError valueOf(short code) {
-        return map.get(code);
-    }
-
+  public short getCode() {
+    return code;
+  }
 }

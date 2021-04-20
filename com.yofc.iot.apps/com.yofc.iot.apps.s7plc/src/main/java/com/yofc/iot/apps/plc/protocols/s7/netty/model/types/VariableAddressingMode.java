@@ -21,43 +21,40 @@ package com.yofc.iot.apps.plc.protocols.s7.netty.model.types;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * (Values determined by evaluating generated ".pcap" files)
- * Renamed from "SyntaxId".
- */
+/** (Values determined by evaluating generated ".pcap" files) Renamed from "SyntaxId". */
 public enum VariableAddressingMode {
-    S7ANY((byte) 0x10),
-    PBC_R_ID((byte) 0x13),
-    ALARM_LOCKFREE((byte) 0x15),
-    ALARM_IND((byte) 0x16),
-    ALARM_ACK((byte) 0x19),
-    ALARM_QUERYREQ((byte) 0x1a),
-    NOTIFY_IND((byte) 0x1c),
-    NIC((byte) 0x82),
-    DRIVEESANY((byte) 0xa2),
-    DBREAD((byte) 0xb0),
-    SYM1200((byte) 0xb2); /* Renamed from "1200SYM" */
+  S7ANY((byte) 0x10),
+  PBC_R_ID((byte) 0x13),
+  ALARM_LOCKFREE((byte) 0x15),
+  ALARM_IND((byte) 0x16),
+  ALARM_ACK((byte) 0x19),
+  ALARM_QUERYREQ((byte) 0x1a),
+  NOTIFY_IND((byte) 0x1c),
+  NIC((byte) 0x82),
+  DRIVEESANY((byte) 0xa2),
+  DBREAD((byte) 0xb0),
+  SYM1200((byte) 0xb2); /* Renamed from "1200SYM" */
 
-    private static final Map<Byte, VariableAddressingMode> map;
-    static {
-        map = new HashMap<>();
-        for (VariableAddressingMode variableAddressingMode : VariableAddressingMode.values()) {
-            map.put(variableAddressingMode.code, variableAddressingMode);
-        }
+  private static final Map<Byte, VariableAddressingMode> map;
+
+  static {
+    map = new HashMap<>();
+    for (VariableAddressingMode variableAddressingMode : VariableAddressingMode.values()) {
+      map.put(variableAddressingMode.code, variableAddressingMode);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    VariableAddressingMode(byte code) {
-        this.code = code;
-    }
+  VariableAddressingMode(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static VariableAddressingMode valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static VariableAddressingMode valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

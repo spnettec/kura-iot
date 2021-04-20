@@ -18,48 +18,47 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.isotp.model.tpdus;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.yofc.iot.apps.plc.base.messages.PlcProtocolMessage;
 import com.yofc.iot.apps.plc.base.messages.PlcRawMessage;
 import com.yofc.iot.apps.plc.protocols.isotp.model.params.Parameter;
 import com.yofc.iot.apps.plc.protocols.isotp.model.types.TpduCode;
-
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
+import java.util.Optional;
 
 public abstract class Tpdu extends PlcRawMessage {
 
-    private final TpduCode tpduCode;
-    private final List<Parameter> parameters;
+  private final TpduCode tpduCode;
+  private final List<Parameter> parameters;
 
-    public Tpdu(TpduCode tpduCode, List<Parameter> parameters, ByteBuf userData) {
-        this(tpduCode, parameters, userData, null);
-    }
+  public Tpdu(TpduCode tpduCode, List<Parameter> parameters, ByteBuf userData) {
+    this(tpduCode, parameters, userData, null);
+  }
 
-    public Tpdu(TpduCode tpduCode, List<Parameter> parameters, ByteBuf userData, PlcProtocolMessage parent) {
-        super(userData, parent);
-        this.tpduCode = tpduCode;
-        this.parameters = parameters;
-    }
+  public Tpdu(
+      TpduCode tpduCode, List<Parameter> parameters, ByteBuf userData, PlcProtocolMessage parent) {
+    super(userData, parent);
+    this.tpduCode = tpduCode;
+    this.parameters = parameters;
+  }
 
-    public TpduCode getTpduCode() {
-        return tpduCode;
-    }
+  public TpduCode getTpduCode() {
+    return tpduCode;
+  }
 
-    public List<Parameter> getParameters() {
-        return parameters;
-    }
+  public List<Parameter> getParameters() {
+    return parameters;
+  }
 
-    public <T extends Parameter> Optional<T> getParameter(Class<T> parameterClass) {
-        if (parameters != null) {
-            for (Parameter parameter : parameters) {
-                if (parameter.getClass() == parameterClass) {
-                    return Optional.of(parameterClass.cast(parameter));
-                }
-            }
+  public <T extends Parameter> Optional<T> getParameter(Class<T> parameterClass) {
+    if (parameters != null) {
+      for (Parameter parameter : parameters) {
+        if (parameter.getClass() == parameterClass) {
+          return Optional.of(parameterClass.cast(parameter));
         }
-        return Optional.empty();
+      }
     }
-
+    return Optional.empty();
+  }
 }

@@ -18,35 +18,38 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.model.messages;
 
-import java.util.List;
-
 import com.yofc.iot.apps.plc.base.messages.PlcProtocolMessage;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.params.S7Parameter;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.payloads.S7Payload;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.MessageType;
 
+import java.util.List;
+
 /**
- * Container Object for Requests to S7 which additionally stores information if the request was acknowledged (by the
- * PLC?).
+ * Container Object for Requests to S7 which additionally stores information if the request was
+ * acknowledged (by the PLC?).
  *
  * @see S7Message for the other attributes.
  */
 public class S7RequestMessage extends S7Message {
 
-    private boolean acknowledged;
+  private boolean acknowledged;
 
-    public S7RequestMessage(MessageType messageType, short tpduReference, List<S7Parameter> s7Parameters,
-            List<S7Payload> s7Payloads, PlcProtocolMessage parent) {
-        super(messageType, tpduReference, s7Parameters, s7Payloads, parent);
-        acknowledged = false;
-    }
+  public S7RequestMessage(
+      MessageType messageType,
+      short tpduReference,
+      List<S7Parameter> s7Parameters,
+      List<S7Payload> s7Payloads,
+      PlcProtocolMessage parent) {
+    super(messageType, tpduReference, s7Parameters, s7Payloads, parent);
+    acknowledged = false;
+  }
 
-    public boolean isAcknowledged() {
-        return acknowledged;
-    }
+  public boolean isAcknowledged() {
+    return acknowledged;
+  }
 
-    public void setAcknowledged(boolean acknowledged) {
-        this.acknowledged = acknowledged;
-    }
-
+  public void setAcknowledged(boolean acknowledged) {
+    this.acknowledged = acknowledged;
+  }
 }

@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.yofc.iot</groupId>
     <artifactId>yofc-iot</artifactId>
@@ -10,7 +10,7 @@
     <modules>
         <module>com.yofc.iot.apps</module>
         <module>com.yofc.iot.repack</module>
-	    <module>com.yofc.iot.api</module>
+        <module>com.yofc.iot.api</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -79,7 +79,7 @@
                 <scope>provided</scope>
             </dependency>
 
-			<!-- we stick with the version Kura provides -->
+            <!-- we stick with the version Kura provides -->
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
@@ -208,15 +208,15 @@
                         <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
                         <Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
                         <!-- Enable processing of OSGI metatype annotations -->
-                        <_dsannotations>*</_dsannotations> 
+                        <_dsannotations>*</_dsannotations>
                         <!-- support inheritance on components -->
-                        <_dsannotations-inherit>true</_dsannotations-inherit> 
+                        <_dsannotations-inherit>true</_dsannotations-inherit>
                         <!-- enable processing of default OSGI metatype annotations (since OSGi 6) -->
-                        <_metatypeannotations>*</_metatypeannotations> 
+                        <_metatypeannotations>*</_metatypeannotations>
                         <Embed-Directory>lib</Embed-Directory>
                         <Embed-StripGroup>true</Embed-StripGroup>
                         <Embed-StripVersion>false</Embed-StripVersion>
-                        
+
                         <_noee>true</_noee>
                     </instructions>
 
@@ -232,9 +232,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M3</version>
                 <configuration>
-                  <skipTests>true</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
-             </plugin>
+            </plugin>
             <!-- 
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>

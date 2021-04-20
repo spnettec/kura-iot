@@ -23,38 +23,38 @@ import com.yofc.iot.apps.plc.api.model.PlcField;
 import com.yofc.iot.apps.plc.base.messages.items.BaseDefaultFieldItem;
 
 /**
- * Field Handler which handles the parsing of string to {@link PlcField} and the encoding of retrieved plc values.
+ * Field Handler which handles the parsing of string to {@link PlcField} and the encoding of
+ * retrieved plc values.
  */
 public interface PlcFieldHandler {
 
-    PlcField createField(String fieldQuery) throws PlcInvalidFieldException;
+  PlcField createField(String fieldQuery) throws PlcInvalidFieldException;
 
-    BaseDefaultFieldItem encodeBoolean(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeBoolean(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeByte(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeByte(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeShort(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeShort(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeInteger(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeInteger(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeBigInteger(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeBigInteger(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeLong(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeLong(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeFloat(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeFloat(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeBigDecimal(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeBigDecimal(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeDouble(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeDouble(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeString(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeString(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeTime(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeTime(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeDate(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeDate(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeDateTime(PlcField field, Object[] values);
+  BaseDefaultFieldItem encodeDateTime(PlcField field, Object[] values);
 
-    BaseDefaultFieldItem encodeByteArray(PlcField field, Object[] values);
-
+  BaseDefaultFieldItem encodeByteArray(PlcField field, Object[] values);
 }

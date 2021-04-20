@@ -18,19 +18,26 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.netty.model.messages;
 
-import java.util.Collections;
-
 import com.yofc.iot.apps.plc.base.messages.PlcProtocolMessage;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.params.SetupCommunicationParameter;
 import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.MessageType;
 
+import java.util.Collections;
+
 public class SetupCommunicationRequestMessage extends S7RequestMessage {
 
-    public SetupCommunicationRequestMessage(short tpduReference, short maxAmqCaller, short maxAmqCallee,
-            short pduLength, PlcProtocolMessage parent) {
-        super(MessageType.JOB, tpduReference,
-                Collections.singletonList(new SetupCommunicationParameter(maxAmqCaller, maxAmqCallee, pduLength)),
-                Collections.emptyList(), parent);
-    }
-
+  public SetupCommunicationRequestMessage(
+      short tpduReference,
+      short maxAmqCaller,
+      short maxAmqCallee,
+      short pduLength,
+      PlcProtocolMessage parent) {
+    super(
+        MessageType.JOB,
+        tpduReference,
+        Collections.singletonList(
+            new SetupCommunicationParameter(maxAmqCaller, maxAmqCallee, pduLength)),
+        Collections.emptyList(),
+        parent);
+  }
 }

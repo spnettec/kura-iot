@@ -18,5 +18,4 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.events;
 
-public class ConnectEvent {
-}
+public class ConnectEvent {}

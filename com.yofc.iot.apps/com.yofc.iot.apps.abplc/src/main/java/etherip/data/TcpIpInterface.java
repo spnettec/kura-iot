@@ -15,71 +15,65 @@ import etherip.types.CNClassPath;
  * @see CIP_Vol2_1.4: 5-3.2.2
  * @author László Pataki
  */
-public class TcpIpInterface
-{
-    private int status, configurationCapability, configurationControl;
+public class TcpIpInterface {
+  private int status, configurationCapability, configurationControl;
 
-    private String hostName;
+  private String hostName;
 
-    private InterfaceConfiguration interfaceConfiguration;
+  private InterfaceConfiguration interfaceConfiguration;
 
-    private CNClassPath physicalLinkObject;
+  private CNClassPath physicalLinkObject;
 
-    public TcpIpInterface()
-    {
-        this.interfaceConfiguration = new InterfaceConfiguration();
-    }
+  public TcpIpInterface() {
+    this.interfaceConfiguration = new InterfaceConfiguration();
+  }
 
-    public void setStatus(final int status)
-    {
-        this.status = status;
-    }
+  public void setStatus(final int status) {
+    this.status = status;
+  }
 
-    public void setConfigurationCapability(final int configurationCapability)
-    {
-        this.configurationCapability = configurationCapability;
-    }
+  public void setConfigurationCapability(final int configurationCapability) {
+    this.configurationCapability = configurationCapability;
+  }
 
-    public void setConfigurationControl(final int configurationControl)
-    {
-        this.configurationControl = configurationControl;
-    }
+  public void setConfigurationControl(final int configurationControl) {
+    this.configurationControl = configurationControl;
+  }
 
-    public void setHostName(final String hostName)
-    {
-        this.hostName = hostName;
-    }
+  public void setHostName(final String hostName) {
+    this.hostName = hostName;
+  }
 
-    public InterfaceConfiguration getInterfaceConfiguration()
-    {
-        return this.interfaceConfiguration;
-    }
+  public InterfaceConfiguration getInterfaceConfiguration() {
+    return this.interfaceConfiguration;
+  }
 
-    public void setInterfaceConfiguration(
-            final InterfaceConfiguration interfaceConfiguration)
-    {
-        this.interfaceConfiguration = interfaceConfiguration;
-    }
+  public void setInterfaceConfiguration(final InterfaceConfiguration interfaceConfiguration) {
+    this.interfaceConfiguration = interfaceConfiguration;
+  }
 
-    public CNClassPath getPhysicalLinkObject()
-    {
-        return this.physicalLinkObject;
-    }
+  public CNClassPath getPhysicalLinkObject() {
+    return this.physicalLinkObject;
+  }
 
-    public void setPhysicalLinkObject(final CNClassPath cnClassPath)
-    {
-        this.physicalLinkObject = cnClassPath;
-    }
+  public void setPhysicalLinkObject(final CNClassPath cnClassPath) {
+    this.physicalLinkObject = cnClassPath;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "TcpIpInterface [status=" + this.status
-                + ", configurationCapability=" + this.configurationCapability
-                + ", configurationControl=" + this.configurationControl
-                + ", hostName=" + this.hostName + ", interfaceConfiguration="
-                + this.interfaceConfiguration + ", physicalLinkObject="
-                + this.physicalLinkObject + "]";
-    }
-
+  @Override
+  public String toString() {
+    return "TcpIpInterface [status="
+        + this.status
+        + ", configurationCapability="
+        + this.configurationCapability
+        + ", configurationControl="
+        + this.configurationControl
+        + ", hostName="
+        + this.hostName
+        + ", interfaceConfiguration="
+        + this.interfaceConfiguration
+        + ", physicalLinkObject="
+        + this.physicalLinkObject
+        + "]";
+  }
 }

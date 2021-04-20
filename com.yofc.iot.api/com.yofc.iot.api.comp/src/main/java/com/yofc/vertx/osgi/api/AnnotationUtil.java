@@ -7,12 +7,15 @@ import java.lang.reflect.Proxy;
 
 class AnnotationUtil implements InvocationHandler {
 
-    @SuppressWarnings("unchecked")
-    public static <A extends Annotation> A of(Class<A> annotation) {
-        return (A) Proxy.newProxyInstance(annotation.getClassLoader(), new Class[] { annotation }, new AnnotationUtil());
-    }
+  @SuppressWarnings("unchecked")
+  public static <A extends Annotation> A of(Class<A> annotation) {
+    return (A)
+        Proxy.newProxyInstance(
+            annotation.getClassLoader(), new Class[] {annotation}, new AnnotationUtil());
+  }
 
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        return method.getDefaultValue();
-    }
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    return method.getDefaultValue();
+  }
 }

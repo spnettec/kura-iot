@@ -18,23 +18,19 @@ under the License.
 */
 package com.yofc.iot.apps.plc.base.messages;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.yofc.iot.apps.plc.api.messages.PlcReadRequest;
 import com.yofc.iot.apps.plc.api.messages.PlcReadResponse;
 
-/**
- * Interface implemented by all PlcConnections that are able to read from remote resources.
- */
+import java.util.concurrent.CompletableFuture;
+
+/** Interface implemented by all PlcConnections that are able to read from remote resources. */
 public interface PlcReader {
 
-    /**
-     * Reads a requested value from a PLC.
-     *
-     * @param readRequest
-     *            object describing the type and location of the value.
-     * @return a {@link CompletableFuture} giving async access to the returned value.
-     */
-    CompletableFuture<PlcReadResponse> read(PlcReadRequest readRequest);
-
+  /**
+   * Reads a requested value from a PLC.
+   *
+   * @param readRequest object describing the type and location of the value.
+   * @return a {@link CompletableFuture} giving async access to the returned value.
+   */
+  CompletableFuture<PlcReadResponse> read(PlcReadRequest readRequest);
 }

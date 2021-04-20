@@ -22,32 +22,32 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum ProtocolClass {
-    CLASS_0((byte) 0x00),
-    CLASS_1((byte) 0x10),
-    CLASS_2((byte) 0x20),
-    CLASS_3((byte) 0x30),
-    CLASS_4((byte) 0x40);
+  CLASS_0((byte) 0x00),
+  CLASS_1((byte) 0x10),
+  CLASS_2((byte) 0x20),
+  CLASS_3((byte) 0x30),
+  CLASS_4((byte) 0x40);
 
-    private static final Map<Byte, ProtocolClass> map;
-    static {
-        map = new HashMap<>();
-        for (ProtocolClass protocolClass : ProtocolClass.values()) {
-            map.put(protocolClass.code, protocolClass);
-        }
+  private static final Map<Byte, ProtocolClass> map;
+
+  static {
+    map = new HashMap<>();
+    for (ProtocolClass protocolClass : ProtocolClass.values()) {
+      map.put(protocolClass.code, protocolClass);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    ProtocolClass(byte code) {
-        this.code = code;
-    }
+  ProtocolClass(byte code) {
+    this.code = code;
+  }
 
-    public byte getCode() {
-        return code;
-    }
+  public static ProtocolClass valueOf(byte code) {
+    return map.get(code);
+  }
 
-    public static ProtocolClass valueOf(byte code) {
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

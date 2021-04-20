@@ -19,24 +19,23 @@ under the License.
 package com.yofc.iot.apps.plc.api.types;
 
 /**
- * {@link PlcSubscriptionType} specifies the nature of the subscription.
- * In general PLC4X supports exactly 3 types of subscriptions.
+ * {@link PlcSubscriptionType} specifies the nature of the subscription. In general PLC4X supports
+ * exactly 3 types of subscriptions.
  */
 public enum PlcSubscriptionType {
 
-    /**
-     * A cyclic subscription where a value is sent no matter if it's value changed in a given interval.
-     */
-    CYCLIC,
+  /**
+   * A cyclic subscription where a value is sent no matter if it's value changed in a given
+   * interval.
+   */
+  CYCLIC,
 
-    /**
-     * Only send data, if a value in the PLC changed.
-     */
-    CHANGE_OF_STATE,
+  /** Only send data, if a value in the PLC changed. */
+  CHANGE_OF_STATE,
 
-    /**
-     * Subscribe to events created by the PLC which usually are defined in the PLCs application (Alarms).
-     */
-    EVENT
-
+  /**
+   * Subscribe to events created by the PLC which usually are defined in the PLCs application
+   * (Alarms).
+   */
+  EVENT
 }

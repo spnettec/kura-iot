@@ -23,52 +23,46 @@ import java.util.concurrent.CompletableFuture;
 
 public interface PlcSubscriptionRequest extends PlcFieldRequest {
 
+  @Override
+  CompletableFuture<? extends PlcSubscriptionResponse> execute();
+
+  interface Builder extends PlcRequestBuilder {
+
     @Override
-    CompletableFuture<? extends PlcSubscriptionResponse> execute();
+    PlcSubscriptionRequest build();
 
-    interface Builder extends PlcRequestBuilder {
+    /**
+     * Adds a new field to the to be constructed request which should be polled cyclically.
+     *
+     * @param name alias of the field.
+     * @param fieldQuery field query string for accessing the field.
+     * @param pollingInterval interval, in which the field should be polled.
+     * @return builder.
+     */
+    PlcSubscriptionRequest.Builder addCyclicField(
+        String name, String fieldQuery, Duration pollingInterval);
 
-        @Override
-        PlcSubscriptionRequest build();
+    /**
+     * Adds a new field to the to be constructed request which should be updated as soon as a value
+     * changes in the PLC.
+     *
+     * @param name alias of the field.
+     * @param fieldQuery field query string for accessing the field.
+     * @return builder.
+     */
+    PlcSubscriptionRequest.Builder addChangeOfStateField(String name, String fieldQuery);
 
-        /**
-         * Adds a new field to the to be constructed request which should be polled cyclically.
-         *
-         * @param name
-         *            alias of the field.
-         * @param fieldQuery
-         *            field query string for accessing the field.
-         * @param pollingInterval
-         *            interval, in which the field should be polled.
-         * @return builder.
-         */
-        PlcSubscriptionRequest.Builder addCyclicField(String name, String fieldQuery, Duration pollingInterval);
-
-        /**
-         * Adds a new field to the to be constructed request which should be updated as soon as
-         * a value changes in the PLC.
-         *
-         * @param name
-         *            alias of the field.
-         * @param fieldQuery
-         *            field query string for accessing the field.
-         * @return builder.
-         */
-        PlcSubscriptionRequest.Builder addChangeOfStateField(String name, String fieldQuery);
-
-        /**
-         * Adds a new subscription to the to be constructed request which should be updated
-         * as soon as an event occurs.
-         * <p>
-         * REMARK: We will have to see if this signature is correct as soon as we start using this type of subscription.
-         *
-         * @param name
-         *            alias of the field.
-         * @param fieldQuery
-         *            field query string for accessing the field.
-         * @return builder.
-         */
-        PlcSubscriptionRequest.Builder addEventField(String name, String fieldQuery);
-    }
-
+    /**
+     * Adds a new subscription to the to be constructed request which should be updated as soon as
+     * an event occurs.
+     *
+     * <p>REMARK: We will have to see if this signature is correct as soon as we start using this
+     * type of subscription.
+     *
+     * @param name alias of the field.
+     * @param fieldQuery field query string for accessing the field.
+     * @return builder.
+     */
+    PlcSubscriptionRequest.Builder addEventField(String name, String fieldQuery);
+  }
 }

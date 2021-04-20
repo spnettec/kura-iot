@@ -18,8 +18,6 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.yofc.iot.apps.plc.api.exceptions.PlcConnectionException;
 import com.yofc.iot.apps.plc.api.exceptions.PlcInvalidFieldException;
 import com.yofc.iot.apps.plc.api.exceptions.PlcRuntimeException;
@@ -31,89 +29,82 @@ import com.yofc.iot.apps.plc.api.messages.PlcWriteRequest;
 import com.yofc.iot.apps.plc.api.metadata.PlcConnectionMetadata;
 import com.yofc.iot.apps.plc.api.model.PlcField;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
- * Interface defining the most basic methods a PLC4X connection should support.
- * This generally handles the connection establishment itself and the parsing of
- * field address strings to the platform dependent PlcField instances.
+ * Interface defining the most basic methods a PLC4X connection should support. This generally
+ * handles the connection establishment itself and the parsing of field address strings to the
+ * platform dependent PlcField instances.
  */
 public interface PlcConnection extends AutoCloseable {
 
-    /**
-     * Establishes the connection to the remote PLC.
-     * 
-     * @throws PlcConnectionException
-     *             if the connection attempt failed
-     */
-    void connect() throws PlcConnectionException;
+  /**
+   * Establishes the connection to the remote PLC.
+   *
+   * @throws PlcConnectionException if the connection attempt failed
+   */
+  void connect() throws PlcConnectionException;
 
-    /**
-     * Indicates if the connection is established to a remote PLC.
-     * 
-     * @return {@code true} if connected, {@code false} otherwise
-     */
-    boolean isConnected();
+  /**
+   * Indicates if the connection is established to a remote PLC.
+   *
+   * @return {@code true} if connected, {@code false} otherwise
+   */
+  boolean isConnected();
 
-    /**
-     * Closes the connection to the remote PLC.
-     * 
-     * @throws Exception
-     *             if shutting down the connection failed
-     */
-    @Override
-    void close() throws Exception;
+  /**
+   * Closes the connection to the remote PLC.
+   *
+   * @throws Exception if shutting down the connection failed
+   */
+  @Override
+  void close() throws Exception;
 
-    /**
-     * Parse a fieldQuery for the given connection type.
-     *
-     * @throws PlcRuntimeException
-     *             If the string cannot be parsed
-     */
-    default PlcField prepareField(String fieldQuery) throws PlcInvalidFieldException {
-        throw new PlcRuntimeException("Parse method is not implemented for this connection / driver");
-    }
+  /**
+   * Parse a fieldQuery for the given connection type.
+   *
+   * @throws PlcRuntimeException If the string cannot be parsed
+   */
+  default PlcField prepareField(String fieldQuery) throws PlcInvalidFieldException {
+    throw new PlcRuntimeException("Parse method is not implemented for this connection / driver");
+  }
 
-    /**
-     * Provides connection metadata.
-     */
-    PlcConnectionMetadata getMetadata();
+  /** Provides connection metadata. */
+  PlcConnectionMetadata getMetadata();
 
-    /**
-     * Execute a ping query against a remote device to check the availability of the connection.
-     *
-     * @return CompletableFuture that is completed successfully (Void) or unsuccessfully with an PlcException.
-     */
-    CompletableFuture<Void> ping();
+  /**
+   * Execute a ping query against a remote device to check the availability of the connection.
+   *
+   * @return CompletableFuture that is completed successfully (Void) or unsuccessfully with an
+   *     PlcException.
+   */
+  CompletableFuture<Void> ping();
 
-    /**
-     * Obtain read request builder.
-     * 
-     * @throws PlcUnsupportedOperationException
-     *             if the connection does not support reading
-     */
-    PlcReadRequest.Builder readRequestBuilder();
+  /**
+   * Obtain read request builder.
+   *
+   * @throws PlcUnsupportedOperationException if the connection does not support reading
+   */
+  PlcReadRequest.Builder readRequestBuilder();
 
-    /**
-     * Obtain write request builder.
-     * 
-     * @throws PlcUnsupportedOperationException
-     *             if the connection does not support writing
-     */
-    PlcWriteRequest.Builder writeRequestBuilder();
+  /**
+   * Obtain write request builder.
+   *
+   * @throws PlcUnsupportedOperationException if the connection does not support writing
+   */
+  PlcWriteRequest.Builder writeRequestBuilder();
 
-    /**
-     * Obtain subscription request builder.
-     * 
-     * @throws PlcUnsupportedOperationException
-     *             if the connection does not support subscription
-     */
-    PlcSubscriptionRequest.Builder subscriptionRequestBuilder();
+  /**
+   * Obtain subscription request builder.
+   *
+   * @throws PlcUnsupportedOperationException if the connection does not support subscription
+   */
+  PlcSubscriptionRequest.Builder subscriptionRequestBuilder();
 
-    /**
-     * Obtain unsubscription request builder.
-     * 
-     * @throws PlcUnsupportedOperationException
-     *             if the connection does not support subscription
-     */
-    PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder();
-
+  /**
+   * Obtain unsubscription request builder.
+   *
+   * @throws PlcUnsupportedOperationException if the connection does not support subscription
+   */
+  PlcUnsubscriptionRequest.Builder unsubscriptionRequestBuilder();
 }

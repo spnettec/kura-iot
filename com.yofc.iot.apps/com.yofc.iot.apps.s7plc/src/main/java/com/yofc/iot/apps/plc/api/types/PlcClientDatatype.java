@@ -19,17 +19,15 @@ under the License.
 package com.yofc.iot.apps.plc.api.types;
 
 public enum PlcClientDatatype {
-
-    BOOLEAN,
-    BYTE,
-    SHORT,
-    INTEGER,
-    LONG,
-    FLOAT,
-    DOUBLE,
-    STRING,
-    TIME,
-    DATE,
-    DATE_TIME
-
+  BOOLEAN,
+  BYTE,
+  SHORT,
+  INTEGER,
+  LONG,
+  FLOAT,
+  DOUBLE,
+  STRING,
+  TIME,
+  DATE,
+  DATE_TIME
 }

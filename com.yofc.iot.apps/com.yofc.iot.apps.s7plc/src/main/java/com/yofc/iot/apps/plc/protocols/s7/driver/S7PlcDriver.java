@@ -18,64 +18,62 @@ under the License.
 */
 package com.yofc.iot.apps.plc.protocols.s7.driver;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.yofc.iot.apps.plc.api.PlcConnection;
 import com.yofc.iot.apps.plc.api.authentication.PlcAuthentication;
 import com.yofc.iot.apps.plc.api.exceptions.PlcConnectionException;
 import com.yofc.iot.apps.plc.protocols.s7.driver.connection.S7PlcConnection;
 import com.yofc.iot.apps.plc.spi.PlcDriver;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
- * Implementation of the S7 protocol, based on:
- * - S7 Protocol
- * - ISO Transport Protocol (Class 0) (https://tools.ietf.org/html/rfc905)
- * - ISO on TCP (https://tools.ietf.org/html/rfc1006)
- * - TCP
+ * Implementation of the S7 protocol, based on: - S7 Protocol - ISO Transport Protocol (Class 0)
+ * (https://tools.ietf.org/html/rfc905) - ISO on TCP (https://tools.ietf.org/html/rfc1006) - TCP
  */
 public class S7PlcDriver implements PlcDriver {
 
-    private static final Pattern S7_URI_PATTERN = Pattern
-            .compile("^s7://(?<host>.*)/(?<rack>\\d{1,4})/(?<slot>\\d{1,4})(?<params>\\?.*)?");
+  private static final Pattern S7_URI_PATTERN =
+      Pattern.compile("^s7://(?<host>.*)/(?<rack>\\d{1,4})/(?<slot>\\d{1,4})(?<params>\\?.*)?");
 
-    @Override
-    public String getProtocolCode() {
-        return "s7";
+  @Override
+  public String getProtocolCode() {
+    return "s7";
+  }
+
+  @Override
+  public String getProtocolName() {
+    return "Siemens S7 (Basic)";
+  }
+
+  @Override
+  public PlcConnection connect(String url) throws PlcConnectionException {
+    Matcher matcher = S7_URI_PATTERN.matcher(url);
+    if (!matcher.matches()) {
+      throw new PlcConnectionException(
+          "Connection url doesn't match the format 's7://{host|ip}/{rack}/{slot}'");
     }
+    String host = matcher.group("host");
 
-    @Override
-    public String getProtocolName() {
-        return "Siemens S7 (Basic)";
+    int rack = Integer.parseInt(matcher.group("rack"));
+    int slot = Integer.parseInt(matcher.group("slot"));
+    String params = matcher.group("params") != null ? matcher.group("params").substring(1) : null;
+
+    try {
+      InetAddress serverInetAddress = InetAddress.getByName(host);
+      return new S7PlcConnection(serverInetAddress, rack, slot, params);
+    } catch (UnknownHostException e) {
+      throw new PlcConnectionException("Error parsing address", e);
+    } catch (Exception e) {
+      throw new PlcConnectionException("Error connecting to host", e);
     }
+  }
 
-    @Override
-    public PlcConnection connect(String url) throws PlcConnectionException {
-        Matcher matcher = S7_URI_PATTERN.matcher(url);
-        if (!matcher.matches()) {
-            throw new PlcConnectionException("Connection url doesn't match the format 's7://{host|ip}/{rack}/{slot}'");
-        }
-        String host = matcher.group("host");
-
-        int rack = Integer.parseInt(matcher.group("rack"));
-        int slot = Integer.parseInt(matcher.group("slot"));
-        String params = matcher.group("params") != null ? matcher.group("params").substring(1) : null;
-
-        try {
-            InetAddress serverInetAddress = InetAddress.getByName(host);
-            return new S7PlcConnection(serverInetAddress, rack, slot, params);
-        } catch (UnknownHostException e) {
-            throw new PlcConnectionException("Error parsing address", e);
-        } catch (Exception e) {
-            throw new PlcConnectionException("Error connecting to host", e);
-        }
-    }
-
-    @Override
-    public PlcConnection connect(String url, PlcAuthentication authentication) throws PlcConnectionException {
-        throw new PlcConnectionException("Basic S7 connections don't support authentication.");
-    }
-
+  @Override
+  public PlcConnection connect(String url, PlcAuthentication authentication)
+      throws PlcConnectionException {
+    throw new PlcConnectionException("Basic S7 connections don't support authentication.");
+  }
 }

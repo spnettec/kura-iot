@@ -16,18 +16,18 @@ import etherip.data.Identity;
  */
 public class ListIdenties extends Encapsulation {
 
-    private final ListIdentiesProtocol list_identities;
+  private final ListIdentiesProtocol list_identities;
 
-    public ListIdenties() {
-        this(new ListIdentiesProtocol());
-    }
+  public ListIdenties() {
+    this(new ListIdentiesProtocol());
+  }
 
-    private ListIdenties(final ListIdentiesProtocol list_identities) {
-        super(Command.LIST_IDENTITY, 0, list_identities);
-        this.list_identities = list_identities;
-    }
+  private ListIdenties(final ListIdentiesProtocol list_identities) {
+    super(Command.LIST_IDENTITY, 0, list_identities);
+    this.list_identities = list_identities;
+  }
 
-    public final Identity[] getIdentities() {
-        return this.list_identities.getIdentities();
-    }
+  public final Identity[] getIdentities() {
+    return this.list_identities.getIdentities();
+  }
 }

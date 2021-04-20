@@ -27,70 +27,76 @@ import com.yofc.iot.apps.plc.protocols.s7.netty.model.types.VariableAddressingMo
  * "Low-level" description of S7 Address range and the necessary size for transportation of values.
  * Is used as Arguments of {@link org.apache.plc4x.java.s7.netty.model.params.VarParameter} object.
  *
- * Contains the information to read one or more sequential values of the same datatype starting from given offset in a
- * memory region
- * and also contains the transportation size of the datatype read.
+ * <p>Contains the information to read one or more sequential values of the same datatype starting
+ * from given offset in a memory region and also contains the transportation size of the datatype
+ * read.
  *
- * In detail:
+ * <p>In detail:
+ *
  * <ul>
- * <li>transportSize - {@link TransportSize} of the datatype</li>
- * <li>numElements - number of consecutive elements to be read</li>
- * <li>dataBlockNumber - number of the datablock</li>
- * <li>bit / byteOffset where the adress starts</li>
+ *   <li>transportSize - {@link TransportSize} of the datatype
+ *   <li>numElements - number of consecutive elements to be read
+ *   <li>dataBlockNumber - number of the datablock
+ *   <li>bit / byteOffset where the adress starts
  * </ul>
  */
 public class S7AnyVarParameterItem implements VarParameterItem {
 
-    private final SpecificationType specificationType;
-    private final MemoryArea memoryArea;
-    private final TransportSize dataType;
-    private final int numElements;
-    private final int dataBlockNumber;
-    private final int byteOffset;
-    private final byte bitOffset;
+  private final SpecificationType specificationType;
+  private final MemoryArea memoryArea;
+  private final TransportSize dataType;
+  private final int numElements;
+  private final int dataBlockNumber;
+  private final int byteOffset;
+  private final byte bitOffset;
 
-    public S7AnyVarParameterItem(SpecificationType specificationType, MemoryArea memoryArea, TransportSize dataType,
-            int numElements, int dataBlockNumber, int byteOffset, byte bitOffset) {
-        this.specificationType = specificationType;
-        this.memoryArea = memoryArea;
-        this.dataType = dataType;
-        this.numElements = numElements;
-        this.dataBlockNumber = dataBlockNumber;
-        this.byteOffset = byteOffset;
-        this.bitOffset = bitOffset;
-    }
+  public S7AnyVarParameterItem(
+      SpecificationType specificationType,
+      MemoryArea memoryArea,
+      TransportSize dataType,
+      int numElements,
+      int dataBlockNumber,
+      int byteOffset,
+      byte bitOffset) {
+    this.specificationType = specificationType;
+    this.memoryArea = memoryArea;
+    this.dataType = dataType;
+    this.numElements = numElements;
+    this.dataBlockNumber = dataBlockNumber;
+    this.byteOffset = byteOffset;
+    this.bitOffset = bitOffset;
+  }
 
-    @Override
-    public VariableAddressingMode getAddressingMode() {
-        return VariableAddressingMode.S7ANY;
-    }
+  @Override
+  public VariableAddressingMode getAddressingMode() {
+    return VariableAddressingMode.S7ANY;
+  }
 
-    public SpecificationType getSpecificationType() {
-        return specificationType;
-    }
+  public SpecificationType getSpecificationType() {
+    return specificationType;
+  }
 
-    public MemoryArea getMemoryArea() {
-        return memoryArea;
-    }
+  public MemoryArea getMemoryArea() {
+    return memoryArea;
+  }
 
-    public TransportSize getDataType() {
-        return dataType;
-    }
+  public TransportSize getDataType() {
+    return dataType;
+  }
 
-    public int getNumElements() {
-        return numElements;
-    }
+  public int getNumElements() {
+    return numElements;
+  }
 
-    public int getDataBlockNumber() {
-        return dataBlockNumber;
-    }
+  public int getDataBlockNumber() {
+    return dataBlockNumber;
+  }
 
-    public int getByteOffset() {
-        return byteOffset;
-    }
+  public int getByteOffset() {
+    return byteOffset;
+  }
 
-    public byte getBitOffset() {
-        return bitOffset;
-    }
-
+  public byte getBitOffset() {
+    return bitOffset;
+  }
 }

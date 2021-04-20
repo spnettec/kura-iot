@@ -22,19 +22,18 @@ import com.yofc.iot.apps.plc.protocols.isotp.model.types.ParameterCode;
 
 public class DisconnectAdditionalInformationParameter implements Parameter {
 
-    private final byte[] data;
+  private final byte[] data;
 
-    public DisconnectAdditionalInformationParameter(byte[] data) {
-        this.data = data;
-    }
+  public DisconnectAdditionalInformationParameter(byte[] data) {
+    this.data = data;
+  }
 
-    @Override
-    public ParameterCode getType() {
-        return ParameterCode.DISCONNECT_ADDITIONAL_INFORMATION;
-    }
+  @Override
+  public ParameterCode getType() {
+    return ParameterCode.DISCONNECT_ADDITIONAL_INFORMATION;
+  }
 
-    public byte[] getData() {
-        return data;
-    }
-
+  public byte[] getData() {
+    return data;
+  }
 }

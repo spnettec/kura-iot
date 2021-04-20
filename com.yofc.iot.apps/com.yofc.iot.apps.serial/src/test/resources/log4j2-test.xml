@@ -18,9 +18,9 @@
 
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-          <PatternLayout>
-              <Pattern>%d{ISO8601} [%t] %-5p %c{1.} - %m%n%throwable{full}</Pattern>
-          </PatternLayout>
+            <PatternLayout>
+                <Pattern>%d{ISO8601} [%t] %-5p %c{1.} - %m%n%throwable{full}</Pattern>
+            </PatternLayout>
         </Console>
     </Appenders>
 
@@ -28,7 +28,7 @@
         <Logger name="com.yofc" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-       
+
         <Root level="debug">
             <AppenderRef ref="Console"/>
         </Root>

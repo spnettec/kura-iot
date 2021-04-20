@@ -25,34 +25,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CpuServicesParameterFunctionGroup {
+  CPU_FUNCTIONS((byte) 0x04);
 
-    CPU_FUNCTIONS((byte) 0x04);
+  private static final Logger logger =
+      LoggerFactory.getLogger(CpuServicesParameterFunctionGroup.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(CpuServicesParameterFunctionGroup.class);
+  private static final Map<Byte, CpuServicesParameterFunctionGroup> map;
 
-    private static final Map<Byte, CpuServicesParameterFunctionGroup> map;
-    static {
-        map = new HashMap<>();
-        for (CpuServicesParameterFunctionGroup cpuServicesParameterFunctionGroup : CpuServicesParameterFunctionGroup.values()) {
-            map.put(cpuServicesParameterFunctionGroup.code, cpuServicesParameterFunctionGroup);
-        }
+  static {
+    map = new HashMap<>();
+    for (CpuServicesParameterFunctionGroup cpuServicesParameterFunctionGroup :
+        CpuServicesParameterFunctionGroup.values()) {
+      map.put(cpuServicesParameterFunctionGroup.code, cpuServicesParameterFunctionGroup);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    CpuServicesParameterFunctionGroup(byte code) {
-        this.code = code;
+  CpuServicesParameterFunctionGroup(byte code) {
+    this.code = code;
+  }
+
+  public static CpuServicesParameterFunctionGroup valueOf(byte code) {
+    if (!map.containsKey(code)) {
+      logger.error("CpuServicesParameterFunctionGroup for code {} not found", code);
     }
+    return map.get(code);
+  }
 
-    public byte getCode() {
-        return code;
-    }
-
-    public static CpuServicesParameterFunctionGroup valueOf(byte code) {
-        if(!map.containsKey(code)) {
-            logger.error("CpuServicesParameterFunctionGroup for code {} not found", code);
-        }
-        return map.get(code);
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

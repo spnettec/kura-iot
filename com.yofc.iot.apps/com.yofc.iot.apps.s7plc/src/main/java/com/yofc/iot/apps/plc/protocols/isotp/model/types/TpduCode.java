@@ -22,41 +22,41 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum TpduCode {
-    DATA((byte) 0xF0),
-    DATA_ACKNOWLEDGEMENT((byte) 0x60),
-    CONNECTION_REQUEST((byte) 0xE0),
-    CONNECTION_CONFIRM((byte) 0xD0),
-    DISCONNECT_REQUEST((byte) 0x80),
-    DISCONNECT_CONFIRM((byte) 0xC0),
-    EXPEDITED_DATA((byte) 0x10),
-    EXPEDITED_DATA_ACKNOWLEDGEMENT((byte) 0x20),
-    REJECT((byte) 0x50),
-    TPDU_ERROR((byte) 0x70),
-    TPDU_UNKNOWN((byte) 0xFF);
+  DATA((byte) 0xF0),
+  DATA_ACKNOWLEDGEMENT((byte) 0x60),
+  CONNECTION_REQUEST((byte) 0xE0),
+  CONNECTION_CONFIRM((byte) 0xD0),
+  DISCONNECT_REQUEST((byte) 0x80),
+  DISCONNECT_CONFIRM((byte) 0xC0),
+  EXPEDITED_DATA((byte) 0x10),
+  EXPEDITED_DATA_ACKNOWLEDGEMENT((byte) 0x20),
+  REJECT((byte) 0x50),
+  TPDU_ERROR((byte) 0x70),
+  TPDU_UNKNOWN((byte) 0xFF);
 
-    private static final Map<Byte, TpduCode> map;
-    static {
-        map = new HashMap<>();
-        for (TpduCode tpduCode : TpduCode.values()) {
-            map.put(tpduCode.code, tpduCode);
-        }
+  private static final Map<Byte, TpduCode> map;
+
+  static {
+    map = new HashMap<>();
+    for (TpduCode tpduCode : TpduCode.values()) {
+      map.put(tpduCode.code, tpduCode);
     }
+  }
 
-    private final byte code;
+  private final byte code;
 
-    TpduCode(byte code) {
-        this.code = code;
+  TpduCode(byte code) {
+    this.code = code;
+  }
+
+  public static TpduCode valueOf(byte code) {
+    if (map.containsKey(code)) {
+      return map.get(code);
     }
+    return TpduCode.TPDU_UNKNOWN;
+  }
 
-    public byte getCode() {
-        return code;
-    }
-
-    public static TpduCode valueOf(byte code) {
-        if (map.containsKey(code)) {
-            return map.get(code);
-        }
-        return TpduCode.TPDU_UNKNOWN;
-    }
-
+  public byte getCode() {
+    return code;
+  }
 }

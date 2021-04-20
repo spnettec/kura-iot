@@ -18,9 +18,5 @@ under the License.
 */
 package com.yofc.iot.apps.plc.api.messages;
 
-/**
- * Base type for all forms of messages passed between plc and plc4x system.
- */
-public interface PlcMessage {
-
-}
+/** Base type for all forms of messages passed between plc and plc4x system. */
+public interface PlcMessage {}

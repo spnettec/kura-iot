@@ -20,6 +20,5 @@ package com.yofc.iot.apps.plc.base.messages;
 
 public interface PlcProtocolMessage {
 
-    PlcProtocolMessage getParent();
-
+  PlcProtocolMessage getParent();
 }

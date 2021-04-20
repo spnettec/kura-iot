@@ -22,13 +22,12 @@ import com.yofc.iot.apps.plc.protocols.isotp.model.types.ParameterCode;
 
 public class CalledTsapParameter extends TsapParameter {
 
-    public CalledTsapParameter(short tsapId) {
-        super(tsapId);
-    }
+  public CalledTsapParameter(short tsapId) {
+    super(tsapId);
+  }
 
-    @Override
-    public ParameterCode getType() {
-        return ParameterCode.CALLED_TSAP;
-    }
-
+  @Override
+  public ParameterCode getType() {
+    return ParameterCode.CALLED_TSAP;
+  }
 }
