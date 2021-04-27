@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.opc.impl.OPCUAServerServiceImpl" configuration-policy="require" immediate="true" activate="start" deactivate="stop" modified="update">
+  <property name="activate" type="Boolean" value="false"/>
+  <property name="serverConfig" type="String" value=""/>
+  <service>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+  </service>
+  <implementation class="com.yofc.opc.impl.OPCUAServerServiceImpl"/>
+</scr:component>
