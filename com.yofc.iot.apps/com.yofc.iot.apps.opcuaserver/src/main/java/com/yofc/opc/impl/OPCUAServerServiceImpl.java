@@ -28,7 +28,6 @@ import com.yofc.vertx.osgi.api.Utils;
 public class OPCUAServerServiceImpl implements ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(OPCUAServerServiceImpl.class);
-    private Optional<OPCUAServer> server = Optional.empty();
     private Optional<CompletableFuture<OPCUAServer>> startTask = Optional.empty();
     private Config preConfig = null;
 
@@ -43,6 +42,7 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
         if (this.preConfig != null && properties.toString().equals(this.preConfig.toString())) {
             return;
         }
+        this.preConfig = properties;
         closeServer();
         updateConfig(context, properties);
         this.preConfig = properties;
@@ -68,11 +68,7 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
         if (this.startTask.isPresent() && !this.startTask.get().isDone()) {
             return this.startTask.get();
         }
-        CompletableFuture<OPCUAServer> connectPromise = CompletableFuture.completedFuture(null);
-        if (server.isPresent()) {
-            connectPromise.complete(server.get());
-            return connectPromise;
-        }
+
         try {
             return Utils.executeWithTCCLSwitch(context.getBundle().adapt(BundleWiring.class).getClassLoader(),
                     () -> new OPCUAServer(properties.serverConfig(), false).startup());
@@ -82,18 +78,16 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     }
 
     private void closeServer() {
-        if (server.isPresent()) {
+
+        if (this.startTask.isPresent()) {
             try {
-                server.get().shutdown().get();
+                this.startTask.get().get().shutdown().get();
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("shutDown server error", e);
                 Thread.currentThread().interrupt();
             } finally {
-                server = Optional.empty();
+                this.startTask = Optional.empty();
             }
-        }
-        if (this.startTask.isPresent()) {
-            this.startTask = Optional.empty();
         }
     }
 

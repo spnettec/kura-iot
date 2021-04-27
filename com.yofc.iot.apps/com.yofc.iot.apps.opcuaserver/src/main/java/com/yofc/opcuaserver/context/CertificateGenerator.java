@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 public class CertificateGenerator<PKCS10CertificateRequest> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CertificateGenerator.class);
-    private static final String APPURI = "urn:eclipse:milo:plc4x:server";
+    private static final String APPURI = "urn:com:yofc:iot:server";
 
     public static CertificateKeyPair generateCertificate() {
         KeyPairGenerator kpg = null;
@@ -62,12 +62,12 @@ public class CertificateGenerator<PKCS10CertificateRequest> {
         kpg.generateKeyPair();
         X500NameBuilder nameBuilder = new X500NameBuilder();
 
-        nameBuilder.addRDN(BCStyle.CN, "Apache PLC4X Driver Client");
-        nameBuilder.addRDN(BCStyle.O, "Apache Software Foundation");
-        nameBuilder.addRDN(BCStyle.OU, "dev");
-        nameBuilder.addRDN(BCStyle.L, "");
-        nameBuilder.addRDN(BCStyle.ST, "DE");
-        nameBuilder.addRDN(BCStyle.C, "US");
+        nameBuilder.addRDN(BCStyle.CN, "YOFC");
+        nameBuilder.addRDN(BCStyle.O, "长飞光纤光缆股份有限公司");
+        nameBuilder.addRDN(BCStyle.OU, "信息技术部");
+        nameBuilder.addRDN(BCStyle.L, "武汉");
+        nameBuilder.addRDN(BCStyle.ST, "湖北");
+        nameBuilder.addRDN(BCStyle.C, "中国");
 
         BigInteger serial = new BigInteger(RandomUtils.nextBytes(40));
 
