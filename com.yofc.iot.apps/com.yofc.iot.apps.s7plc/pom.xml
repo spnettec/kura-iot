@@ -56,7 +56,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -83,6 +82,67 @@
             <version>${netty.version}</version>
             <scope>provided</scope>
         </dependency>
+                <!-- Include all drivers -->
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-ab-eth</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-ads</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-canopen</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-eip</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-firmata</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-knxnetip</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-modbus</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-opcua</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-s7</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-driver-simulated</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+          <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
@@ -103,9 +163,13 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true
+                        <Bundle-SymbolicName>
+                            ${project.groupId}.${project.artifactId};singleton:=true
                         </Bundle-SymbolicName>
-
+                        <Include-Resource>
+                            OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
+                            {maven-resources}
+                        </Include-Resource>
                     </instructions>
                 </configuration>
             </plugin>

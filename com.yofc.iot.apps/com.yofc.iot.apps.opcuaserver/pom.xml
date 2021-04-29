@@ -299,7 +299,6 @@
                             OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
                             {maven-resources}
                         </Include-Resource>
-                       
                     </instructions>
                 </configuration>
             </plugin>
