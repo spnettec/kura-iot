@@ -10,7 +10,5 @@
     <packaging>pom</packaging>
     <modules>
         <module>com.yofc.iot.api.comp</module>
-        <module>com.yofc.iot.api.log4j</module>
-        <module>com.yofc.iot.api.logconfig</module>
     </modules>
 </project>

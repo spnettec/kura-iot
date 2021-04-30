@@ -35,7 +35,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -44,7 +43,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
 import org.eclipse.milo.opcua.sdk.server.identity.CompositeValidator;
@@ -87,7 +85,7 @@ public class OPCUAServer {
 
     static {
         // Required for SecurityPolicy.Aes256_Sha256_RsaPss
-        Security.addProvider(new BouncyCastleProvider());
+        // Security.addProvider(new BouncyCastleProvider());
     }
 
     private void setPasswordWrapper() {

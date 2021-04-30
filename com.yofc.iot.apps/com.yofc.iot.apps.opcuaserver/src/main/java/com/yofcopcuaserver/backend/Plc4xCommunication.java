@@ -156,6 +156,12 @@ public class Plc4xCommunication extends AbstractLifecycle {
         case "WSTRING":
         case "STRING16":
             return Identifiers.String;
+        case "DATE":
+            return Identifiers.Date;
+        case "DATE_AND_TIME":
+            return Identifiers.DateTime;
+        case "TIME":
+            return Identifiers.Time;
         default:
             return Identifiers.BaseDataType;
         }
