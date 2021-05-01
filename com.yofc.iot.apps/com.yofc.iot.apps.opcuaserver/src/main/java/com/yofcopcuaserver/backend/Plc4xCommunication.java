@@ -23,6 +23,10 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 
 import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +48,7 @@ import org.eclipse.milo.opcua.sdk.server.api.DataItem;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
@@ -159,6 +164,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
         case "DATE":
             return Identifiers.Date;
         case "DATE_AND_TIME":
+        case "LTIME":
             return Identifiers.DateTime;
         case "TIME":
             return Identifiers.Time;
@@ -233,11 +239,21 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 if (response.getResponseCode(fieldName) == PlcResponseCode.OK) {
                     int numValues = response.getNumberOfValues(fieldName);
                     if (numValues == 1) {
-                        if (response.getObject(fieldName) instanceof BigInteger) {
-                            resp = new DataValue(new Variant(ulong((BigInteger) response.getObject(fieldName))),
+                        Object obj = response.getObject(fieldName);
+                        if (obj instanceof BigInteger) {
+                            resp = new DataValue(new Variant(ulong((BigInteger) obj)), StatusCode.GOOD);
+                        } else if (obj instanceof Duration) {
+                            resp = new DataValue(new Variant(new DateTime(((Duration) obj).toNanos())),
+                                    StatusCode.GOOD);
+                        } else if (obj instanceof LocalDateTime) {
+                            resp = new DataValue(
+                                    new Variant(new DateTime(((LocalDateTime) obj).toInstant(ZoneOffset.UTC))),
+                                    StatusCode.GOOD);
+                        } else if (obj instanceof LocalDate) {
+                            resp = new DataValue(new Variant(new DateTime(((LocalDate) obj).toEpochDay())),
                                     StatusCode.GOOD);
                         } else {
-                            resp = new DataValue(new Variant(response.getObject(fieldName)), StatusCode.GOOD);
+                            resp = new DataValue(new Variant(obj), StatusCode.GOOD);
                         }
                     } else {
                         Object array = null;

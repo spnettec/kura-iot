@@ -35,6 +35,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -43,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
 import org.eclipse.milo.opcua.sdk.server.identity.CompositeValidator;
@@ -82,11 +84,6 @@ public class OPCUAServer {
     private final OpcUaServer server;
     private final Plc4xNamespace plc4xNamespace;
     private final String certificateFileName = "opcuaserver.pfx";
-
-    static {
-        // Required for SecurityPolicy.Aes256_Sha256_RsaPss
-        // Security.addProvider(new BouncyCastleProvider());
-    }
 
     private void setPasswordWrapper() {
         try {
@@ -198,7 +195,7 @@ public class OPCUAServer {
             }
             return check;
         });
-
+        Security.addProvider(new BouncyCastleProvider());
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
 
         File serverKeyStore = securityTempDir.toPath().resolve(certificateFileName).toFile();
