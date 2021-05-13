@@ -26,7 +26,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +42,9 @@ import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.api.value.PlcValue;
+import org.apache.plc4x.java.spi.values.PlcLTIME;
+import org.apache.plc4x.java.spi.values.PlcTIME;
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.milo.opcua.sdk.server.AbstractLifecycle;
 import org.eclipse.milo.opcua.sdk.server.api.DataItem;
@@ -164,10 +167,11 @@ public class Plc4xCommunication extends AbstractLifecycle {
         case "DATE":
             return Identifiers.Date;
         case "DATE_AND_TIME":
-        case "LTIME":
             return Identifiers.DateTime;
+        case "LTIME":
+            return Identifiers.Duration;
         case "TIME":
-            return Identifiers.Time;
+            return Identifiers.Duration;
         default:
             return Identifiers.BaseDataType;
         }
@@ -243,14 +247,31 @@ public class Plc4xCommunication extends AbstractLifecycle {
                         if (obj instanceof BigInteger) {
                             resp = new DataValue(new Variant(ulong((BigInteger) obj)), StatusCode.GOOD);
                         } else if (obj instanceof Duration) {
-                            resp = new DataValue(new Variant(new DateTime(((Duration) obj).toNanos())),
-                                    StatusCode.GOOD);
+                            PlcValue value = response.getPlcValue(fieldName);
+                            if (value instanceof PlcTIME) {
+                                resp = new DataValue(new Variant(Long.valueOf(((Duration) obj).toMillis())),
+                                        StatusCode.GOOD);
+                            } else if (value instanceof PlcLTIME) {
+                                resp = new DataValue(new Variant(Long.valueOf(((Duration) obj).toNanos())),
+                                        StatusCode.GOOD);
+                            } else {
+                                resp = new DataValue(
+                                        new Variant(new DateTime(((Duration) obj).toMillis() + 116444736000000000L)),
+                                        StatusCode.GOOD);
+                            }
+
                         } else if (obj instanceof LocalDateTime) {
+                            LocalDateTime localDateTime = (LocalDateTime) obj;
+
                             resp = new DataValue(
-                                    new Variant(new DateTime(((LocalDateTime) obj).toInstant(ZoneOffset.UTC))),
+                                    new Variant(new DateTime(
+                                            localDateTime.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())),
                                     StatusCode.GOOD);
                         } else if (obj instanceof LocalDate) {
-                            resp = new DataValue(new Variant(new DateTime(((LocalDate) obj).toEpochDay())),
+                            LocalDate localDate = (LocalDate) obj;
+                            resp = new DataValue(
+                                    new Variant(new DateTime(
+                                            localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())),
                                     StatusCode.GOOD);
                         } else {
                             resp = new DataValue(new Variant(obj), StatusCode.GOOD);
@@ -282,7 +303,9 @@ public class Plc4xCommunication extends AbstractLifecycle {
             }
 
             return resp;
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             logger.warn("General error reading value {}", e.getStackTrace()[0]);
             if (connection != null) {
                 try {
