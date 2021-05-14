@@ -255,8 +255,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
                                 resp = new DataValue(new Variant(Long.valueOf(((Duration) obj).toNanos())),
                                         StatusCode.GOOD);
                             } else {
-                                resp = new DataValue(
-                                        new Variant(new DateTime(((Duration) obj).toMillis() + 116444736000000000L)),
+                                resp = new DataValue(new Variant(Long.valueOf(((Duration) obj).toDays())),
                                         StatusCode.GOOD);
                             }
 
@@ -264,14 +263,12 @@ public class Plc4xCommunication extends AbstractLifecycle {
                             LocalDateTime localDateTime = (LocalDateTime) obj;
 
                             resp = new DataValue(
-                                    new Variant(new DateTime(
-                                            localDateTime.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())),
+                                    new Variant(new DateTime(localDateTime.atZone(ZoneId.of("UTC")).toInstant())),
                                     StatusCode.GOOD);
                         } else if (obj instanceof LocalDate) {
                             LocalDate localDate = (LocalDate) obj;
                             resp = new DataValue(
-                                    new Variant(new DateTime(
-                                            localDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())),
+                                    new Variant(new DateTime(localDate.atStartOfDay(ZoneId.of("UTC")).toInstant())),
                                     StatusCode.GOOD);
                         } else {
                             resp = new DataValue(new Variant(obj), StatusCode.GOOD);
@@ -318,7 +315,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
         }
     }
 
-    public void setValue(String tag, String value, String connectionString) {
+    public void setValue(String tag, Object value, String connectionString) {
         PlcConnection connection = null;
         try {
             connection = driverManager.getConnection(connectionString);
@@ -346,12 +343,16 @@ public class Plc4xCommunication extends AbstractLifecycle {
         // Create a new read request:
         // - Give the single item requested an alias name
         final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
-
-        // If an array value is passed instead of a single value then convert to a String array
-        if ((value.charAt(0) == '[') && (value.charAt(value.length() - 1) == ']')) {
-            String[] values = value.substring(1, value.length() - 1).split(",");
-            logger.info("Adding Tag {}", Arrays.toString(values));
-            builder.addItem(tag, tag, (Object[]) values);
+        if (value instanceof String) {
+            String strValue = (String) value;
+            // If an array value is passed instead of a single value then convert to a String array
+            if ((strValue.charAt(0) == '[') && (strValue.charAt(strValue.length() - 1) == ']')) {
+                String[] values = strValue.substring(1, strValue.length() - 1).split(",");
+                logger.info("Adding Tag {}", Arrays.toString(values));
+                builder.addItem(tag, tag, (Object[]) values);
+            } else {
+                builder.addItem(tag, tag, strValue);
+            }
         } else {
             builder.addItem(tag, tag, value);
         }

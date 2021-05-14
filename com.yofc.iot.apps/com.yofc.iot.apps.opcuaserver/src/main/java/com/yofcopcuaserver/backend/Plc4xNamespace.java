@@ -22,6 +22,8 @@ package com.yofcopcuaserver.backend;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 import java.lang.reflect.Array;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,6 +43,7 @@ import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilters;
 import org.eclipse.milo.opcua.sdk.server.util.SubscriptionModel;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
@@ -138,7 +141,14 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                         plc4xServer.setValue(tag, Arrays.toString((Object[]) value.getValue().getValue()),
                                 connectionString);
                     } else {
-                        plc4xServer.setValue(tag, value.getValue().getValue().toString(), connectionString);
+                        Object v;
+                        if (value.getValue().getValue() instanceof DateTime) {
+                            DateTime dateTime = (DateTime) value.getValue().getValue();
+                            v = LocalDateTime.ofInstant(dateTime.getJavaInstant(), ZoneId.of("UTC"));
+                        } else {
+                            v = value.getValue().getValue();
+                        }
+                        plc4xServer.setValue(tag, v, connectionString);
                     }
 
                 }));
