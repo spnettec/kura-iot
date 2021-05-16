@@ -14,6 +14,7 @@
         <module>com.yofc.iot.apps.comp</module>
         <module>com.yofc.iot.apps.opcuaserver</module>
         <module>com.yofc.iot.apps.serial</module>
+        <module>com.yofc.iot.apps.visa</module>
         <module>com.yofc.iot.apps.modbus</module>
     </modules>
 </project>

@@ -28,7 +28,7 @@
         <osgi.service.version>1.4.0</osgi.service.version>
         <jackson.version>2.11.3</jackson.version>
         <fastjson.version>1.2.75</fastjson.version>
-        <log4j-api.version>2.14.0</log4j-api.version>
+        <log4j-api.version>2.14.1</log4j-api.version>
         <junit-platform-engine.version>1.7.0</junit-platform-engine.version>
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3</logback.version>
@@ -306,12 +306,27 @@
                 <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${log4j-api.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
                 <version>${slf4j.version}</version>
                 <scope>test</scope>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 
