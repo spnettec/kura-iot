@@ -120,7 +120,18 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
 
                     Object array = Array.newInstance(datatype, length);
                     for (int j = 0; j < length; j++) {
-                        Array.set(array, j, false);
+                        if (datatype.isPrimitive()) {
+                            if (datatype.getName().equals("char")) {
+                                Array.set(array, j, Character.valueOf('\0'));
+                            } else if (datatype.getName().equals("int") || datatype.getName().equals("float")
+                                    || datatype.getName().equals("double") || datatype.getName().equals("long")) {
+                                Array.set(array, j, 0);
+                            } else {
+                                Array.set(array, j, false);
+                            }
+                        } else {
+                            Array.set(array, j, "");
+                        }
                     }
                     variant = new Variant(array);
                 } else {

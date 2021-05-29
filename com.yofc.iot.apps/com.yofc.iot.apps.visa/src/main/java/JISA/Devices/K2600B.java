@@ -372,10 +372,10 @@ public class K2600B extends MCSMU {
     private class MeanRFilter extends BypassFilter {
 
         public MeanRFilter(int channel, String command, Object... args) {
-            super(() -> queryDouble(command, args), (c) -> {
-                write(C_SET_AVG_COUNT, CHANNELS[channel], c);
-                write(C_SET_AVG_MODE, CHANNELS[channel], FILTER_REPEAT_MEAN);
-                write(C_SET_AVG_STATE, CHANNELS[channel], OUTPUT_ON);
+            super(() -> K2600B.this.queryDouble(command, args), (c) -> {
+                K2600B.this.write(C_SET_AVG_COUNT, CHANNELS[channel], c);
+                K2600B.this.write(C_SET_AVG_MODE, CHANNELS[channel], FILTER_REPEAT_MEAN);
+                K2600B.this.write(C_SET_AVG_STATE, CHANNELS[channel], OUTPUT_ON);
             });
         }
     }
