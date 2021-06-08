@@ -3,6 +3,9 @@ package JISA.VISA;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import JISA.Util;
 import JISA.Addresses.InstrumentAddress;
 import JISA.Addresses.StrAddress;
@@ -10,52 +13,52 @@ import JISA.Addresses.StrAddress;
 /** Static class for accessing the native VISA library in a more Java-friendly way */
 public class VISA {
 
+    private static final Logger logger = LoggerFactory.getLogger(VISA.class);
+
     private static ArrayList<Driver> drivers = new ArrayList<>();
     private static HashMap<Long, Driver> instrDrivers = new HashMap<>();
     private static HashMap<Long, Long> instrIDs = new HashMap<>();
     private static long counter = 0;
 
     static {
-        System.out.println("Attempting to load drivers.");
-
+        logger.info("Attempting to load drivers.");
+        String startStr = "Trying VISA driver...                ";
         try {
-            System.out.print("Trying VISA driver...                \t");
+
             VISADriver.init();
             drivers.add(new VISADriver());
-            System.out.println("Success.");
+            logger.info("{}Success.", startStr);
         } catch (VISAException ignored) {
-            System.out.println("Nope.");
+            logger.info("{}Nope.", startStr);
         }
 
         try {
-            System.out.print("Trying Linux GPIB (libgpib) driver...\t");
+            startStr = "Trying Linux GPIB (libgpib) driver...";
             GPIBDriver.init();
             drivers.add(new GPIBDriver());
-            System.out.println("Success.");
+            logger.info("{}Success.", startStr);
         } catch (VISAException ignored) {
-            System.out.println("Nope.");
+            logger.info("{}Nope.", startStr);
         }
 
         try {
-            System.out.print("Trying NI-GPIB (ni4882) driver...    \t");
+            startStr = "Trying NI-GPIB (ni4882) driver...    ";
             NIGPIBDriver.init();
             drivers.add(new NIGPIBDriver());
-            System.out.println("Success.");
+            logger.info("{}Success.", startStr);
         } catch (VISAException ignored) {
-            System.out.println("Nope.");
+            logger.info("{}Nope.", startStr);
         }
 
-        System.out.print("Trying Serial driver...              \t");
+        startStr = "Trying Serial driver...              ";
         drivers.add(new SerialDriver());
-        System.out.println("Success.");
+        logger.info("{}Success.", startStr);
 
-        if (drivers.size() == 0) {
+        if (drivers.isEmpty()) {
             Util.sleep(500);
-            System.err.println("ERROR: Could not load any drivers!");
-
-            System.exit(1);
+            logger.info("ERROR: Could not load any drivers!");
         } else {
-            System.out.printf("Successfully loaded %d drivers.\n", drivers.size());
+            logger.info("Successfully loaded {} drivers.", drivers.size());
         }
     }
 
@@ -67,7 +70,7 @@ public class VISA {
      *
      * @return Array of instrument addresses
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static StrAddress[] getInstruments() throws VISAException {
 
@@ -94,10 +97,10 @@ public class VISA {
      * Open the instrument with the given VISA resource address
      *
      * @param address
-     *                    Resource address
+     *            Resource address
      * @return Instrument handle
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static long openInstrument(InstrumentAddress address) throws VISAException {
 
@@ -119,7 +122,7 @@ public class VISA {
         }
 
         if (id == -1) {
-            System.err.println(String.join("Driver Errors:\n", errors));
+            logger.error(String.join("Driver Errors:\n", errors));
             throw new VISAException("Could not open %s using any driver!", address.getVISAAddress());
         }
 
@@ -130,11 +133,11 @@ public class VISA {
      * Writes to the given instrument, specified by instrument handle returned by openInstrument()
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @param toWrite
-     *                       String the write to the instrument
+     *            String the write to the instrument
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static void write(long instrument, String toWrite) throws VISAException {
 
@@ -150,12 +153,12 @@ public class VISA {
      * Read from the given instrument, specified by instrument handle returned by openInstrument()
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @param bufferSize
-     *                       Number of bytes to allocate for response
+     *            Number of bytes to allocate for response
      * @return The read string from the device
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static String read(long instrument, int bufferSize) throws VISAException {
 
@@ -171,10 +174,10 @@ public class VISA {
      * Read from the given instrument, specified by instrument handle returned by openInstrument()
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @return The read string from the device
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static String read(long instrument) throws VISAException {
         return read(instrument, 1024);
@@ -185,9 +188,9 @@ public class VISA {
      * openInstrument()
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static void closeInstrument(long instrument) throws VISAException {
 
@@ -203,11 +206,11 @@ public class VISA {
      * Sets whether to send EOI at the end of talking (mostly for GPIB)
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @param set
-     *                       Should it send?
+     *            Should it send?
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static void setEOI(long instrument, boolean set) throws VISAException {
         // Check that we have actually opened this device
@@ -222,11 +225,11 @@ public class VISA {
      * Sets the timeout for read/write to/from instrument
      *
      * @param instrument
-     *                        Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @param timeoutMSec
-     *                        Timeout in milliseconds
+     *            Timeout in milliseconds
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static void setTimeout(long instrument, long timeoutMSec) throws VISAException {
         // Check that we have actually opened this device

@@ -16,10 +16,7 @@ public class VISADriver implements Driver {
 
     private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
     private static final String responseEncoding = "UTF8";
-    private static final long VISA_ERROR = 0x7FFFFFFF;
-    private static final int _VI_ERROR = -2147483648;
     private static final int VI_SUCCESS = 0;
-    private static final int VI_NULL = 0;
     private static final int VI_TRUE = 1;
     private static final int VI_FALSE = 0;
     private static VISANativeInterface lib;
@@ -60,7 +57,7 @@ public class VISADriver implements Driver {
      *
      * @return Resource manager handle.
      * @throws VISAException
-     *                           When VISA does go gone screw it up
+     *             When VISA does go gone screw it up
      */
     private static NativeLong getResourceManager() throws VISAException {
 
@@ -78,7 +75,7 @@ public class VISADriver implements Driver {
      * binary strings.
      *
      * @param source
-     *                   The string, damn you.
+     *            The string, damn you.
      * @return The ByteBuffer that I mentioned.
      */
     private static ByteBuffer stringToByteBuffer(String source) {
@@ -96,13 +93,13 @@ public class VISADriver implements Driver {
      * Sets a VISA attribute for an instrument
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @param attribute
-     *                       The attribute to set (defined in VISANativeInterface)
+     *            The attribute to set (defined in VISANativeInterface)
      * @param value
-     *                       The value to give it
+     *            The value to give it
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static void setAttribute(long instrument, long attribute, long value) throws VISAException {
 
@@ -122,12 +119,12 @@ public class VISADriver implements Driver {
      * Returns the value of the given VISA Attribute for the given instrument
      *
      * @param instrument
-     *                       Instrument handle from openInstrument()
+     *            Instrument handle from openInstrument()
      * @param attribute
-     *                       The attribute to read
+     *            The attribute to read
      * @return Value assigned to the attribute
      * @throws VISAException
-     *                           Upon error with VISA interface
+     *             Upon error with VISA interface
      */
     public static long getAttribute(long instrument, long attribute) throws VISAException {
 
@@ -286,7 +283,7 @@ public class VISADriver implements Driver {
             throw new VISAException("Error searching for devices.");
         }
 
-        int count = listCount.getValue().intValue();
+        listCount.getValue().intValue();
         ArrayList<StrAddress> addresses = new ArrayList<>();
         NativeLong handle = listHandle.getValue();
         String address;

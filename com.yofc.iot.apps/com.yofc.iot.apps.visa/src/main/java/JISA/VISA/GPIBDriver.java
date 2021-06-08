@@ -1,7 +1,5 @@
 package JISA.VISA;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,25 +57,6 @@ public class GPIBDriver implements Driver {
             GPIBNativeInterface.ibcnt.setPointer(nLib.getGlobalVariableAddress("ibcnt"));
         } catch (Exception | Error e) {
             throw new VISAException("Could not link global variables");
-        }
-    }
-
-    /**
-     * Converts a string to bytes in a ByteBuffer, used for sending to VISA library which expects
-     * binary strings.
-     *
-     * @param source
-     *                   The string, damn you.
-     * @return The ByteBuffer that I mentioned.
-     */
-    private static ByteBuffer stringToByteBuffer(String source) {
-        try {
-            ByteBuffer dest = ByteBuffer.allocate(source.length() + 1);
-            dest.put(source.getBytes(responseEncoding));
-            dest.position(0);
-            return dest;
-        } catch (UnsupportedEncodingException e) {
-            return null;
         }
     }
 
