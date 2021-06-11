@@ -120,7 +120,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         requestOptions.setHost(targetHost);
         requestOptions.setPort(portToUse);
         requestOptions.setTimeout(timeoutToUse);
-        HttpClientOptions options = new HttpClientOptions().setLogActivity(true).setMaxPoolSize(100);
+        HttpClientOptions options = new HttpClientOptions();
         if (isSsl)
             options.setSsl(true).setTrustAll(true).setVerifyHost(false);
         HttpClient client = vertx.createHttpClient(options);
