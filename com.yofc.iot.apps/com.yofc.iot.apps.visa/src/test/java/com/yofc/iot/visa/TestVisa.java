@@ -13,9 +13,9 @@ import JISA.VISA.VISADevice;
 import io.vertx.junit5.VertxExtension;
 
 @ExtendWith(VertxExtension.class)
-public class TestSearial {
+public class TestVisa {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestSearial.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestVisa.class);
 
     @Test
     public void test() throws IOException {
