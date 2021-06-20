@@ -170,14 +170,17 @@
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-api</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-          <scope>provided</scope>
 	    </dependency>
+         <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-spi</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
 
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-connection-pool</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-          <scope>provided</scope>
 	    </dependency>
 
 	    <!-- Include all drivers -->
@@ -185,63 +188,115 @@
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-ab-eth</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-ads</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-canopen</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-eip</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-firmata</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-knxnetip</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-modbus</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-opcua</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-s7</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-simulated</artifactId>
 	      <version>0.9.0-SNAPSHOT</version>
-	      <scope>provided</scope>
 	    </dependency>
-       
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-tcp</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-udp</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-serial</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-socketcan</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-raw-socket</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>      
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-pcap-shared</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-transport-pcap-replay</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>       
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-utils-raw-sockets</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>          
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-utils-pcap-shared</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>     
+        <dependency>
+          <groupId>org.apache.plc4x</groupId>
+          <artifactId>plc4j-utils-pcap-replay</artifactId>
+          <version>0.9.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+          <groupId>org.pcap4j</groupId>
+          <artifactId>pcap4j-core</artifactId>
+          <version>1.8.2</version>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.pcap4j</groupId>
+          <artifactId>pcap4j-packetfactory-static</artifactId>
+          <version>1.8.2</version>
+          <scope>provided</scope>
+        </dependency>
+
 	    <!-- Logging dependancies -->
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
@@ -289,6 +344,10 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId};singleton:=true
+                        </Bundle-SymbolicName>
+                        <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
+                        <Embed-Transitive>false</Embed-Transitive>
                         <Bundle-SymbolicName>
                             ${project.groupId}.${project.artifactId};singleton:=true
                         </Bundle-SymbolicName>
