@@ -110,20 +110,18 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void active(final ComponentContext ctx, final HttpRestComponentCfg properties) {
+    public void active(final ComponentContext ctx, final HttpRestComponentCfg properties) throws Exception {
         updated(properties);
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
     }
 
     @Modified
-    protected void updated(final HttpRestComponentCfg properties) {
+    protected void updated(final HttpRestComponentCfg properties) throws Exception {
         if (webClient != null) {
             webClient.close();
         }
-        Utils.executeWithTCCLSwitch(() -> {
-            webClient = WebClient.create(vertx);
-        });
+        webClient = Utils.executeWithTCCLSwitch(() -> WebClient.create(vertx));
         update(properties);
 
     }
