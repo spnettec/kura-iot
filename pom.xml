@@ -14,8 +14,8 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.1.1</vertx.version>
-        <netty.version>4.1.65.Final</netty.version>
+        <vertx.version>4.1.2</vertx.version>
+        <netty.version>4.1.66.Final</netty.version>
         <shiro-core.version>1.7.1</shiro-core.version>
         <reactive-streams.version>1.0.3</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
