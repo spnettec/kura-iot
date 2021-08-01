@@ -245,14 +245,12 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 vertx.cancelTimer(tp.getTimer());
             }
         } else {
-            if (messageMap != null) {
                 TimePromise tp = messageMap.get(key);
                 if (tp != null) {
                     tp.getPromise().complete(message);
                     vertx.cancelTimer(tp.getTimer());
                 }
                 messageMap.remove(key);
-            }
         }
     }
 
