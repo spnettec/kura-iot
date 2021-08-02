@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.KeyPair;
@@ -39,8 +38,10 @@ import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -50,6 +51,7 @@ import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
 import org.eclipse.milo.opcua.sdk.server.identity.CompositeValidator;
 import org.eclipse.milo.opcua.sdk.server.identity.UsernameIdentityValidator;
 import org.eclipse.milo.opcua.sdk.server.identity.X509IdentityValidator;
+import org.eclipse.milo.opcua.sdk.server.util.HostnameUtil;
 import org.eclipse.milo.opcua.stack.core.StatusCodes;
 import org.eclipse.milo.opcua.stack.core.UaRuntimeException;
 import org.eclipse.milo.opcua.stack.core.security.DefaultCertificateManager;
@@ -225,50 +227,56 @@ public class OPCUAServer {
                         "certificate is missing the application URI"));
 
         Set<EndpointConfiguration> endpointConfigurations = new LinkedHashSet<>();
+        List<String> bindAddresses = new ArrayList<>();
+        bindAddresses.add("0.0.0.0");
+        Set<String> hostnames = new LinkedHashSet<>();
+        hostnames.add(HostnameUtil.getHostname());
+        hostnames.addAll(HostnameUtil.getHostnames("0.0.0.0"));
 
-        String hostname = InetAddress.getLocalHost().getHostName();
+        for (String bindAddress : bindAddresses) {
+            for (String hostname : hostnames) {
+                EndpointConfiguration.Builder builder = EndpointConfiguration.newBuilder().setBindAddress(bindAddress)
+                        .setHostname(hostname).setPath("/iot").setCertificate(certificate.getCertificate())
+                        .setBindPort(config.getTcpPort()).setSecurityMode(MessageSecurityMode.None).addTokenPolicies(
+                                USER_TOKEN_POLICY_ANONYMOUS, USER_TOKEN_POLICY_USERNAME, USER_TOKEN_POLICY_X509);
 
-        EndpointConfiguration.Builder builder = EndpointConfiguration.newBuilder().setBindAddress("0.0.0.0")
-                .setHostname(hostname).setPath("/iot").setCertificate(certificate.getCertificate())
-                .setBindPort(config.getTcpPort()).setSecurityMode(MessageSecurityMode.None)
-                .addTokenPolicies(USER_TOKEN_POLICY_ANONYMOUS, USER_TOKEN_POLICY_USERNAME, USER_TOKEN_POLICY_X509);
-
-        endpointConfigurations.add(builder.copy().setSecurityPolicy(SecurityPolicy.Basic256Sha256)
-                .setSecurityMode(MessageSecurityMode.SignAndEncrypt).build());
-
-        endpointConfigurations
-                .add(builder.copy().setHostname("127.0.0.1").setSecurityPolicy(SecurityPolicy.Basic256Sha256)
+                endpointConfigurations.add(builder.copy().setSecurityPolicy(SecurityPolicy.Basic256Sha256)
                         .setSecurityMode(MessageSecurityMode.SignAndEncrypt).build());
 
-        EndpointConfiguration.Builder discoveryBuilder = builder.copy().setPath("/discovery")
-                .setSecurityPolicy(SecurityPolicy.None).setSecurityMode(MessageSecurityMode.None);
+                endpointConfigurations.add(builder.copy().setSecurityPolicy(SecurityPolicy.Basic256Sha256)
+                        .setSecurityMode(MessageSecurityMode.SignAndEncrypt).build());
 
-        endpointConfigurations.add(discoveryBuilder.build());
+                EndpointConfiguration.Builder discoveryBuilder = builder.copy().setPath("/discovery")
+                        .setSecurityPolicy(SecurityPolicy.None).setSecurityMode(MessageSecurityMode.None);
 
-        EndpointConfiguration.Builder discoveryLocalBuilder = builder.copy().setPath("/discovery")
-                .setHostname("127.0.0.1").setSecurityPolicy(SecurityPolicy.None)
-                .setSecurityMode(MessageSecurityMode.None);
+                endpointConfigurations.add(discoveryBuilder.build());
 
-        endpointConfigurations.add(discoveryLocalBuilder.build());
+                EndpointConfiguration.Builder discoveryLocalBuilder = builder.copy().setPath("/discovery")
+                        .setSecurityPolicy(SecurityPolicy.None).setSecurityMode(MessageSecurityMode.None);
 
-        EndpointConfiguration.Builder discoveryLocalPlc4xBuilder = builder.copy().setPath("/iot/discovery")
-                .setHostname("127.0.0.1").setSecurityPolicy(SecurityPolicy.None)
-                .setSecurityMode(MessageSecurityMode.None);
+                endpointConfigurations.add(discoveryLocalBuilder.build());
 
-        endpointConfigurations.add(discoveryLocalPlc4xBuilder.build());
+                EndpointConfiguration.Builder discoveryLocalPlc4xBuilder = builder.copy().setPath("/iot/discovery")
+                        .setSecurityPolicy(SecurityPolicy.None).setSecurityMode(MessageSecurityMode.None);
 
-        if (!config.getDisableInsecureEndpoint()) {
-            EndpointConfiguration.Builder noSecurityBuilder = builder.copy().setSecurityPolicy(SecurityPolicy.None)
-                    .setTransportProfile(TransportProfile.TCP_UASC_UABINARY);
-            endpointConfigurations.add(noSecurityBuilder.build());
+                endpointConfigurations.add(discoveryLocalPlc4xBuilder.build());
+
+                if (!config.getDisableInsecureEndpoint()) {
+                    EndpointConfiguration.Builder noSecurityBuilder = builder.copy()
+                            .setSecurityPolicy(SecurityPolicy.None)
+                            .setTransportProfile(TransportProfile.TCP_UASC_UABINARY);
+                    endpointConfigurations.add(noSecurityBuilder.build());
+                }
+
+                // Always add an unsecured endpoint to localhost, this is a work around for Milo throwing an exception
+                // if it
+                // isn't here.
+                EndpointConfiguration.Builder noSecurityBuilder = builder.copy().setSecurityPolicy(SecurityPolicy.None)
+                        .setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
+                        .setSecurityMode(MessageSecurityMode.None);
+                endpointConfigurations.add(noSecurityBuilder.build());
+            }
         }
-
-        // Always add an unsecured endpoint to localhost, this is a work around for Milo throwing an exception if it
-        // isn't here.
-        EndpointConfiguration.Builder noSecurityBuilder = builder.copy().setSecurityPolicy(SecurityPolicy.None)
-                .setHostname("127.0.0.1").setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
-                .setSecurityMode(MessageSecurityMode.None);
-        endpointConfigurations.add(noSecurityBuilder.build());
 
         DefaultCertificateManager certificateManager = new DefaultCertificateManager(certificate.getKeyPair(),
                 // Added so that existing certificates are loaded on startup
