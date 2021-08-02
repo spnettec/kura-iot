@@ -83,7 +83,7 @@ class OpcuaPlcDriverTest {
     @BeforeAll
     public static void setup() throws Exception {
         FileUtils.deleteDirectory(new File("target/test-tmp"));
-        exampleServer = new OPCUAServer("src/test/resources/config.yml", true);
+        exampleServer = new OPCUAServer("src/test/resources/config.yml", true, null);
         exampleServer.startup().get();
     }
 

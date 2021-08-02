@@ -160,14 +160,14 @@ public class OPCUAServer {
     }
 
     public static void main(String[] args) throws Exception {
-        OPCUAServer serverInit = new OPCUAServer(args[0], true);
+        OPCUAServer serverInit = new OPCUAServer(args[0], true, null);
         serverInit.getServer().startup().get();
         CompletableFuture<Void> future = new CompletableFuture<>();
         future.get();
     }
 
-    public OPCUAServer(String configFile, boolean isFile) throws IOException, KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
+    public OPCUAServer(String configFile, boolean isFile, ClassLoader classLooader) throws IOException,
+            KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
         if (isFile) {
             readConfigFile(configFile);
         } else {
@@ -295,7 +295,7 @@ public class OPCUAServer {
 
         server = new OpcUaServer(serverConfig);
 
-        plc4xNamespace = new Plc4xNamespace(server, config);
+        plc4xNamespace = new Plc4xNamespace(server, config, classLooader);
         plc4xNamespace.startup();
 
     }

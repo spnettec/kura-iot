@@ -59,6 +59,8 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.yofc.vertx.osgi.api.Utils;
+
 public class Plc4xCommunication extends AbstractLifecycle {
 
     private PlcDriverManager driverManager;
@@ -70,14 +72,27 @@ public class Plc4xCommunication extends AbstractLifecycle {
     private Map<String, Long> failedConnectionList = new HashMap<>();
 
     Map<NodeId, DataItem> monitoredList = new HashMap<>();
+    private ClassLoader classload = null;
+
+    public void setClassload(ClassLoader classload) {
+        this.classload = classload;
+    }
 
     public Plc4xCommunication() {
 
     }
 
+    public Plc4xCommunication(ClassLoader classload) {
+        this.classload = classload;
+    }
+
     @Override
     protected void onStartup() {
-        driverManager = new PooledPlcDriverManager();
+        if (classload == null) {
+            driverManager = new PooledPlcDriverManager();
+        } else {
+            driverManager = new PooledPlcDriverManager(classload);
+        }
     }
 
     @Override
@@ -197,8 +212,9 @@ public class Plc4xCommunication extends AbstractLifecycle {
 
             // Try to connect to PLC
             try {
-                connection = driverManager.getConnection(connectionString);
-                logger.debug(connectionString + " Connected");
+                connection = Utils.executeWithTCCLSwitch(this.classload,
+                        () -> driverManager.getConnection(connectionString));
+                logger.debug("{}: Connected", connectionString);
             } catch (PlcConnectionException e) {
                 logger.error("Failed to connect to device, error raised - ", e);
                 failedConnectionList.put(connectionString, System.currentTimeMillis());

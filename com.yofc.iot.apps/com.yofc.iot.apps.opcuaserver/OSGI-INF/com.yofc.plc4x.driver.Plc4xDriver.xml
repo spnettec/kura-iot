@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.plc4x.driver.Plc4xDriver" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
+  <property name="connectString" type="String" value="s7://127.0.0.1?remote-rack=0&amp;remote-slot=2"/>
+  <property name="service.pid" type="String" value="com.yofc.plc4x.driver.Plc4xDriver"/>
+  <service>
+    <provide interface="org.eclipse.kura.driver.Driver"/>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+  </service>
+  <implementation class="com.yofc.plc4x.driver.Plc4xDriver"/>
+</scr:component>

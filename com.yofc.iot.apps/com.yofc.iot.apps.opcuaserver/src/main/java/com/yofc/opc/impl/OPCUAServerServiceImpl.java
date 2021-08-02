@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import com.yofc.opc.impl.OPCUAServerServiceImpl.Config;
 import com.yofc.opcuaserver.OPCUAServer;
-import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
@@ -70,8 +69,8 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
         }
 
         try {
-            return Utils.executeWithTCCLSwitch(context.getBundle().adapt(BundleWiring.class).getClassLoader(),
-                    () -> new OPCUAServer(properties.serverConfig(), false).startup());
+            return new OPCUAServer(properties.serverConfig(), false,
+                    context.getBundle().adapt(BundleWiring.class).getClassLoader()).startup();
         } catch (Exception e) {
             throw KuraException.internalError(e);
         }
