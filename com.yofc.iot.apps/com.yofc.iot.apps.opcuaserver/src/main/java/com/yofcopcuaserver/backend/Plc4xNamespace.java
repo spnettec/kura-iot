@@ -99,6 +99,11 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
         for (int i = 0; i < tags.size(); i++) {
             logger.info("Adding Tag {}-{}", tags.get(i).getAlias() + " - ", tags.get(i).getAddress());
             String name = tags.get(i).getAlias();
+            NodeId nodeId = newNodeId(name);
+            if (getNodeManager().containsNode(nodeId)) {
+                logger.error("nodeId:{} already exist", nodeId);
+                return;
+            }
             final String tag = tags.get(i).getAddress();
 
             Class<?> datatype = null;
@@ -111,7 +116,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 typeId = Plc4xCommunication.getNodeId(plc4xServer.getField(tag, connectionString).getPlcDataType());
 
                 if (length > 1) {
-                    node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(newNodeId(name))
+                    node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(nodeId)
                             .setAccessLevel(AccessLevel.READ_WRITE).setUserAccessLevel(AccessLevel.READ_WRITE)
                             .setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
                             .setDataType(typeId).setTypeDefinition(Identifiers.BaseDataVariableType)
@@ -165,7 +170,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 }));
 
             } catch (PlcConnectionException e) {
-                logger.info("Couldn't find data type");
+                logger.error("Couldn't find data type", e);
 
             }
 
