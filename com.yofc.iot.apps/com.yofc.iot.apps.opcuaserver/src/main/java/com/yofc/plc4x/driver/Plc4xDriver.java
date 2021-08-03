@@ -29,6 +29,7 @@ import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -53,26 +54,24 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private final AtomicReference<Config> options = new AtomicReference<>();
     private Plc4xDriverState state = new Plc4xDriverState(null, null);
-    private PlcDriverManager plcDriverManager;
 
     @Activate
-    protected synchronized void activate(BundleContext context, final Config properties) {
+    protected synchronized void activate(final Config properties) {
         logger.info("Activating H2MVStoreDriver...");
-        extractProperties(context, properties);
+        extractProperties(properties);
         logger.info("Activating H2MVStoreDriver... Done");
     }
 
-    private void extractProperties(BundleContext context, final Config properties) {
+    private void extractProperties(final Config properties) {
         requireNonNull(properties, "Properties cannot be null");
-        this.plcDriverManager = new PlcDriverManager(context.getBundle().adapt(BundleWiring.class).getClassLoader());
         this.options.set(properties);
     }
 
     @Modified
-    public synchronized void updated(BundleContext context, final Config properties) {
+    public synchronized void updated(final Config properties) {
         logger.info("Updating H2MVStoreDriver ...");
 
-        extractProperties(context, properties);
+        extractProperties(properties);
 
         try {
             disconnect();
@@ -103,15 +102,17 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             if (this.state.options != currentOptions) {
                 logger.info("configuration changed, disconnecting...");
                 disconnect();
-                PlcConnection plcConnection = Utils
-                        .executeWithTCCLSwitch(() -> plcDriverManager.getConnection(currentOptions.connectString()));
+                BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+                ClassLoader classloader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
+                PlcConnection plcConnection = Utils.executeWithTCCLSwitch(classloader,
+                        () -> new PlcDriverManager(classloader).getConnection(currentOptions.connectString()));
 
                 this.state = new Plc4xDriverState(plcConnection, currentOptions);
                 logger.info("configuration changed, disconnecting...Done");
             }
 
         } catch (Exception e) {
-            throw new ConnectionException("Connection failed, unexpected exception", e);
+            throw new ConnectionException(e.toString());
         }
 
     }
