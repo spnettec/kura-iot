@@ -266,6 +266,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         case DOUBLE:
             return TypedValues.newDoubleValue(((Number) (value == null ? 0 : value)).doubleValue());
         case INTEGER:
+            if (value instanceof Boolean) {
+                return TypedValues.newIntegerValue(((Boolean) value) == Boolean.TRUE ? 1 : 0);
+            }
             return TypedValues.newIntegerValue(((Number) (value == null ? 0 : value)).intValue());
         case BOOLEAN: {
             if (value instanceof Number) {

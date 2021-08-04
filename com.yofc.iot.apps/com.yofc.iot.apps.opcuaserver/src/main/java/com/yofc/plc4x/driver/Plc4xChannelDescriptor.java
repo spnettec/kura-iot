@@ -10,6 +10,7 @@ import org.eclipse.kura.util.collection.CollectionUtil;
 public class Plc4xChannelDescriptor implements ChannelDescriptor {
 
     public static final String DATA_TAG_ADDR_ID = "data.tag.addr";
+    public static final String DATA_TAG_ADDR_NAME = "data.tag.name";
 
     @Override
     public Object getDescriptor() {
@@ -24,6 +25,16 @@ public class Plc4xChannelDescriptor implements ChannelDescriptor {
         tagAddr.setDefault("");
 
         elements.add(tagAddr);
+
+        final Tad tagName = new Tad();
+        tagName.setName("%" + DATA_TAG_ADDR_NAME);
+        tagName.setId(DATA_TAG_ADDR_NAME);
+        tagName.setDescription("%data.tag.nameDesc");
+        tagName.setType(Tscalar.STRING);
+        tagName.setRequired(false);
+        tagName.setDefault("");
+
+        elements.add(tagName);
 
         return elements;
     }
