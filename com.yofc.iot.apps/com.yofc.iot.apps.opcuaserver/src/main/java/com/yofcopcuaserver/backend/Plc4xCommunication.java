@@ -59,8 +59,6 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.ULong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yofc.vertx.osgi.api.Utils;
-
 public class Plc4xCommunication extends AbstractLifecycle {
 
     private PlcDriverManager driverManager;
@@ -212,8 +210,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
 
             // Try to connect to PLC
             try {
-                connection = Utils.executeWithTCCLSwitch(this.classload,
-                        () -> driverManager.getConnection(connectionString));
+                connection = driverManager.getConnection(connectionString);
                 logger.debug("{}: Connected", connectionString);
             } catch (PlcConnectionException e) {
                 logger.error("Failed to connect to device, error raised - ", e);
