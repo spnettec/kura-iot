@@ -2,12 +2,11 @@ package com.yofc.plc4x.driver;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -43,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.plc4x.driver.Plc4xDriver.Config;
-import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
@@ -96,32 +94,38 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void connect() throws ConnectionException {
+        final Config currentOptions = this.options.get();
+
+        if (this.state.options != currentOptions) {
+            logger.info("configuration changed, disconnecting...");
+            reConnect();
+            logger.info("configuration changed, disconnecting...Done");
+        }
+
+    }
+
+    private void reConnect() throws ConnectionException {
+        final Config currentOptions = this.options.get();
         try {
-            final Config currentOptions = this.options.get();
+            disconnect();
+            BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+            ClassLoader classloader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
+            PlcConnection plcConnection = new PlcDriverManager(classloader)
+                    .getConnection(currentOptions.connectString());
 
-            if (this.state.options != currentOptions) {
-                logger.info("configuration changed, disconnecting...");
-                disconnect();
-                BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-                ClassLoader classloader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
-                PlcConnection plcConnection = Utils.executeWithTCCLSwitch(classloader,
-                        () -> new PlcDriverManager(classloader).getConnection(currentOptions.connectString()));
-
-                this.state = new Plc4xDriverState(plcConnection, currentOptions);
-                logger.info("configuration changed, disconnecting...Done");
-            }
-
+            this.state = new Plc4xDriverState(plcConnection, currentOptions);
         } catch (Exception e) {
             throw new ConnectionException(e.toString());
         }
-
     }
 
     @Override
     public void disconnect() throws ConnectionException {
         if (this.state.plcConnection != null && this.state.plcConnection.isConnected()) {
             try {
-                this.state.plcConnection.close();
+                if (this.state.plcConnection != null) {
+                    this.state.plcConnection.close();
+                }
                 this.state = new Plc4xDriverState(null, null);
             } catch (Exception e) {
                 throw new ConnectionException(e);
@@ -139,7 +143,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @Override
     public void read(List<ChannelRecord> records) throws ConnectionException {
         if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            connect();
+            reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canRead()) {
             return;
@@ -174,7 +178,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         });
         PlcReadRequest readRequest = builder.build();
         try {
-            PlcReadResponse response = readRequest.execute().get();
+            PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getFieldNames().forEach(field -> {
                 Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
                     return field.equals(entry.getValue().tagName);
@@ -191,7 +195,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                     }
                 }
             });
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             records.stream().forEach(channelRecord -> {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
@@ -215,7 +219,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @Override
     public void write(List<ChannelRecord> records) throws ConnectionException {
         if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            connect();
+            reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canWrite()) {
             return;
@@ -225,36 +229,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Override
     public PreparedRead prepareRead(List<ChannelRecord> records) {
-        return new Plc4xDriverPreparedRead(records);
-    }
-
-    private class Plc4xDriverPreparedRead implements PreparedRead {
-
-        private final List<ChannelRecord> channelRecords;
-
-        public Plc4xDriverPreparedRead(final List<ChannelRecord> records) {
-            this.channelRecords = records;
-        }
-
-        @Override
-        public List<ChannelRecord> execute() throws ConnectionException {
-            try {
-                Plc4xDriver.this.read(this.channelRecords);
-                return Collections.unmodifiableList(this.channelRecords);
-            } catch (Exception e) {
-                throw new ConnectionException(e);
-            }
-        }
-
-        @Override
-        public List<ChannelRecord> getChannelRecords() {
-            return Collections.unmodifiableList(this.channelRecords);
-        }
-
-        @Override
-        public void close() {
-            // no need
-        }
+        return null;
     }
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
