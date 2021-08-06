@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Automatic-Module-Name: com.yofc.iot.yofc-iot-apps-influxdbv1
-Bnd-LastModified: 1628224323157
+Bnd-LastModified: 1628227796555
 Build-Jdk-Spec: 11
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,lib/influxdb-java-2.21.jar,lib/retrofit-2.9.0.jar,li
