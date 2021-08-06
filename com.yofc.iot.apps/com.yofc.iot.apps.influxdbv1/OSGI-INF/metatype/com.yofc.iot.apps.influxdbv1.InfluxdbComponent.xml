@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="OSGI-INF/l10n/com.yofc.iot.apps.influxdbv1.InfluxdbComponentCfg">
+  <OCD id="com.yofc.iot.apps.influxdbv1.InfluxdbComponent" name="%name" description="%description">
+    <AD id="url" type="String" name="%url" description="%urlDesc"/>
+    <AD id="measurement" type="String" required="false" name="%measurement" description="%measurementDesc"/>
+    <AD id="tags" type="String" required="false" name="%tags" description="%tagsDesc" default="tag1=111\,tag2=222"/>
+    <AD id="username" type="String" name="%username" description="%usernameDesc" default="admin"/>
+    <AD id="password" type="Password" required="false" name="%password" description="%passwordDesc"/>
+    <AD id="database" type="String" required="false" name="%database" description="%databaseDesc"/>
+    <AD id="retentionPolicy" type="String" required="false" name="%retentionPolicy" description="%retentionPolicyDesc"/>
+    <AD id="script" type="String" required="false" name="%script" description="%scriptDesc" default=""/>
+    <AD id="initScript" type="String" required="false" name="%initScript" description="%initScriptDesc" default=""/>
+  </OCD>
+  <Designate factoryPid="com.yofc.iot.apps.influxdbv1.InfluxdbComponent">
+    <Object ocdref="com.yofc.iot.apps.influxdbv1.InfluxdbComponent"/>
+  </Designate>
+</metatype:MetaData>

@@ -246,31 +246,31 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         @AttributeDefinition(name = "%url", description = "%urlDesc")
         String url();
 
-        @AttributeDefinition(name = "%measurement", description = "%measurementDesc")
+        @AttributeDefinition(name = "%measurement", description = "%measurementDesc", required = false)
         String measurement();
 
         @AttributeDefinition(name = "%tags", cardinality = 0, description = "%tagsDesc", required = false)
         String tags() default "tag1=111,tag2=222";
 
-        @AttributeDefinition(required = false, name = "%token", description = "%tokenDesc", type = AttributeType.PASSWORD)
+        @AttributeDefinition(name = "%token", description = "%tokenDesc", type = AttributeType.PASSWORD, required = false)
         String token();
 
-        @AttributeDefinition(required = false, name = "%organization", description = "%organizationDesc")
+        @AttributeDefinition(name = "%organization", description = "%organizationDesc", required = false)
         String organization();
 
-        @AttributeDefinition(required = false, name = "%bucket", description = "%bucketDesc")
+        @AttributeDefinition(name = "%bucket", description = "%bucketDesc", required = false)
         String bucket();
 
-        @AttributeDefinition(required = false, name = "%username", description = "%usernameDesc")
+        @AttributeDefinition(name = "%username", description = "%usernameDesc", required = false)
         String username();
 
-        @AttributeDefinition(required = false, name = "%password", description = "%passwordDesc", type = AttributeType.PASSWORD)
+        @AttributeDefinition(name = "%password", description = "%passwordDesc", type = AttributeType.PASSWORD, required = false)
         String password();
 
-        @AttributeDefinition(required = false, name = "%database", description = "%databaseDesc")
+        @AttributeDefinition(name = "%database", description = "%databaseDesc", required = false)
         String database();
 
-        @AttributeDefinition(required = false, name = "%retentionPolicy", description = "%retentionPolicyDesc")
+        @AttributeDefinition(name = "%retentionPolicy", description = "%retentionPolicyDesc", required = false)
         String retentionPolicy();
 
         @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.apps.influxdbv1.InfluxdbComponent" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
+  <property name="tags" type="String" value="tag1=111,tag2=222"/>
+  <property name="username" type="String" value="admin"/>
+  <property name="script" type="String" value=""/>
+  <property name="initScript" type="String" value=""/>
+  <property name="kura.ui.service.hide" type="Boolean" value="true"/>
+  <service>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+    <provide interface="org.eclipse.kura.wire.WireComponent"/>
+    <provide interface="org.eclipse.kura.wire.WireReceiver"/>
+    <provide interface="org.osgi.service.wireadmin.Consumer"/>
+  </service>
+  <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>
+  <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>
+  <reference name="wireHelperService" interface="org.eclipse.kura.wire.WireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>
+  <implementation class="com.yofc.iot.apps.influxdbv1.InfluxdbComponent"/>
+</scr:component>

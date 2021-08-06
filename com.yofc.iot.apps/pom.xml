@@ -15,6 +15,7 @@
         <module>com.yofc.iot.apps.serial</module>
         <module>com.yofc.iot.apps.visa</module>
         <module>com.yofc.iot.apps.modbus</module>
-    <module>com.yofc.iot.apps.influxdb</module>
+        <module>com.yofc.iot.apps.influxdb</module>
+        <module>com.yofc.iot.apps.influxdbv1</module>
   </modules>
 </project>
