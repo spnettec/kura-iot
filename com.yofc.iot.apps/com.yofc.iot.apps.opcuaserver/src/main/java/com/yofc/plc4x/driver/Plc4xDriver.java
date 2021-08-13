@@ -14,6 +14,8 @@ import org.apache.plc4x.java.PlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -148,27 +150,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         if (!this.state.plcConnection.getMetadata().canRead()) {
             return;
         }
-        Map<ChannelRecord, TagAddr> map = records.stream()
-                .collect(Collectors.toMap(channelRecord -> channelRecord, channelRecord -> {
-                    String tagName = null;
-                    String tagAddr = null;
-                    try {
-                        tagName = channelRecord.getChannelConfig().get("+name").toString();
-                        tagAddr = channelRecord.getChannelConfig().get(Plc4xChannelDescriptor.DATA_TAG_ADDR_ID)
-                                .toString();
-                    } catch (Exception e) {
-                        channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                        channelRecord.setTimestamp(System.currentTimeMillis());
-                        return null;
-                    }
-                    if (tagName == null || tagAddr == null) {
-                        channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE,
-                                "tagName or tagAddr is null", new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
-                        channelRecord.setTimestamp(System.currentTimeMillis());
-                        return null;
-                    }
-                    return new TagAddr(tagName, tagAddr);
-                }));
+        Map<ChannelRecord, TagAddr> map = getTagMap(records);
         PlcReadRequest.Builder builder = this.state.plcConnection.readRequestBuilder();
         map.entrySet().stream().forEach(entry -> {
             if (entry.getKey().getChannelStatus() == null
@@ -183,8 +165,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
                     return field.equals(entry.getValue().tagName);
                 }).findFirst();
+                ChannelRecord channelRecord = result.get().getKey();
                 if (result.isPresent()) {
-                    ChannelRecord channelRecord = result.get().getKey();
 
                     channelRecord.setTimestamp(System.currentTimeMillis());
                     try {
@@ -193,6 +175,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                     } catch (Exception e) {
                         channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     }
+                } else {
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "no value found",
+                            new RuntimeException("no value found")));
                 }
             });
         } catch (Exception e) {
@@ -201,6 +186,47 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 channelRecord.setTimestamp(System.currentTimeMillis());
             });
         }
+    }
+
+    @Override
+    public void write(List<ChannelRecord> records) throws ConnectionException {
+        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
+            reConnect();
+        }
+        if (!this.state.plcConnection.getMetadata().canWrite()) {
+            Map<ChannelRecord, TagAddr> map = getTagMap(records);
+            PlcWriteRequest.Builder builder = this.state.plcConnection.writeRequestBuilder();
+            map.entrySet().stream().forEach(entry -> {
+                if (entry.getKey().getChannelStatus() == null
+                        || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
+                    builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr);
+                }
+            });
+            PlcWriteRequest writeRequest = builder.build();
+            try {
+                PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
+                response.getFieldNames().forEach(field -> {
+                    Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
+                        return field.equals(entry.getValue().tagName);
+                    }).findFirst();
+                    ChannelRecord channelRecord = result.get().getKey();
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                    if (result.isPresent()) {
+                        channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+
+                    } else {
+                        channelRecord
+                                .setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "unknow write error", null));
+                    }
+                });
+            } catch (Exception e) {
+                records.stream().forEach(channelRecord -> {
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                });
+            }
+        }
+
     }
 
     @Override
@@ -216,15 +242,26 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     }
 
-    @Override
-    public void write(List<ChannelRecord> records) throws ConnectionException {
-        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            reConnect();
-        }
-        if (!this.state.plcConnection.getMetadata().canWrite()) {
-            return;
-        }
-
+    private Map<ChannelRecord, TagAddr> getTagMap(List<ChannelRecord> records) {
+        return records.stream().collect(Collectors.toMap(channelRecord -> channelRecord, channelRecord -> {
+            String tagName = null;
+            String tagAddr = null;
+            try {
+                tagName = channelRecord.getChannelConfig().get("+name").toString();
+                tagAddr = channelRecord.getChannelConfig().get(Plc4xChannelDescriptor.DATA_TAG_ADDR_ID).toString();
+            } catch (Exception e) {
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                channelRecord.setTimestamp(System.currentTimeMillis());
+                return null;
+            }
+            if (tagName == null || tagAddr == null) {
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "tagName or tagAddr is null",
+                        new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
+                channelRecord.setTimestamp(System.currentTimeMillis());
+                return null;
+            }
+            return new TagAddr(tagName, tagAddr);
+        }));
     }
 
     @Override
