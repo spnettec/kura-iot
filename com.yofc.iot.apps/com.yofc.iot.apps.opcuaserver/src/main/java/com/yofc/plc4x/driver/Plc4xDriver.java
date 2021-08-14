@@ -157,7 +157,11 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
                     || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr);
+                String addr = entry.getValue().tagAddr;
+                if (!addr.startsWith("%")) {
+                    addr = "%" + addr;
+                }
+                builder.addItem(entry.getValue().tagName, addr);
             }
         }));
         PlcReadRequest readRequest = builder.build();
@@ -204,8 +208,11 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
                     || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr,
-                        entry.getKey().getValue().getValue());
+                String addr = entry.getValue().tagAddr;
+                if (!addr.startsWith("%")) {
+                    addr = "%" + addr;
+                }
+                builder.addItem(entry.getValue().tagName, addr, entry.getKey().getValue().getValue());
             }
         }));
         PlcWriteRequest writeRequest = builder.build();

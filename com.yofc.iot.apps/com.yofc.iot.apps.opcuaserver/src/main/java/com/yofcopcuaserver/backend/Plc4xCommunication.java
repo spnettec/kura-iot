@@ -193,6 +193,9 @@ public class Plc4xCommunication extends AbstractLifecycle {
     public DataValue getValue(AttributeFilterContext.GetAttributeContext ctx, String tag, String connectionString) {
         PlcConnection connection = null;
         try {
+            if (!tag.startsWith("%")) {
+                tag = "%" + tag;
+            }
 
             // Check if we just polled the connection and it failed. Wait for the backoff counter to expire before we
             // try again.
@@ -329,6 +332,9 @@ public class Plc4xCommunication extends AbstractLifecycle {
     }
 
     public void setValue(String tag, Object value, String connectionString) {
+        if (!tag.startsWith("%")) {
+            tag = "%" + tag;
+        }
         PlcConnection connection = null;
         try {
             connection = driverManager.getConnection(connectionString);
