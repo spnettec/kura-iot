@@ -16,6 +16,7 @@ import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yofc.plc4x.driver.Plc4xDriver.Config;
+import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
@@ -148,20 +150,20 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canRead()) {
-            return;
+            throw new RuntimeException("PLC can read");
         }
         Map<ChannelRecord, TagAddr> map = getTagMap(records);
         PlcReadRequest.Builder builder = this.state.plcConnection.readRequestBuilder();
-        map.entrySet().stream().forEach(entry -> {
+        map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
                     || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
                 builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr);
             }
-        });
+        }));
         PlcReadRequest readRequest = builder.build();
         try {
             PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
-            response.getFieldNames().forEach(field -> {
+            response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
                     return field.equals(entry.getValue().tagName);
                 }).findFirst();
@@ -179,7 +181,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                     channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "no value found",
                             new RuntimeException("no value found")));
                 }
-            });
+            }));
         } catch (Exception e) {
             records.stream().forEach(channelRecord -> {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
@@ -194,39 +196,44 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canWrite()) {
-            Map<ChannelRecord, TagAddr> map = getTagMap(records);
-            PlcWriteRequest.Builder builder = this.state.plcConnection.writeRequestBuilder();
-            map.entrySet().stream().forEach(entry -> {
-                if (entry.getKey().getChannelStatus() == null
-                        || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                    builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr);
-                }
-            });
-            PlcWriteRequest writeRequest = builder.build();
-            try {
-                PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
-                response.getFieldNames().forEach(field -> {
-                    Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
-                        return field.equals(entry.getValue().tagName);
-                    }).findFirst();
-                    ChannelRecord channelRecord = result.get().getKey();
-                    channelRecord.setTimestamp(System.currentTimeMillis());
-                    if (result.isPresent()) {
-                        channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
-
-                    } else {
-                        channelRecord
-                                .setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "unknow write error", null));
-                    }
-                });
-            } catch (Exception e) {
-                records.stream().forEach(channelRecord -> {
-                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                    channelRecord.setTimestamp(System.currentTimeMillis());
-                });
-            }
+            throw new RuntimeException("PLC can't Write");
         }
 
+        Map<ChannelRecord, TagAddr> map = getTagMap(records);
+        PlcWriteRequest.Builder builder = this.state.plcConnection.writeRequestBuilder();
+        map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
+            if (entry.getKey().getChannelStatus() == null
+                    || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
+                builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr,
+                        entry.getKey().getValue().getValue());
+            }
+        }));
+        PlcWriteRequest writeRequest = builder.build();
+        try {
+            PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
+            response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
+                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
+                    return field.equals(entry.getValue().tagName);
+                }).findFirst();
+                if (!result.isPresent()) {
+                    throw new RuntimeException("PLC Write error");
+                }
+
+                ChannelRecord channelRecord = result.get().getKey();
+                channelRecord.setTimestamp(System.currentTimeMillis());
+                PlcResponseCode responseCode = response.getResponseCode(field);
+                if (responseCode == PlcResponseCode.OK) {
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+                } else {
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, responseCode.name(), null));
+                }
+            }));
+        } catch (Exception e) {
+            records.stream().forEach(channelRecord -> {
+                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                channelRecord.setTimestamp(System.currentTimeMillis());
+            });
+        }
     }
 
     @Override

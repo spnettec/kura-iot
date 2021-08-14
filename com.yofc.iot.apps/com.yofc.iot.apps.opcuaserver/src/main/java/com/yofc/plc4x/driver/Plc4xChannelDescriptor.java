@@ -26,16 +26,6 @@ public class Plc4xChannelDescriptor implements ChannelDescriptor {
 
         elements.add(tagAddr);
 
-        final Tad tagName = new Tad();
-        tagName.setName("%" + DATA_TAG_ADDR_NAME);
-        tagName.setId(DATA_TAG_ADDR_NAME);
-        tagName.setDescription("%data.tag.nameDesc");
-        tagName.setType(Tscalar.STRING);
-        tagName.setRequired(false);
-        tagName.setDefault("");
-
-        elements.add(tagName);
-
         return elements;
     }
 
