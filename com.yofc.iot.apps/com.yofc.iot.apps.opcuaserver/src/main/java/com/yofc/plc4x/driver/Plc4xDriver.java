@@ -10,13 +10,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import org.apache.plc4x.java.PlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -114,7 +114,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             disconnect();
             BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
             ClassLoader classloader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
-            PlcConnection plcConnection = new PlcDriverManager(classloader)
+            PlcConnection plcConnection = new PooledPlcDriverManager(classloader)
                     .getConnection(currentOptions.connectString());
 
             this.state = new Plc4xDriverState(plcConnection, currentOptions);
