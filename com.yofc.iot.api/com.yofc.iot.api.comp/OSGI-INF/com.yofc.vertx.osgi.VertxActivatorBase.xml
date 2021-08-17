@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.vertx.osgi.VertxActivatorBase" immediate="true" activate="start" deactivate="stop">
-  <service>
-    <provide interface="com.yofc.vertx.osgi.VertxActivatorBase"/>
-  </service>
-  <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>
-  <implementation class="com.yofc.vertx.osgi.VertxActivatorBase"/>
-</scr:component>
