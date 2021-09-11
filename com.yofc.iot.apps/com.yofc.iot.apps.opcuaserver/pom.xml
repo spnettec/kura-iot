@@ -158,13 +158,16 @@
 	      <artifactId>commons-cli</artifactId>
           <scope>provided</scope>
 	    </dependency>
-
+        <dependency>
+          <groupId>cglib</groupId>
+          <artifactId>cglib</artifactId>
+          <version>3.3.0</version>
+        </dependency>
 	    <dependency>
 	      <groupId>commons-codec</groupId>
 	      <artifactId>commons-codec</artifactId>
           <scope>provided</scope>
 	    </dependency>
-
 	    <!-- PLC4X Dependencies -->
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
@@ -355,6 +358,16 @@
                             OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
                             {maven-resources}
                         </Include-Resource>
+                        <Import-Package>
+                           org.apache.tools.ant;resolution:=optional,
+                           org.apache.tools.ant.types;resolution:=optional,
+                           org.brotli.dec;resolution:=optional,
+                           org.codehaus.aspectwerkz.hook;resolution:=optional,
+                           org.objectweb.asm.attrs;resolution:=optional,
+                           org.tukaani.xz;resolution:=optional,
+                           org.objectweb.asm; version="[7.1.0,9.3.0)",
+                           *                        
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
