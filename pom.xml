@@ -14,8 +14,8 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.1.5</vertx.version>
-        <netty.version>4.1.68.Final</netty.version>
+        <vertx.version>4.2.1</vertx.version>
+        <netty.version>4.1.69.Final</netty.version>
         <shiro-core.version>1.8.0</shiro-core.version>
         <reactive-streams.version>1.0.3</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
@@ -26,21 +26,21 @@
         <h2.version>1.4.200</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.4.0</osgi.service.version>
-        <jackson.version>2.11.3</jackson.version>
+        <jackson.version>2.13.0</jackson.version>
         <fastjson.version>1.2.78</fastjson.version>
         <log4j-api.version>2.14.1</log4j-api.version>
-        <junit-platform-engine.version>1.7.0</junit-platform-engine.version>
+        <junit-platform-engine.version>1.8.1</junit-platform-engine.version>
         <slf4j.version>1.7.32</slf4j.version>
-        <logback.version>1.2.3</logback.version>
-        <lombok.version>1.18.20</lombok.version>
+        <logback.version>1.2.6</logback.version>
+        <lombok.version>1.18.22</lombok.version>
         <milo.version>0.6.3</milo.version>
-        <commons-cli.version>1.4</commons-cli.version>
+        <commons-cli.version>1.5.0</commons-cli.version>
         <commons-codec.version>1.15</commons-codec.version>
-        <jetty-util.version>10.0.5</jetty-util.version>
-        <vavr.version>0.10.3</vavr.version>
+        <jetty-util.version>11.0.7</jetty-util.version>
+        <vavr.version>0.10.4</vavr.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <junit.jupiter.version>5.7.2</junit.jupiter.version>
-        <junit.platform.version>1.7.2</junit.platform.version>
+        <junit.jupiter.version>5.8.1</junit.jupiter.version>
+        <junit.platform.version>1.8.1</junit.platform.version>
         <bouncycastle.version>1.68</bouncycastle.version>
         <kura.protocol.modbus.version>2.0.200</kura.protocol.modbus.version>
     </properties>
