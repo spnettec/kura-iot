@@ -217,7 +217,7 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
     }
 
     private void saveToInfluxdb(List<WireRecord> wires) {
-        try (WriteApi writeApi = client.getWriteApi()) {
+        try (WriteApi writeApi = client.makeWriteApi()) {
             Point point = Point.measurement(this.config.measurement());
             point.addTags(parseTags(this.config.tags()));
             Map<String, Object> result = Utils.toMap(wires);
