@@ -12,6 +12,7 @@
     <provide interface="org.osgi.service.wireadmin.Consumer"/>
   </service>
   <reference name="assetHelp" interface="com.yofc.vertx.osgi.api.AssetHelp" field="assetHelp"/>
+  <reference name="cryptoService" interface="org.eclipse.kura.crypto.CryptoService" field="cryptoService"/>
   <reference name="vertx" interface="io.vertx.core.Vertx" field="vertx"/>
   <reference name="wireHelperService" interface="org.eclipse.kura.wire.WireHelperService" unbind="unbindWireHelperService" field="wireHelperService"/>
   <implementation class="com.yofc.iot.apps.influxdbv1.InfluxdbComponent"/>
