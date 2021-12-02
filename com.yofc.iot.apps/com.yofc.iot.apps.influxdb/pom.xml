@@ -12,6 +12,10 @@
     <packaging>bundle</packaging>
     <dependencies>
         <dependency>
+            <groupId>org.eclipse.kura</groupId>
+            <artifactId>org.eclipse.kura.api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.yofc.iot</groupId>
             <artifactId>yofc-iot-api-comp</artifactId>
             <version>0.0.1-SNAPSHOT</version>

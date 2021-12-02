@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
+import org.eclipse.kura.crypto.CryptoService;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEnvelope;
 import org.eclipse.kura.wire.WireHelperService;
@@ -63,6 +64,8 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
 
     private InfluxDB client;
     private String scriptSource = "";
+    @Reference
+    private CryptoService cryptoService;
     @Reference(unbind = "unbindWireHelperService")
     private WireHelperService wireHelperService;
     @Reference
@@ -111,7 +114,21 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         logger.info("Updating Script Filter...");
         scriptSource = config.script();
         this.config = config;
-        this.client = InfluxDBFactory.connect(config.url(), config.username(), config.password());
+        if (this.client != null) {
+            this.client.close();
+            this.client = null;
+        }
+        String password = config.password();
+        if (password == null) {
+            password = "";
+        }
+        try {
+            char[] pass = this.cryptoService.decryptAes(password.toCharArray());
+            password = new String(pass);
+        } catch (Exception e) {
+            logger.info("Password is not encrypted");
+        }
+        this.client = InfluxDBFactory.connect(config.url(), config.username(), password);
         this.client.setDatabase(config.database());
         this.client.setRetentionPolicy(config.retentionPolicy());
 
