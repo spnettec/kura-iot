@@ -69,7 +69,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     private MqttClientConfiguration clientConf;
     @Reference
     private CryptoService cryptoService;
-    @Reference(policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
+    @Reference(name = "SslManagerService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, unbind = "unbindSslManagerService")
     private volatile SslManagerService sslManagerService;
     @Reference
     private SystemService systemService;
@@ -77,6 +77,12 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     private MqttClientPersistence persistence;
     private Config preConfig = null;
     private ScheduledFuture<?> connectionMonitorFuture;
+
+    public void unbindSslManagerService(SslManagerService sslManagerService) {
+        if (this.sslManagerService == sslManagerService) {
+            this.sslManagerService = null;
+        }
+    }
 
     private static String getMqttVersionLabel(int mqttVersion) {
         switch (mqttVersion) {
@@ -293,19 +299,8 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         // SSL
         if (brokerUrl.startsWith("ssl") || brokerUrl.startsWith("wss")) {
             try {
-                String alias = properties.sslCertAlias();
 
-                String protocol = properties.sslProtocol();
-                String ciphers = properties.sslCiphers();
-                String hnVerification = properties.hnVerification();
-
-                SSLSocketFactory ssf;
-                if ("use-ssl-service-config".equals(hnVerification)) {
-                    ssf = this.sslManagerService.getSSLSocketFactory(protocol, ciphers, null, null, null, alias);
-                } else {
-                    ssf = this.sslManagerService.getSSLSocketFactory(protocol, ciphers, null, null, null, alias,
-                            Boolean.valueOf(hnVerification));
-                }
+                SSLSocketFactory ssf = this.sslManagerService.getSSLSocketFactory();
 
                 conOpt.setSocketFactory(ssf);
             } catch (Exception e) {
@@ -549,17 +544,8 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         @AttributeDefinition(name = "%willPayload", cardinality = 0, description = "%willPayloadDesc", required = false)
         String willPayload() default "";
 
-        @AttributeDefinition(name = "%sslCertAlias", cardinality = 0, description = "%sslCertAliasDesc", required = false)
-        String sslCertAlias() default "";
-
-        @AttributeDefinition(name = "%sslProtocol", cardinality = 0, description = "%sslProtocolDesc", required = false)
-        String sslProtocol() default "TLSv1.2";
-
-        @AttributeDefinition(name = "%sslCiphers", cardinality = 0, description = "%sslCiphersDesc", required = false)
-        String sslCiphers() default "";
-
-        @AttributeDefinition(name = "%hnVerification", cardinality = 0, description = "%hnVerificationDesc", required = false)
-        String hnVerification() default "";
+        @AttributeDefinition(name = "%sslManagerServiceTarget", cardinality = 0, description = "%sslManagerServiceTargetDesc", required = false)
+        String SslManagerService_target() default "(kura.service.pid=org.eclipse.kura.ssl.SslManagerService)";
 
         @AttributeDefinition(name = "%persistenceType", cardinality = 0, description = "%persistenceTypeDesc", required = false, options = {
                 @Option(label = "memory", value = "memory"), @Option(label = "file", value = "file") })
@@ -571,7 +557,5 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         @AttributeDefinition(name = "%connectDelay", cardinality = 0, description = "%connectDelayDesc", required = false)
         int connectDelay() default 60;
 
-        @AttributeDefinition(name = "%sslManagerServiceTarget", cardinality = 0, description = "%sslManagerServiceTargetDesc", required = false)
-        String SslManagerService_target() default "(kura.service.pid=changeme)";
     }
 }
