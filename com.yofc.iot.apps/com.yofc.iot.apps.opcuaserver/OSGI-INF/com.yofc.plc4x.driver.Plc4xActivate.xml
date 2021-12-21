@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.plc4x.driver.Plc4xActivate" immediate="true" activate="start" deactivate="stop">
+  <implementation class="com.yofc.plc4x.driver.Plc4xActivate"/>
+</scr:component>

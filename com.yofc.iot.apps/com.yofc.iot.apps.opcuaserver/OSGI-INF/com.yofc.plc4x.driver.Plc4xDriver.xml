@@ -6,5 +6,6 @@
     <provide interface="org.eclipse.kura.driver.Driver"/>
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
   </service>
+  <reference name="pooledPlcDriverManager" interface="org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager" field="pooledPlcDriverManager"/>
   <implementation class="com.yofc.plc4x.driver.Plc4xDriver"/>
 </scr:component>

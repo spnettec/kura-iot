@@ -30,14 +30,12 @@ import org.eclipse.kura.driver.PreparedRead;
 import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -56,6 +54,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private final AtomicReference<Config> options = new AtomicReference<>();
     private Plc4xDriverState state = new Plc4xDriverState(null, null);
+    @Reference
+    private PooledPlcDriverManager pooledPlcDriverManager;
 
     @Activate
     protected synchronized void activate(final Config properties) {
@@ -112,10 +112,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         final Config currentOptions = this.options.get();
         try {
             disconnect();
-            BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-            ClassLoader classloader = bundleContext.getBundle().adapt(BundleWiring.class).getClassLoader();
-            PlcConnection plcConnection = new PooledPlcDriverManager(classloader)
-                    .getConnection(currentOptions.connectString());
+            PlcConnection plcConnection = pooledPlcDriverManager.getConnection(currentOptions.connectString());
 
             this.state = new Plc4xDriverState(plcConnection, currentOptions);
         } catch (Exception e) {

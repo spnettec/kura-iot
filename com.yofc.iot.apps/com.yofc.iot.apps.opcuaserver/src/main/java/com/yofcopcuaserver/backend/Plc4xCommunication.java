@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 
 public class Plc4xCommunication extends AbstractLifecycle {
 
-    private PlcDriverManager driverManager;
+    private PooledPlcDriverManager pooledPlcDriverManager;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Integer DEFAULT_TIMEOUT = 1000000;
     private final Integer DEFAULT_RETRY_BACKOFF = 5000;
@@ -70,27 +70,18 @@ public class Plc4xCommunication extends AbstractLifecycle {
     private Map<String, Long> failedConnectionList = new HashMap<>();
 
     Map<NodeId, DataItem> monitoredList = new HashMap<>();
-    private ClassLoader classload = null;
-
-    public void setClassload(ClassLoader classload) {
-        this.classload = classload;
-    }
 
     public Plc4xCommunication() {
 
     }
 
-    public Plc4xCommunication(ClassLoader classload) {
-        this.classload = classload;
+    public Plc4xCommunication(PooledPlcDriverManager pooledPlcDriverManager) {
+        this.pooledPlcDriverManager = pooledPlcDriverManager;
     }
 
     @Override
     protected void onStartup() {
-        if (classload == null) {
-            driverManager = new PooledPlcDriverManager();
-        } else {
-            driverManager = new PooledPlcDriverManager(classload);
-        }
+
     }
 
     @Override
@@ -99,15 +90,15 @@ public class Plc4xCommunication extends AbstractLifecycle {
     }
 
     public PlcDriverManager getDriverManager() {
-        return driverManager;
+        return pooledPlcDriverManager;
     }
 
-    public void setDriverManager(PlcDriverManager driverManager) {
-        this.driverManager = driverManager;
+    public void setDriverManager(PooledPlcDriverManager driverManager) {
+        this.pooledPlcDriverManager = driverManager;
     }
 
     public PlcField getField(String tag, String connectionString) throws PlcConnectionException {
-        return driverManager.getDriverForUrl(connectionString).prepareField(tag);
+        return pooledPlcDriverManager.getDriverForUrl(connectionString).prepareField(tag);
     }
 
     public void addField(DataItem item) {
@@ -210,7 +201,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
 
             // Try to connect to PLC
             try {
-                connection = driverManager.getConnection(connectionString);
+                connection = pooledPlcDriverManager.getConnection(connectionString);
                 logger.debug("{}: Connected", connectionString);
             } catch (PlcConnectionException e) {
                 logger.error("Failed to connect to device, error raised - ", e);
@@ -331,7 +322,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
     public void setValue(String tag, Object value, String connectionString) {
         PlcConnection connection = null;
         try {
-            connection = driverManager.getConnection(connectionString);
+            connection = pooledPlcDriverManager.getConnection(connectionString);
             if (connection.isConnected() == false) {
                 logger.debug("getConnection() returned a connection that isn't connected");
                 connection.connect();

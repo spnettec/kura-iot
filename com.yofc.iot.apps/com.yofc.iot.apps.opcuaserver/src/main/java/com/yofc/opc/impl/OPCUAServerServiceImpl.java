@@ -4,15 +4,16 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -29,6 +30,9 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     private static final Logger logger = LoggerFactory.getLogger(OPCUAServerServiceImpl.class);
     private Optional<CompletableFuture<OPCUAServer>> startTask = Optional.empty();
     private Config preConfig = null;
+
+    @Reference
+    private PooledPlcDriverManager pooledPlcDriverManager;
 
     @Activate
     public void start(BundleContext context, Config properties) throws KuraException {
@@ -69,8 +73,7 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
         }
 
         try {
-            return new OPCUAServer(properties.serverConfig(), false,
-                    context.getBundle().adapt(BundleWiring.class).getClassLoader()).startup();
+            return new OPCUAServer(properties.serverConfig(), false, pooledPlcDriverManager).startup();
         } catch (Exception e) {
             throw KuraException.internalError(e);
         }
