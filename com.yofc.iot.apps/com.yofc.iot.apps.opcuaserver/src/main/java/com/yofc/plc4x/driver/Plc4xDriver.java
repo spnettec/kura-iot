@@ -59,9 +59,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Activate
     protected synchronized void activate(final Config properties) {
-        logger.info("Activating H2MVStoreDriver...");
+        logger.info("Activating Plc4xDriver...");
         extractProperties(properties);
-        logger.info("Activating H2MVStoreDriver... Done");
+        logger.info("Activating Plc4xDriver... Done");
     }
 
     private void extractProperties(final Config properties) {
@@ -71,7 +71,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Modified
     public synchronized void updated(final Config properties) {
-        logger.info("Updating H2MVStoreDriver ...");
+        logger.info("Updating Plc4xDriver ...");
 
         extractProperties(properties);
 
@@ -79,21 +79,21 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             disconnect();
             connect();
         } catch (ConnectionException e) {
-            logger.warn("Unable to Disconnect H2MVStoreDriver ...");
+            logger.warn("Unable to Disconnect Plc4xDriver ...");
         }
 
-        logger.info("Updating H2MVStoreDriver Driver... Done");
+        logger.info("Updating Plc4xDriver Driver... Done");
     }
 
     @Deactivate
     public synchronized void deactivate() {
-        logger.debug("Deactivating H2MVStoreDriver ...");
+        logger.debug("Deactivating Plc4xDriver ...");
         try {
             disconnect();
         } catch (final ConnectionException e) {
             logger.error("Error while disconnecting...", e);
         }
-        logger.debug("Deactivating H2MVStoreDriver .....Done");
+        logger.debug("Deactivating Plc4xDriver .....Done");
     }
 
     @Override
@@ -101,9 +101,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         final Config currentOptions = this.options.get();
 
         if (this.state.options != currentOptions) {
-            logger.info("configuration changed, disconnecting...");
+            logger.info("Plc4xDriver configuration changed, disconnecting...");
             reConnect();
-            logger.info("configuration changed, disconnecting...Done");
+            logger.info("Plc4xDriver configuration changed, disconnecting...Done");
         }
 
     }
