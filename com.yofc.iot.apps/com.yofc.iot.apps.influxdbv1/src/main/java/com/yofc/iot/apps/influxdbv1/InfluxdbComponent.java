@@ -215,9 +215,8 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         pointBuilder.tag(parseTags(this.config.tags()));
         Map<String, Object> result = Utils.toMap(wires);
         result.remove("assetName");
-        result.entrySet().stream().forEach(entry -> {
-            pointBuilder.field(entry.getKey(), entry.getValue());
-        });
+        pointBuilder.fields(result);
+
         this.client.write(pointBuilder.build());
 
     }
