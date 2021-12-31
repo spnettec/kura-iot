@@ -10,9 +10,6 @@
     <name>YOFC-Applications::Component API</name>
     <description>YOFC Applications for Component API</description>
     <packaging>bundle</packaging>
-    <properties>
-        <rxjava2.extras.version>0.1.38</rxjava2.extras.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.eclipse.kura</groupId>
