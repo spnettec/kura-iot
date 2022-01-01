@@ -75,6 +75,9 @@ public class ProxyRouteImpl implements ProxyRoute {
 
     public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl) {
         this.context = (context == null || context.equals("/")) ? "" : context;
+        if (!this.context.equals("") && !this.context.startsWith("/")) {
+            this.context = "/" + this.context;
+        }
         this.isSsl = isSsl;
         routeUrl = (routeUrl == null || routeUrl.equals("") || routeUrl.equals("/")) ? "/*" : routeUrl;
         if (this.route != null)
@@ -190,34 +193,37 @@ public class ProxyRouteImpl implements ProxyRoute {
                     return;
                 }
                 HttpClientResponse clientResponse = res.result();
-                serverResponse.setStatusCode(clientResponse.statusCode());
-                serverResponse.setStatusMessage(clientResponse.statusMessage());
-                clientResponse.headers().entries().forEach(entry -> {
-                    if (entry.getKey().equalsIgnoreCase("host")) {
-                        serverResponse.putHeader(entry.getKey(), hostString);
-                    } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
-                        if (entry.getValue() != null && entry.getValue().equals("chunked"))
-                            serverResponse.setChunked(true);
-                        serverResponse.putHeader(entry.getKey(), entry.getValue());
-                    } else if (entry.getKey().equalsIgnoreCase("location")) {
-                        String value = entry.getValue();
-                        try {
-                            String[] hostStrings = hostString.split(":");
-                            String rawHost = hostStrings[0];
-                            String rawPort = "80";
-                            if (hostString.length() > 1) {
-                                rawPort = hostStrings[1];
-                            } else if (this.isSsl)
-                                rawPort = "443";
-                            value = replaceDomainAndPort(rawHost, rawPort, entry.getValue() + context, this.isSsl,
-                                    false);
-                        } catch (MalformedURLException e) {
+                if (!serverResponse.headWritten()) {
+                    serverResponse.setStatusCode(clientResponse.statusCode());
+                    serverResponse.setStatusMessage(clientResponse.statusMessage());
 
-                        }
-                        serverResponse.putHeader(entry.getKey(), value);
-                    } else
-                        serverResponse.putHeader(entry.getKey(), entry.getValue());
-                });
+                    clientResponse.headers().entries().forEach(entry -> {
+                        if (entry.getKey().equalsIgnoreCase("host")) {
+                            serverResponse.putHeader(entry.getKey(), hostString);
+                        } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
+                            if (entry.getValue() != null && entry.getValue().equals("chunked"))
+                                serverResponse.setChunked(true);
+                            serverResponse.putHeader(entry.getKey(), entry.getValue());
+                        } else if (entry.getKey().equalsIgnoreCase("location")) {
+                            String value = entry.getValue();
+                            try {
+                                String[] hostStrings = hostString.split(":");
+                                String rawHost = hostStrings[0];
+                                String rawPort = "80";
+                                if (hostString.length() > 1) {
+                                    rawPort = hostStrings[1];
+                                } else if (this.isSsl)
+                                    rawPort = "443";
+                                value = replaceDomainAndPort(rawHost, rawPort, entry.getValue() + context, this.isSsl,
+                                        false);
+                            } catch (MalformedURLException e) {
+
+                            }
+                            serverResponse.putHeader(entry.getKey(), value);
+                        } else
+                            serverResponse.putHeader(entry.getKey(), entry.getValue());
+                    });
+                }
                 clientResponse.handler(responseData -> {
                     // serverResponse.write(responseData);
                     responseBuffer.appendBuffer(responseData);
