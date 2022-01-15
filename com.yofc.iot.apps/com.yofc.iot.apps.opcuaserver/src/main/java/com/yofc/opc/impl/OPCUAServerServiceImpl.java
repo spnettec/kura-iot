@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutionException;
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -35,39 +34,38 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     private PooledPlcDriverManager pooledPlcDriverManager;
 
     @Activate
-    public void start(BundleContext context, Config properties) throws KuraException {
+    public void start(Config properties) throws KuraException {
         this.preConfig = properties;
-        updateConfig(context, properties);
+        updateConfig(properties);
     }
 
     @Modified
-    public void update(BundleContext context, Config properties) throws KuraException {
+    public void update(Config properties) throws KuraException {
         if (this.preConfig != null && properties.toString().equals(this.preConfig.toString())) {
             return;
         }
         this.preConfig = properties;
         closeServer();
-        updateConfig(context, properties);
+        updateConfig(properties);
         this.preConfig = properties;
 
     }
 
     @Deactivate
-    public void stop(BundleContext context) {
+    public void stop() {
         closeServer();
 
     }
 
-    private void updateConfig(BundleContext context, Config properties) throws KuraException {
+    private void updateConfig(Config properties) throws KuraException {
         if (!properties.activate()) {
             closeServer();
             return;
         }
-        this.startTask = Optional.of(doStart(context, properties));
+        this.startTask = Optional.of(doStart(properties));
     }
 
-    private synchronized CompletableFuture<OPCUAServer> doStart(BundleContext context, Config properties)
-            throws KuraException {
+    private synchronized CompletableFuture<OPCUAServer> doStart(Config properties) throws KuraException {
         if (this.startTask.isPresent() && !this.startTask.get().isDone()) {
             return this.startTask.get();
         }
