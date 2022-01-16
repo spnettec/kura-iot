@@ -32,6 +32,7 @@ import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class OpcuaPlcDriverTest {
     @BeforeAll
     public static void setup() throws Exception {
         FileUtils.deleteDirectory(new File("target/test-tmp"));
-        exampleServer = new OPCUAServer("src/test/resources/config.yml", true, null);
+        exampleServer = new OPCUAServer("src/test/resources/config.yml", true, new PooledPlcDriverManager());
         exampleServer.startup().get();
     }
 
@@ -194,19 +195,19 @@ class OpcuaPlcDriverTest {
 
         PlcWriteRequest.Builder builder = opcuaConnection.writeRequestBuilder();
         builder.addItem("Bool", BOOL_IDENTIFIER_READ_WRITE, true);
-        builder.addItem("Byte", BYTE_IDENTIFIER_READ_WRITE + ":BYTE", 255);
+        builder.addItem("Byte", BYTE_IDENTIFIER_READ_WRITE + ";BYTE", 255);
         builder.addItem("Double", DOUBLE_IDENTIFIER_READ_WRITE, 0.5d);
         builder.addItem("Float", FLOAT_IDENTIFIER_READ_WRITE, 0.5f);
-        builder.addItem("Int16", INT16_IDENTIFIER_READ_WRITE + ":INT", 32000);
+        builder.addItem("Int16", INT16_IDENTIFIER_READ_WRITE + ";INT", 32000);
         builder.addItem("Int32", INT32_IDENTIFIER_READ_WRITE, 42);
         builder.addItem("Int64", INT64_IDENTIFIER_READ_WRITE, 42L);
         builder.addItem("Integer", INTEGER_IDENTIFIER_READ_WRITE, 42);
-        builder.addItem("SByte", SBYTE_IDENTIFIER_READ_WRITE + ":USINT", 100);
+        builder.addItem("SByte", SBYTE_IDENTIFIER_READ_WRITE + ";USINT", 100);
         builder.addItem("String", STRING_IDENTIFIER_READ_WRITE, "Helllo Toddy!");
-        builder.addItem("UInt16", UINT16_IDENTIFIER_READ_WRITE + ":UINT", 65535);
-        builder.addItem("UInt32", UINT32_IDENTIFIER_READ_WRITE + ":UDINT", 100);
-        builder.addItem("UInt64", UINT64_IDENTIFIER_READ_WRITE + ":ULINT", new BigInteger("1337"));
-        builder.addItem("UInteger", UINTEGER_IDENTIFIER_READ_WRITE + ":UDINT", 100);
+        builder.addItem("UInt16", UINT16_IDENTIFIER_READ_WRITE + ";UINT", 65535);
+        builder.addItem("UInt32", UINT32_IDENTIFIER_READ_WRITE + ";UDINT", 100);
+        builder.addItem("UInt64", UINT64_IDENTIFIER_READ_WRITE + ";ULINT", new BigInteger("1337"));
+        builder.addItem("UInteger", UINTEGER_IDENTIFIER_READ_WRITE + ";UDINT", 100);
 
         builder.addItem("DoesNotExists", DOES_NOT_EXIST_IDENTIFIER_READ_WRITE, "Sad Toddy");
 

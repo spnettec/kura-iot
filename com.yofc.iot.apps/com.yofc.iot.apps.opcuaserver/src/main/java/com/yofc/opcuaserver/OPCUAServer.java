@@ -90,8 +90,12 @@ public class OPCUAServer {
 
     private void setPasswordWrapper() {
         try {
-            passwordConfig.setSecurityPassword(config.getSecurityPassword());
-            passwordConfig.createUser(config.getUsername(), config.getPassword(), config.getGroup());
+            if (config.getSecurityPassword() != null) {
+                passwordConfig.setSecurityPassword(config.getSecurityPassword());
+            }
+            if (config.getUsername() != null) {
+                passwordConfig.createUser(config.getUsername(), config.getPassword(), config.getGroup());
+            }
         } catch (IOException e) {
             throw new RuntimeException("Unable to save config file, please check folder permissions. ", e);
         }
@@ -104,7 +108,7 @@ public class OPCUAServer {
         try {
             Path path = FileSystems.getDefault().getPath(config.getDir()).resolve("security/.jibberish");
             File file = path.toFile();
-            boolean resetPassword = config.getResetPassword() == null ? false : config.getResetPassword();
+            boolean resetPassword = config.getResetPassword() != null && config.getResetPassword();
             if (file.isFile() && !resetPassword) {
                 passwordConfig = mapper.readValue(file, PasswordConfiguration.class);
                 passwordConfig.setPasswordConfigFile(path);
