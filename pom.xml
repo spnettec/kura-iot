@@ -24,7 +24,7 @@
         <rxjava.version>2.2.21</rxjava.version>
         <rxjava2.extras.version>0.2.1.1</rxjava2.extras.version>
         <groovy.version>3.0.9</groovy.version>
-        <h2.version>2.0.202</h2.version>
+        <h2.version>2.1.210</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.4.0</osgi.service.version>
         <jackson.version>2.13.0</jackson.version>
