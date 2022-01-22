@@ -222,9 +222,9 @@
                         <Embed-Transitive>false</Embed-Transitive>
                         <Import-Package>
                             org.h2;version="[1.4.197,2.2)",
-                            org.h2.api;version="[1.4.197,2.1)",
-                            org.h2.jdbcx;version="[1.4.197,2.1)",
-                            org.h2.tools;version="[1.4.197,2.1)",
+                            org.h2.api;version="[1.4.197,2.2)",
+                            org.h2.jdbcx;version="[1.4.197,2.2)",
+                            org.h2.tools;version="[1.4.197,2.2)",
                             groovy.lang;version="[2.5,4)",
                             *
                         </Import-Package>
