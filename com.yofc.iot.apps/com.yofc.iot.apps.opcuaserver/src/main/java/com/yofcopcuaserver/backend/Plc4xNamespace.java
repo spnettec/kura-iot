@@ -80,8 +80,15 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
 
     private void addNodes() {
         for (DeviceConfiguration c : config.getDevices()) {
-            NodeId folderNodeId = newNodeId(c.getName());
-
+            String folderAlias = c.getAlias();
+            if (folderAlias == null || folderAlias.equals("")) {
+                folderAlias = c.getName();
+            }
+            NodeId folderNodeId = newNodeId(folderAlias);
+            if (getNodeManager().containsNode(folderNodeId)) {
+                logger.error("folderNodeId:{} already exist", folderNodeId);
+                return;
+            }
             UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId, newQualifiedName(c.getName()),
                     LocalizedText.english(c.getName()));
 
@@ -97,24 +104,25 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
     private void addConfiguredNodes(UaFolderNode rootNode, DeviceConfiguration c) {
         final List<Tag> tags = c.getTags();
         final String connectionString = c.getConnectionString();
-        for (int i = 0; i < tags.size(); i++) {
-            logger.info("Adding Tag {}-{}", tags.get(i).getAlias() + " - ", tags.get(i).getAddress());
-            String name = tags.get(i).getAlias();
-            NodeId nodeId = newNodeId(name);
+        for (Tag tag : tags) {
+            String name = tag.getAlias();
+            String nodeName = rootNode.getNodeId().getIdentifier() + "." + name;
+            NodeId nodeId = newNodeId(nodeName);
             if (getNodeManager().containsNode(nodeId)) {
                 logger.error("nodeId:{} already exist", nodeId);
                 return;
             }
-            final String tag = tags.get(i).getAddress();
+            logger.info("Adding Tag {}-{}", nodeName, tag.getAddress());
+            final String addr = tag.getAddress();
 
             Class<?> datatype = null;
             NodeId typeId = Identifiers.String;
             UaVariableNode node = null;
             Variant variant = null;
             try {
-                datatype = plc4xServer.getField(tag, connectionString).getDefaultJavaType();
-                final int length = plc4xServer.getField(tag, connectionString).getNumberOfElements();
-                typeId = Plc4xCommunication.getNodeId(plc4xServer.getField(tag, connectionString).getPlcDataType());
+                datatype = plc4xServer.getField(addr, connectionString).getDefaultJavaType();
+                final int length = plc4xServer.getField(addr, connectionString).getNumberOfElements();
+                typeId = Plc4xCommunication.getNodeId(plc4xServer.getField(addr, connectionString).getPlcDataType());
 
                 if (length > 1) {
                     node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(nodeId)
@@ -141,7 +149,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                     }
                     variant = new Variant(array);
                 } else {
-                    node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(newNodeId(name))
+                    node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(nodeId)
                             .setAccessLevel(AccessLevel.READ_WRITE).setUserAccessLevel(AccessLevel.READ_WRITE)
                             .setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
                             .setDataType(typeId).setTypeDefinition(Identifiers.BaseDataVariableType).build();
@@ -151,11 +159,11 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 node.setValue(new DataValue(variant));
 
                 node.getFilterChain()
-                        .addLast(AttributeFilters.getValue(ctx -> plc4xServer.getValue(ctx, tag, connectionString)));
+                        .addLast(AttributeFilters.getValue(ctx -> plc4xServer.getValue(ctx, addr, connectionString)));
 
                 node.getFilterChain().addLast(AttributeFilters.setValue((ctx, value) -> {
                     if (length > 1) {
-                        plc4xServer.setValue(tag, Arrays.toString((Object[]) value.getValue().getValue()),
+                        plc4xServer.setValue(addr, Arrays.toString((Object[]) value.getValue().getValue()),
                                 connectionString);
                     } else {
                         Object v;
@@ -165,7 +173,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                         } else {
                             v = value.getValue().getValue();
                         }
-                        plc4xServer.setValue(tag, v, connectionString);
+                        plc4xServer.setValue(addr, v, connectionString);
                     }
 
                 }));

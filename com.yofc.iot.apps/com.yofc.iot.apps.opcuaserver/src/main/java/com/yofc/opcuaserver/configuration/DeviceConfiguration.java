@@ -19,8 +19,9 @@
 
 package com.yofc.opcuaserver.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DeviceConfiguration {
 
@@ -28,13 +29,16 @@ public class DeviceConfiguration {
     private String name;
 
     @JsonProperty
+    private String alias;
+
+    @JsonProperty
     private String connectionString;
 
     @JsonProperty
     private List<Tag> tags;
 
-
-    public DeviceConfiguration() { }
+    public DeviceConfiguration() {
+    }
 
     public String getName() {
         return name;
@@ -47,4 +51,9 @@ public class DeviceConfiguration {
     public List<Tag> getTags() {
         return tags;
     }
+
+    public String getAlias() {
+        return alias;
+    }
+
 }
