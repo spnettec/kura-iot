@@ -147,7 +147,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canRead()) {
-            throw new RuntimeException("PLC can read");
+            throw new RuntimeException("PLC can not read");
         }
         Map<ChannelRecord, TagAddr> map = getTagMap(records);
         PlcReadRequest.Builder builder = this.state.plcConnection.readRequestBuilder();
@@ -161,9 +161,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         try {
             PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
-                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
-                    return field.equals(entry.getValue().tagName);
-                }).findFirst();
+                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream()
+                        .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
                 ChannelRecord channelRecord = result.get().getKey();
                 if (result.isPresent()) {
 
@@ -184,6 +183,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
             });
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -209,9 +211,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         try {
             PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
-                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream().filter(entry -> {
-                    return field.equals(entry.getValue().tagName);
-                }).findFirst();
+                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream()
+                        .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
                 if (!result.isPresent()) {
                     throw new RuntimeException("PLC Write error");
                 }
@@ -230,6 +231,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
             });
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
