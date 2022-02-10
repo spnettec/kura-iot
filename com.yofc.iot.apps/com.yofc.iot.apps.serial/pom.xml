@@ -91,6 +91,10 @@
                             OSGI-INF/l10n==target/classes/OSGI-INF/l10n,
                             {maven-resources}
                         </Include-Resource>
+                        <Import-Package>
+                           com.fazecast.jSerialComm;version="[2.0,3)",
+                           *                        
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>

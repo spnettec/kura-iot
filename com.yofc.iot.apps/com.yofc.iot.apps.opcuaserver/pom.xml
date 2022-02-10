@@ -369,6 +369,7 @@
                             {maven-resources}
                         </Include-Resource>
                         <Import-Package>
+                           com.fazecast.jSerialComm;version="[2.0,3)",
                            org.apache.tools.ant;resolution:=optional,
                            org.apache.tools.ant.types;resolution:=optional,
                            org.brotli.dec;resolution:=optional,
