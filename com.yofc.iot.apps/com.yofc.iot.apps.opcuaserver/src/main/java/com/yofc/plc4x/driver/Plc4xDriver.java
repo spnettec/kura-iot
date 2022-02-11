@@ -2,6 +2,9 @@ package com.yofc.plc4x.driver;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -279,8 +282,18 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
         switch (targetType) {
-        case LONG:
+        case LONG: {
+            if (value instanceof LocalDate) {
+                return TypedValues.newLongValue(((LocalDate) value).toEpochDay());
+            }
+            if (value instanceof Duration) {
+                return TypedValues.newLongValue(((Duration) value).toNanos());
+            }
+            if (value instanceof Date) {
+                return TypedValues.newLongValue(((Date) value).getTime());
+            }
             return TypedValues.newLongValue(((Number) (value == null ? 0 : value)).longValue());
+        }
         case FLOAT:
             return TypedValues.newFloatValue(((Number) (value == null ? 0 : value)).floatValue());
         case DOUBLE:
@@ -300,6 +313,15 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             }
         }
         case STRING:
+            if (value instanceof LocalDate) {
+                return TypedValues.newStringValue(((LocalDate) value).toString());
+            }
+            if (value instanceof Duration) {
+                return TypedValues.newStringValue(((Duration) value).toString());
+            }
+            if (value instanceof Date) {
+                return TypedValues.newStringValue(((Date) value).toString());
+            }
             return TypedValues.newStringValue(value == null ? "" : (String) value);
         case BYTE_ARRAY:
             return TypedValues.newByteArrayValue((byte[]) (value == null ? (new byte[] {}) : value));
