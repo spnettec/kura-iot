@@ -49,86 +49,45 @@
             <configuration>
 				<artifacts>
 					<artifactItem>
-	                	<id>org.apache.aries.jax.rs:org.apache.aries.jax.rs.whiteboard:jar:2.0.1</id>
-	                  	<source>true</source>
-	                  	<transitive>true</transitive>
-						<excludes>
-					        <exclude>org.slf4j</exclude>
-							<exclude>junit*</exclude>
-					    </excludes>
-	              	</artifactItem>
-				<!--
-				  	<artifactItem>
-	                  	<id>org.osgi:org.osgi.service.jaxrs:jar:1.0.1</id>
+	                	<id>org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.35</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 				  	<artifactItem>
-	                  	<id>org.apache.aries.component-dsl:org.apache.aries.component-dsl.component-dsl:jar:1.2.2</id>
+	                  	<id>org.glassfish.jersey.media:jersey-media-sse:jar:2.35</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.cxf:cxf-rt-rs-client:jar:3.5.0</id>
+				  	<artifactItem>
+	                  	<id>org.glassfish.jersey.media:jersey-media-multipart:jar:2.35</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.cxf:cxf-rt-rs-sse:jar:3.5.0</id>
+	              	<artifactItem>
+	                  	<id>org.glassfish.jersey.core:jersey-server:jar:2.35</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
-					<artifactItem>
-	                  	<id>jakarta.jws:jakarta.jws-api:jar:2.1.0</id>
+	              	<artifactItem>
+	                  	<id>org.glassfish.jersey.core:jersey-common:jar:2.35</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
-					<artifactItem>
+	              	<artifactItem>
+	                  	<id>org.glassfish.jersey.core:jersey-client:jar:2.35</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
 	                  	<id>jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.cxf:cxf-core:jar:3.5.0</id>
+	              	<artifactItem>
+	                  	<id>org.jvnet.mimepull:mimepull:jar:1.9.15</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.cxf:cxf-rt-transports-http:jar:3.5.0</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.cxf:cxf-rt-security:jar:3.5.0</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.cxf:cxf-rt-frontend-jaxrs:jar:3.5.0</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.felix:org.apache.felix.http.servlet-api:jar:1.2.0</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.apache.geronimo.specs:geronimo-jaxrs_2.1_spec:jar:1.1</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.osgi:org.osgi.util.promise:jar:1.2.0</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-					<artifactItem>
-	                  	<id>org.osgi:org.osgi.util.function:jar:1.2.0</id>
-	                  	<source>true</source>
-	                  	<transitive>false</transitive>
-	              	</artifactItem>
-				 -->
 	           </artifacts>
             </configuration>
           </execution>
