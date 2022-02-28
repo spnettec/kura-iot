@@ -79,6 +79,36 @@
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
+	                  	<id>org.glassfish.jersey.inject:jersey-hk2:jar:2.35</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
+	                  	<id>org.glassfish.hk2:hk2-locator:jar:2.6.1</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
+	                  	<id>org.glassfish.hk2:hk2-api:jar:2.6.1</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
+	                  	<id>org.glassfish.hk2:hk2-utils:jar:2.6.1</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
+	                  	<id>org.glassfish.hk2.external:aopalliance-repackaged:jar:2.6.1</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
+	                  	<id>jakarta.validation:jakarta.validation-api:jar:2.0.2</id>
+	                  	<source>true</source>
+	                  	<transitive>false</transitive>
+	              	</artifactItem>
+	              	<artifactItem>
 	                  	<id>jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
