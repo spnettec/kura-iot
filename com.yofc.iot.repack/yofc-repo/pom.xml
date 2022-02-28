@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>yofc-iot-repack</artifactId>
-    <groupId>com.yofc.iot</groupId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <artifactId>yofc-repo</artifactId>
-  <packaging>pom</packaging>
-
+  	<parent>
+    	<artifactId>yofc-iot-repack</artifactId>
+    	<groupId>com.yofc.iot</groupId>
+    	<version>0.0.1-SNAPSHOT</version>
+  	</parent>
+  	<artifactId>yofc-repo</artifactId>
+  	<packaging>pom</packaging>
+	<properties>
+		<jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>
+		<jakarta.ws.rs-api.version>2.1.6</jakarta.ws.rs-api.version>
+		<jvnet.mimepull.version>1.9.15</jvnet.mimepull.version>
+		<org.glassfish.hk2.version>2.6.1</org.glassfish.hk2.version>
+		<glassfish.jersey.version>2.35</glassfish.jersey.version>
+	</properties>
     <build>
     <plugins>
       <plugin>
@@ -49,72 +55,72 @@
             <configuration>
 				<artifacts>
 					<artifactItem>
-	                	<id>org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.35</id>
+	                	<id>org.glassfish.jersey.containers:jersey-container-servlet-core:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 				  	<artifactItem>
-	                  	<id>org.glassfish.jersey.media:jersey-media-sse:jar:2.35</id>
+	                  	<id>org.glassfish.jersey.media:jersey-media-sse:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 				  	<artifactItem>
-	                  	<id>org.glassfish.jersey.media:jersey-media-multipart:jar:2.35</id>
+	                  	<id>org.glassfish.jersey.media:jersey-media-multipart:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.jersey.core:jersey-server:jar:2.35</id>
+	                  	<id>org.glassfish.jersey.core:jersey-server:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.jersey.core:jersey-common:jar:2.35</id>
+	                  	<id>org.glassfish.jersey.core:jersey-common:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.jersey.core:jersey-client:jar:2.35</id>
+	                  	<id>org.glassfish.jersey.core:jersey-client:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.jersey.inject:jersey-hk2:jar:2.35</id>
+	                  	<id>org.glassfish.jersey.inject:jersey-hk2:${glassfish.jersey.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.hk2:hk2-locator:jar:2.6.1</id>
+	                  	<id>org.glassfish.hk2:hk2-locator:${org.glassfish.hk2.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.hk2:hk2-api:jar:2.6.1</id>
+	                  	<id>org.glassfish.hk2:hk2-api:${org.glassfish.hk2.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.hk2:hk2-utils:jar:2.6.1</id>
+	                  	<id>org.glassfish.hk2:hk2-utils:${org.glassfish.hk2.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.glassfish.hk2.external:aopalliance-repackaged:jar:2.6.1</id>
+	                  	<id>org.glassfish.hk2.external:aopalliance-repackaged:${org.glassfish.hk2.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>jakarta.validation:jakarta.validation-api:jar:2.0.2</id>
+	                  	<id>jakarta.validation:jakarta.validation-api:${jakarta.validation-api.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6</id>
+	                  	<id>jakarta.ws.rs:jakarta.ws.rs-api:${jakarta.ws.rs-api.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
 	              	<artifactItem>
-	                  	<id>org.jvnet.mimepull:mimepull:jar:1.9.15</id>
+	                  	<id>org.jvnet.mimepull:mimepull:${jvnet.mimepull.version}</id>
 	                  	<source>true</source>
 	                  	<transitive>false</transitive>
 	              	</artifactItem>
