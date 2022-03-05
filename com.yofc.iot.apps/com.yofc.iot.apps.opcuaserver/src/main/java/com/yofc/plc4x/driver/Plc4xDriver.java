@@ -162,9 +162,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canRead()) {
-            throw new RuntimeException("PLC can not read");
+            throw new ConnectionException("PLC can not read");
         }
-        Map<ChannelRecord, TagAddr> map = getTagMap(records);
+        Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
         PlcReadRequest.Builder builder = this.state.plcConnection.readRequestBuilder();
         map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
@@ -176,7 +176,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         try {
             PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
-                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream()
+                Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
                 ChannelRecord channelRecord = result.get().getKey();
                 if (result.isPresent()) {
@@ -210,10 +210,10 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             reConnect();
         }
         if (!this.state.plcConnection.getMetadata().canWrite()) {
-            throw new RuntimeException("PLC can't Write");
+            throw new ConnectionException("PLC can't Write");
         }
 
-        Map<ChannelRecord, TagAddr> map = getTagMap(records);
+        Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
         PlcWriteRequest.Builder builder = this.state.plcConnection.writeRequestBuilder();
         map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
@@ -226,10 +226,10 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         try {
             PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
-                Optional<Entry<ChannelRecord, TagAddr>> result = map.entrySet().stream()
+                Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
                 if (!result.isPresent()) {
-                    throw new RuntimeException("PLC Write error");
+                    throw new ConnectionException("PLC Write error");
                 }
 
                 ChannelRecord channelRecord = result.get().getKey();
@@ -326,16 +326,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             for (String fieldName : plcSubscriptionEvent.getFieldNames()) {
                 final PlcValue plcValue = plcSubscriptionEvent.getPlcValue(fieldName);
                 if (plcValue.isList()) {
-                    StringBuilder sb = new StringBuilder(String.format("Field '%s' value:", fieldName));
-                    for (PlcValue value : plcValue.getList()) {
-                        sb.append(" ").append(value.getString());
-                    }
-                    logger.info(sb.toString());
+                    logger.warn("Not support list value: {}", plcValue);
                 } else if (plcValue.isStruct()) {
-                    StringBuilder sb = new StringBuilder(String.format("Field '%s' value:", fieldName));
-                    plcValue.getStruct().forEach(
-                            (name, value) -> sb.append(" ").append(name).append("=").append(value.getString()));
-                    logger.info(sb.toString());
+                    logger.warn("Not support struct value: {}", plcValue);
                 } else {
                     ChannelRecord channelRecord = ChannelRecord.createReadRecord(fieldName, valueType);
                     channelRecord.setTimestamp(System.currentTimeMillis());
@@ -390,7 +383,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     }
 
-    private Map<ChannelRecord, TagAddr> getTagMap(List<ChannelRecord> records) {
+    private Map<ChannelRecord, TagNameAddr> getTagMap(List<ChannelRecord> records) {
         return records.stream().collect(Collectors.toMap(channelRecord -> channelRecord, channelRecord -> {
             String tagName = null;
             String tagAddr = null;
@@ -408,7 +401,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 channelRecord.setTimestamp(System.currentTimeMillis());
                 return null;
             }
-            return new TagAddr(tagName, tagAddr);
+            return new TagNameAddr(tagName, tagAddr);
         }));
     }
 
@@ -442,9 +435,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             return TypedValues.newIntegerValue(((Number) (value == null ? 0 : value)).intValue());
         case BOOLEAN: {
             if (value instanceof Number) {
-                return TypedValues.newBooleanValue(((Number) (value == null ? 0 : value)).intValue() > 0);
+                return TypedValues.newBooleanValue(((Number) value).intValue() > 0);
             } else if (value instanceof Boolean) {
-                return TypedValues.newBooleanValue((Boolean) (value == null ? false : value));
+                return TypedValues.newBooleanValue((Boolean) value);
             } else {
                 return TypedValues.newBooleanValue(Boolean.parseBoolean(value == null ? "" : (String) value));
             }
@@ -467,12 +460,12 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         }
     }
 
-    static final class TagAddr {
+    static final class TagNameAddr {
 
         private final String tagName;
         private final String tagAddr;
 
-        public TagAddr(String tagName, String tagAddr) {
+        public TagNameAddr(String tagName, String tagAddr) {
             this.tagName = tagName;
             this.tagAddr = tagAddr;
         }
