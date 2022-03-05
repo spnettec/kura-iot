@@ -365,4 +365,13 @@ public class Utils {
             Thread.currentThread().setContextClassLoader(ccl);
         }
     }
+
+    public static <T> T tryExtract(final Map<String, Object> properties, final Function<Map<String, Object>, T> func,
+            final String errorMessage) {
+        try {
+            return func.apply(properties);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
 }

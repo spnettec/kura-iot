@@ -4,27 +4,38 @@ import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionEvent;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionResponse;
+import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.ChannelStatus;
+import org.eclipse.kura.channel.listener.ChannelEvent;
 import org.eclipse.kura.channel.listener.ChannelListener;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.driver.ChannelDescriptor;
@@ -54,6 +65,7 @@ import com.yofc.vertx.osgi.api.Utils;
 public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(Plc4xDriver.class);
+    private final Map<ChannelListener, PlcSubscriptionHandle> registeredListeners = new ConcurrentHashMap<>();
 
     private final AtomicReference<Config> options = new AtomicReference<>();
     private Plc4xDriverState state = new Plc4xDriverState(null, null);
@@ -119,7 +131,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
             this.state = new Plc4xDriverState(plcConnection, currentOptions);
         } catch (Exception e) {
-            throw new ConnectionException(e.toString());
+            throw new ConnectionException(e);
         }
     }
 
@@ -241,15 +253,140 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void registerChannelListener(Map<String, Object> channelConfig, ChannelListener listener)
+    public void registerChannelListeners(final Map<ChannelListener, Map<String, Object>> listenerChannelConfigs)
             throws ConnectionException {
-        logger.info("{}", channelConfig);
+        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
+            reConnect();
+        }
+        if (!this.state.plcConnection.getMetadata().canSubscribe()) {
+            throw new ConnectionException("PLC can not add Listener");
+        }
+        final PlcSubscriptionRequest.Builder sbuilder = this.state.plcConnection.subscriptionRequestBuilder();
+        for (Map.Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
+            Map<String, Object> channelConfig = entry.getValue();
+            final String channelName = Utils.tryExtract(channelConfig, config -> (String) config.get("+name"),
+                    "Error while retrieving Channel Name");
+            final String tagAddr = Utils.tryExtract(channelConfig, config -> (String) config.get("data.tag.addr"),
+                    "Error while retrieving Tag Addr");
+            sbuilder.addChangeOfStateField(channelName, tagAddr);
+        }
+        PlcSubscriptionRequest subscriptionRequest = sbuilder.build();
+        PlcSubscriptionResponse subscriptionResponse = null;
+        try {
+            subscriptionResponse = subscriptionRequest.execute().get();
+        } catch (ExecutionException e) {
+            throw new ConnectionException(e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ConnectionException(e);
+        }
+        for (String subscriptionName : subscriptionResponse.getFieldNames()) {
+            final PlcSubscriptionHandle subscriptionHandle = subscriptionResponse
+                    .getSubscriptionHandle(subscriptionName);
+            Optional<Map.Entry<ChannelListener, Map<String, Object>>> entryOption = listenerChannelConfigs.entrySet()
+                    .stream().filter(en -> {
+                        Map<String, Object> channelConfig = en.getValue();
+                        final String channelName = Utils.tryExtract(channelConfig,
+                                config -> (String) config.get("+name"), "Error while retrieving Channel Name");
+                        return channelName.equals(subscriptionName);
+                    }).findFirst();
+            if (entryOption.isPresent()) {
+                Map.Entry<ChannelListener, Map<String, Object>> entry = entryOption.get();
+                ChannelListener channelListener = entry.getKey();
+                if (registeredListeners.computeIfPresent(channelListener, (k, v) -> v) != null) {
+                    logger.warn("subscription:{} already exist", subscriptionName);
+                    continue;
+                }
+                Map<String, Object> config = entry.getValue();
+                final DataType valueType = Utils.tryExtract(config,
+                        con -> DataType.valueOf((String) con.get("+value.type")), "Error while retrieving value type");
 
+                subscriptionHandle.register(new ValueChangeHandler(subscriptionName, valueType, entry.getKey()));
+                registeredListeners.put(channelListener, subscriptionHandle);
+            }
+        }
+    }
+
+    private static class ValueChangeHandler implements Consumer<PlcSubscriptionEvent> {
+
+        final String channelName;
+        final DataType valueType;
+
+        final ChannelListener listener;
+
+        public ValueChangeHandler(String channelName, DataType valueType, ChannelListener listener) {
+            this.channelName = channelName;
+            this.valueType = valueType;
+            this.listener = listener;
+        }
+
+        @Override
+        public void accept(PlcSubscriptionEvent plcSubscriptionEvent) {
+            logger.info("Incoming event:");
+            for (String fieldName : plcSubscriptionEvent.getFieldNames()) {
+                final PlcValue plcValue = plcSubscriptionEvent.getPlcValue(fieldName);
+                if (plcValue.isList()) {
+                    StringBuilder sb = new StringBuilder(String.format("Field '%s' value:", fieldName));
+                    for (PlcValue value : plcValue.getList()) {
+                        sb.append(" ").append(value.getString());
+                    }
+                    logger.info(sb.toString());
+                } else if (plcValue.isStruct()) {
+                    StringBuilder sb = new StringBuilder(String.format("Field '%s' value:", fieldName));
+                    plcValue.getStruct().forEach(
+                            (name, value) -> sb.append(" ").append(name).append("=").append(value.getString()));
+                    logger.info(sb.toString());
+                } else {
+                    ChannelRecord channelRecord = ChannelRecord.createReadRecord(fieldName, valueType);
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                    TypedValue<?> value = null;
+                    try {
+                        value = map(plcValue.getObject(), valueType);
+                        channelRecord.setValue(value);
+                        channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+                    } catch (Exception e) {
+                        channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.toString(), null));
+                    }
+                    if (fieldName.equals(channelName)) {
+                        this.listener.onChannelEvent(new ChannelEvent(channelRecord));
+                        logger.info("Field {} value: {}", fieldName, plcValue.getString());
+                    } else {
+                        logger.warn("Unknow field {} value: {}", fieldName, plcValue.getString());
+                    }
+
+                }
+            }
+        }
     }
 
     @Override
-    public void unregisterChannelListener(ChannelListener listener) throws ConnectionException {
-        logger.info("{}", listener);
+    public void unregisterChannelListeners(final Collection<ChannelListener> listeners) throws ConnectionException {
+        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
+            reConnect();
+        }
+        if (!this.state.plcConnection.getMetadata().canSubscribe()) {
+            throw new ConnectionException("PLC can not add Listener");
+        }
+        PlcUnsubscriptionRequest.Builder builder = this.state.plcConnection.unsubscriptionRequestBuilder();
+        boolean hasHandle = false;
+        for (ChannelListener listerner : listeners) {
+            PlcSubscriptionHandle plcSubscriptionHandle = registeredListeners.computeIfPresent(listerner, (k, v) -> v);
+            if (plcSubscriptionHandle != null) {
+                builder.addHandles(plcSubscriptionHandle);
+                hasHandle = true;
+            }
+            registeredListeners.remove(listerner);
+        }
+        if (hasHandle) {
+            try {
+                builder.build().execute().get();
+            } catch (ExecutionException e) {
+                throw new ConnectionException(e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new ConnectionException(e);
+            }
+        }
 
     }
 
