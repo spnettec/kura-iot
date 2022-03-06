@@ -24,12 +24,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Tag {
 
     @JsonProperty
+    private String name;
+    @JsonProperty
     private String alias;
 
     @JsonProperty
     private String address;
 
-    public Tag() { }
+    public Tag() {
+    }
 
     public String getAlias() {
         return alias;
@@ -37,6 +40,14 @@ public class Tag {
 
     public String getAddress() {
         return address;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

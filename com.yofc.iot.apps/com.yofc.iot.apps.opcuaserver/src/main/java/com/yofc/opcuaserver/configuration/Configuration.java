@@ -39,6 +39,9 @@ public class Configuration {
     private String name;
 
     @JsonProperty
+    private String alias;
+
+    @JsonProperty
     private Boolean resetPassword = true;
 
     @JsonProperty
@@ -127,6 +130,14 @@ public class Configuration {
 
     public Boolean getResetPassword() {
         return resetPassword;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
 }

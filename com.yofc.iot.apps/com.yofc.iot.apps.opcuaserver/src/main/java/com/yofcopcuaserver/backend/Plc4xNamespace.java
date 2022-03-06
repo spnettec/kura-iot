@@ -79,23 +79,42 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
     }
 
     private void addNodes() {
+        String rootName = config.getName();
+        String rootAlias = config.getAlias();
+        if (rootAlias == null || rootAlias.equals("")) {
+            rootAlias = rootName;
+        }
+        if (rootName == null || rootName.equals("")) {
+            rootName = rootAlias;
+        }
+        NodeId rootNodeId = newNodeId(rootName);
+
+        UaFolderNode rootFolderNode = new UaFolderNode(getNodeContext(), rootNodeId, newQualifiedName(rootName),
+                LocalizedText.english(rootAlias));
+        getNodeManager().addNode(rootFolderNode);
+
+        rootFolderNode.addReference(new Reference(rootFolderNode.getNodeId(), Identifiers.Organizes,
+                Identifiers.ObjectsFolder.expanded(), false));
         for (DeviceConfiguration c : config.getDevices()) {
+            String folderName = c.getName();
             String folderAlias = c.getAlias();
             if (folderAlias == null || folderAlias.equals("")) {
-                folderAlias = c.getName();
+                folderAlias = folderName;
             }
-            NodeId folderNodeId = newNodeId(folderAlias);
+            if (folderName == null || folderName.equals("")) {
+                folderName = folderAlias;
+            }
+            NodeId folderNodeId = newNodeId(rootName + "/" + folderName);
             if (getNodeManager().containsNode(folderNodeId)) {
                 logger.error("folderNodeId:{} already exist", folderNodeId);
                 return;
             }
-            UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId, newQualifiedName(c.getName()),
-                    LocalizedText.english(c.getName()));
+            UaFolderNode folderNode = new UaFolderNode(getNodeContext(), folderNodeId, newQualifiedName(folderAlias),
+                    LocalizedText.english(folderAlias));
 
             getNodeManager().addNode(folderNode);
 
-            folderNode.addReference(new Reference(folderNode.getNodeId(), Identifiers.Organizes,
-                    Identifiers.ObjectsFolder.expanded(), false));
+            rootFolderNode.addOrganizes(folderNode);
 
             addConfiguredNodes(folderNode, c);
         }
@@ -105,8 +124,16 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
         final List<Tag> tags = c.getTags();
         final String connectionString = c.getConnectionString();
         for (Tag tag : tags) {
-            String name = tag.getAlias();
-            String nodeName = rootNode.getNodeId().getIdentifier() + "." + name;
+            String tagName = tag.getName();
+            String tagAlias = tag.getAlias();
+            if (tagAlias == null || tagAlias.equals("")) {
+                tagAlias = tagName;
+            }
+            if (tagName == null || tagName.equals("")) {
+                tagName = tagAlias;
+            }
+            String nodeName = rootNode.getNodeId().getIdentifier() + "/" + tagName;
+            String nodeAlias = tagAlias;
             NodeId nodeId = newNodeId(nodeName);
             if (getNodeManager().containsNode(nodeId)) {
                 logger.error("nodeId:{} already exist", nodeId);
@@ -127,7 +154,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 if (length > 1) {
                     node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(nodeId)
                             .setAccessLevel(AccessLevel.READ_WRITE).setUserAccessLevel(AccessLevel.READ_WRITE)
-                            .setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
+                            .setBrowseName(newQualifiedName(nodeName)).setDisplayName(LocalizedText.english(nodeAlias))
                             .setDataType(typeId).setTypeDefinition(Identifiers.BaseDataVariableType)
                             .setValueRank(ValueRank.OneDimension.getValue())
                             .setArrayDimensions(new UInteger[] { uint(length) }).build();
@@ -151,7 +178,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 } else {
                     node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(nodeId)
                             .setAccessLevel(AccessLevel.READ_WRITE).setUserAccessLevel(AccessLevel.READ_WRITE)
-                            .setBrowseName(newQualifiedName(name)).setDisplayName(LocalizedText.english(name))
+                            .setBrowseName(newQualifiedName(nodeName)).setDisplayName(LocalizedText.english(nodeAlias))
                             .setDataType(typeId).setTypeDefinition(Identifiers.BaseDataVariableType).build();
                     variant = new Variant(0);
                 }
