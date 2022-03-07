@@ -132,11 +132,7 @@
             <version>${fastjson.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.davidmoten</groupId>
-            <artifactId>rxjava2-extras</artifactId>
-            <version>${rxjava2.extras.version}</version>
-        </dependency>
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
