@@ -120,7 +120,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
         }
     }
 
-    private void addConfiguredNodes(UaFolderNode rootNode, DeviceConfiguration c) {
+    private void addConfiguredNodes(UaFolderNode parentNode, DeviceConfiguration c) {
         final List<Tag> tags = c.getTags();
         final String connectionString = c.getConnectionString();
         for (Tag tag : tags) {
@@ -132,7 +132,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
             if (tagName == null || tagName.equals("")) {
                 tagName = tagAlias;
             }
-            String nodeName = rootNode.getNodeId().getIdentifier() + "/" + tagName;
+            String nodeName = parentNode.getNodeId().getIdentifier() + "/" + tagName;
             String nodeAlias = tagAlias;
             NodeId nodeId = newNodeId(nodeName);
             if (getNodeManager().containsNode(nodeId)) {
@@ -211,7 +211,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
             }
 
             getNodeManager().addNode(node);
-            rootNode.addOrganizes(node);
+            parentNode.addOrganizes(node);
         }
     }
 
