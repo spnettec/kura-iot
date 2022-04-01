@@ -167,11 +167,23 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                             } else if (datatype.getName().equals("int") || datatype.getName().equals("float")
                                     || datatype.getName().equals("double") || datatype.getName().equals("long")) {
                                 Array.set(array, j, 0);
+                            } else if (datatype.getName().equals("byte")) {
+                                Array.set(array, j, (byte) 0);
                             } else {
                                 Array.set(array, j, false);
                             }
                         } else {
-                            Array.set(array, j, "");
+                            if (Number.class.isAssignableFrom(datatype)) {
+                                Array.set(array, j, 0);
+                            } else if (String.class.isAssignableFrom(datatype)) {
+                                Array.set(array, j, "");
+                            } else if (Boolean.class.isAssignableFrom(datatype)) {
+                                Array.set(array, j, false);
+                            } else if (Byte.class.isAssignableFrom(datatype)) {
+                                Array.set(array, j, (byte) 0);
+                            } else {
+                                Array.set(array, j, null);
+                            }
                         }
                     }
                     variant = new Variant(array);

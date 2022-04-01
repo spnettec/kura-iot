@@ -19,6 +19,7 @@
 
 package com.yofcopcuaserver.backend;
 
+import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ulong;
 
 import java.lang.reflect.Array;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +45,7 @@ import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.model.PlcField;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
+import org.apache.plc4x.java.spi.values.PlcBOOL;
 import org.apache.plc4x.java.spi.values.PlcLTIME;
 import org.apache.plc4x.java.spi.values.PlcTIME;
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
@@ -281,12 +284,28 @@ public class Plc4xCommunication extends AbstractLifecycle {
                         Object array = null;
                         if (response.getObject(fieldName, 0) instanceof BigInteger) {
                             array = Array.newInstance(ULong.class, numValues);
+                        } else if (response.getObject(fieldName, 0) instanceof Byte) {
+                            array = Array.newInstance(Byte.class, numValues);
+                        } else if (response.getObject(fieldName, 0) instanceof List
+                                && ((List) response.getObject(fieldName, 0)).get(0) instanceof PlcBOOL) {
+                            array = Array.newInstance(Byte.class, numValues);
                         } else {
                             array = Array.newInstance(response.getObject(fieldName, 0).getClass(), numValues);
                         }
                         for (int i = 0; i < numValues; i++) {
                             if (response.getObject(fieldName, i) instanceof BigInteger) {
                                 Array.set(array, i, ulong((BigInteger) response.getObject(fieldName, i)));
+                            } else if (response.getObject(fieldName, i) instanceof Byte) {
+                                Array.set(array, i, ubyte((int) response.getObject(fieldName, i)));
+                            } else if (response.getObject(fieldName, i) instanceof List
+                                    && ((List) response.getObject(fieldName, i)).get(0) instanceof PlcBOOL) {
+                                List<PlcValue> list = ((List<PlcValue>) response.getObject(fieldName, i));
+                                byte recivedID = 0;
+                                for (int j = 0; j < 8; j++) {
+                                    recivedID |= list.get(j).getInt() << j;
+                                }
+                                Array.set(array, i, recivedID);
+
                             } else {
                                 Array.set(array, i, response.getObject(fieldName, i));
                             }

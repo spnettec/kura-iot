@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
@@ -454,7 +456,23 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             }
             return TypedValues.newStringValue(value == null ? "" : (String) value);
         case BYTE_ARRAY:
-            return TypedValues.newByteArrayValue((byte[]) (value == null ? (new byte[] {}) : value));
+            if (value == null) {
+                return TypedValues.newByteArrayValue(new byte[] {});
+            }
+            @SuppressWarnings("unchecked")
+            ArrayList<PlcValue> list = (ArrayList<PlcValue>) value;
+            Byte[] bytes = list.stream().map(b -> {
+                byte recivedID = 0;
+                if (b.isList()) {
+                    for (int i = 0; i < 8; i++) {
+                        recivedID |= b.getIndex(i).getInt() << i;
+                    }
+                } else {
+                    recivedID = b.getByte();
+                }
+                return recivedID;
+            }).toArray(size -> new Byte[size]);
+            return TypedValues.newByteArrayValue(ArrayUtils.toPrimitive(bytes));
         default:
             throw new IllegalArgumentException();
         }
