@@ -323,9 +323,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
             }
 
             return resp;
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             logger.warn("General error reading value {}", e.getStackTrace()[0]);
             if (connection != null) {
                 try {

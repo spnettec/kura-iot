@@ -236,8 +236,8 @@ public class OPCUAServer {
         List<String> bindAddresses = new ArrayList<>();
         bindAddresses.add("0.0.0.0");
         Set<String> hostnames = new LinkedHashSet<>();
-        hostnames.add(HostnameUtil.getHostname());
         hostnames.addAll(HostnameUtil.getHostnames("0.0.0.0"));
+        hostnames.add(HostnameUtil.getHostname());
 
         for (String bindAddress : bindAddresses) {
             for (String hostname : hostnames) {
