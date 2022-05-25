@@ -34,7 +34,7 @@
         <slf4j.version>1.7.32</slf4j.version>
         <logback.version>1.2.6</logback.version>
         <lombok.version>1.18.22</lombok.version>
-        <milo.version>0.6.5</milo.version>
+        <milo.version>0.6.6</milo.version>
         <commons-cli.version>1.5.0</commons-cli.version>
         <commons-codec.version>1.15</commons-codec.version>
         <jetty-util.version>11.0.7</jetty-util.version>
