@@ -143,9 +143,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                 .failureHandler(this::handleRequestFailure);
         scriptSource = properties.script();
 
-        if ("".equals(scriptSource)) {
-            logger.warn("Script source is null");
-        } else {
+        if (!"".equals(scriptSource)) {
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
@@ -155,16 +153,28 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             binding.setVariable("vertx", vertx);
             binding.setVariable("webClient", webClient);
             if (!"".equals(properties.initScript())) {
-                scriptSource = scriptSource + "\r\ndef initComponent(){\r\n" + properties.initScript() + "\r\n}";
+                if (script != null && !script.getMetaClass().respondsTo(script, "destroy").isEmpty()) {
+                    try {
+                        script.invokeMethod("destroy", null);
+                    } catch (Exception e) {
+                        logger.error("Script destroy method error", e);
+                    }
+                }
+                scriptSource = scriptSource + "\r\n" + properties.initScript();
             }
             try {
                 script = shell.parse(scriptSource);
-                if (!"".equals(properties.initScript())) {
-                    script.invokeMethod("initComponent", null);
-                }
             } catch (Exception e) {
                 logger.error("Script parse error", e);
                 scriptSource = null;
+                return;
+            }
+            if (!"".equals(properties.initScript()) && !script.getMetaClass().respondsTo(script, "init").isEmpty()) {
+                try {
+                    script.invokeMethod("init", null);
+                } catch (Exception e) {
+                    logger.error("Script init method error", e);
+                }
             }
         }
     }

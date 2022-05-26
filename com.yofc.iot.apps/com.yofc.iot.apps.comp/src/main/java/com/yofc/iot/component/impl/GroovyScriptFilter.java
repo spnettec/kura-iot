@@ -121,17 +121,30 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
             binding.setVariable("serviceTool", serviceTool);
             binding.setVariable("vertx", vertx);
             if (!"".equals(properties.initScript())) {
-                scriptSource = scriptSource + "\r\ndef initComponent(){\r\n" + properties.initScript() + "\r\n}";
+                if (script != null && !script.getMetaClass().respondsTo(script, "destroy").isEmpty()) {
+                    try {
+                        script.invokeMethod("destroy", null);
+                    } catch (Exception e) {
+                        logger.error("Script destroy method error", e);
+                    }
+                }
+                scriptSource = scriptSource + "\r\n" + properties.initScript();
             }
             try {
                 script = shell.parse(scriptSource);
-                if (!"".equals(properties.initScript())) {
-                    script.invokeMethod("initComponent", null);
-                }
             } catch (Exception e) {
                 logger.error("Script parse error", e);
                 scriptSource = null;
+                return;
             }
+            if (!"".equals(properties.initScript()) && !script.getMetaClass().respondsTo(script, "init").isEmpty()) {
+                try {
+                    script.invokeMethod("init", null);
+                } catch (Exception e) {
+                    logger.error("Script init method error", e);
+                }
+            }
+
             logger.info("Updating Script Filter... Done");
         }
     }

@@ -54,6 +54,7 @@
                             io.vertx.core.json,
                             io.vertx.core.tracing,
                             io.vertx.core.impl,
+                            io.vertx.core.net.impl,
                             io.vertx.core.net.impl.pool,
                             io.vertx.core.impl.future,
                             io/vertx.core.impl.logging,
