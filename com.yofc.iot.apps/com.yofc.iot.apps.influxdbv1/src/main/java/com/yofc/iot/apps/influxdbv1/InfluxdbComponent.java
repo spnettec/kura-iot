@@ -33,7 +33,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.yofc.iot.apps.influxdbv1.InfluxdbComponent.Config;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;

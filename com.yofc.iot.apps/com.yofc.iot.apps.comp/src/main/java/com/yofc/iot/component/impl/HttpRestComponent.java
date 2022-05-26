@@ -139,7 +139,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             AuthenticationHandler basicAuthHandler = BasicAuth.create(users);
             route.handler(basicAuthHandler);
         }
-        route.handler(this::handleResult100Continue).handler(BodyHandler.create()).handler(this::handleResult)
+        route.handler(BodyHandler.create()).handler(this::handleResult100Continue).handler(this::handleResult)
                 .failureHandler(this::handleRequestFailure);
         scriptSource = properties.script();
 
