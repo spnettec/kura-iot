@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>com.yofc.iot.repack.vertx</module>
+        <module>com.yofc.iot.repack.vertx.db</module>
     <module>yofc-repo</module>
   </modules>
 </project>
