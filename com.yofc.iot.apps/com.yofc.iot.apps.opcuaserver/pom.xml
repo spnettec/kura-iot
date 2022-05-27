@@ -120,6 +120,16 @@
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
 	      <artifactId>stack-core</artifactId>
+	      <exclusions>
+	        <exclusion>
+	          <groupId>org.bouncycastle</groupId>
+	          <artifactId>bcprov-jdk15on</artifactId>
+	        </exclusion>
+	        <exclusion>
+	          <groupId>org.bouncycastle</groupId>
+	          <artifactId>bcpkix-jdk15on</artifactId>
+	        </exclusion>
+	      </exclusions>
           <scope>provided</scope>
 	    </dependency>
 
@@ -314,16 +324,15 @@
 	      <artifactId>zip4j</artifactId>
 	       <version>2.9.1</version>
 	    </dependency>
-	    <!-- Logging dependancies -->
 	   
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bcpkix-jdk15on</artifactId>
+	      <artifactId>bcpkix-jdk18on</artifactId>
           <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bcprov-jdk15on</artifactId>
+	      <artifactId>bcprov-jdk18on</artifactId>
           <scope>provided</scope>
 	    </dependency>
 	    <dependency>

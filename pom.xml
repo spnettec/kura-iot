@@ -41,7 +41,7 @@
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <junit.jupiter.version>5.8.1</junit.jupiter.version>
         <junit.platform.version>1.8.1</junit.platform.version>
-        <bouncycastle.version>1.70</bouncycastle.version>
+        <bouncycastle.version>1.71</bouncycastle.version>
         <kura.protocol.modbus.version>2.0.200</kura.protocol.modbus.version>
     </properties>
     <repositories>
@@ -292,17 +292,17 @@
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
-                <artifactId>bcmail-jdk15on</artifactId>
+                <artifactId>bcmail-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpkix-jdk15on</artifactId>
+                <artifactId>bcpkix-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk15on</artifactId>
+                <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
