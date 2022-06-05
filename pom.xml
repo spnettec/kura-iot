@@ -27,7 +27,7 @@
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.4.0</osgi.service.version>
         <jackson.version>2.13.1</jackson.version>
-        <fastjson2.version>2.0.5</fastjson2.version>
+        <fastjson2.version>2.0.6</fastjson2.version>
         <log4j-api.version>2.17.1</log4j-api.version>
         <junit-platform-engine.version>1.8.1</junit-platform-engine.version>
         <slf4j.version>1.7.32</slf4j.version>
