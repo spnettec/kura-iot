@@ -21,13 +21,6 @@
             <artifactId>org.osgi.service.component.annotations</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.kura</groupId>
-            <artifactId>org.eclipse.kura.util</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.yofc.iot</groupId>
             <artifactId>yofc-iot-api-comp</artifactId>
@@ -99,7 +92,7 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>de.dentrassi.maven</groupId>
+                <groupId>com.github.heyoulin</groupId>
                 <artifactId>osgi-dp</artifactId>
                 <executions>
                     <execution>

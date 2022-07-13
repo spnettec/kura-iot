@@ -15,10 +15,7 @@
             <groupId>org.eclipse.kura</groupId>
             <artifactId>org.eclipse.kura.api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.kura</groupId>
-            <artifactId>org.eclipse.kura.util</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.service.component.annotations</artifactId>
@@ -34,7 +31,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
-            <version>6.0.1</version>
+            <version>7.0.5</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -118,7 +115,7 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.service.wireadmin</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -208,12 +205,12 @@
                             io.vertx.core.streams,
                             *
                         </Import-Package>
-                        <Require-Capability></Require-Capability>
+                        <Require-Capability/>
                     </instructions>
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>de.dentrassi.maven</groupId>
+                <groupId>com.github.heyoulin</groupId>
                 <artifactId>osgi-dp</artifactId>
                 <executions>
                     <execution>

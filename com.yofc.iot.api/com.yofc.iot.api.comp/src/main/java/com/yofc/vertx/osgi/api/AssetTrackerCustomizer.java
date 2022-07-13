@@ -9,18 +9,18 @@
  *******************************************************************************/
 package com.yofc.vertx.osgi.api;
 
+import static java.util.Objects.requireNonNull;
+import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.eclipse.kura.asset.Asset;
-import org.eclipse.kura.util.collection.CollectionUtil;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
-import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
 
 /**
  * The Class AssetTrackerCustomizer is responsible for tracking all the existing asset instances in
@@ -28,78 +28,82 @@ import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_P
  */
 public final class AssetTrackerCustomizer implements ServiceTrackerCustomizer<Asset, Asset> {
 
-  /** The Logger instance. */
-  private static final Logger logger = LoggerFactory.getLogger(AssetTrackerCustomizer.class);
+    /** The Logger instance. */
+    private static final Logger logger = LoggerFactory.getLogger(AssetTrackerCustomizer.class);
 
-  /** The map of assets present in the OSGi service registry. */
-  private final Map<String, Asset> assets;
+    /** The map of assets present in the OSGi service registry. */
+    private final Map<String, Asset> assets;
 
-  /** Bundle Context */
-  private final BundleContext context;
+    /** Bundle Context */
+    private final BundleContext context;
 
-  /**
-   * Instantiates a new asset tracker.
-   *
-   * @param context the bundle context
-   * @throws NullPointerException if any of the arguments is null
-   */
-  public AssetTrackerCustomizer(final BundleContext context) {
-    requireNonNull(context, "Bundle context cannot be null");
-    requireNonNull(context, "Asset service instance cannot be null");
+    /**
+     * Instantiates a new asset tracker.
+     *
+     * @param context
+     *                    the bundle context
+     * @throws NullPointerException
+     *                                  if any of the arguments is null
+     */
+    public AssetTrackerCustomizer(final BundleContext context) {
+        requireNonNull(context, "Bundle context cannot be null");
+        requireNonNull(context, "Asset service instance cannot be null");
 
-    this.assets = CollectionUtil.newConcurrentHashMap();
-    this.context = context;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Asset addingService(final ServiceReference<Asset> reference) {
-    final Asset service = this.context.getService(reference);
-    logger.info("Asset has been found by Asset Cloudlet Tracker... ==> adding service");
-    if (service != null) {
-      return addService(service, reference);
+        this.assets = new ConcurrentHashMap<>();
+        this.context = context;
     }
-    return null;
-  }
 
-  /**
-   * Adds the service instance to the map of asset service instances
-   *
-   * @param service the asset service instance
-   * @throws NullPointerException if provided service is null
-   * @return Asset service instance
-   */
-  private Asset addService(final Asset service, final ServiceReference<Asset> reference) {
-    requireNonNull(service, "Asset service instance cannot be null");
-    final String assetPid = reference.getProperty(KURA_SERVICE_PID).toString();
-    this.assets.put(assetPid, service);
-    return service;
-  }
-
-  /**
-   * Returns the list of found assets in the service registry
-   *
-   * @return the map of assets
-   */
-  public Map<String, Asset> getRegisteredAssets() {
-    return CollectionUtil.newConcurrentHashMap(this.assets);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void modifiedService(final ServiceReference<Asset> reference, final Asset service) {
-    removedService(reference, service);
-    addingService(reference);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void removedService(final ServiceReference<Asset> reference, final Asset service) {
-    final String assetPid = String.valueOf(reference.getProperty(KURA_SERVICE_PID));
-    this.context.ungetService(reference);
-    if (assetPid != null) {
-      this.assets.remove(assetPid);
+    /** {@inheritDoc} */
+    @Override
+    public Asset addingService(final ServiceReference<Asset> reference) {
+        final Asset service = this.context.getService(reference);
+        logger.info("Asset has been found by Asset Cloudlet Tracker... ==> adding service");
+        if (service != null) {
+            return addService(service, reference);
+        }
+        return null;
     }
-    logger.info("Asset has been removed by Asset Cloudlet Tracker... {}", service);
-  }
+
+    /**
+     * Adds the service instance to the map of asset service instances
+     *
+     * @param service
+     *                    the asset service instance
+     * @throws NullPointerException
+     *                                  if provided service is null
+     * @return Asset service instance
+     */
+    private Asset addService(final Asset service, final ServiceReference<Asset> reference) {
+        requireNonNull(service, "Asset service instance cannot be null");
+        final String assetPid = reference.getProperty(KURA_SERVICE_PID).toString();
+        this.assets.put(assetPid, service);
+        return service;
+    }
+
+    /**
+     * Returns the list of found assets in the service registry
+     *
+     * @return the map of assets
+     */
+    public Map<String, Asset> getRegisteredAssets() {
+        return new ConcurrentHashMap<>(this.assets);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void modifiedService(final ServiceReference<Asset> reference, final Asset service) {
+        removedService(reference, service);
+        addingService(reference);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void removedService(final ServiceReference<Asset> reference, final Asset service) {
+        final String assetPid = String.valueOf(reference.getProperty(KURA_SERVICE_PID));
+        this.context.ungetService(reference);
+        if (assetPid != null) {
+            this.assets.remove(assetPid);
+        }
+        logger.info("Asset has been removed by Asset Cloudlet Tracker... {}", service);
+    }
 }

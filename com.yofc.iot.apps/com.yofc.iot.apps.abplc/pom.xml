@@ -26,11 +26,7 @@
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.kura</groupId>
-            <artifactId>org.eclipse.kura.util</artifactId>
-            <scope>provided</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
@@ -125,7 +121,7 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>de.dentrassi.maven</groupId>
+                <groupId>com.github.heyoulin</groupId>
                 <artifactId>osgi-dp</artifactId>
                 <executions>
                     <execution>

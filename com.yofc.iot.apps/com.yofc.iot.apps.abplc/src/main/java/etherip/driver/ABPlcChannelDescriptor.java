@@ -9,42 +9,42 @@
  */
 package etherip.driver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.kura.core.configuration.metatype.Tad;
 import org.eclipse.kura.core.configuration.metatype.Tscalar;
 import org.eclipse.kura.driver.ChannelDescriptor;
-import org.eclipse.kura.util.collection.CollectionUtil;
-
-import java.util.List;
 
 /**
  * S7 PLC specific channel descriptor. The descriptor contains the following attribute definition
  * identifiers.
  *
  * <ul>
- *   <li>area.no denotes the Area Number
- *   <li>offset the offset
- *   <li>byte.count the number of bytes to read
+ * <li>area.no denotes the Area Number
+ * <li>offset the offset
+ * <li>byte.count the number of bytes to read
  * </ul>
  */
 public final class ABPlcChannelDescriptor implements ChannelDescriptor {
 
-  public static final String DATA_TAG_NAME_ID = "data.tag.name";
+    public static final String DATA_TAG_NAME_ID = "data.tag.name";
 
-  /** {@inheritDoc} */
-  @Override
-  public Object getDescriptor() {
-    final List<Tad> elements = CollectionUtil.newArrayList();
+    /** {@inheritDoc} */
+    @Override
+    public Object getDescriptor() {
+        final List<Tad> elements = new ArrayList<>();
 
-    final Tad tagName = new Tad();
-    tagName.setName("%" + DATA_TAG_NAME_ID);
-    tagName.setId(DATA_TAG_NAME_ID);
-    tagName.setDescription("%" + DATA_TAG_NAME_ID + "Desc");
-    tagName.setType(Tscalar.STRING);
-    tagName.setRequired(true);
-    tagName.setDefault("");
+        final Tad tagName = new Tad();
+        tagName.setName("%" + DATA_TAG_NAME_ID);
+        tagName.setId(DATA_TAG_NAME_ID);
+        tagName.setDescription("%" + DATA_TAG_NAME_ID + "Desc");
+        tagName.setType(Tscalar.STRING);
+        tagName.setRequired(true);
+        tagName.setDefault("");
 
-    elements.add(tagName);
+        elements.add(tagName);
 
-    return elements;
-  }
+        return elements;
+    }
 }

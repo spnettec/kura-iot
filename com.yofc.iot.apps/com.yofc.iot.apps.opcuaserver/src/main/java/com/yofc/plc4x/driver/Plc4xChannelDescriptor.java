@@ -1,11 +1,11 @@
 package com.yofc.plc4x.driver;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.kura.core.configuration.metatype.Tad;
 import org.eclipse.kura.core.configuration.metatype.Tscalar;
 import org.eclipse.kura.driver.ChannelDescriptor;
-import org.eclipse.kura.util.collection.CollectionUtil;
 
 public class Plc4xChannelDescriptor implements ChannelDescriptor {
 
@@ -14,7 +14,7 @@ public class Plc4xChannelDescriptor implements ChannelDescriptor {
 
     @Override
     public Object getDescriptor() {
-        final List<Tad> elements = CollectionUtil.newArrayList();
+        final List<Tad> elements = new ArrayList<>();
 
         final Tad tagAddr = new Tad();
         tagAddr.setName("%" + DATA_TAG_ADDR_ID);

@@ -15,11 +15,7 @@
             <groupId>org.eclipse.kura</groupId>
             <artifactId>org.eclipse.kura.api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.eclipse.kura</groupId>
-            <artifactId>org.eclipse.kura.util</artifactId>
-            <scope>provided</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.eclipse.kura</groupId>
             <artifactId>org.eclipse.kura.core.configuration</artifactId>
@@ -41,7 +37,7 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
-            <version>6.0.1</version>
+            <version>7.0.5</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -231,7 +227,7 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>de.dentrassi.maven</groupId>
+                <groupId>com.github.heyoulin</groupId>
                 <artifactId>osgi-dp</artifactId>
                 <executions>
                     <execution>
