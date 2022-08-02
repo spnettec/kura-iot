@@ -457,7 +457,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             if (value instanceof ArrayList) {
                 return TypedValues.newStringValue(ArrayUtils.toString(value));
             }
-            return TypedValues.newStringValue(value == null ? "" : (String) value);
+            return TypedValues.newStringValue(value == null ? "" : value.toString());
         case BYTE_ARRAY:
             if (value == null) {
                 return TypedValues.newByteArrayValue(new byte[] {});
