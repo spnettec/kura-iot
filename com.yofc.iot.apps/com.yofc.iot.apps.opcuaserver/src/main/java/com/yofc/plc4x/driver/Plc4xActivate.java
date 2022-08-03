@@ -1,5 +1,7 @@
 package com.yofc.plc4x.driver;
 
+import java.util.Hashtable;
+
 import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -17,7 +19,9 @@ public class Plc4xActivate {
     public void start(BundleContext context) {
         ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
         PooledPlcDriverManager pooledPlcDriverManager = new PooledPlcDriverManager(classloader);
-        this.vertxRegistration = context.registerService(PooledPlcDriverManager.class, pooledPlcDriverManager, null);
+        final Hashtable<String, String> props = new Hashtable<>();
+        props.put("kura.service.pid", "com.yofc.plc4x.driver.pooledPlcDriverManager");
+        this.vertxRegistration = context.registerService(PooledPlcDriverManager.class, pooledPlcDriverManager, props);
     }
 
     @Deactivate

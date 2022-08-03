@@ -74,9 +74,9 @@ public class VertxActivatorBase {
             String method = ctx.request().getParam("method");
             JsonObject body = null;
             try {
-                body = ctx.getBodyAsJson();
+                body = ctx.body().asJsonObject();
             } catch (Exception e) {
-                String aaa = ctx.getBodyAsString();
+                String aaa = ctx.body().asString();
                 ctx.response().putHeader("content-type", "text/html; charset=utf-8");
                 ctx.response().setStatusCode(400).setStatusMessage("parameter error" + aaa).end();
                 logger.error("Rest Body Error", e);
@@ -135,7 +135,7 @@ public class VertxActivatorBase {
         SockJSBridgeOptions opts = new SockJSBridgeOptions()
                 .addInboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"))
                 .addOutboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
-        routes.add(router.mountSubRouter("/bridge", SockJSHandler.create(vertx).bridge(opts)));
+        routes.add(router.route("/bridge/*").subRouter(SockJSHandler.create(vertx).bridge(opts)));
         rtRegistration = context.registerService(Router.class, router, null);
     }
 

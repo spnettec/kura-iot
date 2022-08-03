@@ -445,16 +445,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             }
         }
         case STRING:
-            if (value instanceof LocalDate) {
-                return TypedValues.newStringValue(((LocalDate) value).toString());
-            }
-            if (value instanceof Duration) {
-                return TypedValues.newStringValue(((Duration) value).toString());
-            }
-            if (value instanceof Date) {
-                return TypedValues.newStringValue(((Date) value).toString());
-            }
-            if (value instanceof ArrayList) {
+            if (value instanceof List) {
                 return TypedValues.newStringValue(ArrayUtils.toString(value));
             }
             return TypedValues.newStringValue(value == null ? "" : value.toString());
