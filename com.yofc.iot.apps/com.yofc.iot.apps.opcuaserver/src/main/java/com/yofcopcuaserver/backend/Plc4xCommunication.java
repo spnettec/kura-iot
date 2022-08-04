@@ -236,7 +236,10 @@ public class Plc4xCommunication extends AbstractLifecycle {
             PlcReadResponse response = null;
             try {
                 response = readRequest.execute().get(timeout, TimeUnit.MICROSECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            } catch (InterruptedException e) {
+                logger.warn("Failed", e);
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException | TimeoutException e) {
                 logger.warn(" Occurred while reading value, using timeout of {}ms", timeout / 1000, e);
                 try {
                     connection.close();
@@ -287,7 +290,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
                         } else if (response.getObject(fieldName, 0) instanceof Byte) {
                             array = Array.newInstance(Byte.class, numValues);
                         } else if (response.getObject(fieldName, 0) instanceof List
-                                && ((List) response.getObject(fieldName, 0)).get(0) instanceof PlcBOOL) {
+                                && ((List<?>) response.getObject(fieldName, 0)).get(0) instanceof PlcBOOL) {
                             array = Array.newInstance(Byte.class, numValues);
                         } else {
                             array = Array.newInstance(response.getObject(fieldName, 0).getClass(), numValues);
@@ -298,7 +301,8 @@ public class Plc4xCommunication extends AbstractLifecycle {
                             } else if (response.getObject(fieldName, i) instanceof Byte) {
                                 Array.set(array, i, ubyte((int) response.getObject(fieldName, i)));
                             } else if (response.getObject(fieldName, i) instanceof List
-                                    && ((List) response.getObject(fieldName, i)).get(0) instanceof PlcBOOL) {
+                                    && ((List<?>) response.getObject(fieldName, i)).get(0) instanceof PlcBOOL) {
+                                @SuppressWarnings("unchecked")
                                 List<PlcValue> list = ((List<PlcValue>) response.getObject(fieldName, i));
                                 byte recivedID = 0;
                                 for (int j = 0; j < 8; j++) {
@@ -340,7 +344,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
         PlcConnection connection = null;
         try {
             connection = pooledPlcDriverManager.getConnection(connectionString);
-            if (connection.isConnected() == false) {
+            if (!connection.isConnected()) {
                 logger.debug("getConnection() returned a connection that isn't connected");
                 connection.connect();
             }
@@ -369,7 +373,9 @@ public class Plc4xCommunication extends AbstractLifecycle {
             // If an array value is passed instead of a single value then convert to a String array
             if ((strValue.charAt(0) == '[') && (strValue.charAt(strValue.length() - 1) == ']')) {
                 String[] values = strValue.substring(1, strValue.length() - 1).split(",");
-                logger.info("Adding Tag {}", Arrays.toString(values));
+                if (logger.isInfoEnabled()) {
+                    logger.info("Adding Tag {}", Arrays.toString(values));
+                }
                 builder.addItem(tag, tag, (Object[]) values);
             } else {
                 builder.addItem(tag, tag, strValue);
@@ -382,7 +388,10 @@ public class Plc4xCommunication extends AbstractLifecycle {
 
         try {
             writeRequest.execute().get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException e) {
+            logger.warn("Failed", e);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
             logger.warn("Failed", e);
         }
 
