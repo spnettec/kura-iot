@@ -2,9 +2,9 @@ package com.yofc.plc4x.driver;
 
 import static java.util.Objects.requireNonNull;
 
+import java.math.BigInteger;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -414,6 +414,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
         switch (targetType) {
+        case LONGS:
+            return TypedValues.newLongValues(getLongs(value));
         case LONG: {
             if (value instanceof LocalDate) {
                 return TypedValues.newLongValue(((LocalDate) value).toEpochDay());
@@ -426,10 +428,20 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             }
             return TypedValues.newLongValue(((Number) (value == null ? 0 : value)).longValue());
         }
+        case FLOATS:
+            return TypedValues.newFloatValues(getFloats(value));
         case FLOAT:
             return TypedValues.newFloatValue(((Number) (value == null ? 0 : value)).floatValue());
+        case DOUBLES:
+            return TypedValues.newDoubleValues(getDoubles(value));
         case DOUBLE:
             return TypedValues.newDoubleValue(((Number) (value == null ? 0 : value)).doubleValue());
+        case INTEGERS:
+            return TypedValues.newIntegerValues(getIntegers(value));
+        case BIGINTEGERS:
+            return TypedValues.newBigIntegerValues(getBigIntegers(value));
+        case BOOLEANS:
+            return TypedValues.newBooleanValues(getBooleans(value));
         case INTEGER:
             if (value instanceof Boolean) {
                 return TypedValues.newIntegerValue(((Boolean) value) == Boolean.TRUE ? 1 : 0);
@@ -444,6 +456,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 return TypedValues.newBooleanValue(Boolean.parseBoolean(value == null ? "" : (String) value));
             }
         }
+        case STRINGS:
+            return TypedValues.newStringValues(getStrings(value));
         case STRING:
             if (value instanceof List) {
                 return TypedValues.newStringValue(ArrayUtils.toString(value));
@@ -454,7 +468,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 return TypedValues.newByteArrayValue(new byte[] {});
             }
             @SuppressWarnings("unchecked")
-            ArrayList<PlcValue> list = (ArrayList<PlcValue>) value;
+            List<PlcValue> list = (List<PlcValue>) value;
             Byte[] bytes = list.stream().map(b -> {
                 byte recivedID = 0;
                 if (b.isList()) {
@@ -470,6 +484,48 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         default:
             throw new IllegalArgumentException();
         }
+    }
+
+    private static Float[] getFloats(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getFloat).toArray(size -> new Float[size]);
+    }
+
+    private static Boolean[] getBooleans(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getBoolean).toArray(size -> new Boolean[size]);
+    }
+
+    private static Double[] getDoubles(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getDouble).toArray(size -> new Double[size]);
+    }
+
+    private static Integer[] getIntegers(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getInteger).toArray(size -> new Integer[size]);
+    }
+
+    private static Long[] getLongs(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getLong).toArray(size -> new Long[size]);
+    }
+
+    private static BigInteger[] getBigIntegers(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getBigInteger).toArray(size -> new BigInteger[size]);
+    }
+
+    private static String[] getStrings(Object value) {
+        @SuppressWarnings("unchecked")
+        List<PlcValue> list = (List<PlcValue>) value;
+        return list.stream().map(PlcValue::getString).toArray(size -> new String[size]);
     }
 
     static final class TagNameAddr {
