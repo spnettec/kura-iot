@@ -3,7 +3,6 @@ package com.yofc.vertx.osgi.api;
 import static java.lang.String.format;
 import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
 
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -205,8 +204,9 @@ public class Utils {
     }
 
     public static WireRecord toWireRecord(Map<String, Object> map) {
-        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream().collect(Collectors
-                .toMap(functionWrapper(Map.Entry::getKey), functionWrapper(entry -> newTypedValue(entry.getValue()))));
+        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream()
+                .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey),
+                        functionWrapper(entry -> TypedValues.newTypedValue(entry.getValue()))));
         return new WireRecord(mapWireRecord);
     }
 
@@ -329,28 +329,6 @@ public class Utils {
             return Integer.MIN_VALUE;
         }
         return (int) value;
-    }
-
-    public static TypedValue<?> newTypedValue(final Object value) {
-        if (value instanceof Boolean) {
-            return TypedValues.newBooleanValue((Boolean) value);
-        } else if (value instanceof byte[]) {
-            return TypedValues.newByteArrayValue((byte[]) value);
-        } else if (value instanceof Float) {
-            return TypedValues.newFloatValue((Float) value);
-        } else if (value instanceof Double) {
-            return TypedValues.newDoubleValue((Double) value);
-        } else if (value instanceof Integer) {
-            return TypedValues.newIntegerValue((Integer) value);
-        } else if (value instanceof Long) {
-            return TypedValues.newLongValue((Long) value);
-        } else if (value instanceof String) {
-            return TypedValues.newStringValue((String) value);
-        } else if (value instanceof BigDecimal) {
-            return TypedValues.newDoubleValue(((BigDecimal) value).doubleValue());
-        }
-
-        throw new IllegalArgumentException("Cannot convert to TypedValue");
     }
 
     public static void executeWithTCCLSwitch(final ClassLoader classLoader, Runnable action) {
