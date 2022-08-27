@@ -17,7 +17,7 @@
         <vertx.version>4.3.3</vertx.version>
         <netty.version>4.1.79.Final</netty.version>
         <shiro-core.version>1.9.1</shiro-core.version>
-        <reactive-streams.version>1.0.3</reactive-streams.version>
+        <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.0.1</HikariCP.version>
@@ -43,6 +43,7 @@
         <junit.jupiter.version>5.8.1</junit.jupiter.version>
         <junit.platform.version>1.8.1</junit.platform.version>
         <bouncycastle.version>1.71</bouncycastle.version>
+        <osgi.version>6.0.1</osgi.version>
         <kura.protocol.modbus.version>2.0.200</kura.protocol.modbus.version>
     </properties>
     <repositories>
@@ -109,9 +110,15 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
-                <version>6.0.0</version>
+                <version>${osgi.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+	            <groupId>org.apache.felix</groupId>
+	            <artifactId>org.apache.felix.framework</artifactId>
+	            <version>${osgi.version}</version>
+	            <scope>provided</scope>
+	        </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.service.component</artifactId>
