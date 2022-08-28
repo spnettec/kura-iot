@@ -25,7 +25,8 @@
         <groovy.version>3.0.12</groovy.version>
         <h2.version>2.1.214</h2.version>
         <paho.version>1.2.5</paho.version>
-        <osgi.service.version>1.4.0</osgi.service.version>
+        <osgi.service.version>1.5.0</osgi.service.version>
+        <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
         <jackson.version>2.13.3</jackson.version>
         <fastjson2.version>2.0.12</fastjson2.version>
         <log4j-api.version>2.17.1</log4j-api.version>
@@ -43,7 +44,8 @@
         <junit.jupiter.version>5.8.1</junit.jupiter.version>
         <junit.platform.version>1.8.1</junit.platform.version>
         <bouncycastle.version>1.71</bouncycastle.version>
-        <osgi.version>6.0.1</osgi.version>
+        <felix.framework.version>6.0.1</felix.framework.version>
+        <osgi-core.version>6.0.0</osgi-core.version>
         <kura.protocol.modbus.version>2.0.200</kura.protocol.modbus.version>
     </properties>
     <repositories>
@@ -110,13 +112,13 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
-                <version>${osgi.version}</version>
+                <version>${osgi-core.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
 	            <groupId>org.apache.felix</groupId>
 	            <artifactId>org.apache.felix.framework</artifactId>
-	            <version>${osgi.version}</version>
+	            <version>${felix.framework.version}</version>
 	            <scope>provided</scope>
 	        </dependency>
             <dependency>
@@ -134,7 +136,7 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.service.metatype.annotations</artifactId>
-                <version>${osgi.service.version}</version>
+                <version>${service.metatype.annotations.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -426,7 +428,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.1</version>
+                    <version>5.1.8</version>
                 </plugin>
 
                 <plugin>
