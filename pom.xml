@@ -25,7 +25,7 @@
         <groovy.version>3.0.12</groovy.version>
         <h2.version>2.1.214</h2.version>
         <paho.version>1.2.5</paho.version>
-        <osgi.service.version>1.4.0</osgi.service.version>
+        <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
         <jackson.version>2.13.3</jackson.version>
         <fastjson2.version>2.0.14</fastjson2.version>
@@ -72,14 +72,14 @@
             <dependency>
                 <groupId>org.eclipse.kura</groupId>
                 <artifactId>org.eclipse.kura.api</artifactId>
-                <version>2.4.0-SNAPSHOT</version>
+                <version>2.5.0-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.eclipse.kura</groupId>
                 <artifactId>org.eclipse.kura.core.configuration</artifactId>
-                <version>2.1.1</version>
+                <version>2.3.0-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
 
