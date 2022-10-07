@@ -46,15 +46,8 @@
         <bouncycastle.version>1.71</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
-        <kura.protocol.modbus.version>2.0.200</kura.protocol.modbus.version>
+        <kura.protocol.modbus.version>2.3.0-SNAPSHOT</kura.protocol.modbus.version>
     </properties>
-    <repositories>
-        <repository>
-            <id>repo.eclipse.org-releases</id>
-            <name>Eclipse Kura Repository - Releases</name>
-            <url>https://repo.eclipse.org/content/repositories/kura-releases/</url>
-        </repository>
-    </repositories>
     <pluginRepositories>
         <pluginRepository>
 		    <id>jitpack.io</id>
@@ -390,20 +383,6 @@
                     <skipTests>true</skipTests>
                 </configuration>
             </plugin>
-            <!-- 
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-             -->
         </plugins>
 
         <pluginManagement>
