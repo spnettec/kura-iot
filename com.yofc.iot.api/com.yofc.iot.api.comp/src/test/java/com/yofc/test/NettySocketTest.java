@@ -42,7 +42,7 @@ class NettySocketTest {
 
     client.addLister(
         msg -> {
-          System.out.println("返回监听: " + msg);
+          System.out.println("返回监听: " + Arrays.toString(msg));
         });
     vertx.setPeriodic(
         1000,
@@ -73,7 +73,7 @@ class NettySocketTest {
                     }
                       byte[] receive = (byte[]) handler.get();
 
-                    System.out.println("发送：" + "DAT?" + "--返回应答: " + Arrays.toString(receive));
+                    System.out.println("发送：" + "DAT?" + "--返回: " + Arrays.toString(receive));
                   });
         });
   }

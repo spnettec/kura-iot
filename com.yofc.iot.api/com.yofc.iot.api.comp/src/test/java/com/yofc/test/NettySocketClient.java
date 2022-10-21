@@ -69,7 +69,7 @@ public class NettySocketClient {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
             @Override
-            public void initChannel(SocketChannel ch) throws Exception {
+            public void initChannel(SocketChannel ch) {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addFirst(new ChannelInboundHandlerAdapter() {
 
@@ -95,19 +95,16 @@ public class NettySocketClient {
                     .handler(new ChannelInitializer<SocketChannel>() {
 
                         @Override
-                        protected void initChannel(SocketChannel socketChannel) throws Exception {
-
+                        protected void initChannel(SocketChannel socketChannel) {
+                            socketChannel.pipeline().addLast("encoder", new StringEncoder());
                             socketChannel.pipeline().addLast(nettyClientHandler);
                         }
-                    }).connect(new InetSocketAddress(remoteHost, remotePort)).addListener(new ChannelFutureListener() {
-
-                        public void operationComplete(ChannelFuture f) throws Exception {
-                            if (f.isSuccess()) {
-                                System.out.println("连接Netty服务端成功: " + getServerInfo());
-                            } else {
-                                System.out.println("连接失败，进行断线重连: " + getServerInfo());
-                                f.channel().eventLoop().schedule(() -> doConnect(), 1, TimeUnit.SECONDS);
-                            }
+                    }).connect(new InetSocketAddress(remoteHost, remotePort)).addListener((ChannelFutureListener) f -> {
+                        if (f.isSuccess()) {
+                            System.out.println("连接Netty服务端成功: " + getServerInfo());
+                        } else {
+                            System.out.println("连接失败，进行断线重连: " + getServerInfo());
+                            f.channel().eventLoop().schedule(this::doConnect, 1, TimeUnit.SECONDS);
                         }
                     }).sync();
         } catch (Exception e) {
@@ -201,10 +198,10 @@ public class NettySocketClient {
 
                     TimePromise tp = new TimePromise(promise, null);
                     tp.setTimerOut(timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut,
-                            TimeUnit.SECONDS));
+                            TimeUnit.MILLISECONDS));
 
                     if (messageList.offer(tp)) {
-                        ctx.writeAndFlush(message.getBytes(StandardCharsets.UTF_8));
+                        ctx.writeAndFlush(message);
                     } else {
                         timer.stop();
                         promise.setFailure(new BufferOverflowException());
@@ -213,9 +210,9 @@ public class NettySocketClient {
                 } else {
                     TimePromise tp = new TimePromise(promise, null);
                     tp.setTimerOut(timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut,
-                            TimeUnit.SECONDS));
+                            TimeUnit.MILLISECONDS));
                     messageMap.put(key, tp);
-                    ctx.writeAndFlush((key + ":" + message).getBytes(StandardCharsets.UTF_8));
+                    ctx.writeAndFlush(key + ":" + message);
                 }
 
                 return promise;
