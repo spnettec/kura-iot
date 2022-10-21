@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -57,7 +58,7 @@ class NettySocketTest {
                     }
                     byte[] receive = (byte[]) handler.get();
 
-                    System.out.println("发送：" + "SMPINF" + "--返回: " + Arrays.toString(receive));
+                    System.out.println("发送：" + "SMPINF" + "--返回: " + new String(receive, StandardCharsets.UTF_8));
                   });
         });
     vertx.setPeriodic(

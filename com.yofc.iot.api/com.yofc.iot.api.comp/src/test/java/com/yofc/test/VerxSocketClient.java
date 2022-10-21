@@ -33,7 +33,7 @@ public class VerxSocketClient extends AbstractVerticle {
     NetClientOptions options;
     private NetClient netClient;
     private NetSocket socket;
-    private Handler<byte[]> handler;
+    private Handler<Buffer> handler;
     private String host = "127.0.0.1";
     private int port = 8000;
     private volatile boolean closed = false;
@@ -125,19 +125,17 @@ public class VerxSocketClient extends AbstractVerticle {
     }
 
     private void handlerBuffer(Buffer buffer) {
-        byte[] message = buffer.getBytes();
-
         TimePromise tp = messageList.poll();
         if (tp != null) {
-            tp.getPromise().complete(message);
+            tp.getPromise().complete(buffer);
             vertx.cancelTimer(tp.getTimer());
         } else if(this.handler!=null){
-            this.handler.handle(message);
+            this.handler.handle(buffer);
         }
 
     }
 
-    public void addHandle(Handler<byte[]> handler) {
+    public void addHandle(Handler<Buffer> handler) {
         this.handler = handler;
     }
 
@@ -149,11 +147,11 @@ public class VerxSocketClient extends AbstractVerticle {
         socket.write(buffer);
     }
 
-    public void sendAndReply(String message, Handler<AsyncResult<byte[]>> handler) {
+    public void sendAndReply(String message, Handler<AsyncResult<Buffer>> handler) {
         sendAndReply(message, 5000, handler);
     }
 
-    public void sendAndReply(String message, long timeOut, Handler<AsyncResult<byte[]>> handler) {
+    public void sendAndReply(String message, long timeOut, Handler<AsyncResult<Buffer>> handler) {
         synchronized (this) {
             String key = null;
             String[] msgs = message.split(":", 2);
@@ -161,7 +159,7 @@ public class VerxSocketClient extends AbstractVerticle {
                 key = msgs[0];
                 message = msgs[1];
             }
-            Promise<byte[]> promise = Promise.promise();
+            Promise<Buffer> promise = Promise.promise();
             promise.future().onComplete(handler);
             TimePromise tp = new TimePromise(promise, 0L);
             if (key == null || "".equals(key)) {
@@ -214,16 +212,16 @@ public class VerxSocketClient extends AbstractVerticle {
 
     static class TimePromise {
 
-        private final Promise<byte[]> promise;
+        private final Promise<Buffer> promise;
         private Long timer;
 
-        public TimePromise(Promise<byte[]> promise, Long timer) {
+        public TimePromise(Promise<Buffer> promise, Long timer) {
             super();
             this.promise = promise;
             this.timer = timer;
         }
 
-        public Promise<byte[]> getPromise() {
+        public Promise<Buffer> getPromise() {
             return promise;
         }
 

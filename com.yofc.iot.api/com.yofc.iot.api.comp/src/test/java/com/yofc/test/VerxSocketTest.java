@@ -1,6 +1,7 @@
 package com.yofc.test;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +47,9 @@ public class VerxSocketTest {
 
     client.addHandle(
         buffer -> {
-          System.out.println("返回监听: " + Arrays.toString(buffer));
+          System.out.println("返回监听: " + buffer);
         });
+
     vertx.setPeriodic(
         1000,
         t -> {
@@ -57,11 +60,14 @@ public class VerxSocketTest {
                   log.error("SMPINF error", handler.cause());
                   return;
                 }
-                byte[] receive = handler.result();
+                Buffer receive = handler.result();
 
-                System.out.println("发送：" + "SMPINF?" + "--返回: " + Arrays.toString(receive));
+
+                System.out.println("发送：" + "SMPINF?" + "--返回: " + receive.toString());
               });
         });
+
+      /*
     vertx.setPeriodic(
         2500,
         l -> {
@@ -72,10 +78,12 @@ public class VerxSocketTest {
                   log.error("DAT error", handler.cause());
                   return;
                 }
-                byte[] receive = handler.result();
+                  Buffer receive = handler.result();
 
-                System.out.println("发送：" + "DAT?" + "--返回: " + Arrays.toString(receive));
+                System.out.println("发送：" + "DAT?" + "--返回: " + receive.toString());
               });
         });
+
+       */
   }
 }
