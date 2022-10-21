@@ -1,16 +1,14 @@
 package com.yofc.test;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timeout;
-import io.netty.util.Timer;
-import io.netty.util.TimerTask;
+import io.netty.util.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.log4j.Log4j2;
@@ -46,7 +44,9 @@ public class NettySocketClient {
         return consumer;
     }
 
-    /** 发送消息 */
+    /**
+     * 发送消息
+     */
     public Future<byte[]> sendMessage(String msg) {
         return sendMessage(msg, 5000);
     }
@@ -125,7 +125,7 @@ public class NettySocketClient {
         workerGroup.shutdownGracefully();
     }
 
-    static class NettyClientHandler extends SimpleChannelInboundHandler<byte[]> {
+    static class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
         private final NettySocketClient client;
         private static final Timer timer = new HashedWheelTimer();
@@ -152,15 +152,20 @@ public class NettySocketClient {
             this.ctx = ctx;
         }
 
-        @Override
-        protected void channelRead0(ChannelHandlerContext ctx, byte[] message) {
-            synchronized (this) {
-                    TimePromise tp = messageList.poll();
-                    if (tp != null) {
-                        tp.getPromise().setSuccess(message);
-                        tp.getTimerOut().cancel();
-                    }
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            try {
+                ByteBuf bb = (ByteBuf) msg;
+                byte[] message = new byte[bb.readableBytes()];
+                bb.readBytes(message);
+                TimePromise tp = messageList.poll();
+                if (tp != null) {
+                    tp.getPromise().setSuccess(message);
+                    tp.getTimerOut().cancel();
+                }
+            } finally {
+                ReferenceCountUtil.release(msg);
             }
+
         }
 
         @Override
@@ -226,7 +231,7 @@ public class NettySocketClient {
         private final ConcurrentHashMap<String, TimePromise> messageMap;
 
         public TimeOutTask(String key, TimePromise tp, ConcurrentLinkedQueue<TimePromise> messageList,
-                ConcurrentHashMap<String, TimePromise> messageMap) {
+                           ConcurrentHashMap<String, TimePromise> messageMap) {
             this.key = key;
             this.tp = tp;
             this.messageList = messageList;
