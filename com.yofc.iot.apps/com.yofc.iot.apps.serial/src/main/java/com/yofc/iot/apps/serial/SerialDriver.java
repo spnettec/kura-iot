@@ -68,7 +68,7 @@ public class SerialDriver implements Driver, ConfigurableComponent {
   private static int getIntProperty(
       ChannelRecord record, String propertyName, String failureMessage) throws KuraException {
     try {
-      return Integer.valueOf(record.getChannelConfig().get(propertyName).toString());
+      return Integer.parseInt(record.getChannelConfig().get(propertyName).toString());
     } catch (Exception e) {
       throw new KuraException(KuraErrorCode.CONFIGURATION_ERROR, failureMessage);
     }
@@ -157,33 +157,26 @@ public class SerialDriver implements Driver, ConfigurableComponent {
     if (this.state.client == null || !this.state.client.isConnected()) {
       connect();
     }
-    for (int i = 0; i < records.size(); i++) {
-      ChannelRecord record = records.get(i);
-      String tagName = null;
-      Integer tagReadLength = 10;
+    for (ChannelRecord record : records) {
+      String tagName;
+      int tagReadLength;
       try {
-        tagName =
-            getStringProperty(
-                record, SerialChannelDescriptor.DATA_TAG_NAME_ID, "Serial Tag setting error");
+        tagName = getStringProperty(record, SerialChannelDescriptor.DATA_TAG_NAME_ID, "Serial Tag setting error");
       } catch (KuraException e) {
         record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
         record.setTimestamp(System.currentTimeMillis());
         continue;
       }
       try {
-        tagReadLength =
-            getIntProperty(
-                record, SerialChannelDescriptor.DATA_TAG_READ_LENGTH, "Serial Tag setting error");
+        tagReadLength = getIntProperty(record, SerialChannelDescriptor.DATA_TAG_READ_LENGTH,
+                "Serial Tag setting error");
       } catch (KuraException e) {
         record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
         record.setTimestamp(System.currentTimeMillis());
         continue;
       }
       if (tagName == null) {
-        record.setChannelStatus(
-            new ChannelStatus(
-                ChannelFlag.FAILURE,
-                "Serial Tag is null",
+        record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "Serial Tag is null",
                 new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
         record.setTimestamp(System.currentTimeMillis());
       } else {
@@ -216,8 +209,7 @@ public class SerialDriver implements Driver, ConfigurableComponent {
       connect();
     }
     List<Request<WriteParams>> requests = Request.extractWriteRequests(records);
-    for (int i = 0; i < requests.size(); i++) {
-      Request<WriteParams> request = requests.get(i);
+    for (Request<WriteParams> request : requests) {
       WriteParams para = request.getParameters();
 
       String tagName = para.getWriteTag();
@@ -229,9 +221,8 @@ public class SerialDriver implements Driver, ConfigurableComponent {
       ChannelRecord record = request.getRecord();
       Integer tagReadLength = null;
       try {
-        tagReadLength =
-            getIntProperty(
-                record, SerialChannelDescriptor.DATA_TAG_READ_LENGTH, "Serial Tag setting error");
+        tagReadLength = getIntProperty(record, SerialChannelDescriptor.DATA_TAG_READ_LENGTH,
+                "Serial Tag setting error");
       } catch (KuraException e) {
         record.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
         record.setTimestamp(System.currentTimeMillis());

@@ -51,9 +51,7 @@ public class Request<T> {
     final ArrayList<Request<ReadParams>> result = new ArrayList<>(records.size());
     for (final ChannelRecord record : records) {
       final Optional<Request<ReadParams>> request = extractReadRequest(record);
-      if (request.isPresent()) {
-        result.add(request.get());
-      }
+      request.ifPresent(result::add);
     }
     return result;
   }
@@ -62,9 +60,7 @@ public class Request<T> {
     final ArrayList<Request<WriteParams>> result = new ArrayList<>(records.size());
     for (final ChannelRecord record : records) {
       final Optional<Request<WriteParams>> request = extractWriteRequest(record);
-      if (request.isPresent()) {
-        result.add(request.get());
-      }
+      request.ifPresent(result::add);
     }
     return result;
   }

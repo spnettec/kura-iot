@@ -99,7 +99,7 @@ public class SerialDriverClient {
         return readTag(tagName, tagReadLength);
       } else {
         String code = CRC16Util.byte2HexStr(byes[4]);
-        if (code != null && !"80".equals(code)) {
+        if (!"80".equals(code)) {
           logger.error("read error,error code:{}", CRC16Util.byte2HexStr(byes[4]));
         }
         return "";
@@ -107,9 +107,7 @@ public class SerialDriverClient {
     } else {
       int nums = byes[5];
       byte[] bytestr = new byte[nums];
-      for (int i = 0; i < nums; i++) {
-        bytestr[i] = byes[6 + i];
-      }
+      System.arraycopy(byes, 6, bytestr, 0, nums);
       return new String(bytestr).trim();
     }
   }
@@ -117,9 +115,6 @@ public class SerialDriverClient {
   public synchronized void writeTag(String tagName, String value, Integer tagReadLength) {
     byte[] strBytes = value.getBytes();
     int writeLen = tagReadLength;
-    if (tagReadLength == null) {
-      writeLen = strBytes.length;
-    }
     buffer.clear();
     byte[] dataBytes = new byte[writeLen];
     for (int i = 0; i < writeLen; i++) {

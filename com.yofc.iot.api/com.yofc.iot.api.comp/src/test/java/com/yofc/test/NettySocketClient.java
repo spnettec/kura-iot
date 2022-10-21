@@ -17,296 +17,255 @@ import lombok.extern.log4j.Log4j2;
 
 import java.net.InetSocketAddress;
 import java.nio.BufferOverflowException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 @Log4j2
 public class NettySocketClient {
 
-  private final String remoteHost;
-  private final int remotePort;
-  private EventLoopGroup workerGroup = new NioEventLoopGroup();
-  private volatile Bootstrap bootstrap;
-  private volatile boolean closed = false;
-  private NettyClientHandler nettyClientHandler;
-  private Consumer<String> consumer;
+    private final String remoteHost;
+    private final int remotePort;
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private volatile Bootstrap bootstrap;
+    private volatile boolean closed = false;
+    private NettyClientHandler nettyClientHandler;
+    private Consumer<byte[]> consumer;
 
-  public NettySocketClient(String remoteHost, int remotePort) {
-    this.remoteHost = remoteHost;
-    this.remotePort = remotePort;
-  }
-
-  public Consumer<String> getConsumer() {
-    return consumer;
-  }
-
-  /** 发送消息 */
-  public Future<String> sendMessage(String msg) {
-    return sendMessage(msg, 5000);
-  }
-
-  public Future<String> sendMessage(String msg, long timeOut) {
-    return nettyClientHandler.sendMessage(msg, timeOut);
-  }
-
-  public void addLister(Consumer<String> consumer) {
-    this.consumer = consumer;
-  }
-
-  public void init() {
-    closed = false;
-
-    workerGroup = new NioEventLoopGroup();
-    bootstrap = new Bootstrap();
-    bootstrap.group(workerGroup);
-    bootstrap.channel(NioSocketChannel.class);
-    bootstrap.handler(
-        new ChannelInitializer<SocketChannel>() {
-
-          @Override
-          public void initChannel(SocketChannel ch) throws Exception {
-            ChannelPipeline pipeline = ch.pipeline();
-            pipeline.addFirst(
-                new ChannelInboundHandlerAdapter() {
-
-                  @Override
-                  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-                    super.channelInactive(ctx);
-                    ctx.channel().eventLoop().schedule(() -> doConnect(), 1, TimeUnit.SECONDS);
-                  }
-                });
-          }
-        });
-
-    doConnect();
-  }
-
-  private void doConnect() {
-    if (closed) {
-      return;
-    }
-    try {
-      nettyClientHandler = new NettyClientHandler(this);
-      bootstrap
-          .option(ChannelOption.SO_KEEPALIVE, true)
-          .option(ChannelOption.TCP_NODELAY, true)
-          .handler(
-              new ChannelInitializer<SocketChannel>() {
-
-                @Override
-                protected void initChannel(SocketChannel socketChannel) throws Exception {
-                  socketChannel.pipeline().addLast("decoder", new StringDecoder());
-                  socketChannel.pipeline().addLast("encoder", new StringEncoder());
-                  socketChannel.pipeline().addLast(nettyClientHandler);
-                }
-              })
-          .connect(new InetSocketAddress(remoteHost, remotePort))
-          .addListener(
-              new ChannelFutureListener() {
-
-                public void operationComplete(ChannelFuture f) throws Exception {
-                  if (f.isSuccess()) {
-                    System.out.println("连接Netty服务端成功: " + getServerInfo());
-                  } else {
-                    System.out.println("连接失败，进行断线重连: " + getServerInfo());
-                    f.channel().eventLoop().schedule(() -> doConnect(), 1, TimeUnit.SECONDS);
-                  }
-                }
-              })
-          .sync();
-    } catch (Exception e) {
-      log.error(e);
-      doConnect();
-    }
-  }
-
-  private String getServerInfo() {
-    return String.format("RemoteHost=%s RemotePort=%d", remoteHost, remotePort);
-  }
-
-  public void shutdown() {
-    closed = true;
-    workerGroup.shutdownGracefully();
-  }
-
-  class NettyClientHandler extends SimpleChannelInboundHandler<String> {
-
-    private final NettySocketClient client;
-    private final BlockingQueue<TimePromise> messageList = new ArrayBlockingQueue<>(16);
-    private final ConcurrentHashMap<String, TimePromise> messageMap =
-        new ConcurrentHashMap<>(
-            new LinkedHashMap<>() {
-
-              private static final long serialVersionUID = 1L;
-
-              @Override
-              protected boolean removeEldestEntry(Map.Entry<String, TimePromise> eldest) {
-                return size() > 16;
-              }
-            });
-    private ChannelHandlerContext ctx;
-    public NettyClientHandler(NettySocketClient client) {
-      this.client = client;
+    public NettySocketClient(String remoteHost, int remotePort) {
+        this.remoteHost = remoteHost;
+        this.remotePort = remotePort;
     }
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-      super.channelActive(ctx);
-      this.ctx = ctx;
+    public Consumer<byte[]> getConsumer() {
+        return consumer;
     }
 
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String message) throws Exception {
-      synchronized (this) {
-        String key = null;
-        String[] msgs = message.split(":", 2);
-        if (msgs.length > 1) {
-          key = msgs[0];
-          message = msgs[1];
-        }
-        if (message != null && (message.startsWith("FEED"))) {
-          if (this.client.getConsumer() != null) this.client.getConsumer().accept(message);
-          return;
-        }
-        if (key == null || "".equals(key)) {
-          if (messageList != null) {
-            TimePromise tp = messageList.poll();
-            tp.getPromise().setSuccess(message);
-            tp.getTimer().stop();
-          }
-        } else {
-          if (messageMap != null) {
-            TimePromise tp = messageMap.get(key);
-            if (tp != null) {
-              tp.getPromise().setSuccess(message);
-              tp.getTimer().stop();
-            }
-            messageMap.remove(key);
-          }
-        }
-      }
+    /** 发送消息 */
+    public Future<byte[]> sendMessage(String msg) {
+        return sendMessage(msg, 5000);
     }
 
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-      final EventLoop eventLoop = ctx.channel().eventLoop();
-      eventLoop.schedule(
-          new Runnable() {
+    public Future<byte[]> sendMessage(String msg, long timeOut) {
+        return nettyClientHandler.sendMessage(msg, timeOut);
+    }
+
+    public void addLister(Consumer<byte[]> consumer) {
+        this.consumer = consumer;
+    }
+
+    public void init() {
+        closed = false;
+
+        workerGroup = new NioEventLoopGroup();
+        bootstrap = new Bootstrap();
+        bootstrap.group(workerGroup);
+        bootstrap.channel(NioSocketChannel.class);
+        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
             @Override
-            public void run() {
-              client.doConnect();
+            public void initChannel(SocketChannel ch) throws Exception {
+                ChannelPipeline pipeline = ch.pipeline();
+                pipeline.addFirst(new ChannelInboundHandlerAdapter() {
+
+                    @Override
+                    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                        super.channelInactive(ctx);
+                        ctx.channel().eventLoop().schedule(NettySocketClient.this::doConnect, 1, TimeUnit.SECONDS);
+                    }
+                });
             }
-          },
-          1L,
-          TimeUnit.SECONDS);
-      super.channelInactive(ctx);
+        });
+
+        doConnect();
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      cause.printStackTrace();
-      this.ctx.close();
-    }
-
-    public Future<String> sendMessage(String message, long timeOut) {
-      if (this.ctx == null) throw new IllegalStateException();
-      if (message == null || "".equals(message)) throw new IllegalStateException();
-      return sendMessage(message, ctx.executor().newPromise(), timeOut);
-    }
-
-    public Future<String> sendMessage(String message, Promise<String> promise, long timeOut) {
-      synchronized (this) {
-        String key = null;
-        String[] msgs = message.split(":", 2);
-        if (msgs.length > 1) {
-          key = msgs[0];
-          message = msgs[1];
+    private void doConnect() {
+        if (closed) {
+            return;
         }
-        if (key == null || "".equals(key)) {
-          if (messageList == null) {
-            promise.setFailure(new IllegalStateException());
-            return promise;
-          }
-          Timer timer = new HashedWheelTimer();
-          TimePromise tp = new TimePromise(promise, timer);
-          timer.newTimeout(
-              new TimeOutTask(key, tp, messageList, messageMap), timeOut, TimeUnit.SECONDS);
+        try {
+            nettyClientHandler = new NettyClientHandler(this);
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, true).option(ChannelOption.TCP_NODELAY, true)
+                    .handler(new ChannelInitializer<SocketChannel>() {
 
-          if (messageList.offer(tp)) {
-            ctx.writeAndFlush(message);
-          } else {
-            timer.stop();
-            promise.setFailure(new BufferOverflowException());
-            return promise;
-          }
-        } else {
-          if (messageMap == null) {
-            // Connection closed
-            promise.setFailure(new IllegalStateException());
-            return promise;
-          } else {
-            Timer timer = new HashedWheelTimer();
-            TimePromise tp = new TimePromise(promise, timer);
-            timer.newTimeout(
-                new TimeOutTask(key, tp, messageList, messageMap), timeOut, TimeUnit.SECONDS);
-            messageMap.put(key, tp);
-            // Connection open and message accepted
-            ctx.writeAndFlush(key + ":" + message);
-          }
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel) throws Exception {
+
+                            socketChannel.pipeline().addLast(nettyClientHandler);
+                        }
+                    }).connect(new InetSocketAddress(remoteHost, remotePort)).addListener(new ChannelFutureListener() {
+
+                        public void operationComplete(ChannelFuture f) throws Exception {
+                            if (f.isSuccess()) {
+                                System.out.println("连接Netty服务端成功: " + getServerInfo());
+                            } else {
+                                System.out.println("连接失败，进行断线重连: " + getServerInfo());
+                                f.channel().eventLoop().schedule(() -> doConnect(), 1, TimeUnit.SECONDS);
+                            }
+                        }
+                    }).sync();
+        } catch (Exception e) {
+            log.error(e);
+            doConnect();
+        }
+    }
+
+    private String getServerInfo() {
+        return String.format("RemoteHost=%s RemotePort=%d", remoteHost, remotePort);
+    }
+
+    public void shutdown() {
+        closed = true;
+        workerGroup.shutdownGracefully();
+    }
+
+    static class NettyClientHandler extends SimpleChannelInboundHandler<byte[]> {
+
+        private final NettySocketClient client;
+        private static final Timer timer = new HashedWheelTimer();
+        private final ConcurrentLinkedQueue<TimePromise> messageList = new ConcurrentLinkedQueue<>();
+        private final ConcurrentHashMap<String, TimePromise> messageMap = new ConcurrentHashMap<>(
+                new LinkedHashMap<>() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean removeEldestEntry(Map.Entry<String, TimePromise> eldest) {
+                        return size() > 16;
+                    }
+                });
+        private ChannelHandlerContext ctx;
+
+        public NettyClientHandler(NettySocketClient client) {
+            this.client = client;
         }
 
-        return promise;
-      }
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+            super.channelActive(ctx);
+            this.ctx = ctx;
+        }
+
+        @Override
+        protected void channelRead0(ChannelHandlerContext ctx, byte[] message) {
+            synchronized (this) {
+                    TimePromise tp = messageList.poll();
+                    if (tp != null) {
+                        tp.getPromise().setSuccess(message);
+                        tp.getTimerOut().cancel();
+                    }
+            }
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            final EventLoop eventLoop = ctx.channel().eventLoop();
+            eventLoop.schedule(client::doConnect, 1L, TimeUnit.SECONDS);
+            super.channelInactive(ctx);
+        }
+
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            cause.printStackTrace();
+            this.ctx.close();
+        }
+
+        public Future<byte[]> sendMessage(String message, long timeOut) {
+            if (this.ctx == null)
+                throw new IllegalStateException();
+            if (message == null || "".equals(message))
+                throw new IllegalStateException();
+            return sendMessage(message, ctx.executor().newPromise(), timeOut);
+        }
+
+        public Future<byte[]> sendMessage(String message, Promise<byte[]> promise, long timeOut) {
+            synchronized (this) {
+                String key = null;
+                String[] msgs = message.split(":", 2);
+                if (msgs.length > 1) {
+                    key = msgs[0];
+                    message = msgs[1];
+                }
+                if (key == null || "".equals(key)) {
+
+                    TimePromise tp = new TimePromise(promise, null);
+                    tp.setTimerOut(timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut,
+                            TimeUnit.SECONDS));
+
+                    if (messageList.offer(tp)) {
+                        ctx.writeAndFlush(message.getBytes(StandardCharsets.UTF_8));
+                    } else {
+                        timer.stop();
+                        promise.setFailure(new BufferOverflowException());
+                        return promise;
+                    }
+                } else {
+                    TimePromise tp = new TimePromise(promise, null);
+                    tp.setTimerOut(timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut,
+                            TimeUnit.SECONDS));
+                    messageMap.put(key, tp);
+                    ctx.writeAndFlush((key + ":" + message).getBytes(StandardCharsets.UTF_8));
+                }
+
+                return promise;
+            }
+        }
     }
-  }
 
-  class TimeOutTask implements TimerTask {
+    static class TimeOutTask implements TimerTask {
 
-    private final TimePromise tp;
-    private final String key;
-    private final BlockingQueue<TimePromise> messageList;
-    private final ConcurrentHashMap<String, TimePromise> messageMap;
-    public TimeOutTask(
-        String key,
-        TimePromise tp,
-        BlockingQueue<TimePromise> messageList,
-        ConcurrentHashMap<String, TimePromise> messageMap) {
-      this.key = key;
-      this.tp = tp;
-      this.messageList = messageList;
-      this.messageMap = messageMap;
+        private final TimePromise tp;
+        private final String key;
+        private final ConcurrentLinkedQueue<TimePromise> messageList;
+        private final ConcurrentHashMap<String, TimePromise> messageMap;
+
+        public TimeOutTask(String key, TimePromise tp, ConcurrentLinkedQueue<TimePromise> messageList,
+                ConcurrentHashMap<String, TimePromise> messageMap) {
+            this.key = key;
+            this.tp = tp;
+            this.messageList = messageList;
+            this.messageMap = messageMap;
+        }
+
+        @Override
+        public void run(Timeout timeout) {
+            if (!tp.getPromise().isDone()) {
+                tp.getPromise().setFailure(new TimeoutException());
+                if (key == null || "".equals(key))
+                    messageList.remove(tp);
+                else
+                    messageMap.remove(key);
+            }
+        }
     }
 
-    @Override
-    public void run(Timeout timeout) throws Exception {
-      if (!tp.getPromise().isDone()) {
-        tp.getPromise().setFailure(new TimeoutException());
-        if (key == null || "".equals(key)) messageList.remove(tp);
-        else messageMap.remove(key);
-      }
+    static class TimePromise {
+
+        private final Promise<byte[]> promise;
+        private Timeout timerOut;
+
+        public TimePromise(Promise<byte[]> promise, Timeout timerOut) {
+            super();
+            this.promise = promise;
+            this.timerOut = timerOut;
+        }
+
+        public Promise<byte[]> getPromise() {
+            return promise;
+        }
+
+        public Timeout getTimerOut() {
+            return timerOut;
+        }
+
+        public void setTimerOut(Timeout timerOut) {
+            this.timerOut = timerOut;
+        }
     }
-  }
-
-  class TimePromise {
-
-    private final Promise<String> promise;
-    private final Timer timer;
-
-    public TimePromise(Promise<String> promise, Timer timer) {
-      super();
-      this.promise = promise;
-      this.timer = timer;
-    }
-
-    public Promise<String> getPromise() {
-      return promise;
-    }
-
-    public Timer getTimer() {
-      return timer;
-    }
-  }
 }

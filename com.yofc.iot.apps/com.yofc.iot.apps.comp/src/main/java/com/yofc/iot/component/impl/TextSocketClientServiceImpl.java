@@ -1,47 +1,32 @@
 package com.yofc.iot.component.impl;
 
-import java.nio.BufferOverflowException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeoutException;
-
+import com.yofc.iot.component.api.ServieTool;
+import com.yofc.iot.component.api.TextSocketClientService;
+import com.yofc.iot.component.impl.TextSocketClientServiceImpl.Config;
+import com.yofc.vertx.osgi.api.AssetHelp;
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
+import io.vertx.core.Future;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.NetSocket;
+import io.vertx.ext.web.client.WebClient;
 import org.eclipse.kura.KuraConnectException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.*;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yofc.iot.component.api.ServieTool;
-import com.yofc.iot.component.api.TextSocketClientService;
-import com.yofc.iot.component.impl.TextSocketClientServiceImpl.Config;
-import com.yofc.vertx.osgi.api.AssetHelp;
-
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
-import groovy.lang.Script;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.core.net.NetSocket;
-import io.vertx.ext.web.client.WebClient;
+import java.nio.BufferOverflowException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.*;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
@@ -62,8 +47,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     @Reference
     private Vertx vertx;
     private NetClient netClient;
-    private Optional<NetSocket> socket = Optional.empty();
-    private Optional<Future<NetSocket>> connectTask = Optional.empty();
+    private Future<NetSocket> connectTask;
     private Handler<String> handler;
     private Config preConfig = null;
     private Map<String, Object> mapProperties;
@@ -100,12 +84,11 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
 
     private synchronized void closeSocketClient() {
         serviceTool.ungetServices();
-        if (socket.isPresent()) {
-            socket.get().close();
-            socket = Optional.empty();
-        }
-        if (this.connectTask.isPresent()) {
-            this.connectTask = Optional.empty();
+        if (this.connectTask != null) {
+            if (connectTask.isComplete()) {
+                connectTask.result().close();
+            }
+            this.connectTask = null;
         }
         if (netClient != null) {
             netClient.close();
@@ -169,18 +152,25 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
 
         logger.info("正在启动服务器....:{},端口:{},服务:{}", properties.host(), properties.port(),
                 this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
-        connectTask = Optional.of(doConnect(properties));
+        connectTask = doConnect(properties);
     }
 
     private synchronized Future<NetSocket> doConnect(Config properties) {
-        if (this.connectTask.isPresent() && !this.connectTask.get().isComplete()) {
-            return this.connectTask.get();
+        if (this.connectTask != null) {
+            if (!this.connectTask.isComplete()) {
+                return this.connectTask;
+            } else {
+                Promise<NetSocket> connectPromise = Promise.promise();
+                if (this.connectTask.failed()) {
+                    connectPromise.fail(this.connectTask.cause());
+                } else {
+                    connectPromise.complete(connectTask.result());
+                }
+                return connectPromise.future();
+            }
         }
         Promise<NetSocket> connectPromise = Promise.promise();
-        if (socket.isPresent()) {
-            connectPromise.complete(socket.get());
-            return connectPromise.future();
-        }
+
         if (netClient != null) {
             netClient.close();
             netClient = null;
@@ -194,7 +184,6 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         options.setReuseAddress(true);
         netClient = vertx.createNetClient(options);
         netClient.connect(properties.port(), properties.host(), handleConnection(properties, connectPromise));
-        this.connectTask = Optional.of(connectPromise.future());
         return connectPromise.future();
     }
 
@@ -204,16 +193,15 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 connectPromise.fail(result.cause());
                 TextSocketClientServiceImpl.this.closeSocketClient();
                 if (properties.reconnectAttempts() > 0) {
-                    logger.info("连接到服务器:{},端口:{},服务:{} 失败次数超过:{}次，服务停止，请重新启动", properties.host(), properties.port(),
-                            this.mapProperties.get(ServieTool.KURA_SERVICE_PID), properties.reconnectAttempts());
-                    return;
+                    logger.info("连接到服务器:{},端口:{},服务:{} 失败次数超过:{}次，服务停止，请重新启动",
+                            properties.host(), properties.port(), this.mapProperties.get(ServieTool.KURA_SERVICE_PID),
+                            properties.reconnectAttempts());
                 }
             } else {
                 NetSocket netSocket = result.result();
                 connectPromise.complete(netSocket);
                 logger.info("连接到服务器:{},端口:{},服务:{} 成功", properties.host(), properties.port(),
                         this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
-                socket = Optional.of(netSocket);
                 netSocket.closeHandler(h -> {
                     logger.info("连接到服务器:{},端口:{},服务:{} 连接丢失", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
@@ -245,12 +233,12 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 vertx.cancelTimer(tp.getTimer());
             }
         } else {
-                TimePromise tp = messageMap.get(key);
-                if (tp != null) {
-                    tp.getPromise().complete(message);
-                    vertx.cancelTimer(tp.getTimer());
-                }
-                messageMap.remove(key);
+            TimePromise tp = messageMap.get(key);
+            if (tp != null) {
+                tp.getPromise().complete(message);
+                vertx.cancelTimer(tp.getTimer());
+            }
+            messageMap.remove(key);
         }
     }
 
@@ -291,8 +279,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         try {
             writeScript.setProperty("message", message);
             writeScript.run();
-            String writeMessage = (String) writeScript.getProperty("message");
-            return writeMessage;
+            return (String) writeScript.getProperty("message");
         } catch (Exception e) {
             logger.warn("Failed to execute script", e);
             return message;
@@ -312,8 +299,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 readScript.setProperty("handler", handler);
                 readScript.setProperty("readMsg", readMsg);
                 readScript.run();
-                ReadMsg readMessage = (ReadMsg) readScript.getProperty("readMsg");
-                return readMessage;
+                return (ReadMsg) readScript.getProperty("readMsg");
             } catch (Exception e) {
                 logger.warn("Failed to execute script", e);
             }
@@ -338,9 +324,9 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 key = msgs[0];
                 covertMessage = msgs[1];
             }
+            TimePromise tp = new TimePromise(promise, 0L);
             if (key == null || "".equals(key)) {
-                TimePromise tp = new TimePromise(promise, 0L);
-                Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
+                long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
                 tp.setTimer(timer);
 
                 if (messageList.offer(tp)) {
@@ -350,15 +336,10 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                     promise.fail(new BufferOverflowException());
                 }
             } else {
-                if (messageMap == null) {
-                    promise.fail(new IllegalStateException());
-                } else {
-                    TimePromise tp = new TimePromise(promise, 0L);
-                    Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
-                    tp.setTimer(timer);
-                    messageMap.put(key, tp);
-                    v.result().write(key + ":" + covertMessage);
-                }
+                Long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));
+                tp.setTimer(timer);
+                messageMap.put(key, tp);
+                v.result().write(key + ":" + covertMessage);
             }
         });
     }
@@ -366,38 +347,31 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.TextSocketClientServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.TextSocketClientServiceCfg")
     @interface Config {
 
-        @AttributeDefinition(name = "%activate", description = "%activateDesc")
-        boolean activate() default false;
+        @AttributeDefinition(name = "%activate", description = "%activateDesc") boolean activate() default false;
 
-        @AttributeDefinition(name = "%host", cardinality = 0, description = "%hostDesc", required = true)
-        String host() default "127.0.0.1";
+        @AttributeDefinition(name = "%host", cardinality = 0, description = "%hostDesc", required = true) String host() default "127.0.0.1";
 
-        @AttributeDefinition(name = "%port", cardinality = 0, description = "%portDesc", required = true)
-        int port() default 8080;
+        @AttributeDefinition(name = "%port", cardinality = 0, description = "%portDesc", required = true) int port() default 8080;
 
-        @AttributeDefinition(name = "%connectTimeout", cardinality = 0, description = "%connectTimeoutDesc", required = true)
-        int connectTimeout() default 1000;
+        @AttributeDefinition(name = "%connectTimeout", cardinality = 0, description = "%connectTimeoutDesc", required = true) int connectTimeout() default 1000;
 
-        @AttributeDefinition(name = "%reconnectAttempts", cardinality = 0, description = "%reconnectAttemptsDesc", required = true)
-        int reconnectAttempts() default 10;
+        @AttributeDefinition(name = "%reconnectAttempts", cardinality = 0, description = "%reconnectAttemptsDesc", required = true) int reconnectAttempts() default 10;
 
-        @AttributeDefinition(name = "%reconnectInterval", cardinality = 0, description = "%reconnectIntervalDesc", required = true)
-        int reconnectInterval() default 10000;
+        @AttributeDefinition(name = "%reconnectInterval", cardinality = 0, description = "%reconnectIntervalDesc", required = true) int reconnectInterval() default 10000;
 
-        @AttributeDefinition(name = "%preWriteProcessCode", cardinality = 0, description = "%preWriteProcessCodeDesc", required = false)
-        String preWriteProcessCode() default "double random = Math.random();"
-                + "message = random + \":\" + message + \"\\r\\n\"; ";
+        @AttributeDefinition(name = "%preWriteProcessCode", cardinality = 0, description = "%preWriteProcessCodeDesc", required = false) String preWriteProcessCode() default
+                "double random = Math.random();" + "message = random + \":\" + message + \"\\r\\n\"; ";
 
-        @AttributeDefinition(name = "%preReadProcessCode", cardinality = 0, description = "%preReadProcessCodeDesc", required = false)
-        String preReadProcessCode() default "String[] msgs = readMsg.getMsg().split(\":\", 2);" + ""
-                + "if (msgs.length > 1) {" + "     readMsg.setKey(msgs[0]);" + "     readMsg.setMsg(msgs[1]);"
-                + "} else if (msgs.length == 1) {" + "      readMsg.setMsg(msgs[0]);" + "}" + "        "
-                + "if (readMsg.getMsg() != null && (readMsg.getMsg().startsWith(\"FEED\"))) {"
-                + "    if (handler != null) {" + "        handler.handle(readMsg.getMsg());"
-                + "        readMsg.setHandled(true);" + "      }" + "}";
+        @AttributeDefinition(name = "%preReadProcessCode", cardinality = 0, description = "%preReadProcessCodeDesc", required = false) String preReadProcessCode() default
+                "String[] msgs = readMsg.getMsg().split(\":\", 2);" + "" + "if (msgs.length > 1) {"
+                        + "     readMsg.setKey(msgs[0]);" + "     readMsg.setMsg(msgs[1]);"
+                        + "} else if (msgs.length == 1) {" + "      readMsg.setMsg(msgs[0]);" + "}" + "        "
+                        + "if (readMsg.getMsg() != null && (readMsg.getMsg().startsWith(\"FEED\"))) {"
+                        + "    if (handler != null) {" + "        handler.handle(readMsg.getMsg());"
+                        + "        readMsg.setHandled(true);" + "      }" + "}";
     }
 
-    class ReadMsg {
+    static class ReadMsg {
 
         private String key;
         private String msg;
@@ -461,7 +435,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         }
     }
 
-    class TimePromise {
+    static class TimePromise {
 
         private final Promise<String> promise;
         private Long timer;

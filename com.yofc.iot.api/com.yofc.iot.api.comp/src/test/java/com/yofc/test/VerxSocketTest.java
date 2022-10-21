@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
@@ -22,7 +23,7 @@ public class VerxSocketTest {
   @BeforeEach
   @DisplayName("开始")
   public void setUp(Vertx vertx, VertxTestContext context) {
-    client = new VerxSocketClient("10.211.55.3", 8000);
+    client = new VerxSocketClient("192.168.0.220", 8000);
     vertx.deployVerticle(
         client,
         context.succeeding(
@@ -44,38 +45,36 @@ public class VerxSocketTest {
 
     client.addHandle(
         buffer -> {
-          System.out.println("返回监听: " + buffer);
+          System.out.println("返回监听: " + Arrays.toString(buffer));
         });
     vertx.setPeriodic(
         1000,
         t -> {
-          double random = Math.random();
           client.sendAndReply(
-              random + ":CONNECTION?\r\n",
+               "SMPINF?\r\n",
               handler -> {
                 if (handler.failed()) {
-                  log.error("error", handler.cause());
+                  log.error("SMPINF error", handler.cause());
                   return;
                 }
-                String receive = handler.result();
+                byte[] receive = handler.result();
 
-                System.out.println("发送：" + random + ":CONNECTION?" + "--返回心跳: " + receive);
+                System.out.println("发送：" + "SMPINF?" + "--返回: " + Arrays.toString(receive));
               });
         });
     vertx.setPeriodic(
         2500,
         l -> {
-          double random = Math.random();
           client.sendAndReply(
-              random + ":GEO GO\r\n",
+              "DAT?\r\n",
               handler -> {
                 if (handler.failed()) {
-                  log.error("error", handler.cause());
+                  log.error("DAT error", handler.cause());
                   return;
                 }
-                String receive = handler.result();
+                byte[] receive = handler.result();
 
-                System.out.println("发送：" + random + ":GEO GO" + "--返回应答: " + receive);
+                System.out.println("发送：" + "DAT?" + "--返回: " + Arrays.toString(receive));
               });
         });
   }
