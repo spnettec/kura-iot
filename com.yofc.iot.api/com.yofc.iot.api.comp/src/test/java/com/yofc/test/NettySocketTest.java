@@ -45,7 +45,7 @@ class NettySocketTest {
         msg -> {
           System.out.println("返回监听: " + Arrays.toString(msg));
         });
-    vertx.setPeriodic(
+    /*vertx.setPeriodic(
         1000,
         l -> {
           client
@@ -60,22 +60,35 @@ class NettySocketTest {
 
                     System.out.println("发送：" + "SMPINF" + "--返回: " + new String(receive, StandardCharsets.UTF_8));
                   });
-        });
-    vertx.setPeriodic(
-        2500,
-        l -> {
-          client
-              .sendMessage("DAT?\r\n")
+        });*/
+   // vertx.setPeriodic(2500, l ->
+      client
+              .sendMessage("SMPINF?")
               .addListener(
-                  handler -> {
-                    if (!handler.isSuccess()) {
-                      log.error("error", handler.cause());
-                      return;
-                    }
-                      byte[] receive = (byte[]) handler.get();
+                      handler -> {
+                          if (!handler.isSuccess()) {
+                              log.error("SMPINF error", handler.cause());
+                              return;
+                          }
+                          byte[] receive = (byte[]) handler.get();
 
-                    System.out.println("发送：" + "DAT?" + "--返回: " + Arrays.toString(receive));
-                  });
-        });
-  }
+                          System.out.println("发送：" + "SMPINF" + "--返回: " + new String(receive, StandardCharsets.UTF_8));
+                          client
+                                  .sendMessage("DAT?")
+                                  .addListener(
+                                          handler1 -> {
+                                              if (!handler1.isSuccess()) {
+                                                  log.error("error", handler1.cause());
+                                                  return;
+                                              }
+                                              byte[] receive1 = (byte[]) handler1.get();
+
+                                              System.out.println("发送：" + "DAT?" + "--返回: " + Arrays.toString(receive1));
+                                              context.completeNow();
+                                          });
+                      });
+
+  //);
+
+    }
 }

@@ -123,20 +123,10 @@ public class NettySocketClient {
     }
 
     static class NettyClientHandler extends ChannelInboundHandlerAdapter {
-
+        int size = -1;
         private final NettySocketClient client;
         private static final Timer timer = new HashedWheelTimer();
         private final ConcurrentLinkedQueue<TimePromise> messageList = new ConcurrentLinkedQueue<>();
-        private final ConcurrentHashMap<String, TimePromise> messageMap = new ConcurrentHashMap<>(
-                new LinkedHashMap<>() {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected boolean removeEldestEntry(Map.Entry<String, TimePromise> eldest) {
-                        return size() > 16;
-                    }
-                });
         private ChannelHandlerContext ctx;
 
         public NettyClientHandler(NettySocketClient client) {
@@ -151,14 +141,50 @@ public class NettySocketClient {
 
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             try {
+                TimePromise tp = messageList.peek();
+                if(tp==null)
+                {
+                    if(client.consumer!=null)
+                    {
+                        ByteBuf bb = (ByteBuf) msg;
+                        byte[] message = new byte[bb.readableBytes()];
+                        bb.readBytes(message);
+                        client.consumer.accept(message);
+                    }
+                    return;
+                }
                 ByteBuf bb = (ByteBuf) msg;
-                byte[] message = new byte[bb.readableBytes()];
-                bb.readBytes(message);
-                TimePromise tp = messageList.poll();
-                if (tp != null) {
+                if(tp.msg.toLowerCase().startsWith("dat"))
+                {
+                    if(size == -1) {
+                        size = bb.getInt(0);
+                        if(size<=0)
+                        {
+                            return;
+                        }
+                        if (size > 1024 * 100) {
+                            size = 1024 * 100;
+                        }
+                        if (size > 100) {
+                            size = size * 2;
+                        }
+                    } else{
+                        ByteBuf bb1 = bb.readBytes(size);
+                        byte[] message = new byte[bb1.readableBytes()];
+                        bb1.readBytes(message);
+                        tp.getPromise().setSuccess(message);
+                        tp.getTimerOut().cancel();
+                        size = -1;
+                        messageList.remove();
+                    }
+                } else {
+                    byte[] message = new byte[bb.readableBytes()];
+                    bb.readBytes(message);
                     tp.getPromise().setSuccess(message);
                     tp.getTimerOut().cancel();
+                    messageList.remove();
                 }
+
             } finally {
                 ReferenceCountUtil.release(msg);
             }
@@ -188,16 +214,8 @@ public class NettySocketClient {
 
         public Future<byte[]> sendMessage(String message, Promise<byte[]> promise, long timeOut) {
             synchronized (this) {
-                String key = null;
-                String[] msgs = message.split(":", 2);
-                if (msgs.length > 1) {
-                    key = msgs[0];
-                    message = msgs[1];
-                }
-                if (key == null || "".equals(key)) {
-
-                    TimePromise tp = new TimePromise(promise, null);
-                    tp.setTimerOut(timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut,
+                    TimePromise tp = new TimePromise(promise, message,null);
+                    tp.setTimerOut(timer.newTimeout(new TimeOutTask(tp, messageList), timeOut,
                             TimeUnit.MILLISECONDS));
 
                     if (messageList.offer(tp)) {
@@ -207,14 +225,6 @@ public class NettySocketClient {
                         promise.setFailure(new BufferOverflowException());
                         return promise;
                     }
-                } else {
-                    TimePromise tp = new TimePromise(promise, null);
-                    tp.setTimerOut(timer.newTimeout(new TimeOutTask(key, tp, messageList, messageMap), timeOut,
-                            TimeUnit.MILLISECONDS));
-                    messageMap.put(key, tp);
-                    ctx.writeAndFlush(key + ":" + message);
-                }
-
                 return promise;
             }
         }
@@ -223,39 +233,34 @@ public class NettySocketClient {
     static class TimeOutTask implements TimerTask {
 
         private final TimePromise tp;
-        private final String key;
         private final ConcurrentLinkedQueue<TimePromise> messageList;
-        private final ConcurrentHashMap<String, TimePromise> messageMap;
 
-        public TimeOutTask(String key, TimePromise tp, ConcurrentLinkedQueue<TimePromise> messageList,
-                           ConcurrentHashMap<String, TimePromise> messageMap) {
-            this.key = key;
+        public TimeOutTask(TimePromise tp, ConcurrentLinkedQueue<TimePromise> messageList) {
             this.tp = tp;
             this.messageList = messageList;
-            this.messageMap = messageMap;
         }
 
         @Override
         public void run(Timeout timeout) {
             if (!tp.getPromise().isDone()) {
                 tp.getPromise().setFailure(new TimeoutException());
-                if (key == null || "".equals(key))
-                    messageList.remove(tp);
-                else
-                    messageMap.remove(key);
+                messageList.remove(tp);
+
             }
         }
     }
 
     static class TimePromise {
 
+        private final String msg;
         private final Promise<byte[]> promise;
         private Timeout timerOut;
 
-        public TimePromise(Promise<byte[]> promise, Timeout timerOut) {
+        public TimePromise(Promise<byte[]> promise, String msg, Timeout timerOut) {
             super();
             this.promise = promise;
             this.timerOut = timerOut;
+            this.msg = msg;
         }
 
         public Promise<byte[]> getPromise() {

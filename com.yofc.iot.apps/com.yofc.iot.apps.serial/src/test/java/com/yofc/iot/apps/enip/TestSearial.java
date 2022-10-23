@@ -47,7 +47,7 @@ public class TestSearial {
     public void testLogixRead(Vertx vertx, VertxTestContext testContext) throws InterruptedException {
         byte[] result = client.sendCommand(new byte[]{ (byte) 0xA5, (byte) 0xA5, 0x00, 0x02, 0x02, (byte) 0xF0 },1);
         System.out.println(Arrays.toString(result));
-        result = client.sendCommand(new byte[]{ (byte) 0xA5, (byte) 0xA5, 0x00, 0x02, 0x02, (byte) 1 },1);
+        /*result = client.sendCommand(new byte[]{ (byte) 0xA5, (byte) 0xA5, 0x00, 0x02, 0x02, (byte) 1 },1);
         System.out.println(Arrays.toString(result));
         result = client.sendCommand(new byte[]{ (byte) 0xA5, (byte) 0xA5, 0x00, 0x02, 0x02, (byte) 2 },1);
         System.out.println(Arrays.toString(result));
@@ -60,7 +60,7 @@ public class TestSearial {
         result = client.sendCommand(new byte[]{ (byte) 0xA5, (byte) 0xA5, 0x00, 0x02, 0x02, (byte) 6 },1);
         System.out.println(Arrays.toString(result));
         result = client.sendCommand(new byte[]{ (byte) 0xA5, (byte) 0xA5, 0x00, 0x02, 0x02, (byte) 0xF0 },1);
-        System.out.println(Arrays.toString(result));
+        System.out.println(Arrays.toString(result));*/
         testContext.completeNow();
     }
 }
