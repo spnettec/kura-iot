@@ -56,26 +56,30 @@ public class VerxSocketTest {
         send(vertx);
     }
 
-    private void send(Vertx vertx){
-        vertx.setTimer(1000, t -> {
-            client.sendAndReply("SMPINF?\r\n", handler -> {
-                if (handler.failed()) {
-                    log.error("SMPINF error", handler.cause());
-                    return;
-                }
-                Buffer receive = handler.result();
+    private void send(Vertx vertx) {
+         vertx.setPeriodic(50, t -> {
+        client.sendAndReply("SMPINF?\r\n", handler -> {
+            if (handler.failed()) {
+                log.error("SMPINF error", handler.cause());
+                return;
+            }
+            Buffer receive = handler.result();
 
-                System.out.println("发送：" + "SMPINF?" + "--返回: " + receive.toString());
-                client.sendAndReply("DAT?\r\n", handler1 -> {
-                    if (handler1.failed()) {
-                        log.error("DAT error", handler1.cause());
-                        return;
-                    }
-                    Buffer receive1 = handler1.result();
-                    System.out.println("发送：" + "DAT?" + "--返回: " + receive1.length() + "个字节");
-                    send(vertx);
-                });
-            });
+            System.out.println("发送：" + "SMPINF?" + "--返回: " + receive.toString());
+
         });
+         });
+        vertx.setPeriodic(100, t -> {
+        client.sendAndReply("DAT?\r\n", handler1 -> {
+            if (handler1.failed()) {
+                log.error("DAT error", handler1.cause());
+                return;
+            }
+            Buffer receive1 = handler1.result();
+            System.out.println("发送：" + "DAT?" + "--返回: " + receive1.length() + "个字节");
+            //send(vertx);
+        });
+        });
+
     }
 }

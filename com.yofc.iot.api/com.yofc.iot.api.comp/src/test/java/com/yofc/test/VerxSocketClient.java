@@ -8,13 +8,13 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
-import io.vertx.core.parsetools.RecordParser;
 import lombok.extern.log4j.Log4j2;
 
 import java.nio.BufferOverflowException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
 public class VerxSocketClient extends AbstractVerticle {
@@ -24,8 +24,8 @@ public class VerxSocketClient extends AbstractVerticle {
     private NetClient netClient;
     private NetSocket socket;
     private Handler<Buffer> handler;
-    RecordParser parser = RecordParser.newFixed(4);
-    RecordParser textParser = RecordParser.newDelimited("\r\n");
+    protected volatile AtomicReference<TimePromise> runningTp = new AtomicReference<>(null);
+    MixRecordParser parser = MixRecordParser.newMixed("\r\n", 4);
     private String host = "127.0.0.1";
     private int port = 8000;
     private volatile boolean closed = false;
@@ -84,54 +84,36 @@ public class VerxSocketClient extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) {
         init(startPromise);
-        parser.setOutput(new Handler<>() {
-
-            int size = -1;
-
-            @Override
-            public void handle(Buffer buffer) {
-                TimePromise tp = messageList.peek();
-                if (tp == null) {
-                    buffer.getBytes();
+        parser.setOutput(buffer -> {
+            TimePromise tp = runningTp.get();
+            if (parser.isDelimitedMode()) {
+                tp.getPromise().complete(buffer);
+                if (tp.timer != -1L) {
+                    vertx.cancelTimer(tp.timer);
+                }
+                return;
+            }
+            if (parser.getSize() == 4) {
+                int size = buffer.getInt(0);
+                if (size < 0) {
                     return;
                 }
-                if (size == -1) {
-                    size = buffer.getInt(0);
-                    if(size<=0)
-                    {
-                        return;
-                    }
-                    if (size > 1024 * 100) {
-                        size = 1024 * 100;
-                    }
-                    if (size > 100) {
-                        size = size * 2;
-                    }
-                    parser.fixedSizeMode(size);
-                } else {
-
+                if (tp.msg.toLowerCase().startsWith("dat")) {
+                    size = size * 2;
+                }
+                if (size == 0) {
                     if (!tp.getPromise().future().isComplete()) {
-                        tp.getPromise().complete(Buffer.buffer(buffer.getBytes()));
+                        tp.getPromise().complete();
                     }
                     if (tp.timer > 0) {
                         vertx.cancelTimer(tp.timer);
                     }
                     parser.fixedSizeMode(4);
-                    size = -1;
-                    messageList.remove();
+                } else {
+                    parser.fixedSizeMode(size);
                 }
-            }
-
-        });
-        textParser.setOutput(buffer -> {
-            TimePromise tp = messageList.poll();
-            if (tp == null) {
-                buffer.getBytes();
-                return;
-            }
-            tp.getPromise().complete(Buffer.buffer(buffer.getBytes()));
-            if (tp.timer > 0) {
-                vertx.cancelTimer(tp.timer);
+            } else {
+                tp.getPromise().complete(buffer);
             }
         });
     }
@@ -167,69 +149,71 @@ public class VerxSocketClient extends AbstractVerticle {
     }
 
     private void handlerBuffer(Buffer buffer) {
-        TimePromise tp = messageList.peek();
+        TimePromise tp = runningTp.get();
         if (tp == null) {
-            buffer.getBytes();
             if (handler != null) {
-                handler.handle(Buffer.buffer(buffer.getBytes()));
+                handler.handle(buffer);
             }
             return;
         }
-        String message = tp.msg;
-        if(message.toLowerCase().startsWith("dat"))
-        {
-            parser.handle(buffer);
-        } else {
-            textParser.handle(buffer);
-        }
+        parser.handle(buffer);
     }
 
     public void addHandle(Handler<Buffer> handler) {
         this.handler = handler;
     }
 
-    public void write(Buffer buffer) {
-        socket.write(buffer);
-    }
-
-    public void write(String buffer) {
-        socket.write(buffer);
-    }
-
     public void sendAndReply(String message, Handler<AsyncResult<Buffer>> handler) {
         sendAndReply(message, 5000, handler);
     }
 
-    public void sendAndReply(String message, long timeOut, Handler<AsyncResult<Buffer>> handler) {
-
-        Promise<Buffer> promise = Promise.promise();
-        promise.future().onComplete(handler);
-        TimePromise tp = new TimePromise(promise, -1L, message);
-        long timer = vertx.setTimer(timeOut, new TimeOutTask(tp));
-        tp.setTimer(timer);
-
-        if (messageList.offer(tp)) {
-            socket.write(message).onFailure(ex -> messageList.remove(tp));
+    private void setParserMode(String message) {
+        if (message.toLowerCase().startsWith("dat") || message.toLowerCase().startsWith("getfile")) {
+            if (parser.isDelimitedMode()) {
+                parser.fixedSizeMode(4);
+            }
         } else {
-            vertx.cancelTimer(timer);
-            promise.fail(new BufferOverflowException());
+            parser.switchDelimitedMode();
         }
     }
 
-    static class TimeOutTask implements Handler<Long> {
-
-        private final TimePromise tp;
-
-        public TimeOutTask(TimePromise tp) {
-            this.tp = tp;
+    public synchronized void sendAndReply(String message, long timeOut, Handler<AsyncResult<Buffer>> handler) {
+        Promise<Buffer> promise = Promise.promise();
+        promise.future().onComplete(handler);
+        if (message.toLowerCase().startsWith("rst")) {
+            socket.write(message).onSuccess(v -> promise.complete()).onFailure(promise::fail);
+            return;
         }
+        TimePromise tp = new TimePromise(promise, timeOut, message);
+        if (!messageList.offer(tp)) {
+            promise.fail(new BufferOverflowException());
+        }
+        runSend();
+    }
 
-        @Override
-        public void handle(Long event) {
-            if (!tp.getPromise().future().isComplete()) {
-                tp.getPromise().fail(new TimeoutException());
-                tp.setTimer(-1L);
-            }
+    private synchronized void runSend() {
+        if (runningTp.get() != null || messageList.isEmpty()) {
+            return;
+        }
+        TimePromise tp = messageList.poll();
+        if (tp != null) {
+            runningTp.set(tp);
+            String message = tp.msg;
+            setParserMode(message);
+            socket.write(message).onSuccess(v -> {
+                long timer = vertx.setTimer(tp.timeOut, t -> {
+                    if (!tp.getPromise().future().isComplete()) {
+                        tp.getPromise().fail(new TimeoutException());
+                        tp.setTimer(-1L);
+                    }
+                });
+                tp.setTimer(timer);
+            }).onFailure(tp.promise::fail);
+            tp.promise.future().onComplete(f -> {
+                runningTp.set(null);
+                runSend();
+            });
+
         }
     }
 
@@ -238,11 +222,12 @@ public class VerxSocketClient extends AbstractVerticle {
         private final String msg;
         private final Promise<Buffer> promise;
         private Long timer;
+        private final Long timeOut;
 
-        public TimePromise(Promise<Buffer> promise, Long timer, String msg) {
+        public TimePromise(Promise<Buffer> promise, Long timeOut, String msg) {
             super();
             this.promise = promise;
-            this.timer = timer;
+            this.timeOut = timeOut;
             this.msg = msg;
         }
 

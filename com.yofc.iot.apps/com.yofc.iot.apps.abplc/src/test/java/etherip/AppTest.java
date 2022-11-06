@@ -29,7 +29,7 @@ public class AppTest {
   public static void setUp(Vertx vertx, VertxTestContext context)
       throws InterruptedException, ExecutionException {
     try {
-      client = new EtherNetIP("10.166.11.181", 0);
+      client = new EtherNetIP("10.166.11.62", 0);
       client.connectTcp();
     } catch (final Exception e) {
       fail("Failed with CipException");
@@ -56,28 +56,7 @@ public class AppTest {
         l -> {
           final String[] tags =
               new String[] {
-                "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "FURNACE_MOTOR_MODE_SELECT_HMI",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "SYSTEM_BAR_NO",
-                "FURNACE_MOTOR_MODE_SELECT_HMI"
+                "RECIPE[0,0]", "RECIPE[0,0]"
               };
           CIPData[] results = null;
           try {

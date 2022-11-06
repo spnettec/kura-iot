@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.*;
@@ -17,6 +18,7 @@ import java.net.InetSocketAddress;
 import java.nio.BufferOverflowException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -122,7 +124,7 @@ public class NettySocketClient {
         workerGroup.shutdownGracefully();
     }
 
-    static class NettyClientHandler extends ChannelInboundHandlerAdapter {
+    static class NettyClientHandler extends ReplayingDecoder<Void> {
         int size = -1;
         private final NettySocketClient client;
         private static final Timer timer = new HashedWheelTimer();
@@ -199,6 +201,11 @@ public class NettySocketClient {
         }
 
         @Override
+        protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+
+        }
+
+        @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             cause.printStackTrace();
             this.ctx.close();
@@ -221,7 +228,7 @@ public class NettySocketClient {
                     if (messageList.offer(tp)) {
                         ctx.writeAndFlush(message);
                     } else {
-                        timer.stop();
+                        tp.timerOut.cancel();
                         promise.setFailure(new BufferOverflowException());
                         return promise;
                     }
