@@ -85,7 +85,7 @@ public class VertxActivatorBase {
             String assetPid = body.getString("assetPid");
             switch (method) {
             case "readTags":
-                List<String> tagNames = body.getJsonArray("tagNames").stream().map(obj -> String.valueOf(obj))
+                List<String> tagNames = body.getJsonArray("tagNames").stream().map(String::valueOf)
                         .collect(Collectors.toList());
                 try {
                     JsonObject result = assetHelp.readTags(assetPid, tagNames);
@@ -102,9 +102,9 @@ public class VertxActivatorBase {
                 break;
             case "writeTags":
                 try {
-                    final JsonObject tagsObj = new JsonObject();
                     Object tags = body.getValue("tagNames");
                     if (tags instanceof JsonArray) {
+                        final JsonObject tagsObj = new JsonObject();
                         JsonArray jarray = (JsonArray) tags;
                         jarray.stream().forEach(obj -> {
                             JsonObject jo = (JsonObject) obj;
