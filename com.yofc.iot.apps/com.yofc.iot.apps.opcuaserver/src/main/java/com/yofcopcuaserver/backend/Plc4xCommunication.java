@@ -42,8 +42,9 @@ import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
-import org.apache.plc4x.java.api.model.PlcField;
+import org.apache.plc4x.java.api.model.PlcTag;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.api.types.PlcValueType;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.PlcBOOL;
 import org.apache.plc4x.java.spi.values.PlcLTIME;
@@ -100,85 +101,53 @@ public class Plc4xCommunication extends AbstractLifecycle {
         this.pooledPlcDriverManager = driverManager;
     }
 
-    public PlcField getField(String tag, String connectionString) throws PlcConnectionException {
-        return pooledPlcDriverManager.getDriverForUrl(connectionString).prepareField(tag);
+    public PlcTag getTag(String tag, String connectionString) throws PlcConnectionException {
+        return pooledPlcDriverManager.getDriverForUrl(connectionString).prepareTag(tag);
     }
 
-    public void addField(DataItem item) {
+    public void addTag(DataItem item) {
         logger.info("Adding item to OPC UA monitored list {}", item.getReadValueId());
         monitoredList.put(item.getReadValueId().getNodeId(), item);
     }
 
-    public void removeField(DataItem item) {
+    public void removeTag(DataItem item) {
         logger.info("Removing item from OPC UA monitored list {}", item.getReadValueId());
         monitoredList.remove(item.getReadValueId().getNodeId());
     }
 
-    public static NodeId getNodeId(String plcValue) {
-        switch (plcValue) {
-        case "BOOL":
-        case "BIT":
+    public static NodeId getNodeId(PlcValueType plcValueType) {
+        switch (plcValueType) {
+        case BOOL:
             return Identifiers.Boolean;
-        case "BYTE":
-        case "BITARR8":
+        case BYTE:
+        case USINT:
             return Identifiers.Byte;
-        case "SINT":
-        case "INT8":
+        case SINT:
             return Identifiers.SByte;
-        case "USINT":
-        case "UINT8":
-        case "BIT8":
-            return Identifiers.Byte;
-        case "INT":
-        case "INT16":
+        case INT:
             return Identifiers.Int16;
-        case "UINT":
-        case "UINT16":
+        case WORD:
+        case UINT:
             return Identifiers.UInt16;
-        case "WORD":
-        case "BITARR16":
-            return Identifiers.UInt16;
-        case "DINT":
-        case "INT32":
+        case DINT:
             return Identifiers.Int32;
-        case "UDINT":
-        case "UINT32":
+        case DWORD:
+        case UDINT:
             return Identifiers.UInt32;
-        case "DWORD":
-        case "BITARR32":
-            return Identifiers.UInt32;
-        case "LINT":
-        case "INT64":
+        case LINT:
             return Identifiers.Int64;
-        case "ULINT":
-        case "UINT64":
+        case ULINT:
+        case LWORD:
             return Identifiers.UInt64;
-        case "LWORD":
-        case "BITARR64":
-            return Identifiers.UInt64;
-        case "REAL":
-        case "FLOAT":
+        case REAL:
             return Identifiers.Float;
-        case "LREAL":
-        case "DOUBLE":
+        case LREAL:
             return Identifiers.Double;
-        case "CHAR":
+        case CHAR:
+        case WCHAR:
+        case STRING:
+        case WSTRING:
             return Identifiers.String;
-        case "WCHAR":
-            return Identifiers.String;
-        case "STRING":
-            return Identifiers.String;
-        case "WSTRING":
-        case "STRING16":
-            return Identifiers.String;
-        case "DATE":
-            return Identifiers.Date;
-        case "DATE_AND_TIME":
-            return Identifiers.DateTime;
-        case "LTIME":
-            return Identifiers.Duration;
-        case "TIME":
-            return Identifiers.Duration;
         default:
             return Identifiers.BaseDataType;
         }
@@ -230,7 +199,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
             // Create a new read request:
             // - Give the single item requested an alias name
             PlcReadRequest.Builder builder = connection.readRequestBuilder();
-            builder.addItem("value-1", tag);
+            builder.addTagAddress("value-1", tag);
             PlcReadRequest readRequest = builder.build();
 
             PlcReadResponse response = null;
@@ -249,7 +218,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 return BAD_RESPONSE;
             }
             DataValue resp = BAD_RESPONSE;
-            for (String fieldName : response.getFieldNames()) {
+            for (String fieldName : response.getTagNames()) {
                 if (response.getResponseCode(fieldName) == PlcResponseCode.OK) {
                     int numValues = response.getNumberOfValues(fieldName);
                     if (numValues == 1) {
@@ -376,12 +345,12 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 if (logger.isInfoEnabled()) {
                     logger.info("Adding Tag {}", Arrays.toString(values));
                 }
-                builder.addItem(tag, tag, (Object[]) values);
+                builder.addTagAddress(tag, tag, (Object[]) values);
             } else {
-                builder.addItem(tag, tag, strValue);
+                builder.addTagAddress(tag, tag, strValue);
             }
         } else {
-            builder.addItem(tag, tag, value);
+            builder.addTagAddress(tag, tag, value);
         }
 
         PlcWriteRequest writeRequest = builder.build();

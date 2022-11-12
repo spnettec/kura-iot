@@ -147,9 +147,10 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
             UaVariableNode node = null;
             Variant variant = null;
             try {
-                datatype = plc4xServer.getField(addr, connectionString).getDefaultJavaType();
-                final int length = plc4xServer.getField(addr, connectionString).getNumberOfElements();
-                typeId = Plc4xCommunication.getNodeId(plc4xServer.getField(addr, connectionString).getPlcDataType());
+                datatype = plc4xServer.getTag(addr, connectionString).getPlcValueType().getDefaultJavaType();
+                final int length = (plc4xServer.getTag(addr, connectionString).getArrayInfo().isEmpty()) ? 1
+                        : plc4xServer.getTag(addr, connectionString).getArrayInfo().get(0).getSize();
+                typeId = Plc4xCommunication.getNodeId(plc4xServer.getTag(addr, connectionString).getPlcValueType());
 
                 if (length > 1) {
                     node = new UaVariableNode.UaVariableNodeBuilder(getNodeContext()).setNodeId(nodeId)
@@ -230,10 +231,10 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
     @Override
     public void onDataItemsCreated(List<DataItem> dataItems) {
         for (DataItem item : dataItems) {
-            plc4xServer.addField(item);
+            plc4xServer.addTag(item);
 
             if (plc4xServer.getDriverManager() == null) {
-                plc4xServer.removeField(item);
+                plc4xServer.removeTag(item);
                 plc4xServer.setDriverManager(new PooledPlcDriverManager());
             }
         }
@@ -244,7 +245,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
     @Override
     public void onDataItemsModified(List<DataItem> dataItems) {
         for (DataItem item : dataItems) {
-            plc4xServer.addField(item);
+            plc4xServer.addTag(item);
         }
         subscriptionModel.onDataItemsModified(dataItems);
     }
@@ -252,7 +253,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
     @Override
     public void onDataItemsDeleted(List<DataItem> dataItems) {
         for (DataItem item : dataItems) {
-            plc4xServer.removeField(item);
+            plc4xServer.removeTag(item);
         }
         subscriptionModel.onDataItemsDeleted(dataItems);
     }

@@ -171,13 +171,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
                     || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr);
+                builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr);
             }
         }));
         PlcReadRequest readRequest = builder.build();
         try {
             PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
-            response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
+            response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
                 ChannelRecord channelRecord = result.get().getKey();
@@ -220,14 +220,14 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
             if (entry.getKey().getChannelStatus() == null
                     || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                builder.addItem(entry.getValue().tagName, entry.getValue().tagAddr,
+                builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr,
                         entry.getKey().getValue().getValue());
             }
         }));
         PlcWriteRequest writeRequest = builder.build();
         try {
             PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
-            response.getFieldNames().forEach(Utils.consumerWrapper(field -> {
+            response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
                 if (!result.isPresent()) {
@@ -270,7 +270,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                     "Error while retrieving Channel Name");
             final String tagAddr = Utils.tryExtract(channelConfig, config -> (String) config.get("data.tag.addr"),
                     "Error while retrieving Tag Addr");
-            sbuilder.addChangeOfStateField(channelName, tagAddr);
+            sbuilder.addChangeOfStateTagAddress(channelName, tagAddr);
         }
         PlcSubscriptionRequest subscriptionRequest = sbuilder.build();
         PlcSubscriptionResponse subscriptionResponse = null;
@@ -282,7 +282,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             Thread.currentThread().interrupt();
             throw new ConnectionException(e);
         }
-        for (String subscriptionName : subscriptionResponse.getFieldNames()) {
+        for (String subscriptionName : subscriptionResponse.getTagNames()) {
             final PlcSubscriptionHandle subscriptionHandle = subscriptionResponse
                     .getSubscriptionHandle(subscriptionName);
             Optional<Map.Entry<ChannelListener, Map<String, Object>>> entryOption = listenerChannelConfigs.entrySet()
@@ -325,7 +325,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         @Override
         public void accept(PlcSubscriptionEvent plcSubscriptionEvent) {
             logger.info("Incoming event:");
-            for (String fieldName : plcSubscriptionEvent.getFieldNames()) {
+            for (String fieldName : plcSubscriptionEvent.getTagNames()) {
                 final PlcValue plcValue = plcSubscriptionEvent.getPlcValue(fieldName);
                 if (plcValue.isList()) {
                     logger.warn("Not support list value: {}", plcValue);
