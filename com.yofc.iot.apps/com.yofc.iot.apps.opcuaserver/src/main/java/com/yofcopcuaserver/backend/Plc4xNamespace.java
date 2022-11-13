@@ -174,14 +174,14 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                                 Array.set(array, j, false);
                             }
                         } else {
-                            if (Number.class.isAssignableFrom(datatype)) {
-                                Array.set(array, j, 0);
-                            } else if (String.class.isAssignableFrom(datatype)) {
+                            if (String.class.isAssignableFrom(datatype)) {
                                 Array.set(array, j, "");
                             } else if (Boolean.class.isAssignableFrom(datatype)) {
                                 Array.set(array, j, false);
                             } else if (Byte.class.isAssignableFrom(datatype)) {
                                 Array.set(array, j, (byte) 0);
+                            } else if (Number.class.isAssignableFrom(datatype)) {
+                                Array.set(array, j, 0);
                             } else {
                                 Array.set(array, j, null);
                             }
