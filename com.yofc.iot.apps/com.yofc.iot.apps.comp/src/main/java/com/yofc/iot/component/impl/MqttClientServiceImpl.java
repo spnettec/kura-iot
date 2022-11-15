@@ -273,7 +273,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 password = (String) script.getProperty("passwordString");
                 clientId = (String) script.getProperty("clientId");
             } catch (Exception e) {
-                logger.error("Script parse error:{}", e);
+                logger.error("Script parse error:", e);
             }
         }
         conOpt.setUserName(userName);

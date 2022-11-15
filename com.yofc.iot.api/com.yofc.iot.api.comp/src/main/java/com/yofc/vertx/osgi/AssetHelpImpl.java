@@ -1,8 +1,17 @@
 package com.yofc.vertx.osgi;
 
-import com.yofc.vertx.osgi.api.AssetHelp;
-import com.yofc.vertx.osgi.api.AssetTrackerCustomizer;
-import io.vertx.core.json.JsonObject;
+import static org.eclipse.kura.channel.ChannelType.READ_WRITE;
+import static org.eclipse.kura.channel.ChannelType.WRITE;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.Asset;
 import org.eclipse.kura.asset.AssetConfiguration;
@@ -20,12 +29,10 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.util.tracker.ServiceTracker;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import com.yofc.vertx.osgi.api.AssetHelp;
+import com.yofc.vertx.osgi.api.AssetTrackerCustomizer;
 
-import static org.eclipse.kura.channel.ChannelType.READ_WRITE;
-import static org.eclipse.kura.channel.ChannelType.WRITE;
+import io.vertx.core.json.JsonObject;
 
 @Component(immediate = true)
 public class AssetHelpImpl implements AssetHelp {
@@ -34,8 +41,7 @@ public class AssetHelpImpl implements AssetHelp {
     private ServiceTracker<Asset, Asset> assetServiceTracker;
     private Map<String, Asset> assets;
 
-    public static List<ChannelRecord> determineWritingChannels(
-            Asset asset, List<WireRecord> records) {
+    public static List<ChannelRecord> determineWritingChannels(Asset asset, List<WireRecord> records) {
         final AssetConfiguration assetConfiguration = asset.getAssetConfiguration();
 
         final List<ChannelRecord> channelRecordsToWrite = new ArrayList<>();
@@ -49,12 +55,9 @@ public class AssetHelpImpl implements AssetHelp {
                 continue;
             }
 
-            Map<String, TypedValue<?>> wireRecordProperties =
-                    records.stream()
-                            .map(WireRecord::getProperties)
-                            .map(Map::entrySet)
-                            .flatMap(Set::stream)
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Map<String, TypedValue<?>> wireRecordProperties = records.stream().map(WireRecord::getProperties)
+                    .map(Map::entrySet).flatMap(Set::stream)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             if (wireRecordProperties.containsKey(channelName)) {
                 final TypedValue<?> value = wireRecordProperties.get(channelName);
@@ -69,8 +72,7 @@ public class AssetHelpImpl implements AssetHelp {
     @Activate
     public void active(BundleContext context) {
         this.assetTrackerCustomizer = new AssetTrackerCustomizer(context);
-        this.assetServiceTracker =
-                new ServiceTracker<>(context, Asset.class.getName(), this.assetTrackerCustomizer);
+        this.assetServiceTracker = new ServiceTracker<>(context, Asset.class.getName(), this.assetTrackerCustomizer);
         this.assetServiceTracker.open();
     }
 
@@ -147,6 +149,21 @@ public class AssetHelpImpl implements AssetHelp {
             channelRecords.add(writeRecord);
         }
         asset.write(channelRecords);
+        StringBuilder errorMsg = new StringBuilder();
+        for (ChannelRecord channelRecord : channelRecords) {
+            if (channelRecord.getChannelStatus().getChannelFlag() == ChannelFlag.FAILURE) {
+                if (!"".equals(errorMsg.toString())) {
+                    errorMsg.append(";");
+                }
+                errorMsg.append("tag:");
+                errorMsg.append(channelRecord.getChannelName());
+                errorMsg.append(" write failer,Error Info:");
+                errorMsg.append(channelRecord.getChannelStatus().getExceptionMessage());
+            }
+        }
+        if (!"".equals(errorMsg.toString())) {
+            throw KuraException.internalError(errorMsg.toString());
+        }
     }
 
     @Override
