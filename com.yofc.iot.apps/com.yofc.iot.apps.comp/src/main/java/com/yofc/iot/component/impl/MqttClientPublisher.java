@@ -137,7 +137,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
       try {
         script = shell.parse(scriptSource);
       } catch (Exception e) {
-        logger.error("Script parse error:{}", e);
+        logger.error("Script parse error:", e);
         scriptSource = null;
       }
       logger.info("Updating Script Filter... Done");
