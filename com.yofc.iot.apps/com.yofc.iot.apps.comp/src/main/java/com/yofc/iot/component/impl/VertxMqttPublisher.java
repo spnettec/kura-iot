@@ -142,6 +142,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
     @Modified
     public synchronized void updated(final VertxMqttPublisherCfg properties) throws KuraException {
         serviceTool.ungetServices();
+        closeMqttClient();
         logger.info("Updating Script Filter...");
         this.properties = properties;
 
