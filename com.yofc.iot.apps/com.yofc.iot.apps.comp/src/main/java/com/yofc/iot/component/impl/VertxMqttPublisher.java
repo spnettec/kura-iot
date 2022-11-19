@@ -335,7 +335,6 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                     options.setPassword(String.valueOf(cryptoService.decryptAes(properties.password().toCharArray())));
                 } catch (KuraException e1) {
                     options.setPassword(properties.password());
-                    return;
                 }
             }
             mqttClient = MqttClient.create(vertx, options);

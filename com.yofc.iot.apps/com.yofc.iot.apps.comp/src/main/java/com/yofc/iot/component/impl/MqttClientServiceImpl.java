@@ -401,7 +401,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 logger.warn("Timeout subscribing to topic: {}", Arrays.asList(topicFilters));
                 throw new KuraTimeoutException("Timeout subscribing to topic: " + Arrays.asList(topicFilters), e);
             } else {
-                logger.error("Cannot subscribe to topic: " + topicFilters, e);
+                logger.error("Cannot subscribe to topic: " + Arrays.toString(topicFilters), e);
                 throw KuraException.internalError(e, "Cannot subscribe to topic: " + Arrays.asList(topicFilters));
             }
         }

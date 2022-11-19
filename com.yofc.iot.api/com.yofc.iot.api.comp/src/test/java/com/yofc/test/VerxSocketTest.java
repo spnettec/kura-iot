@@ -58,14 +58,14 @@ public class VerxSocketTest {
 
     private void send(Vertx vertx) {
          vertx.setPeriodic(50, t -> {
-        client.sendAndReply("SMPINF?\r\n", handler -> {
+        client.sendAndReply("STP?\r\n", handler -> {
             if (handler.failed()) {
-                log.error("SMPINF error", handler.cause());
+                log.error("STP error", handler.cause());
                 return;
             }
             Buffer receive = handler.result();
 
-            System.out.println("发送：" + "SMPINF?" + "--返回: " + receive.toString());
+            System.out.println("发送：" + "STP?" + "--返回: " + receive.toString());
 
         });
          });
