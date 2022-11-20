@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson2.JSON;
 import com.yofc.iot.component.api.MqttClientService;
-import com.yofc.iot.component.impl.MqttClientServiceImpl.Config;
+import com.yofc.iot.component.impl.MqttV5ClientServiceImpl.Config;
 import com.yofc.iot.component.utils.MqttV5ClientConfiguration;
 import com.yofc.iot.component.utils.MqttV5ClientConfiguration.PersistenceType;
 
@@ -489,7 +489,7 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
         }
     }
 
-    @ObjectClassDefinition(id = "com.yofc.iot.component.impl.MqttClientServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.MqttV5ClientServiceCfg")
+    @ObjectClassDefinition(id = "com.yofc.iot.component.impl.MqttV5ClientServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.MqttV5ClientServiceCfg")
     @interface Config {
 
         @AttributeDefinition(name = "%activate", description = "%activateDesc")
