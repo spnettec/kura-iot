@@ -56,6 +56,7 @@ import com.yofc.iot.component.utils.MqttV5ClientConfiguration.PersistenceType;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import io.reactivex.functions.BiConsumer;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
@@ -76,6 +77,7 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
     private MqttClientPersistence persistence;
     private Config preConfig = null;
     private ScheduledFuture<?> connectionMonitorFuture;
+    private BiConsumer<String, Object> listerner;
 
     public void unbindSslManagerService(SslManagerService sslManagerService) {
         if (this.sslManagerService == sslManagerService) {
@@ -197,7 +199,7 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
             try {
                 MqttAsyncClient newMqttClient = new MqttAsyncClient(this.clientConf.getBrokerUrl(),
                         this.clientConf.getClientId(), this.persistence);
-                newMqttClient.setCallback(this);
+                newMqttClient.setCallback(MqttV5ClientServiceImpl.this);
                 this.mqttClient = newMqttClient;
             } catch (MqttException e) {
                 logger.error("Client instantiation failed", e);
@@ -417,7 +419,15 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        logger.info("message received, topic:{}, message:{}", topic, message);
+        if (this.listerner != null) {
+            this.listerner.accept(topic, message);
+        }
+    }
+
+    @Override
+    public void messageArrived(BiConsumer<String, Object> listerner) {
+        this.listerner = listerner;
+
     }
 
     private boolean startConnectionMonitorTask() {

@@ -111,10 +111,7 @@ public class Utils {
     public static TypedValue<?> getValue(String name, List<WireRecord> records) {
         Optional<WireRecord> value = records.stream().filter(record -> record.getProperties().containsKey(name))
                 .findFirst();
-        if (!value.isPresent()) {
-            return null;
-        }
-        return value.get().getProperties().get(name);
+        return value.<TypedValue<?>> map(wireRecord -> wireRecord.getProperties().get(name)).orElse(null);
     }
 
     public static List<WireRecord> filterByTages(List<WireRecord> records, String... tags) {

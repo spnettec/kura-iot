@@ -228,8 +228,8 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                         return;
                     }
                     KuraPayload payload = buildKuraPayload(wireRecord, topic);
-                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
-                            false, false);
+                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
+                            MqttQoS.valueOf(this.properties.qos()), false, false);
                     this.wireSupport.emit(wireEnvelope.getRecords());
                     logger.debug("Publish MQTT {}", topic);
                 }
@@ -245,8 +245,8 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                 }
                 KuraPayload payload = buildKuraPayload(record, topic);
                 try {
-                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)), MqttQoS.AT_MOST_ONCE,
-                            false, false);
+                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
+                            MqttQoS.valueOf(this.properties.qos()), false, false);
                 } catch (KuraException e) {
                     logger.error("Failed to marshal payload", e);
                 }
@@ -257,7 +257,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
     }
 
     private Boolean isDownGrade(String topic) {
-        Long setTime = this.properties.downgradeFre();
+        long setTime = this.properties.downgradeFre();
         if (setTime == 0) {
             return false;
         }
@@ -388,7 +388,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
 
     private String fillTopicPlaceholders(String topic, WireRecord wireRecord) {
         Matcher matcher = TOPIC_PATTERN.matcher(topic);
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         Map<String, TypedValue<?>> properties = wireRecord.getProperties();
         TypedValue<?> value = properties.get(ASSET_NAME_PROPERTY_KEY);
         if (value == null) {
@@ -419,6 +419,9 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
 
         @AttributeDefinition(name = "%brokerPort", cardinality = 0, description = "%brokerPortDesc", required = true)
         int brokerPort() default 1883;
+
+        @AttributeDefinition(name = "%qos", cardinality = 0, description = "%qosDesc", required = true)
+        int qos() default 0;
 
         @AttributeDefinition(name = "%username", cardinality = 0, description = "%usernameDesc", required = false)
         String username() default "mqtt";

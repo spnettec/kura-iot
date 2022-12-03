@@ -187,7 +187,7 @@ public class MqttClientPublisher implements WireReceiver, ConfigurableComponent 
 
   private String fillTopicPlaceholders(String topic, WireRecord wireRecord) {
     Matcher matcher = TOPIC_PATTERN.matcher(topic);
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     Map<String, TypedValue<?>> properties = wireRecord.getProperties();
     TypedValue<?> value = properties.get(ASSET_NAME_PROPERTY_KEY);
     if (value == null) {
