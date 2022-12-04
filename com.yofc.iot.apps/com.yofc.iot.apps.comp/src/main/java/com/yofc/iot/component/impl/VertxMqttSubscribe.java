@@ -220,7 +220,7 @@ public class VertxMqttSubscribe implements WireEmitter, ConfigurableComponent {
                         if (s == 0x80) {
                             System.out.println("Failure");
                         } else {
-                            mqttClient.publishHandler(this::handleMqttMassage);
+                            mqttClient.publishHandler(this::handleMqttMessage);
                         }
                     }
                 });
@@ -248,7 +248,8 @@ public class VertxMqttSubscribe implements WireEmitter, ConfigurableComponent {
         });
     }
 
-    private void handleMqttMassage(MqttPublishMessage msg) {
+    @SuppressWarnings("unchecked")
+    private void handleMqttMessage(MqttPublishMessage msg) {
         List<WireRecord> records = Utils.bufferToWireRecords(msg.topicName(), msg.payload());
         if (!"".equals(this.scriptSource)) {
             try {

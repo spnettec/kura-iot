@@ -3,7 +3,6 @@ package com.yofc.iot.component.impl;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
@@ -97,23 +96,26 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
         if (this.mqttClientService.isConnected()) {
             try {
 
-                this.mqttClientService.subscribe(this.properties.mqttTopic(), this.properties.qos());
+                this.mqttClientService.subscribe(this.properties.mqttTopic(), this.properties.qos(),
+                        (topic, msgObj) -> {
+                            if (msgObj instanceof org.eclipse.paho.client.mqttv3.MqttMessage) {
+                                handleMqttMessage(topic,
+                                        ((org.eclipse.paho.client.mqttv3.MqttMessage) msgObj).getPayload());
+                            } else if (msgObj instanceof org.eclipse.paho.mqttv5.common.MqttMessage) {
+                                handleMqttMessage(topic,
+                                        ((org.eclipse.paho.mqttv5.common.MqttMessage) msgObj).getPayload());
+                            }
+                        });
             } catch (Exception e) {
                 logger.error("Subscripe topic: {} error", this.properties.mqttTopic(), e);
             }
-            this.mqttClientService.messageArrived((topic, msgObj) -> {
-                if (msgObj instanceof org.eclipse.paho.client.mqttv3.MqttMessage) {
-                    handleMqttMassage(topic, ((org.eclipse.paho.client.mqttv3.MqttMessage) msgObj).getPayload());
-                } else if (msgObj instanceof org.eclipse.paho.mqttv5.common.MqttMessage) {
-                    handleMqttMassage(topic, ((org.eclipse.paho.mqttv5.common.MqttMessage) msgObj).getPayload());
-                }
-            });
         } else {
             logger.error("mqttClientService is not connected!");
         }
     }
 
-    private void handleMqttMassage(String topic, byte[] payload) {
+    @SuppressWarnings({ "unchecked" })
+    private void handleMqttMessage(String topic, byte[] payload) {
         Buffer buffer = Buffer.buffer(payload);
         List<WireRecord> records = Utils.bufferToWireRecords(topic, buffer);
         if (!"".equals(this.scriptSource)) {
@@ -158,8 +160,7 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void activate(final ComponentContext componentContext, MqttClientSubscribeCfg properties)
-            throws KuraException {
+    public void activate(final ComponentContext componentContext, MqttClientSubscribeCfg properties) {
         logger.info("Activating Script Filter...");
         this.properties = properties;
         this.wireSupport = this.wireHelperService.newWireSupport(this,

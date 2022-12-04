@@ -2,7 +2,6 @@ package com.yofc.iot.component.impl;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -15,7 +14,6 @@ import javax.net.ssl.SSLSocketFactory;
 import org.eclipse.kura.KuraConnectException;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.KuraNotConnectedException;
-import org.eclipse.kura.KuraTimeoutException;
 import org.eclipse.kura.KuraTooManyInflightMessagesException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -78,7 +76,6 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     private MqttClientPersistence persistence;
     private Config preConfig = null;
     private ScheduledFuture<?> connectionMonitorFuture;
-    private BiConsumer<String, Object> listerner;
 
     public void unbindSslManagerService(SslManagerService sslManagerService) {
         if (this.sslManagerService == sslManagerService) {
@@ -240,6 +237,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 logger.warn("Cannot close client", e);
             } finally {
                 this.mqttClient = null;
+                this.registerTopcs.clear();
             }
         }
     }
@@ -371,42 +369,20 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
     }
 
     @Override
-    public void subscribe(String topicFilter, int qos) throws KuraException {
+    public void subscribe(String topicFilter, int qos, BiConsumer<String, Object> consumer) throws KuraException {
         checkConnected();
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilter, qos);
-
+        if (registerTopcs.contains(topicFilter)) {
+            return;
+        }
         try {
-            IMqttToken token = this.mqttClient.subscribe(topicFilter, qos);
+            IMqttToken token = this.mqttClient.subscribe(topicFilter, qos,
+                    (topic, msg) -> consumer.accept(topicFilter, consumer));
             token.waitForCompletion(getTimeToWaitMillis());
             registerTopcs.add(topicFilter);
-        } catch (MqttException e) {
-            if (e.getReasonCode() == MqttException.REASON_CODE_CLIENT_TIMEOUT) {
-                logger.warn("Timeout subscribing to topic: {}", topicFilter);
-                throw new KuraTimeoutException("Timeout subscribing to topic: " + topicFilter, e);
-            } else {
-                logger.error("Cannot subscribe to topic: " + topicFilter, e);
-                throw KuraException.internalError(e, "Cannot subscribe to topic: " + topicFilter);
-            }
-        }
-    }
-
-    @Override
-    public void subscribe(String[] topicFilters, int[] qos) throws KuraException {
-        checkConnected();
-        logger.info("Subscribing to topic: {} with QoS: {}", topicFilters, qos);
-
-        try {
-            IMqttToken token = this.mqttClient.subscribe(topicFilters, qos);
-            token.waitForCompletion(getTimeToWaitMillis());
-            registerTopcs.addAll(Arrays.asList(topicFilters));
-        } catch (MqttException e) {
-            if (e.getReasonCode() == MqttException.REASON_CODE_CLIENT_TIMEOUT) {
-                logger.warn("Timeout subscribing to topic: {}", Arrays.asList(topicFilters));
-                throw new KuraTimeoutException("Timeout subscribing to topic: " + Arrays.asList(topicFilters), e);
-            } else {
-                logger.error("Cannot subscribe to topic: " + Arrays.toString(topicFilters), e);
-                throw KuraException.internalError(e, "Cannot subscribe to topic: " + Arrays.asList(topicFilters));
-            }
+        } catch (Exception e) {
+            logger.error("Cannot subscribe to topic: {}", topicFilter, e);
+            throw KuraException.internalError(e, "Cannot subscribe to topic: " + topicFilter);
         }
     }
 
@@ -419,14 +395,6 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        if (this.listerner != null) {
-            this.listerner.accept(topic, message);
-        }
-    }
-
-    @Override
-    public void messageArrived(BiConsumer<String, Object> listerner) {
-        this.listerner = listerner;
 
     }
 

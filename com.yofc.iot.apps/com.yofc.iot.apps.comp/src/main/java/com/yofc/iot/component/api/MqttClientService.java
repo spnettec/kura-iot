@@ -8,11 +8,7 @@ public interface MqttClientService {
 
     Integer publish(String topic, int qos, boolean retain, Object message) throws KuraException;
 
-    void subscribe(String topic, int qos) throws KuraException;
-
-    void subscribe(String[] topic, int[] qos) throws KuraException;
-
-    void messageArrived(BiConsumer<String, Object> listerner);
+    void subscribe(String topic, int qos, BiConsumer<String, Object> consumer) throws KuraException;
 
     boolean isConnected();
 }
