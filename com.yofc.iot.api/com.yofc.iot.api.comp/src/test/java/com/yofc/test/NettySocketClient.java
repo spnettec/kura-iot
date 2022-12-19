@@ -63,18 +63,15 @@ public class NettySocketClient {
 
     public void init() {
         closed = false;
-
         workerGroup = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
         bootstrap.group(workerGroup);
         bootstrap.channel(NioSocketChannel.class);
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-
             @Override
             public void initChannel(SocketChannel ch) {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addFirst(new ChannelInboundHandlerAdapter() {
-
                     @Override
                     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
                         super.channelInactive(ctx);

@@ -25,11 +25,11 @@
     </Appenders>
 
     <Loggers>
-        <Logger name="com.yofc" level="debug" additivity="false">
+        <Logger name="com.yofc" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
 
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

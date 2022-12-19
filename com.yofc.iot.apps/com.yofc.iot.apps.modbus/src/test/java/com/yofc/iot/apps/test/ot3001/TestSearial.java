@@ -1,4 +1,4 @@
-package com.yofc.iot.apps.enip;
+package com.yofc.iot.apps.test.ot3001;
 
 import io.vertx.core.Vertx;
 import io.vertx.junit5.Timeout;

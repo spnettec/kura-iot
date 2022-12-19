@@ -12,7 +12,7 @@
         <module>com.yofc.iot.apps.abplc</module>
         <module>com.yofc.iot.apps.comp</module>
         <module>com.yofc.iot.apps.opcuaserver</module>
-        <module>com.yofc.iot.apps.serial</module>
+        <module>com.yofc.iot.apps.ot3001</module>
         <module>com.yofc.iot.apps.visa</module>
         <module>com.yofc.iot.apps.modbus</module>
         <module>com.yofc.iot.apps.influxdb</module>
