@@ -378,7 +378,7 @@
                            org.objectweb.asm.attrs;resolution:=optional,
                            org.tukaani.xz;resolution:=optional,
                            tel.schich.javacan.platform.linux;resolution:=optional,
-                           org.objectweb.asm; version="[7.1.0,9.3.0)",
+                           org.objectweb.asm; version="[7.1.0,9.5.0)",
                            *                        
                         </Import-Package>
                     </instructions>
