@@ -27,8 +27,9 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.plc4x.java.DefaultPlcDriverManager;
+import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
-import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.milo.opcua.sdk.core.AccessLevel;
 import org.eclipse.milo.opcua.sdk.core.Reference;
 import org.eclipse.milo.opcua.sdk.core.ValueRank;
@@ -65,12 +66,12 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
     private final SubscriptionModel subscriptionModel;
     private Plc4xCommunication plc4xServer;
 
-    public Plc4xNamespace(OpcUaServer server, Configuration c, PooledPlcDriverManager pooledPlcDriverManager) {
+    public Plc4xNamespace(OpcUaServer server, Configuration c, PlcConnectionManager plcConnectionManager) {
         super(server, APPLICATIONID);
         this.config = c;
         subscriptionModel = new SubscriptionModel(server, this);
         dictionaryManager = new DataTypeDictionaryManager(getNodeContext(), APPLICATIONID);
-        plc4xServer = new Plc4xCommunication(pooledPlcDriverManager);
+        plc4xServer = new Plc4xCommunication(plcConnectionManager);
 
         getLifecycleManager().addLifecycle(dictionaryManager);
         getLifecycleManager().addLifecycle(subscriptionModel);
@@ -233,9 +234,9 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
         for (DataItem item : dataItems) {
             plc4xServer.addTag(item);
 
-            if (plc4xServer.getDriverManager() == null) {
+            if (plc4xServer.getConnectionManager() == null) {
                 plc4xServer.removeTag(item);
-                plc4xServer.setDriverManager(new PooledPlcDriverManager());
+                plc4xServer.setConnectionManager(new DefaultPlcDriverManager());
             }
         }
 

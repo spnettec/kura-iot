@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
+import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.osgi.service.component.annotations.Activate;
@@ -31,7 +31,7 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     private Config preConfig = null;
 
     @Reference
-    private PooledPlcDriverManager pooledPlcDriverManager;
+    private PlcConnectionManager plcConnectionManager;
 
     @Activate
     public void start(Config properties) throws KuraException {
@@ -71,7 +71,7 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
         }
 
         try {
-            return new OPCUAServer(properties.serverConfig(), false, pooledPlcDriverManager).startup();
+            return new OPCUAServer(properties.serverConfig(), false, plcConnectionManager).startup();
         } catch (Exception e) {
             throw KuraException.internalError(e);
         }

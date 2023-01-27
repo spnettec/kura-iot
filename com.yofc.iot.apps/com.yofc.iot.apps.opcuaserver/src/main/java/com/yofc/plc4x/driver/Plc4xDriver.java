@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
+import org.apache.plc4x.java.api.PlcDriverManager;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionEvent;
@@ -31,7 +32,6 @@ import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
-import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -72,7 +72,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     private final AtomicReference<Config> options = new AtomicReference<>();
     private Plc4xDriverState state = new Plc4xDriverState(null, null);
     @Reference
-    private PooledPlcDriverManager pooledPlcDriverManager;
+    private PlcDriverManager plcDriverManager;
 
     @Activate
     protected synchronized void activate(final Config properties) {
@@ -129,7 +129,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         final Config currentOptions = this.options.get();
         try {
             disconnect();
-            PlcConnection plcConnection = pooledPlcDriverManager.getConnection(currentOptions.connectString());
+            PlcConnection plcConnection = plcDriverManager.getConnectionManager()
+                    .getConnection(currentOptions.connectString());
 
             this.state = new Plc4xDriverState(plcConnection, currentOptions);
         } catch (Exception e) {

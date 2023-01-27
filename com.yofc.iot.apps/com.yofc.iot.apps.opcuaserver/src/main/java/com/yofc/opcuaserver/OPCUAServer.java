@@ -45,7 +45,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
+import org.apache.plc4x.java.DefaultPlcDriverManager;
+import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
@@ -165,15 +166,14 @@ public class OPCUAServer {
     }
 
     public static void main(String[] args) throws Exception {
-        OPCUAServer serverInit = new OPCUAServer(args[0], true, new PooledPlcDriverManager());
+        OPCUAServer serverInit = new OPCUAServer(args[0], true, new DefaultPlcDriverManager());
         serverInit.getServer().startup().get();
         CompletableFuture<Void> future = new CompletableFuture<>();
         future.get();
     }
 
-    public OPCUAServer(String configFile, boolean isFile, PooledPlcDriverManager pooledPlcDriverManager)
-            throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
-            UnrecoverableKeyException {
+    public OPCUAServer(String configFile, boolean isFile, PlcConnectionManager plcConnectionManager) throws IOException,
+            KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException {
         if (isFile) {
             readConfigFile(configFile);
         } else {
@@ -301,7 +301,7 @@ public class OPCUAServer {
 
         server = new OpcUaServer(serverConfig);
 
-        plc4xNamespace = new Plc4xNamespace(server, config, pooledPlcDriverManager);
+        plc4xNamespace = new Plc4xNamespace(server, config, plcConnectionManager);
         plc4xNamespace.startup();
 
     }

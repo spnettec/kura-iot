@@ -36,8 +36,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.plc4x.java.PlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
+import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
@@ -49,7 +49,6 @@ import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.PlcBOOL;
 import org.apache.plc4x.java.spi.values.PlcLTIME;
 import org.apache.plc4x.java.spi.values.PlcTIME;
-import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.eclipse.milo.opcua.sdk.server.AbstractLifecycle;
 import org.eclipse.milo.opcua.sdk.server.api.DataItem;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext;
@@ -65,7 +64,7 @@ import org.slf4j.LoggerFactory;
 
 public class Plc4xCommunication extends AbstractLifecycle {
 
-    private PooledPlcDriverManager pooledPlcDriverManager;
+    private PlcConnectionManager plcConnectionManager;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Integer DEFAULT_TIMEOUT = 1000000;
     private final Integer DEFAULT_RETRY_BACKOFF = 5000;
@@ -79,8 +78,8 @@ public class Plc4xCommunication extends AbstractLifecycle {
 
     }
 
-    public Plc4xCommunication(PooledPlcDriverManager pooledPlcDriverManager) {
-        this.pooledPlcDriverManager = pooledPlcDriverManager;
+    public Plc4xCommunication(PlcConnectionManager plcConnectionManager) {
+        setConnectionManager(plcConnectionManager);
     }
 
     @Override
@@ -93,16 +92,16 @@ public class Plc4xCommunication extends AbstractLifecycle {
         // Do Nothing
     }
 
-    public PlcDriverManager getDriverManager() {
-        return pooledPlcDriverManager;
+    public PlcConnectionManager getConnectionManager() {
+        return plcConnectionManager;
     }
 
-    public void setDriverManager(PooledPlcDriverManager driverManager) {
-        this.pooledPlcDriverManager = driverManager;
+    public void setConnectionManager(PlcConnectionManager plcConnectionManager) {
+        this.plcConnectionManager = plcConnectionManager;
     }
 
     public PlcTag getTag(String tag, String connectionString) throws PlcConnectionException {
-        return pooledPlcDriverManager.getDriverForUrl(connectionString).prepareTag(tag);
+        return plcConnectionManager.getDriverManager().getDriverForUrl(connectionString).prepareTag(tag);
     }
 
     public void addTag(DataItem item) {
@@ -173,7 +172,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
 
             // Try to connect to PLC
             try {
-                connection = pooledPlcDriverManager.getConnection(connectionString);
+                connection = plcConnectionManager.getConnection(connectionString);
                 logger.debug("{}: Connected", connectionString);
             } catch (PlcConnectionException e) {
                 logger.error("Failed to connect to device, error raised - ", e);
@@ -312,7 +311,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
     public void setValue(String tag, Object value, String connectionString) {
         PlcConnection connection = null;
         try {
-            connection = pooledPlcDriverManager.getConnection(connectionString);
+            connection = plcConnectionManager.getConnection(connectionString);
             if (!connection.isConnected()) {
                 logger.debug("getConnection() returned a connection that isn't connected");
                 connection.connect();

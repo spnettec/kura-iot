@@ -24,7 +24,7 @@ import java.io.File;
 import java.math.BigInteger;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.plc4x.java.PlcDriverManager;
+import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
@@ -32,7 +32,6 @@ import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
-import org.apache.plc4x.java.utils.connectionpool.PooledPlcDriverManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -46,20 +45,20 @@ import io.vavr.collection.List;
 class OpcuaPlcDriverTest {
 
     // Read only variables of milo example server of version 3.6
-    private static final String BOOL_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_BOOL";
-    private static final String BYTE_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_BYTE";
-    private static final String DOUBLE_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_LREAL";
-    private static final String FLOAT_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_REAL";
-    private static final String INT16_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_INT";
-    private static final String INT32_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_DINT";
-    private static final String INT64_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_LINT";
-    private static final String INTEGER_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_DINT";
-    private static final String SBYTE_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_USINT";
-    private static final String STRING_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_STRING";
-    private static final String UINT16_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_UINT";
-    private static final String UINT32_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_UDINT";
-    private static final String UINT64_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_ULINT";
-    private static final String UINTEGER_IDENTIFIER_READ_WRITE = "ns=1;s=Simulated_UDINT";
+    private static final String BOOL_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_BOOL";
+    private static final String BYTE_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_BYTE";
+    private static final String DOUBLE_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_LREAL";
+    private static final String FLOAT_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_REAL";
+    private static final String INT16_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_INT";
+    private static final String INT32_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_DINT";
+    private static final String INT64_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_LINT";
+    private static final String INTEGER_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_DINT";
+    private static final String SBYTE_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_USINT";
+    private static final String STRING_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_STRING";
+    private static final String UINT16_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_UINT";
+    private static final String UINT32_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_UDINT";
+    private static final String UINT64_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_ULINT";
+    private static final String UINTEGER_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_UDINT";
     private static final String DOES_NOT_EXIST_IDENTIFIER_READ_WRITE = "ns=1;i=12512623";
     // Address of local milo server
     private String miloLocalAddress = "127.0.0.1:12673/iot";
@@ -84,7 +83,7 @@ class OpcuaPlcDriverTest {
     @BeforeAll
     public static void setup() throws Exception {
         FileUtils.deleteDirectory(new File("target/test-tmp"));
-        exampleServer = new OPCUAServer("src/test/resources/config.yml", true, new PooledPlcDriverManager());
+        exampleServer = new OPCUAServer("src/test/resources/config.yml", true, new DefaultPlcDriverManager());
         exampleServer.startup().get();
     }
 
@@ -102,7 +101,7 @@ class OpcuaPlcDriverTest {
         connectionStringValidSet.forEach(connectionAddress -> {
             String connectionString = connectionAddress;
             try {
-                PlcConnection opcuaConnection = new PlcDriverManager().getConnection(connectionString);
+                PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(connectionString);
                 assert opcuaConnection.isConnected();
                 opcuaConnection.close();
                 assert !opcuaConnection.isConnected();
@@ -122,7 +121,7 @@ class OpcuaPlcDriverTest {
             discoveryParamValidSet.forEach(discoveryParam -> {
                 String connectionString = connectionAddress + paramSectionDivider + discoveryParam;
                 try {
-                    PlcConnection opcuaConnection = new PlcDriverManager().getConnection(connectionString);
+                    PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(connectionString);
                     assert opcuaConnection.isConnected();
                     opcuaConnection.close();
                     assert !opcuaConnection.isConnected();
@@ -141,7 +140,7 @@ class OpcuaPlcDriverTest {
     @Test
     void readVariables() throws Exception {
 
-        PlcConnection opcuaConnection = new PlcDriverManager().getConnection(tcpConnectionAddress);
+        PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(tcpConnectionAddress);
         assert opcuaConnection.isConnected();
 
         PlcReadRequest.Builder builder = opcuaConnection.readRequestBuilder();
@@ -190,7 +189,7 @@ class OpcuaPlcDriverTest {
     @Test
     void writeVariables() throws Exception {
 
-        PlcConnection opcuaConnection = new PlcDriverManager().getConnection(tcpConnectionAddress);
+        PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(tcpConnectionAddress);
         assert opcuaConnection.isConnected();
 
         PlcWriteRequest.Builder builder = opcuaConnection.writeRequestBuilder();

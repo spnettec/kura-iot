@@ -1,20 +1,27 @@
 package com.yofc.iot.apps.ot3001;
 
-import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.core.net.NetSocket;
-import lombok.extern.log4j.Log4j2;
-
 import java.nio.BufferOverflowException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Log4j2
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.NetSocket;
+
 public class VerxSocketClient {
+
+    private static final Logger log = LoggerFactory.getLogger(VerxSocketClient.class);
 
     private final Queue<TimePromise> messageList = new ArrayBlockingQueue<>(16);
     NetClientOptions options = new NetClientOptions().setTcpKeepAlive(true).setConnectTimeout(1000)
@@ -140,22 +147,19 @@ public class VerxSocketClient {
                 connectPromise.fail(result.cause());
                 VerxSocketClient.this.closeSocketClient();
                 if (VerxSocketClient.this.options.getReconnectAttempts() > 0) {
-                    log.info("连接到服务器:{},端口:{} 失败次数超过:{}次，服务停止，请重新启动",
-                            VerxSocketClient.this.host, VerxSocketClient.this.port,
-                            VerxSocketClient.this.options.getReconnectAttempts());
+                    log.info("连接到服务器:{},端口:{} 失败次数超过:{}次，服务停止，请重新启动", VerxSocketClient.this.host,
+                            VerxSocketClient.this.port, VerxSocketClient.this.options.getReconnectAttempts());
                 }
             } else {
                 NetSocket netSocket = result.result();
                 connectPromise.complete(netSocket);
                 log.info("连接到服务器:{},端口:{} 成功", VerxSocketClient.this.host, VerxSocketClient.this.port);
                 netSocket.closeHandler(h -> {
-                    log.info("连接到服务器:{},端口:{} 连接丢失", VerxSocketClient.this.host,
-                            VerxSocketClient.this.port);
+                    log.info("连接到服务器:{},端口:{} 连接丢失", VerxSocketClient.this.host, VerxSocketClient.this.port);
                     VerxSocketClient.this.closeSocketClient();
                 });
                 netSocket.exceptionHandler(e -> {
-                    log.info("连接到服务器:{},端口:{} 连接错误", VerxSocketClient.this.host, VerxSocketClient.this.port,
-                            e);
+                    log.info("连接到服务器:{},端口:{} 连接错误", VerxSocketClient.this.host, VerxSocketClient.this.port, e);
                     VerxSocketClient.this.closeSocketClient();
                 });
 
