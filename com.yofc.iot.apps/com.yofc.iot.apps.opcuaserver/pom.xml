@@ -187,6 +187,12 @@
 	      <artifactId>plc4j-connection-cache</artifactId>
 	      <version>0.11.0-SNAPSHOT</version>
 	    </dependency>
+	    
+	    <dependency>
+	      <groupId>org.apache.plc4x</groupId>
+	      <artifactId>plc4j-connection-pool</artifactId>
+	      <version>0.11.0-SNAPSHOT</version>
+	    </dependency>
 
 	    <!-- Include all drivers -->
 	    <dependency>

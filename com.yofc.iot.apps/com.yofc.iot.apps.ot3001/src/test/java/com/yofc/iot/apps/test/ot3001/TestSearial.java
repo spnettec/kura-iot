@@ -26,7 +26,7 @@ public class TestSearial {
     @BeforeAll
     @DisplayName("开始")
     public static void setUp(Vertx vertx, VertxTestContext context) throws InterruptedException, ExecutionException {
-        client = new SerialClient("/dev/tty.usbserial-1430",115200,0,0,8,1);
+        client = new SerialClient("/dev/cu.usbserial-EHACb11A920",115200,0,0,8,1);
         client.connect();
         context.completeNow();
     }

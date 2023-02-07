@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
-import org.apache.plc4x.java.api.PlcDriverManager;
+import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionEvent;
@@ -72,7 +72,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     private final AtomicReference<Config> options = new AtomicReference<>();
     private Plc4xDriverState state = new Plc4xDriverState(null, null);
     @Reference
-    private PlcDriverManager plcDriverManager;
+    private PlcConnectionManager plcConnectionManager;
 
     @Activate
     protected synchronized void activate(final Config properties) {
@@ -129,8 +129,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         final Config currentOptions = this.options.get();
         try {
             disconnect();
-            PlcConnection plcConnection = plcDriverManager.getConnectionManager()
-                    .getConnection(currentOptions.connectString());
+            PlcConnection plcConnection = plcConnectionManager.getConnection(currentOptions.connectString());
 
             this.state = new Plc4xDriverState(plcConnection, currentOptions);
         } catch (Exception e) {
@@ -140,7 +139,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void disconnect() throws ConnectionException {
-        if (this.state.plcConnection != null && this.state.plcConnection.isConnected()) {
+        if (this.state.plcConnection != null) {
             try {
                 if (this.state.plcConnection != null) {
                     this.state.plcConnection.close();
@@ -149,7 +148,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             } catch (Exception e) {
                 throw new ConnectionException(e);
             }
-            logger.debug("Disconnecting from H2MVStoreDriver ... Done");
+            logger.debug("Disconnecting from Plc4xDriver ... Done");
         }
 
     }
