@@ -12,13 +12,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
@@ -32,6 +32,7 @@ import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
+import org.apache.plc4x.java.utils.cache.CachedPlcConnectionManager;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -46,12 +47,13 @@ import org.eclipse.kura.driver.PreparedRead;
 import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -70,13 +72,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     private final Map<ChannelListener, PlcSubscriptionHandle> registeredListeners = new ConcurrentHashMap<>();
 
     private final AtomicReference<Config> options = new AtomicReference<>();
-    private Plc4xDriverState state = new Plc4xDriverState(null, null);
-    @Reference
     private PlcConnectionManager plcConnectionManager;
 
     @Activate
-    protected synchronized void activate(final Config properties) {
+    protected synchronized void activate(final BundleContext context, final Config properties) {
         logger.info("Activating Plc4xDriver...");
+        ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
+        plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader)).build();
         extractProperties(properties);
         logger.info("Activating Plc4xDriver... Done");
     }
@@ -92,64 +94,21 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
         extractProperties(properties);
 
-        try {
-            disconnect();
-            connect();
-        } catch (ConnectionException e) {
-            logger.warn("Unable to Disconnect Plc4xDriver ...");
-        }
-
         logger.info("Updating Plc4xDriver Driver... Done");
     }
 
     @Deactivate
     public synchronized void deactivate() {
-        logger.debug("Deactivating Plc4xDriver ...");
-        try {
-            disconnect();
-        } catch (final ConnectionException e) {
-            logger.error("Error while disconnecting...", e);
-        }
-        logger.debug("Deactivating Plc4xDriver .....Done");
+
     }
 
     @Override
     public void connect() throws ConnectionException {
-        final Config currentOptions = this.options.get();
 
-        if (this.state.options != currentOptions) {
-            logger.info("Plc4xDriver configuration changed, disconnecting...");
-            reConnect();
-            logger.info("Plc4xDriver configuration changed, disconnecting...Done");
-        }
-
-    }
-
-    private void reConnect() throws ConnectionException {
-        final Config currentOptions = this.options.get();
-        try {
-            disconnect();
-            PlcConnection plcConnection = plcConnectionManager.getConnection(currentOptions.connectString());
-
-            this.state = new Plc4xDriverState(plcConnection, currentOptions);
-        } catch (Exception e) {
-            throw new ConnectionException(e);
-        }
     }
 
     @Override
     public void disconnect() throws ConnectionException {
-        if (this.state.plcConnection != null) {
-            try {
-                if (this.state.plcConnection != null) {
-                    this.state.plcConnection.close();
-                }
-                this.state = new Plc4xDriverState(null, null);
-            } catch (Exception e) {
-                throw new ConnectionException(e);
-            }
-            logger.debug("Disconnecting from Plc4xDriver ... Done");
-        }
 
     }
 
@@ -160,22 +119,16 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void read(List<ChannelRecord> records) throws ConnectionException {
-        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            reConnect();
-        }
-        if (!this.state.plcConnection.getMetadata().canRead()) {
-            throw new ConnectionException("PLC can not read");
-        }
-        Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
-        PlcReadRequest.Builder builder = this.state.plcConnection.readRequestBuilder();
-        map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
-            if (entry.getKey().getChannelStatus() == null
-                    || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr);
-            }
-        }));
-        PlcReadRequest readRequest = builder.build();
-        try {
+        try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
+            Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
+            PlcReadRequest.Builder builder = plcConnection.readRequestBuilder();
+            map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
+                if (entry.getKey().getChannelStatus() == null
+                        || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
+                    builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr);
+                }
+            }));
+            PlcReadRequest readRequest = builder.build();
             PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
@@ -204,28 +157,24 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 Thread.currentThread().interrupt();
             }
         }
+
     }
 
     @Override
     public void write(List<ChannelRecord> records) throws ConnectionException {
-        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            reConnect();
-        }
-        if (!this.state.plcConnection.getMetadata().canWrite()) {
-            throw new ConnectionException("PLC can't Write");
-        }
+        try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
 
-        Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
-        PlcWriteRequest.Builder builder = this.state.plcConnection.writeRequestBuilder();
-        map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
-            if (entry.getKey().getChannelStatus() == null
-                    || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
-                builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr,
-                        entry.getKey().getValue().getValue());
-            }
-        }));
-        PlcWriteRequest writeRequest = builder.build();
-        try {
+            Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
+            PlcWriteRequest.Builder builder = plcConnection.writeRequestBuilder();
+            map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
+                if (entry.getKey().getChannelStatus() == null
+                        || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
+                    builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr,
+                            entry.getKey().getValue().getValue());
+                }
+            }));
+            PlcWriteRequest writeRequest = builder.build();
+
             PlcWriteResponse response = writeRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
             response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
@@ -257,29 +206,24 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @Override
     public void registerChannelListeners(final Map<ChannelListener, Map<String, Object>> listenerChannelConfigs)
             throws ConnectionException {
-        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            reConnect();
-        }
-        if (!this.state.plcConnection.getMetadata().canSubscribe()) {
-            throw new ConnectionException("PLC can not add Listener");
-        }
-        final PlcSubscriptionRequest.Builder sbuilder = this.state.plcConnection.subscriptionRequestBuilder();
-        for (Map.Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
-            Map<String, Object> channelConfig = entry.getValue();
-            final String channelName = Utils.tryExtract(channelConfig, config -> (String) config.get("+name"),
-                    "Error while retrieving Channel Name");
-            final String tagAddr = Utils.tryExtract(channelConfig, config -> (String) config.get("data.tag.addr"),
-                    "Error while retrieving Tag Addr");
-            sbuilder.addChangeOfStateTagAddress(channelName, tagAddr);
-        }
-        PlcSubscriptionRequest subscriptionRequest = sbuilder.build();
         PlcSubscriptionResponse subscriptionResponse = null;
-        try {
+        try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
+            final PlcSubscriptionRequest.Builder sbuilder = plcConnection.subscriptionRequestBuilder();
+            for (Map.Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
+                Map<String, Object> channelConfig = entry.getValue();
+                final String channelName = Utils.tryExtract(channelConfig, config -> (String) config.get("+name"),
+                        "Error while retrieving Channel Name");
+                final String tagAddr = Utils.tryExtract(channelConfig, config -> (String) config.get("data.tag.addr"),
+                        "Error while retrieving Tag Addr");
+                sbuilder.addChangeOfStateTagAddress(channelName, tagAddr);
+            }
+            PlcSubscriptionRequest subscriptionRequest = sbuilder.build();
+
             subscriptionResponse = subscriptionRequest.execute().get();
-        } catch (ExecutionException e) {
-            throw new ConnectionException(e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new ConnectionException(e);
+        } catch (Exception e) {
             throw new ConnectionException(e);
         }
         for (String subscriptionName : subscriptionResponse.getTagNames()) {
@@ -356,31 +300,27 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void unregisterChannelListeners(final Collection<ChannelListener> listeners) throws ConnectionException {
-        if (this.state.plcConnection == null || !this.state.plcConnection.isConnected()) {
-            reConnect();
-        }
-        if (!this.state.plcConnection.getMetadata().canSubscribe()) {
-            throw new ConnectionException("PLC can not add Listener");
-        }
-        PlcUnsubscriptionRequest.Builder builder = this.state.plcConnection.unsubscriptionRequestBuilder();
-        boolean hasHandle = false;
-        for (ChannelListener listerner : listeners) {
-            PlcSubscriptionHandle plcSubscriptionHandle = registeredListeners.computeIfPresent(listerner, (k, v) -> v);
-            if (plcSubscriptionHandle != null) {
-                builder.addHandles(plcSubscriptionHandle);
-                hasHandle = true;
+        try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
+            PlcUnsubscriptionRequest.Builder builder = plcConnection.unsubscriptionRequestBuilder();
+            boolean hasHandle = false;
+            for (ChannelListener listerner : listeners) {
+                PlcSubscriptionHandle plcSubscriptionHandle = registeredListeners.computeIfPresent(listerner,
+                        (k, v) -> v);
+                if (plcSubscriptionHandle != null) {
+                    builder.addHandles(plcSubscriptionHandle);
+                    hasHandle = true;
+                }
+                registeredListeners.remove(listerner);
             }
-            registeredListeners.remove(listerner);
-        }
-        if (hasHandle) {
-            try {
+            if (hasHandle) {
                 builder.build().execute().get();
-            } catch (ExecutionException e) {
-                throw new ConnectionException(e);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new ConnectionException(e);
             }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ConnectionException(e);
+        } catch (Exception e) {
+            throw new ConnectionException(e);
         }
 
     }
@@ -536,17 +476,6 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         public TagNameAddr(String tagName, String tagAddr) {
             this.tagName = tagName;
             this.tagAddr = tagAddr;
-        }
-    }
-
-    static final class Plc4xDriverState {
-
-        private final PlcConnection plcConnection;
-        private final Config options;
-
-        public Plc4xDriverState(PlcConnection plcConnection, Config options) {
-            this.plcConnection = plcConnection;
-            this.options = options;
         }
     }
 

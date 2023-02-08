@@ -153,8 +153,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
     }
 
     public DataValue getValue(AttributeFilterContext.GetAttributeContext ctx, String tag, String connectionString) {
-        PlcConnection connection = null;
-        try {
+        try (PlcConnection connection = plcConnectionManager.getConnection(connectionString)) {
 
             // Check if we just polled the connection and it failed. Wait for the backoff counter to expire before we
             // try again.
@@ -170,23 +169,9 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 }
             }
 
-            // Try to connect to PLC
-            try {
-                connection = plcConnectionManager.getConnection(connectionString);
-                logger.debug("{}: Connected", connectionString);
-            } catch (PlcConnectionException e) {
-                logger.error("Failed to connect to device, error raised - ", e);
-                failedConnectionList.put(connectionString, System.currentTimeMillis());
-                return BAD_RESPONSE;
-            }
-
             if (!connection.getMetadata().canRead()) {
                 logger.error("This connection doesn't support reading.");
-                try {
-                    connection.close();
-                } catch (Exception exception) {
-                    logger.warn("Closing connection failed with error - ", exception);
-                }
+
                 return BAD_RESPONSE;
             }
 
@@ -209,11 +194,6 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 Thread.currentThread().interrupt();
             } catch (ExecutionException | TimeoutException e) {
                 logger.warn(" Occurred while reading value, using timeout of {}ms", timeout / 1000, e);
-                try {
-                    connection.close();
-                } catch (Exception exception) {
-                    logger.warn("Closing connection failed with error - ", exception);
-                }
                 return BAD_RESPONSE;
             }
             DataValue resp = BAD_RESPONSE;
@@ -286,87 +266,51 @@ public class Plc4xCommunication extends AbstractLifecycle {
                     }
                 }
             }
-
-            try {
-                connection.close();
-            } catch (Exception e) {
-                failedConnectionList.put(connectionString, System.currentTimeMillis());
-                logger.warn("Closing connection failed with error ", e);
-            }
-
             return resp;
         } catch (Exception e) {
             logger.warn("General error reading value {}", e.getStackTrace()[0]);
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (Exception ex) {
-                    // Do Nothing
-                }
-            }
+
             return BAD_RESPONSE;
         }
     }
 
     public void setValue(String tag, Object value, String connectionString) {
-        PlcConnection connection = null;
-        try {
-            connection = plcConnectionManager.getConnection(connectionString);
-            if (!connection.isConnected()) {
-                logger.debug("getConnection() returned a connection that isn't connected");
-                connection.connect();
-            }
-        } catch (PlcConnectionException e) {
-            logger.warn("Failed", e);
-        }
-        if (connection == null) {
-            return;
-        }
+        try (PlcConnection connection = plcConnectionManager.getConnection(connectionString)) {
 
-        if (!connection.getMetadata().canWrite()) {
-            logger.error("This connection doesn't support writing.");
-            try {
-                connection.close();
-            } catch (Exception e) {
-                logger.warn("Closing connection failed with error ", e);
-            }
-            return;
-        }
+            if (!connection.getMetadata().canWrite()) {
+                logger.error("This connection doesn't support writing.");
 
-        // Create a new read request:
-        // - Give the single item requested an alias name
-        final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
-        if (value instanceof String) {
-            String strValue = (String) value;
-            // If an array value is passed instead of a single value then convert to a String array
-            if ((strValue.charAt(0) == '[') && (strValue.charAt(strValue.length() - 1) == ']')) {
-                String[] values = strValue.substring(1, strValue.length() - 1).split(",");
-                if (logger.isInfoEnabled()) {
-                    logger.info("Adding Tag {}", Arrays.toString(values));
+                return;
+            }
+
+            // Create a new read request:
+            // - Give the single item requested an alias name
+            final PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
+            if (value instanceof String) {
+                String strValue = (String) value;
+                // If an array value is passed instead of a single value then convert to a String array
+                if ((strValue.charAt(0) == '[') && (strValue.charAt(strValue.length() - 1) == ']')) {
+                    String[] values = strValue.substring(1, strValue.length() - 1).split(",");
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Adding Tag {}", Arrays.toString(values));
+                    }
+                    builder.addTagAddress(tag, tag, (Object[]) values);
+                } else {
+                    builder.addTagAddress(tag, tag, strValue);
                 }
-                builder.addTagAddress(tag, tag, (Object[]) values);
             } else {
-                builder.addTagAddress(tag, tag, strValue);
+                builder.addTagAddress(tag, tag, value);
             }
-        } else {
-            builder.addTagAddress(tag, tag, value);
-        }
 
-        PlcWriteRequest writeRequest = builder.build();
+            PlcWriteRequest writeRequest = builder.build();
 
-        try {
             writeRequest.execute().get();
+
         } catch (InterruptedException e) {
             logger.warn("Failed", e);
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            logger.warn("Failed", e);
-        }
-
-        try {
-            connection.close();
         } catch (Exception e) {
-            logger.warn("Closing Connection Failed with error ", e);
+            logger.warn("Failed", e);
         }
     }
 }

@@ -5,6 +5,5 @@
   <service>
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
   </service>
-  <reference name="plcConnectionManager" interface="org.apache.plc4x.java.api.PlcConnectionManager" field="plcConnectionManager"/>
   <implementation class="com.yofc.opc.impl.OPCUAServerServiceImpl"/>
 </scr:component>
