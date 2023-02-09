@@ -4,6 +4,13 @@
     <AD id="url" type="String" name="%url" description="%urlDesc"/>
     <AD id="measurement" type="String" required="false" name="%measurement" description="%measurementDesc"/>
     <AD id="tags" type="String" required="false" name="%tags" description="%tagsDesc" default="tag1=111\,tag2=222"/>
+    <AD id="precison" type="String" required="false" name="%precison" description="%precisonDesc" default="none">
+      <Option label="none" value="none"/>
+      <Option label="ns" value="ns"/>
+      <Option label="ms" value="ms"/>
+      <Option label="s" value="s"/>
+      <Option label="us" value="us"/>
+    </AD>
     <AD id="token" type="Password" required="false" name="%token" description="%tokenDesc"/>
     <AD id="organization" type="String" required="false" name="%organization" description="%organizationDesc"/>
     <AD id="bucket" type="String" required="false" name="%bucket" description="%bucketDesc"/>

@@ -1,6 +1,7 @@
 package com.yofc.iot.apps.influxdb;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.AttributeType;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
+import org.osgi.service.metatype.annotations.Option;
 import org.osgi.service.wireadmin.Consumer;
 import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ import com.alibaba.fastjson2.JSON;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.WriteApi;
+import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.yofc.iot.apps.influxdb.InfluxdbComponent.Config;
 import com.yofc.vertx.osgi.api.AssetHelp;
@@ -231,6 +234,10 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
     private void saveToInfluxdb(List<WireRecord> wires) {
         try (WriteApi writeApi = client.makeWriteApi()) {
             Point point = Point.measurement(this.config.measurement());
+            if (this.config.precison() != null && !this.config.precison().equals("")
+                    && !this.config.precison().equals("none")) {
+                point.time(Instant.now(), WritePrecision.valueOf(this.config.precison()));
+            }
             point.addTags(parseTags(this.config.tags()));
             Map<String, Object> result = Utils.toMap(wires);
             result.remove("assetName");
@@ -278,6 +285,12 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%tags", cardinality = 0, description = "%tagsDesc", required = false)
         String tags() default "tag1=111,tag2=222";
+
+        @AttributeDefinition(name = "%precison", cardinality = 0, description = "%precisonDesc", required = false, options = {
+                @Option(label = "none", value = "none"), @Option(label = "ns", value = "ns"),
+                @Option(label = "ms", value = "ms"), @Option(label = "s", value = "s"),
+                @Option(label = "us", value = "us") })
+        String precison() default "none";
 
         @AttributeDefinition(name = "%token", description = "%tokenDesc", type = AttributeType.PASSWORD, required = false)
         String token();
