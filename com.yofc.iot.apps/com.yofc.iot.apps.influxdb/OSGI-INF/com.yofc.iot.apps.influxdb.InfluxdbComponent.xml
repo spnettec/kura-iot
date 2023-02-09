@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.iot.apps.influxdb.InfluxdbComponent" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
   <property name="tags" type="String" value="tag1=111,tag2=222"/>
+  <property name="precison" type="String" value="none"/>
   <property name="script" type="String" value=""/>
   <property name="initScript" type="String" value=""/>
   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
