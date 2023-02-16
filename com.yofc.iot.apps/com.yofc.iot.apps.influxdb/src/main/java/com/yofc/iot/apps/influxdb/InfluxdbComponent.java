@@ -236,7 +236,7 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             Point point = Point.measurement(this.config.measurement());
             if (this.config.precison() != null && !this.config.precison().equals("")
                     && !this.config.precison().equals("none")) {
-                point.time(Instant.now(), WritePrecision.valueOf(this.config.precison()));
+                point.time(Instant.now(), WritePrecision.fromValue(this.config.precison()));
             }
             point.addTags(parseTags(this.config.tags()));
             Map<String, Object> result = Utils.toMap(wires);
