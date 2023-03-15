@@ -145,10 +145,8 @@ public class ProxyRouteImpl implements ProxyRoute {
 
         client.request(requestOptions).onSuccess(clientRequest -> {
             serverRequest.resume();
-            serverRequest.handler(requestData -> {
-                // clientRequest.write(requestData);
-                requestBuffer.appendBuffer(requestData);
-            });
+            // clientRequest.write(requestData);
+            serverRequest.handler(requestBuffer::appendBuffer);
             serverRequest.endHandler(v -> {
                 if (preListener != null)
                     preListener.apply(routingContext, clientRequest, requestBuffer);
@@ -224,10 +222,8 @@ public class ProxyRouteImpl implements ProxyRoute {
                             serverResponse.putHeader(entry.getKey(), entry.getValue());
                     });
                 }
-                clientResponse.handler(responseData -> {
-                    // serverResponse.write(responseData);
-                    responseBuffer.appendBuffer(responseData);
-                });
+                // serverResponse.write(responseData);
+                clientResponse.handler(responseBuffer::appendBuffer);
                 clientResponse.endHandler(v -> {
                     if (postListener != null)
                         postListener.apply(routingContext, serverResponse, responseBuffer);
