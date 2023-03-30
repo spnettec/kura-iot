@@ -59,6 +59,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.ULong;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -298,6 +299,8 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 } else {
                     builder.addTagAddress(tag, tag, strValue);
                 }
+            } else if (value instanceof UNumber) {
+                builder.addTagAddress(tag, tag, ((UNumber) value).toString());
             } else {
                 builder.addTagAddress(tag, tag, value);
             }

@@ -127,6 +127,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
         for (Tag tag : tags) {
             String tagName = tag.getName();
             String tagAlias = tag.getAlias();
+            String iden = tag.getIden();
             if (tagAlias == null || tagAlias.equals("")) {
                 tagAlias = tagName;
             }
@@ -134,6 +135,9 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 tagName = tagAlias;
             }
             String nodeName = parentNode.getNodeId().getIdentifier() + "/" + tagName;
+            if (iden != null && !iden.equals("")) {
+                nodeName = iden;
+            }
             String nodeAlias = tagAlias;
             NodeId nodeId = newNodeId(nodeName);
             if (getNodeManager().containsNode(nodeId)) {

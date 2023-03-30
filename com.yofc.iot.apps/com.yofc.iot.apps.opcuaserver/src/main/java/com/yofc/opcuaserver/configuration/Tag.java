@@ -30,6 +30,8 @@ public class Tag {
 
     @JsonProperty
     private String address;
+    @JsonProperty
+    private String iden;
 
     public Tag() {
     }
@@ -48,6 +50,14 @@ public class Tag {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getIden() {
+        return iden;
+    }
+
+    public void setIden(String iden) {
+        this.iden = iden;
     }
 
 }
