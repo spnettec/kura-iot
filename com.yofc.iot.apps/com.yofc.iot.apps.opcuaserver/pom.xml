@@ -187,12 +187,6 @@
 	      <artifactId>plc4j-connection-cache</artifactId>
 	      <version>0.11.0-SNAPSHOT</version>
 	    </dependency>
-	    
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-connection-pool</artifactId>
-	      <version>0.11.0-SNAPSHOT</version>
-	    </dependency>
 
 	    <!-- Include all drivers -->
 	    <dependency>
@@ -248,6 +242,16 @@
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-driver-simulated</artifactId>
+	      <version>0.11.0-SNAPSHOT</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.apache.plc4x</groupId>
+	      <artifactId>plc4j-driver-plc4x</artifactId>
+	      <version>0.11.0-SNAPSHOT</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.apache.plc4x</groupId>
+	      <artifactId>plc4j-plc4x-server</artifactId>
 	      <version>0.11.0-SNAPSHOT</version>
 	    </dependency>
         <dependency>
@@ -320,7 +324,7 @@
 		<dependency>
 	      <groupId>net.lingala.zip4j</groupId>
 	      <artifactId>zip4j</artifactId>
-	       <version>2.11.2</version>
+	       <version>2.11.5</version>
 	    </dependency>
 	   
 	    <dependency>
