@@ -16,6 +16,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -33,12 +34,16 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     private Optional<CompletableFuture<OPCUAServer>> startTask = Optional.empty();
     private Config preConfig = null;
 
+    @Reference
     private PlcConnectionManager plcConnectionManager;
 
     @Activate
     public void start(final BundleContext context, Config properties) throws KuraException {
-        ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-        plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader)).build();
+        if (plcConnectionManager == null) {
+            ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
+            plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader))
+                    .build();
+        }
         this.preConfig = properties;
         updateConfig(properties);
     }

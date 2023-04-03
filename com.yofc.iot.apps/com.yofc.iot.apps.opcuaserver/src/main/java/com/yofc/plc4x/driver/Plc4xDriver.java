@@ -54,6 +54,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -72,13 +73,18 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     private final Map<ChannelListener, PlcSubscriptionHandle> registeredListeners = new ConcurrentHashMap<>();
 
     private final AtomicReference<Config> options = new AtomicReference<>();
+
+    @Reference
     private PlcConnectionManager plcConnectionManager;
 
     @Activate
     protected synchronized void activate(final BundleContext context, final Config properties) {
         logger.info("Activating Plc4xDriver...");
-        ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-        plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader)).build();
+        if (plcConnectionManager == null) {
+            ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
+            plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader))
+                    .build();
+        }
         extractProperties(properties);
         logger.info("Activating Plc4xDriver... Done");
     }
@@ -271,9 +277,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             logger.info("Incoming event:");
             for (String fieldName : plcSubscriptionEvent.getTagNames()) {
                 final PlcValue plcValue = plcSubscriptionEvent.getPlcValue(fieldName);
-                if (plcValue.isList()) {
-                    logger.warn("Not support list value: {}", plcValue);
-                } else if (plcValue.isStruct()) {
+                if (plcValue.isStruct()) {
                     logger.warn("Not support struct value: {}", plcValue);
                 } else {
                     ChannelRecord channelRecord = ChannelRecord.createReadRecord(fieldName, valueType);
