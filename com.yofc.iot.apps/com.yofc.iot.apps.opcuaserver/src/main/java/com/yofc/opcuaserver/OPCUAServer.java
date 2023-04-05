@@ -238,16 +238,24 @@ public class OPCUAServer {
         Set<String> hostnames = new LinkedHashSet<>();
         hostnames.addAll(HostnameUtil.getHostnames("0.0.0.0"));
         hostnames.add(HostnameUtil.getHostname());
+        String path = config.getPath();
+        if (path == null || "".equals(path)) {
+            path = "";
+        }
 
         for (String bindAddress : bindAddresses) {
             for (String hostname : hostnames) {
                 EndpointConfiguration.Builder builder = EndpointConfiguration.newBuilder().setBindAddress(bindAddress)
-                        .setHostname(hostname).setPath("/iot").setCertificate(certificate.getCertificate())
+                        .setHostname(hostname).setPath(path).setCertificate(certificate.getCertificate())
                         .setBindPort(config.getTcpPort()).setSecurityMode(MessageSecurityMode.None).addTokenPolicies(
                                 USER_TOKEN_POLICY_ANONYMOUS, USER_TOKEN_POLICY_USERNAME, USER_TOKEN_POLICY_X509);
 
-                endpointConfigurations.add(builder.copy().setSecurityPolicy(SecurityPolicy.Basic256Sha256)
-                        .setSecurityMode(MessageSecurityMode.SignAndEncrypt).build());
+                if (!config.getDisableInsecureEndpoint()) {
+                    EndpointConfiguration.Builder noSecurityBuilder = builder.copy()
+                            .setSecurityPolicy(SecurityPolicy.None)
+                            .setTransportProfile(TransportProfile.TCP_UASC_UABINARY);
+                    endpointConfigurations.add(noSecurityBuilder.build());
+                }
 
                 endpointConfigurations.add(builder.copy().setSecurityPolicy(SecurityPolicy.Basic256Sha256)
                         .setSecurityMode(MessageSecurityMode.SignAndEncrypt).build());
@@ -257,30 +265,11 @@ public class OPCUAServer {
 
                 endpointConfigurations.add(discoveryBuilder.build());
 
-                EndpointConfiguration.Builder discoveryLocalBuilder = builder.copy().setPath("/discovery")
-                        .setSecurityPolicy(SecurityPolicy.None).setSecurityMode(MessageSecurityMode.None);
-
-                endpointConfigurations.add(discoveryLocalBuilder.build());
-
-                EndpointConfiguration.Builder discoveryLocalPlc4xBuilder = builder.copy().setPath("/iot/discovery")
+                EndpointConfiguration.Builder discoveryLocalPlc4xBuilder = builder.copy().setPath(path + "/discovery")
                         .setSecurityPolicy(SecurityPolicy.None).setSecurityMode(MessageSecurityMode.None);
 
                 endpointConfigurations.add(discoveryLocalPlc4xBuilder.build());
 
-                if (!config.getDisableInsecureEndpoint()) {
-                    EndpointConfiguration.Builder noSecurityBuilder = builder.copy()
-                            .setSecurityPolicy(SecurityPolicy.None)
-                            .setTransportProfile(TransportProfile.TCP_UASC_UABINARY);
-                    endpointConfigurations.add(noSecurityBuilder.build());
-                }
-
-                // Always add an unsecured endpoint to localhost, this is a work around for Milo throwing an exception
-                // if it
-                // isn't here.
-                EndpointConfiguration.Builder noSecurityBuilder = builder.copy().setSecurityPolicy(SecurityPolicy.None)
-                        .setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
-                        .setSecurityMode(MessageSecurityMode.None);
-                endpointConfigurations.add(noSecurityBuilder.build());
             }
         }
 
@@ -292,12 +281,12 @@ public class OPCUAServer {
         @SuppressWarnings("unchecked")
         OpcUaServerConfig serverConfig = OpcUaServerConfig.builder().setApplicationUri(applicationUri)
                 .setApplicationName(LocalizedText.english(applicationUri)).setEndpoints(endpointConfigurations)
-                .setBuildInfo(new BuildInfo("urn:com:yofc:iot:server", "com.yofc.iot", config.getName(),
-                        OpcUaServer.SDK_VERSION, "", DateTime.now()))
+                .setBuildInfo(new BuildInfo("urn:com:yofc:iot:edg", "YOFC", config.getName(), OpcUaServer.SDK_VERSION,
+                        "1.0", DateTime.now()))
                 .setCertificateManager(certificateManager).setTrustListManager(trustListManager)
                 .setCertificateValidator(certificateValidator)
                 .setIdentityValidator(new CompositeValidator<>(identityValidator, x509IdentityValidator))
-                .setProductUri("urn:com:yofc:iot:server").build();
+                .setProductUri("urn:com:yofc:iot:edg").build();
 
         server = new OpcUaServer(serverConfig);
 

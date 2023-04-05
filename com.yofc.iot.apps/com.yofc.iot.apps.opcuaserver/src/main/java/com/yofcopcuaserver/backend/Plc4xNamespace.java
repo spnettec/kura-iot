@@ -58,7 +58,7 @@ import com.yofc.opcuaserver.configuration.Tag;
 
 public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
 
-    public static final String APPLICATIONID = "urn:com:yofc:iot:server";
+    public static final String APPLICATIONID = "urn:com:yofc:iot:plc4x";
 
     private Configuration config;
     private final Logger logger = LoggerFactory.getLogger(getClass());

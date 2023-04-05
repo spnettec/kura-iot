@@ -39,6 +39,9 @@ public class Configuration {
     private String name;
 
     @JsonProperty
+    private String path;
+
+    @JsonProperty
     private String alias;
 
     @JsonProperty
@@ -138,6 +141,14 @@ public class Configuration {
 
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
 }
