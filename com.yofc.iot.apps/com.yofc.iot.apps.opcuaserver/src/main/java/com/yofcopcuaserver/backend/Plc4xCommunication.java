@@ -19,7 +19,6 @@
 
 package com.yofcopcuaserver.backend;
 
-import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.ulong;
 
 import java.lang.reflect.Array;
@@ -36,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
@@ -47,18 +47,20 @@ import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.types.PlcValueType;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.PlcBOOL;
+import org.apache.plc4x.java.spi.values.PlcBYTE;
 import org.apache.plc4x.java.spi.values.PlcLTIME;
 import org.apache.plc4x.java.spi.values.PlcTIME;
+import org.apache.plc4x.java.spi.values.PlcULINT;
 import org.eclipse.milo.opcua.sdk.server.AbstractLifecycle;
 import org.eclipse.milo.opcua.sdk.server.api.DataItem;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.types.builtin.ByteString;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.ULong;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +124,44 @@ public class Plc4xCommunication extends AbstractLifecycle {
         case BYTE:
         case USINT:
             return Identifiers.Byte;
+        case SINT:
+            return Identifiers.SByte;
+        case INT:
+            return Identifiers.Int16;
+        case WORD:
+        case UINT:
+            return Identifiers.UInt16;
+        case DINT:
+            return Identifiers.Int32;
+        case DWORD:
+        case UDINT:
+            return Identifiers.UInt32;
+        case LINT:
+            return Identifiers.Int64;
+        case ULINT:
+        case LWORD:
+            return Identifiers.UInt64;
+        case REAL:
+            return Identifiers.Float;
+        case LREAL:
+            return Identifiers.Double;
+        case CHAR:
+        case WCHAR:
+        case STRING:
+        case WSTRING:
+            return Identifiers.String;
+        default:
+            return Identifiers.BaseDataType;
+        }
+    }
+
+    public static NodeId getArrayNodeId(PlcValueType plcValueType) {
+        switch (plcValueType) {
+        case BOOL:
+            return Identifiers.Boolean;
+        case BYTE:
+        case USINT:
+            return Identifiers.ByteString;
         case SINT:
             return Identifiers.SByte;
         case INT:
@@ -234,23 +274,26 @@ public class Plc4xCommunication extends AbstractLifecycle {
                         }
                     } else {
                         Object array = null;
-                        if (response.getObject(fieldName, 0) instanceof BigInteger) {
-                            array = Array.newInstance(ULong.class, numValues);
-                        } else if (response.getObject(fieldName, 0) instanceof Byte) {
-                            array = Array.newInstance(Byte.class, numValues);
-                        } else if (response.getObject(fieldName, 0) instanceof List
-                                && ((List<?>) response.getObject(fieldName, 0)).get(0) instanceof PlcBOOL) {
-                            array = Array.newInstance(Byte.class, numValues);
-                        } else {
-                            array = Array.newInstance(response.getObject(fieldName, 0).getClass(), numValues);
+                        Object plcValue = response.getObject(fieldName);
+                        if (plcValue instanceof List) {
+                            plcValue = ((List<?>) plcValue).get(0);
                         }
+                        if (plcValue instanceof PlcULINT) {
+                            array = Array.newInstance(BigInteger.class, numValues);
+                        } else if (plcValue instanceof PlcBYTE) {
+                            array = Array.newInstance(Byte.class, numValues);
+                        } else if (plcValue instanceof PlcBOOL) {
+                            array = Array.newInstance(Boolean.class, numValues);
+                        } else {
+                            array = Array.newInstance(((PlcValue) plcValue).getObject().getClass(), numValues);
+                        }
+
                         for (int i = 0; i < numValues; i++) {
-                            if (response.getObject(fieldName, i) instanceof BigInteger) {
-                                Array.set(array, i, ulong((BigInteger) response.getObject(fieldName, i)));
-                            } else if (response.getObject(fieldName, i) instanceof Byte) {
-                                Array.set(array, i, ubyte((int) response.getObject(fieldName, i)));
-                            } else if (response.getObject(fieldName, i) instanceof List
-                                    && ((List<?>) response.getObject(fieldName, i)).get(0) instanceof PlcBOOL) {
+                            if (plcValue instanceof PlcULINT) {
+                                Array.set(array, i, response.getInteger(fieldName, i));
+                            } else if (plcValue instanceof PlcBYTE) {
+                                Array.set(array, i, response.getByte(fieldName, i));
+                            } else if (plcValue instanceof PlcBOOL) {
                                 @SuppressWarnings("unchecked")
                                 List<PlcValue> list = ((List<PlcValue>) response.getObject(fieldName, i));
                                 byte recivedID = 0;
@@ -262,6 +305,13 @@ public class Plc4xCommunication extends AbstractLifecycle {
                             } else {
                                 Array.set(array, i, response.getObject(fieldName, i));
                             }
+                        }
+                        if (array instanceof Byte[]) {
+                            array = ArrayUtils.toPrimitive(array);
+                        }
+
+                        if (array instanceof byte[]) {
+                            array = ByteString.of((byte[]) array);
                         }
                         resp = new DataValue(new Variant(array), StatusCode.GOOD);
                     }

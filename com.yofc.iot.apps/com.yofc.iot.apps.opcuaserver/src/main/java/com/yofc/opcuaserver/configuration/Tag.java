@@ -36,20 +36,28 @@ public class Tag {
     public Tag() {
     }
 
-    public String getAlias() {
-        return alias;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAlias() {
+        return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getIden() {

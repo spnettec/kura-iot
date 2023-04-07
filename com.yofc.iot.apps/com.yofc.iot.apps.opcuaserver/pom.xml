@@ -26,6 +26,24 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.yofc.iot</groupId>
+            <artifactId>yofc-iot-repack-vertx-db</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.yofc.iot</groupId>
+            <artifactId>yofc-iot-repack-vertx</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-sql-client</artifactId>
+			<version>${vertx.version}</version>
+			<scope>test</scope>
+		</dependency>
+        <dependency>
             <groupId>org.eclipse.kura</groupId>
             <artifactId>org.eclipse.kura.core.configuration</artifactId>
             <scope>provided</scope>

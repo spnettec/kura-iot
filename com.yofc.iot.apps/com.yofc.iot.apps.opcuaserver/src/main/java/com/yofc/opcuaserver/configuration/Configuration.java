@@ -39,7 +39,7 @@ public class Configuration {
     private String name;
 
     @JsonProperty
-    private String path;
+    private String path = "";
 
     @JsonProperty
     private String alias;
@@ -67,6 +67,9 @@ public class Configuration {
 
     @JsonProperty
     private Integer tcpPort = 12686;
+
+    @JsonProperty
+    private Integer n = 0;
 
     public Configuration() {
     }
@@ -149,6 +152,14 @@ public class Configuration {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public Integer getN() {
+        return n;
+    }
+
+    public void setN(Integer n) {
+        this.n = n;
     }
 
 }

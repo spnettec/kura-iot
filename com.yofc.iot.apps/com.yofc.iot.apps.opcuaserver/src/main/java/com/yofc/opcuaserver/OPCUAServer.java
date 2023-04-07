@@ -62,6 +62,7 @@ import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.transport.TransportProfile;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UShort;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.BuildInfo;
 import org.eclipse.milo.opcua.stack.core.util.CertificateUtil;
@@ -290,6 +291,13 @@ public class OPCUAServer {
 
         server = new OpcUaServer(serverConfig);
 
+        int max = server.getNamespaceTable().toArray().length;
+
+        int n = config.getN();
+        while (n > max) {
+            server.getNamespaceTable().putUri("", UShort.valueOf(max));
+            max++;
+        }
         plc4xNamespace = new Plc4xNamespace(server, config, plcConnectionManager);
         plc4xNamespace.startup();
 

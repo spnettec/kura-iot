@@ -210,7 +210,7 @@
                         <Embed-Dependency>*;scope=compile|runtime;artifactId=!jsr305|kotlin-stdlib|kotlin-stdlib-common</Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <_exportcontents>
-                            io.vertx.*,io.reactivex.*,org.reactivestreams.*,com.zaxxer.*,com.mchange.v2.*;-noimport:=true
+                            io.vertx.*,io.reactivex.*,io.vertx.reactivex.*,org.reactivestreams.*,com.zaxxer.*,com.mchange.v2.*;-noimport:=true
                         </_exportcontents>
 
                         <Import-Package>
