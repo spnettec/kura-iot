@@ -88,7 +88,6 @@ public class OPCUAServer {
 
     private final OpcUaServer server;
     private final Plc4xNamespace plc4xNamespace;
-    private final String certificateFileName = "opcuaserver.pfx";
 
     private void setPasswordWrapper() {
         try {
@@ -119,7 +118,9 @@ public class OPCUAServer {
                 passwordConfig.setPasswordConfigFile(path);
                 setPasswordWrapper();
             } else {
-                file.getParentFile().mkdirs();
+                if (!file.getParentFile().mkdirs()) {
+                    logger.error("Error create dictionary");
+                }
                 passwordConfig = new PasswordConfiguration();
                 passwordConfig.setVersion(config.getVersion());
                 passwordConfig.setPasswordConfigFile(path);
@@ -207,15 +208,17 @@ public class OPCUAServer {
         Security.addProvider(new BouncyCastleProvider());
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
 
+        String certificateFileName = "opcuaserver.pfx";
         File serverKeyStore = securityTempDir.toPath().resolve(certificateFileName).toFile();
 
         X509IdentityValidator x509IdentityValidator = new X509IdentityValidator(c -> true);
 
-        CertificateKeyPair certificate = null;
+        CertificateKeyPair certificate;
         if (!serverKeyStore.exists()) {
             certificate = CertificateGenerator.generateCertificate();
             logger.info("Creating new KeyStore at {}", serverKeyStore);
             keyStore.load(null, passwordConfig.getSecurityPassword().toCharArray());
+            assert certificate != null;
             keyStore.setKeyEntry("yofciot-certificate-alias", certificate.getKeyPair().getPrivate(),
                     passwordConfig.getSecurityPassword().toCharArray(),
                     new X509Certificate[] { certificate.getCertificate() });
@@ -236,8 +239,7 @@ public class OPCUAServer {
         Set<EndpointConfiguration> endpointConfigurations = new LinkedHashSet<>();
         List<String> bindAddresses = new ArrayList<>();
         bindAddresses.add("0.0.0.0");
-        Set<String> hostnames = new LinkedHashSet<>();
-        hostnames.addAll(HostnameUtil.getHostnames("0.0.0.0"));
+        Set<String> hostnames = new LinkedHashSet<>(HostnameUtil.getHostnames("0.0.0.0"));
         hostnames.add(HostnameUtil.getHostname());
         String path = config.getPath();
         if (path == null || "".equals(path)) {
