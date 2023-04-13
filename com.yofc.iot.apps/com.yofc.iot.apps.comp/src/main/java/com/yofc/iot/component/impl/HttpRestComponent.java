@@ -1,10 +1,38 @@
 package com.yofc.iot.component.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.eclipse.kura.configuration.ConfigurableComponent;
+import org.eclipse.kura.wire.WireComponent;
+import org.eclipse.kura.wire.WireEmitter;
+import org.eclipse.kura.wire.WireHelperService;
+import org.eclipse.kura.wire.WireSupport;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
+import org.osgi.service.wireadmin.Producer;
+import org.osgi.service.wireadmin.Wire;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.HttpRestComponent.HttpRestComponentCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.BasicAuth;
 import com.yofc.vertx.osgi.api.Utils;
+
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
@@ -22,32 +50,12 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
-import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.eclipse.kura.wire.WireComponent;
-import org.eclipse.kura.wire.WireEmitter;
-import org.eclipse.kura.wire.WireHelperService;
-import org.eclipse.kura.wire.WireSupport;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.*;
-import org.osgi.service.metatype.annotations.AttributeDefinition;
-import org.osgi.service.metatype.annotations.Designate;
-import org.osgi.service.metatype.annotations.ObjectClassDefinition;
-import org.osgi.service.wireadmin.Producer;
-import org.osgi.service.wireadmin.Wire;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /** @author heyoulin */
 @Designate(factory = true, ocd = HttpRestComponentCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
-        WireComponent.class, WireEmitter.class, ConfigurableComponent.class, Producer.class }, property = {
-        "kura.ui.service.hide:Boolean=true" })
+        WireComponent.class, WireEmitter.class, ConfigurableComponent.class,
+        Producer.class }, property = { "kura.ui.service.hide:Boolean=true" })
 public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRestComponent.class);
@@ -176,8 +184,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
         int code = failureroutingContext.statusCode();
         failureroutingContext.response().setStatusCode(code);
-        failureroutingContext.response().end(failureroutingContext.failure() == null
-                ? "Unknow error"
+        failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
                 : failureroutingContext.failure().getMessage());
     }
 
@@ -237,7 +244,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             script.run();
             output = script.getProperty(outputName);
 
-            if (output != null && !(output instanceof CompletableFuture)) {
+            if (output != null && !(output instanceof CompletableFuture || output instanceof Promise
+                    || output instanceof Future)) {
                 wireSupport.emit(Utils.getWireRecords(Utils.objectToWireRecord(outputName, output)));
             }
         } catch (Exception e) {
@@ -295,12 +303,16 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.HttpRestComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.HttpRestComponentCfg")
     @interface HttpRestComponentCfg {
 
-        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false) String script() default "def aa=1";
+        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)
+        String script() default "def aa=1";
 
-        @AttributeDefinition(name = "%initScript", cardinality = 0, description = "%initScriptDesc", required = false) String initScript() default "";
+        @AttributeDefinition(name = "%initScript", cardinality = 0, description = "%initScriptDesc", required = false)
+        String initScript() default "";
 
-        @AttributeDefinition(name = "%route", description = "%routeDesc", required = true) String route() default "/demo/*";
+        @AttributeDefinition(name = "%route", description = "%routeDesc", required = true)
+        String route() default "/demo/*";
 
-        @AttributeDefinition(name = "%users", cardinality = 0, description = "%usersDesc", required = false) String users() default "admin=111,guest=222";
+        @AttributeDefinition(name = "%users", cardinality = 0, description = "%usersDesc", required = false)
+        String users() default "admin=111,guest=222";
     }
 }
