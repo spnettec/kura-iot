@@ -9,7 +9,6 @@
     <artifactId>yofc-iot-repack</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>com.yofc.iot.repack.vertx</module>
         <module>com.yofc.iot.repack.vertx.db</module>
   </modules>
 </project>

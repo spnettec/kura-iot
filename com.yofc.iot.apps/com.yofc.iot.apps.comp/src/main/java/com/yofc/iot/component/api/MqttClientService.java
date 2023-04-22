@@ -2,7 +2,7 @@ package com.yofc.iot.component.api;
 
 import org.eclipse.kura.KuraException;
 
-import io.reactivex.functions.BiConsumer;
+import java.util.function.BiConsumer;
 
 public interface MqttClientService {
 

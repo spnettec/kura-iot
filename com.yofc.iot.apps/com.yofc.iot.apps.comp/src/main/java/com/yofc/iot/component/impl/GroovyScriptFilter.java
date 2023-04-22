@@ -105,7 +105,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
         serviceTool.ungetServices();
         scriptSource = properties.script();
 
-        if (!"".equals(scriptSource)) {
+        if (!"".equals(scriptSource) || !"".equals(properties.initScript())) {
 
             if (webClient != null) {
                 webClient.close();

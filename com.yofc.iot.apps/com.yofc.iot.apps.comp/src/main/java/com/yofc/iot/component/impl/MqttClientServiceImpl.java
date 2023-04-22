@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -55,7 +56,6 @@ import com.yofc.iot.component.utils.MqttClientConfiguration.PersistenceType;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
-import io.reactivex.functions.BiConsumer;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)

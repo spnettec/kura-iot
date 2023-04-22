@@ -1,17 +1,12 @@
 package com.yofc.vertx.osgi.api;
 
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonObject;
-import io.vertx.reactivex.core.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -444,13 +439,13 @@ public class EventBusBridge {
     }
 
     @Override
-    public void reply(@Nullable Object message, DeliveryOptions options) {
+    public void reply(Object message, DeliveryOptions options) {
       replyAndRequest(message, options);
     }
 
     @Override
     public <R> Future<Message<R>> replyAndRequest(
-        @Nullable Object message, DeliveryOptions options) {
+        Object message, DeliveryOptions options) {
       Promise<Message<R>> result = Promise.promise();
       if (this.replyAddress != null) {
         EventBusBridge.this.send(
