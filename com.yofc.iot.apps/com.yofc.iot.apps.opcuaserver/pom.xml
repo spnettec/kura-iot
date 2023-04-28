@@ -340,11 +340,15 @@
           <scope>provided</scope>
         </dependency>
 		<dependency>
-	      <groupId>net.lingala.zip4j</groupId>
-	      <artifactId>zip4j</artifactId>
+	       <groupId>net.lingala.zip4j</groupId>
+	       <artifactId>zip4j</artifactId>
 	       <version>2.11.5</version>
 	    </dependency>
-	   
+	   <dependency>
+	        <groupId>org.json</groupId>
+	        <artifactId>json</artifactId>
+	        <version>20230227</version>
+      </dependency>
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
 	      <artifactId>bcpkix-jdk18on</artifactId>
