@@ -274,7 +274,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                     Promise<Object> promise = (Promise<Object>) output;
                     promise.future().onComplete(v -> {
                         if (v.failed()) {
-                            response.end(v.cause().getMessage());
+                            response.end(v.cause() == null ? "unknow reson" : v.cause().getMessage());
                         } else {
                             response.end(v.result().toString());
                         }

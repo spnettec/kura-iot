@@ -1,32 +1,46 @@
 package com.yofc.iot.component.impl;
 
-import com.yofc.iot.component.api.ServieTool;
-import com.yofc.iot.component.api.TextSocketClientService;
-import com.yofc.iot.component.impl.TextSocketClientServiceImpl.Config;
-import com.yofc.vertx.osgi.api.AssetHelp;
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
-import groovy.lang.Script;
-import io.vertx.core.Future;
-import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.core.net.NetSocket;
-import io.vertx.ext.web.client.WebClient;
+import java.nio.BufferOverflowException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeoutException;
+
 import org.eclipse.kura.KuraConnectException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
-import org.osgi.service.component.annotations.*;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.BufferOverflowException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.*;
+import com.yofc.iot.component.api.ServieTool;
+import com.yofc.iot.component.api.TextSocketClientService;
+import com.yofc.iot.component.impl.TextSocketClientServiceImpl.Config;
+import com.yofc.vertx.osgi.api.AssetHelp;
+
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.NetSocket;
+import io.vertx.ext.web.client.WebClient;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
@@ -193,9 +207,8 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 connectPromise.fail(result.cause());
                 TextSocketClientServiceImpl.this.closeSocketClient();
                 if (properties.reconnectAttempts() > 0) {
-                    logger.info("连接到服务器:{},端口:{},服务:{} 失败次数超过:{}次，服务停止，请重新启动",
-                            properties.host(), properties.port(), this.mapProperties.get(ServieTool.KURA_SERVICE_PID),
-                            properties.reconnectAttempts());
+                    logger.info("连接到服务器:{},端口:{},服务:{} 失败次数超过:{}次，服务停止，请重新启动", properties.host(), properties.port(),
+                            this.mapProperties.get(ServieTool.KURA_SERVICE_PID), properties.reconnectAttempts());
                 }
             } else {
                 NetSocket netSocket = result.result();
@@ -273,7 +286,10 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     }
 
     private String convertWriteMessage(String message) {
-        if (writeScriptSource == null) {
+        if ("".equals(writeScriptSource)) {
+            return message;
+        } else if (writeScript == null) {
+            logger.warn("readScriptSource parse error.Please input correct groovy script");
             return message;
         }
         try {
@@ -289,22 +305,20 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     private ReadMsg convertReadMessage(String message) {
         ReadMsg readMsg = new ReadMsg("", message);
 
-        if (readScriptSource == null) {
-            logger.error("Script parse error.Please input correct groovy script");
+        if ("".equals(readScriptSource)) {
+            return readMsg;
+        } else if (readScript == null) {
+            logger.warn("readScriptSource parse error.Please input correct groovy script");
             return readMsg;
         }
-        if (!"".equals(readScriptSource)) {
-
-            try {
-                readScript.setProperty("handler", handler);
-                readScript.setProperty("readMsg", readMsg);
-                readScript.run();
-                return (ReadMsg) readScript.getProperty("readMsg");
-            } catch (Exception e) {
-                logger.warn("Failed to execute script", e);
-            }
+        try {
+            readScript.setProperty("handler", handler);
+            readScript.setProperty("readMsg", readMsg);
+            readScript.run();
+            return (ReadMsg) readScript.getProperty("readMsg");
+        } catch (Exception e) {
+            logger.warn("Failed to execute script", e);
         }
-
         return readMsg;
     }
 
@@ -347,28 +361,35 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.TextSocketClientServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.TextSocketClientServiceCfg")
     @interface Config {
 
-        @AttributeDefinition(name = "%activate", description = "%activateDesc") boolean activate() default false;
+        @AttributeDefinition(name = "%activate", description = "%activateDesc")
+        boolean activate() default false;
 
-        @AttributeDefinition(name = "%host", cardinality = 0, description = "%hostDesc", required = true) String host() default "127.0.0.1";
+        @AttributeDefinition(name = "%host", cardinality = 0, description = "%hostDesc", required = true)
+        String host() default "127.0.0.1";
 
-        @AttributeDefinition(name = "%port", cardinality = 0, description = "%portDesc", required = true) int port() default 8080;
+        @AttributeDefinition(name = "%port", cardinality = 0, description = "%portDesc", required = true)
+        int port() default 8080;
 
-        @AttributeDefinition(name = "%connectTimeout", cardinality = 0, description = "%connectTimeoutDesc", required = true) int connectTimeout() default 1000;
+        @AttributeDefinition(name = "%connectTimeout", cardinality = 0, description = "%connectTimeoutDesc", required = true)
+        int connectTimeout() default 1000;
 
-        @AttributeDefinition(name = "%reconnectAttempts", cardinality = 0, description = "%reconnectAttemptsDesc", required = true) int reconnectAttempts() default 10;
+        @AttributeDefinition(name = "%reconnectAttempts", cardinality = 0, description = "%reconnectAttemptsDesc", required = true)
+        int reconnectAttempts() default 10;
 
-        @AttributeDefinition(name = "%reconnectInterval", cardinality = 0, description = "%reconnectIntervalDesc", required = true) int reconnectInterval() default 10000;
+        @AttributeDefinition(name = "%reconnectInterval", cardinality = 0, description = "%reconnectIntervalDesc", required = true)
+        int reconnectInterval() default 10000;
 
-        @AttributeDefinition(name = "%preWriteProcessCode", cardinality = 0, description = "%preWriteProcessCodeDesc", required = false) String preWriteProcessCode() default
-                "double random = Math.random();" + "message = random + \":\" + message + \"\\r\\n\"; ";
+        @AttributeDefinition(name = "%preWriteProcessCode", cardinality = 0, description = "%preWriteProcessCodeDesc", required = false)
+        String preWriteProcessCode() default "double random = Math.random();"
+                + "message = random + \":\" + message + \"\\r\\n\"; ";
 
-        @AttributeDefinition(name = "%preReadProcessCode", cardinality = 0, description = "%preReadProcessCodeDesc", required = false) String preReadProcessCode() default
-                "String[] msgs = readMsg.getMsg().split(\":\", 2);" + "" + "if (msgs.length > 1) {"
-                        + "     readMsg.setKey(msgs[0]);" + "     readMsg.setMsg(msgs[1]);"
-                        + "} else if (msgs.length == 1) {" + "      readMsg.setMsg(msgs[0]);" + "}" + "        "
-                        + "if (readMsg.getMsg() != null && (readMsg.getMsg().startsWith(\"FEED\"))) {"
-                        + "    if (handler != null) {" + "        handler.handle(readMsg.getMsg());"
-                        + "        readMsg.setHandled(true);" + "      }" + "}";
+        @AttributeDefinition(name = "%preReadProcessCode", cardinality = 0, description = "%preReadProcessCodeDesc", required = false)
+        String preReadProcessCode() default "String[] msgs = readMsg.getMsg().split(\":\", 2);" + ""
+                + "if (msgs.length > 1) {" + "     readMsg.setKey(msgs[0]);" + "     readMsg.setMsg(msgs[1]);"
+                + "} else if (msgs.length == 1) {" + "      readMsg.setMsg(msgs[0]);" + "}" + "        "
+                + "if (readMsg.getMsg() != null && (readMsg.getMsg().startsWith(\"FEED\"))) {"
+                + "    if (handler != null) {" + "        handler.handle(readMsg.getMsg());"
+                + "        readMsg.setHandled(true);" + "      }" + "}";
     }
 
     static class ReadMsg {
@@ -425,7 +446,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         @Override
         public void handle(Long event) {
             if (!tp.getPromise().future().isComplete()) {
-                tp.getPromise().fail(new TimeoutException());
+                tp.getPromise().fail(new TimeoutException("Request TimeOut"));
                 if (key == null || "".equals(key)) {
                     messageList.remove(tp);
                 } else {
