@@ -99,7 +99,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
     private synchronized void closeSocketClient() {
         serviceTool.ungetServices();
         if (this.connectTask != null) {
-            if (connectTask.isComplete()) {
+            if (connectTask.isComplete() && connectTask.result() != null) {
                 connectTask.result().close();
             }
             this.connectTask = null;
