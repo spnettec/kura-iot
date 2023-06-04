@@ -180,7 +180,8 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 } else {
                     connectPromise.complete(connectTask.result());
                 }
-                return connectPromise.future();
+                connectTask = connectPromise.future();
+                return connectTask;
             }
         }
         Promise<NetSocket> connectPromise = Promise.promise();
@@ -198,7 +199,8 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         options.setReuseAddress(true);
         netClient = vertx.createNetClient(options);
         netClient.connect(properties.port(), properties.host(), handleConnection(properties, connectPromise));
-        return connectPromise.future();
+        connectTask = connectPromise.future();
+        return connectTask;
     }
 
     private Handler<AsyncResult<NetSocket>> handleConnection(Config properties, Promise<NetSocket> connectPromise) {
@@ -219,11 +221,13 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                     logger.info("连接到服务器:{},端口:{},服务:{} 连接丢失", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID));
                     TextSocketClientServiceImpl.this.closeSocketClient();
+                    TextSocketClientServiceImpl.this.doConnect(properties);
                 });
                 netSocket.exceptionHandler(e -> {
                     logger.info("连接到服务器:{},端口:{},服务:{} 连接错误", properties.host(), properties.port(),
                             this.mapProperties.get(ServieTool.KURA_SERVICE_PID), e);
                     TextSocketClientServiceImpl.this.closeSocketClient();
+                    TextSocketClientServiceImpl.this.doConnect(properties);
                 });
 
                 netSocket.handler(this::handlerBuffer);
