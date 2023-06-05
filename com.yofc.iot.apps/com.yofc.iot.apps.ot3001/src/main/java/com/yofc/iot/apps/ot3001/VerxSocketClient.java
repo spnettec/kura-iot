@@ -30,7 +30,7 @@ public class VerxSocketClient {
     private NetClient netClient;
     Vertx vertx;
     private Handler<Buffer> handler;
-    protected volatile AtomicReference<TimePromise> runningTp = new AtomicReference<>(null);
+    protected AtomicReference<TimePromise> runningTp = new AtomicReference<>(null);
     MixRecordParser parser = MixRecordParser.newMixed("\r\n", 4);
     private String host = "127.0.0.1";
     private int port = 8000;
@@ -92,7 +92,8 @@ public class VerxSocketClient {
         }
         netClient = vertx.createNetClient(options);
         netClient.connect(this.port, this.host, handleConnection(connectPromise));
-        return connectPromise.future();
+        this.connectTask = connectPromise.future();
+        return this.connectTask;
     }
 
     Handler<Buffer> output = buffer -> {

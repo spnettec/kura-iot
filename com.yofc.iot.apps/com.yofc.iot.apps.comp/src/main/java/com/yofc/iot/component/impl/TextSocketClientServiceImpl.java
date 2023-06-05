@@ -335,13 +335,17 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
                 promise.fail(v.cause());
                 return;
             }
-            String covertMessage = convertWriteMessage(message);
+            String covertMessage = message;
             String key = null;
-            String[] msgs = covertMessage.split(":", 2);
-            if (msgs.length > 1) {
-                key = msgs[0];
-                covertMessage = msgs[1];
+            if (!"".equals(writeScriptSource)) {
+                covertMessage = convertWriteMessage(message);
+                String[] msgs = covertMessage.split(":", 2);
+                if (msgs.length > 1) {
+                    key = msgs[0];
+                    covertMessage = msgs[1];
+                }
             }
+
             TimePromise tp = new TimePromise(promise, 0L);
             if (key == null || "".equals(key)) {
                 long timer = vertx.setTimer(timeOut, new TimeOutTask(key, tp, messageList, messageMap));

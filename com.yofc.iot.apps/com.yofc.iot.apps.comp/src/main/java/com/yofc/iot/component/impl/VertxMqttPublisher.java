@@ -211,7 +211,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                         for (Object record : outputList) {
                             WireRecord wireRecord = (WireRecord) record;
                             String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                            if (isDownGrade(topic)) {
+                            if (Boolean.TRUE.equals(isDownGrade(topic))) {
                                 continue;
                             }
                             KuraPayload payload = buildKuraPayload(wireRecord, topic);
@@ -224,7 +224,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                 } else if (output instanceof JsonObject) {
                     WireRecord wireRecord = Utils.toWireRecord((JsonObject) output);
                     String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                    if (isDownGrade(topic)) {
+                    if (Boolean.TRUE.equals(isDownGrade(topic))) {
                         return;
                     }
                     KuraPayload payload = buildKuraPayload(wireRecord, topic);
@@ -240,7 +240,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
         } else {
             for (WireRecord record : wireEnvelope.getRecords()) {
                 String topic = fillTopicPlaceholders(this.properties.mqttTopic(), record);
-                if (isDownGrade(topic)) {
+                if (Boolean.TRUE.equals(isDownGrade(topic))) {
                     continue;
                 }
                 KuraPayload payload = buildKuraPayload(record, topic);
