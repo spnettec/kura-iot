@@ -111,9 +111,9 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     @SuppressWarnings("unchecked")
     @Activate
     public void active(final ComponentContext ctx, final HttpRestComponentCfg properties) {
-        updated(properties);
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) ctx.getServiceReference());
+        updated(properties);
     }
 
     @Modified
