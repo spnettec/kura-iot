@@ -33,7 +33,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.yofc.iot.apps.influxdbv1.InfluxdbComponent.Config;
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
@@ -42,7 +42,6 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 
 @Designate(factory = true, ocd = Config.class)
@@ -177,55 +176,55 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
+    public synchronized void onWireReceive(Object wireEnvelope) {
         if (scriptSource == null) {
             logger.error("Script parse error.Please input correct groovy script");
             return;
         }
+        Object output = null;
         if (!"".equals(scriptSource)) {
 
             try {
                 script.setProperty("input", wireEnvelope);
-                Map<String, Object> outputEnvelopeWrapper = Utils.toMap(wireEnvelope.getRecords());
+                Object outputEnvelopeWrapper = wireEnvelope;
+                if (wireEnvelope instanceof WireEnvelope) {
+                    outputEnvelopeWrapper = Utils.toMap(((WireEnvelope) wireEnvelope).getRecords());
+                } else if (List.class.isAssignableFrom(wireEnvelope.getClass()) && !((List<?>) wireEnvelope).isEmpty()
+                        && ((List<?>) wireEnvelope).get(0) instanceof WireRecord) {
+                    outputEnvelopeWrapper = Utils.toMap((List<WireRecord>) wireEnvelope);
+                }
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
-                Object output = script.getProperty("output");
+                output = script.getProperty("output");
                 if (output == null) {
                     return;
                 }
-                if (output instanceof List) {
-                    List<?> outputList = (List<?>) output;
-                    if (outputList.isEmpty()) {
-                        return;
-                    }
-                    if (outputList.get(0) instanceof WireRecord) {
-                        this.wireSupport.emit((List<WireRecord>) outputList);
-                    } else {
-                        for (Object o : outputList) {
-                            Map<String, Object> map = JSON.parseObject(JSON.toJSONString(o));
-                            saveToInfluxdb(Utils.toWireRecords(map));
-                        }
-                    }
-                } else if (output instanceof JsonObject) {
-                    saveToInfluxdb(Utils.toWireRecords((JsonObject) output));
-                } else if (output instanceof Map) {
-                    saveToInfluxdb(Utils.toWireRecords((Map<String, Object>) output));
-                } else {
-                    Map<String, Object> map = JSON.parseObject(JSON.toJSONString(output));
-                    saveToInfluxdb(Utils.toWireRecords(map));
-                }
+
             } catch (Exception e) {
                 logger.warn("Failed to execute script", e);
             }
-        } else {
-            saveToInfluxdb(wireEnvelope.getRecords());
         }
+        if (output == null) {
+            output = wireEnvelope;
+        }
+        this.wireSupport.emit(output);
+        saveToInfluxdb(output);
     }
 
-    private void saveToInfluxdb(List<WireRecord> wires) {
+    @SuppressWarnings("unchecked")
+    private void saveToInfluxdb(Object wires) {
         Point.Builder pointBuilder = Point.measurement(this.config.measurement());
         pointBuilder.tag(parseTags(this.config.tags()));
-        Map<String, Object> result = Utils.toMap(wires);
+        Map<String, Object> result;
+        if (wires instanceof WireEnvelope) {
+            result = Utils.toMap(((WireEnvelope) wires).getRecords());
+        } else if (List.class.isAssignableFrom(wires.getClass()) && !((List<?>) wires).isEmpty()
+                && ((List<?>) wires).get(0) instanceof WireRecord) {
+            result = Utils.toMap((List<WireRecord>) wires);
+        } else {
+            result = JSONObject.from(wires);
+        }
+
         result.remove("assetName");
         pointBuilder.fields(result);
 

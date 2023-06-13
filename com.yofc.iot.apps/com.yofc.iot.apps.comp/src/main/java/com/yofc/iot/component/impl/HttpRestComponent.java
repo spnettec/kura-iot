@@ -54,8 +54,8 @@ import io.vertx.ext.web.handler.BodyHandler;
 /** @author heyoulin */
 @Designate(factory = true, ocd = HttpRestComponentCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
-        WireComponent.class, WireEmitter.class, ConfigurableComponent.class,
-        Producer.class }, property = { "kura.ui.service.hide:Boolean=true" })
+        WireComponent.class, WireEmitter.class, ConfigurableComponent.class, Producer.class }, property = {
+                "kura.ui.service.hide:Boolean=true", "emitter.null.as.wire.envelope:Boolean=false" })
 public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRestComponent.class);
@@ -246,14 +246,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
             if (output != null && !(output instanceof CompletableFuture || output instanceof Promise
                     || output instanceof Future)) {
-                wireSupport.emit(Utils.getWireRecords(Utils.objectToWireRecord(outputName, output)));
+                wireSupport.emit(output);
             }
-        } catch (Exception e) {
-            logger.warn("Failed to execute script", e);
-            if (!response.ended()) {
-                response.end(e.toString());
-            }
-        } finally {
             if (output != null) {
                 if (output instanceof CompletableFuture) {
                     @SuppressWarnings("unchecked")
@@ -261,11 +255,14 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                     future.whenComplete((obj, e) -> {
                         if (e != null) {
                             response.end(e.toString());
+                            wireSupport.emit(e.toString());
                         } else {
                             if (obj == null) {
                                 response.end();
+                                wireSupport.emit("");
                             } else {
                                 response.end(obj.toString());
+                                wireSupport.emit(obj.toString());
                             }
                         }
                     });
@@ -275,8 +272,10 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                     promise.future().onComplete(v -> {
                         if (v.failed()) {
                             response.end(v.cause() == null ? "unknow reson" : v.cause().getMessage());
+                            wireSupport.emit(v.cause() == null ? "unknow reson" : v.cause().getMessage());
                         } else {
                             response.end(v.result().toString());
+                            wireSupport.emit(v.result().toString());
                         }
                     });
 
@@ -286,16 +285,26 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                     future.onComplete(v -> {
                         if (v.failed()) {
                             response.end(v.cause().getMessage());
+                            wireSupport.emit(v.cause().getMessage());
                         } else {
                             response.end(v.result().toString());
+                            wireSupport.emit(v.result().toString());
                         }
                     });
 
                 } else {
                     response.end(output.toString());
+                    wireSupport.emit(output);
                 }
             } else if (!response.ended()) {
                 response.end("No return information");
+                wireSupport.emit("No return information");
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to execute script", e);
+            if (!response.ended()) {
+                response.end(e.toString());
+                wireSupport.emit(e.toString());
             }
         }
     }

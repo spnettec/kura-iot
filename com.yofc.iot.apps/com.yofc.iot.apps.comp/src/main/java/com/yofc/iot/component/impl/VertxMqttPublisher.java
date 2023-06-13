@@ -11,11 +11,10 @@ package com.yofc.iot.component.impl;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,8 +24,6 @@ import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
 import org.eclipse.kura.marshalling.Marshaller;
-import org.eclipse.kura.message.KuraPayload;
-import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.wire.WireComponent;
 import org.eclipse.kura.wire.WireEmitter;
 import org.eclipse.kura.wire.WireEnvelope;
@@ -52,6 +49,7 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.VertxMqttPublisher.VertxMqttPublisherCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
@@ -63,7 +61,6 @@ import groovy.lang.Script;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
@@ -140,7 +137,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
     }
 
     @Modified
-    public synchronized void updated(final VertxMqttPublisherCfg properties) throws KuraException {
+    public synchronized void updated(final VertxMqttPublisherCfg properties) {
         serviceTool.ungetServices();
         closeMqttClient();
         logger.info("Updating Script Filter...");
@@ -172,8 +169,9 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
+    public synchronized void onWireReceive(Object wireEnvelope) {
         if (scriptSource == null) {
             logger.error("Script parse error.Please input correct groovy script");
             return;
@@ -187,73 +185,58 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
             logger.error("Mqtt client is not connected. Topic: {}", this.properties.mqttTopic());
             return;
         }
-
+        Object output = null;
         if (!"".equals(this.scriptSource)) {
             try {
                 script.setProperty("input", wireEnvelope);
-                List<WireRecord> outputEnvelopeWrapper = new ArrayList<>();
-                for (WireRecord record : wireEnvelope.getRecords()) {
-                    Map<String, TypedValue<?>> mapCopy = record.getProperties();
-                    outputEnvelopeWrapper.add(new WireRecord(mapCopy));
+                Object outputEnvelopeWrapper = wireEnvelope;
+                if (wireEnvelope instanceof WireEnvelope) {
+                    outputEnvelopeWrapper = Utils.toMap(((WireEnvelope) wireEnvelope).getRecords());
+                } else if (List.class.isAssignableFrom(wireEnvelope.getClass()) && !((List<?>) wireEnvelope).isEmpty()
+                        && ((List<?>) wireEnvelope).get(0) instanceof WireRecord) {
+                    outputEnvelopeWrapper = Utils.toMap((List<WireRecord>) wireEnvelope);
                 }
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
-                Object output = script.getProperty("output");
+                output = script.getProperty("output");
                 if (output == null) {
                     return;
-                }
-                if (output instanceof List) {
-                    List<?> outputList = (List<?>) output;
-                    if (outputList.isEmpty()) {
-                        return;
-                    }
-                    if (outputList.get(0) instanceof WireRecord) {
-                        for (Object record : outputList) {
-                            WireRecord wireRecord = (WireRecord) record;
-                            String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                            if (Boolean.TRUE.equals(isDownGrade(topic))) {
-                                continue;
-                            }
-                            KuraPayload payload = buildKuraPayload(wireRecord, topic);
-                            mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
-                                    MqttQoS.AT_MOST_ONCE, false, false);
-                            this.wireSupport.emit(wireEnvelope.getRecords());
-                            logger.debug("Publish MQTT {}", topic);
-                        }
-                    }
-                } else if (output instanceof JsonObject) {
-                    WireRecord wireRecord = Utils.toWireRecord((JsonObject) output);
-                    String topic = fillTopicPlaceholders(this.properties.mqttTopic(), wireRecord);
-                    if (Boolean.TRUE.equals(isDownGrade(topic))) {
-                        return;
-                    }
-                    KuraPayload payload = buildKuraPayload(wireRecord, topic);
-                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
-                            MqttQoS.valueOf(this.properties.qos()), false, false);
-                    this.wireSupport.emit(wireEnvelope.getRecords());
-                    logger.debug("Publish MQTT {}", topic);
                 }
 
             } catch (Exception e) {
                 logger.error("Failured to execute script", e);
             }
-        } else {
-            for (WireRecord record : wireEnvelope.getRecords()) {
-                String topic = fillTopicPlaceholders(this.properties.mqttTopic(), record);
-                if (Boolean.TRUE.equals(isDownGrade(topic))) {
-                    continue;
-                }
-                KuraPayload payload = buildKuraPayload(record, topic);
-                try {
-                    mqttClient.publish(topic, Buffer.buffer(jsonMarshaller.marshal(payload)),
-                            MqttQoS.valueOf(this.properties.qos()), false, false);
-                } catch (KuraException e) {
-                    logger.error("Failed to marshal payload", e);
-                }
-                this.wireSupport.emit(wireEnvelope.getRecords());
-                logger.debug("Publish MQTT {}", topic);
-            }
         }
+        if (output == null) {
+            output = wireEnvelope;
+        }
+        Map<String, Object> result;
+        String topic = this.properties.mqttTopic();
+        if (output instanceof WireEnvelope) {
+            result = Utils.toMap(((WireEnvelope) output).getRecords());
+
+        } else if (List.class.isAssignableFrom(output.getClass()) && !((List<?>) output).isEmpty()
+                && ((List<?>) output).get(0) instanceof WireRecord) {
+            result = Utils.toMap((List<WireRecord>) output);
+        } else {
+            result = JSONObject.from(output);
+        }
+        topic = fillTopicPlaceholders(topic, result);
+        if (Boolean.TRUE.equals(isDownGrade(topic))) {
+            return;
+        }
+        topicTime.put(topic, System.currentTimeMillis());
+        Map<String, Object> payload = buildKuraPayload(result);
+        try {
+            mqttClient.publish(topic, Buffer.buffer(JSONObject.toJSONString(payload)),
+                    MqttQoS.valueOf(this.properties.qos()), false, false);
+        } catch (Exception e) {
+            logger.error("Failed to marshal payload", e);
+        }
+
+        logger.debug("Publish MQTT {}", topic);
+
+        this.wireSupport.emit(output);
     }
 
     private Boolean isDownGrade(String topic) {
@@ -312,9 +295,7 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
 
     private synchronized void reConnect() {
         closeMqttClient();
-        timerId = vertx.setTimer(10000, v -> {
-            mqttConnect();
-        });
+        timerId = vertx.setTimer(10000, v -> mqttConnect());
     }
 
     private void mqttConnect() {
@@ -372,29 +353,22 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
         });
     }
 
-    private KuraPayload buildKuraPayload(final WireRecord wireRecord, String topic) {
-        requireNonNull(wireRecord, "Wire Record cannot be null");
-        final KuraPayload kuraPayload = new KuraPayload();
-        Date time = new Date();
-        topicTime.put(topic, time.getTime());
-        kuraPayload.setTimestamp(new Date());
-
-        for (final Entry<String, TypedValue<?>> entry : wireRecord.getProperties().entrySet()) {
-            kuraPayload.addMetric(entry.getKey(), entry.getValue().getValue());
-        }
-
-        return kuraPayload;
+    private Map<String, Object> buildKuraPayload(final Map<String, Object> wireRecords) {
+        requireNonNull(wireRecords, "Wire Record cannot be null");
+        Map<String, Object> result = new HashMap<>();
+        result.put("sentOn", new Date());
+        result.put("metrics", wireRecords);
+        return result;
     }
 
-    private String fillTopicPlaceholders(String topic, WireRecord wireRecord) {
+    private String fillTopicPlaceholders(String topic, Map<String, Object> wireRecords) {
         Matcher matcher = TOPIC_PATTERN.matcher(topic);
         StringBuilder buffer = new StringBuilder();
-        Map<String, TypedValue<?>> properties = wireRecord.getProperties();
-        TypedValue<?> value = properties.get(ASSET_NAME_PROPERTY_KEY);
+        Object value = wireRecords.get(ASSET_NAME_PROPERTY_KEY);
         if (value == null) {
             return topic;
         }
-        String value0 = value.getValue().toString();
+        String value0 = value.toString();
         while (matcher.find()) {
             String replacement = matcher.group(0);
             if (replacement != null) {

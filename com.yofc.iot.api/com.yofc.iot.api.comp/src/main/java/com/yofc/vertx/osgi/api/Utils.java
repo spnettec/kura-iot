@@ -186,7 +186,7 @@ public class Utils {
 
     public static Map<String, Object> toMap(List<WireRecord> list) {
         Stream<Map<String, Object>> properties = list.stream()
-                .map(record -> record.getProperties().entrySet().stream().collect(Collectors.toMap(
+                .map(wireRecord -> wireRecord.getProperties().entrySet().stream().collect(Collectors.toMap(
                         functionWrapper(Map.Entry::getKey), functionWrapper(entry -> entry.getValue().getValue()))));
         return properties.map(Map::entrySet).flatMap(Set::stream)
                 .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey), functionWrapper(Map.Entry::getValue)));
@@ -280,7 +280,7 @@ public class Utils {
                 try (final PreparedStatement stmt = c.prepareStatement(sql)) {
                     stmt.execute();
                     c.commit();
-                    return (Void) null;
+                    return null;
                 }
             });
         } finally {

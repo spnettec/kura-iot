@@ -11,7 +11,6 @@ package com.yofc.iot.component.impl;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
@@ -38,7 +37,6 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson2.JSON;
 import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.GroovyScriptFilter.GroovyScriptFilterCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
@@ -48,7 +46,6 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 
 @Designate(factory = true, ocd = GroovyScriptFilterCfg.class)
@@ -151,49 +148,38 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized void onWireReceive(WireEnvelope wireEnvelope) {
+    public synchronized void onWireReceive(Object wireEnvelope) {
         if (scriptSource == null) {
             logger.error("Script parse error.Please input correct groovy script");
             return;
         }
+        Object output = null;
         if (!"".equals(scriptSource)) {
 
             try {
                 script.setProperty("input", wireEnvelope);
-                Map<String, Object> outputEnvelopeWrapper = Utils.toMap(wireEnvelope.getRecords());
+                Object outputEnvelopeWrapper = wireEnvelope;
+                if (wireEnvelope instanceof WireEnvelope) {
+                    outputEnvelopeWrapper = Utils.toMap(((WireEnvelope) wireEnvelope).getRecords());
+                } else if (List.class.isAssignableFrom(wireEnvelope.getClass()) && !((List<?>) wireEnvelope).isEmpty()
+                        && ((List<?>) wireEnvelope).get(0) instanceof WireRecord) {
+                    outputEnvelopeWrapper = Utils.toMap((List<WireRecord>) wireEnvelope);
+                }
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
-                Object output = script.getProperty("output");
+                output = script.getProperty("output");
                 if (output == null) {
                     return;
-                }
-                if (output instanceof List) {
-                    List<?> outputList = (List<?>) output;
-                    if (outputList.isEmpty()) {
-                        return;
-                    }
-                    if (outputList.get(0) instanceof WireRecord) {
-                        this.wireSupport.emit((List<WireRecord>) outputList);
-                    } else {
-                        for (Object o : outputList) {
-                            Map<String, Object> map = JSON.parseObject(JSON.toJSONString(o));
-                            this.wireSupport.emit(Utils.toWireRecords(map));
-                        }
-                    }
-                } else if (output instanceof JsonObject) {
-                    this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
-                } else if (output instanceof Map) {
-                    this.wireSupport.emit(Utils.toWireRecords((Map<String, Object>) output));
-                } else {
-                    Map<String, Object> map = JSON.parseObject(JSON.toJSONString(output));
-                    this.wireSupport.emit(Utils.toWireRecords(map));
                 }
             } catch (Exception e) {
                 logger.warn("Failed to execute script", e);
             }
-        } else {
-            this.wireSupport.emit(wireEnvelope.getRecords());
         }
+        if (output == null) {
+            output = wireEnvelope;
+        }
+        this.wireSupport.emit(output);
+
     }
 
     @Override

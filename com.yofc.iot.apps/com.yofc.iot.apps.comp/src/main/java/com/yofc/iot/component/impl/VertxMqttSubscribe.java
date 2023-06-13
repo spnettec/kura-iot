@@ -9,9 +9,6 @@
  *******************************************************************************/
 package com.yofc.iot.component.impl;
 
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
@@ -39,7 +36,6 @@ import org.osgi.service.wireadmin.Wire;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson2.JSON;
 import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.impl.VertxMqttPublisher.VertxMqttPublisherCfg;
 import com.yofc.vertx.osgi.api.AssetHelp;
@@ -49,7 +45,6 @@ import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
@@ -248,48 +243,30 @@ public class VertxMqttSubscribe implements WireEmitter, ConfigurableComponent {
         });
     }
 
-    @SuppressWarnings("unchecked")
     private void handleMqttMessage(MqttPublishMessage msg) {
-        List<WireRecord> records = Utils.bufferToWireRecords(msg.topicName(), msg.payload());
+        WireRecord wireRecord = Utils.bufferToWireRecord(msg.topicName(), msg.payload());
+        Object output = null;
         if (!"".equals(this.scriptSource)) {
             try {
 
-                script.setProperty("input", records);
-                List<WireRecord> outputEnvelopeWrapper = Utils.bufferToWireRecords(msg.topicName(), msg.payload());
+                script.setProperty("input", wireRecord);
+                WireRecord outputEnvelopeWrapper = Utils.bufferToWireRecord(msg.topicName(), msg.payload());
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
-                Object output = script.getProperty("output");
+                output = script.getProperty("output");
                 if (output == null) {
                     return;
-                }
-                if (output instanceof List) {
-                    List<?> outputList = (List<?>) output;
-                    if (outputList.isEmpty()) {
-                        return;
-                    }
-                    if (outputList.get(0) instanceof WireRecord) {
-                        this.wireSupport.emit((List<WireRecord>) outputList);
-                    } else {
-                        for (Object o : outputList) {
-                            Map<String, Object> map = JSON.parseObject(JSON.toJSONString(o));
-                            this.wireSupport.emit(Utils.toWireRecords(map));
-                        }
-                    }
-                } else if (output instanceof JsonObject) {
-                    this.wireSupport.emit(Utils.toWireRecords((JsonObject) output));
-                } else if (output instanceof Map) {
-                    this.wireSupport.emit(Utils.toWireRecords((Map<String, Object>) output));
-                } else {
-                    Map<String, Object> map = JSON.parseObject(JSON.toJSONString(output));
-                    this.wireSupport.emit(Utils.toWireRecords(map));
                 }
 
             } catch (Exception e) {
                 logger.error("Failured to execute script", e);
             }
-        } else {
-            this.wireSupport.emit(records);
         }
+        if (output == null) {
+            output = wireRecord;
+        }
+        this.wireSupport.emit(output);
+
     }
 
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.VertxMqttSubscribe", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.VertxMqttSubscribeCfg")
