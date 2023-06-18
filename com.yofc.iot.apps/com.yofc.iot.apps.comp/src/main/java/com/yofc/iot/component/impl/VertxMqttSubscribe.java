@@ -44,10 +44,12 @@ import com.yofc.vertx.osgi.api.Utils;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
+import io.vertx.mqtt.MqttConnectionException;
 import io.vertx.mqtt.messages.MqttPublishMessage;
 
 @Designate(factory = true, ocd = VertxMqttSubscribe.VertxMqttSubscribeCfg.class)
@@ -210,22 +212,30 @@ public class VertxMqttSubscribe implements WireEmitter, ConfigurableComponent {
                 logger.info("Connect to Server");
                 mqttClient.subscribe(this.properties.mqttTopic(), this.properties.qos());
                 mqttClient.subscribeCompletionHandler(mqttSubAckMessage -> {
-                    System.out.println("Id of just received SUBACK packet is " + mqttSubAckMessage.messageId());
+                    logger.debug("Id of just received SUBACK packet is {}", mqttSubAckMessage.messageId());
                     for (int s : mqttSubAckMessage.grantedQoSLevels()) {
                         if (s == 0x80) {
-                            System.out.println("Failure");
+                            logger.error("Failure");
                         } else {
                             mqttClient.publishHandler(this::handleMqttMessage);
                         }
                     }
                 });
             } else {
-                try {
-                    reConnect();
-                } catch (Exception e1) {
-                    logger.error("Failured to reConnect on ackMessage", e1);
+                if (ackMes.cause() instanceof MqttConnectionException) {
+                    MqttConnectionException exception = (MqttConnectionException) ackMes.cause();
+                    if (MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD == exception.code()
+                            || MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED == exception.code()) {
+                        logger.error("username or password error");
+                    }
+                } else {
+                    try {
+                        reConnect();
+                    } catch (Exception e1) {
+                        logger.error("Failured to reConnect on ackMessage", e1);
+                    }
+                    logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
                 }
-                logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
             }
         }).closeHandler(h -> {
             try {

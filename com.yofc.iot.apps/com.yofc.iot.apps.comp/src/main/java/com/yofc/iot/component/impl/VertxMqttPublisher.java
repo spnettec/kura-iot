@@ -58,12 +58,14 @@ import com.yofc.vertx.osgi.api.Utils;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import io.netty.handler.codec.mqtt.MqttConnectReturnCode;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
+import io.vertx.mqtt.MqttConnectionException;
 
 @Designate(factory = true, ocd = VertxMqttPublisherCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
@@ -330,12 +332,20 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
                 }
                 logger.info("Connect to Server");
             } else {
-                try {
-                    reConnect();
-                } catch (Exception e1) {
-                    logger.error("Failured to reConnect on ackMessage", e1);
+                if (ackMes.cause() instanceof MqttConnectionException) {
+                    MqttConnectionException exception = (MqttConnectionException) ackMes.cause();
+                    if (MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD == exception.code()
+                            || MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED == exception.code()) {
+                        logger.error("username or password error");
+                    }
+                } else {
+                    try {
+                        reConnect();
+                    } catch (Exception e1) {
+                        logger.error("Failured to reConnect on ackMessage", e1);
+                    }
+                    logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
                 }
-                logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
             }
         }).closeHandler(h -> {
             try {
