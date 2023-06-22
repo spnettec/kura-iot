@@ -1,6 +1,5 @@
 package com.yofc.iot.apps.influxdb;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -88,7 +87,7 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
 
     @SuppressWarnings("unchecked")
     @Activate
-    public void activate(final ComponentContext componentContext, Config config) throws IOException {
+    public void activate(final ComponentContext componentContext, Config config) {
         logger.info("Activating Script Filter...");
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());

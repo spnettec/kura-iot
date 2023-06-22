@@ -46,22 +46,22 @@
         <dependency>
             <groupId>com.influxdb</groupId>
             <artifactId>influxdb-client-core</artifactId>
-            <version>6.8.0</version>
+            <version>6.9.0</version>
         </dependency>
         <dependency>
             <groupId>com.influxdb</groupId>
             <artifactId>influxdb-client-java</artifactId>
-            <version>6.8.0</version>
+            <version>6.9.0</version>
         </dependency>
         <dependency>
             <groupId>com.influxdb</groupId>
             <artifactId>influxdb-client-reactive</artifactId>
-            <version>6.8.0</version>
+            <version>6.9.0</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.10.0</version>
+            <version>4.11.0</version>
         </dependency>
 
         <dependency>

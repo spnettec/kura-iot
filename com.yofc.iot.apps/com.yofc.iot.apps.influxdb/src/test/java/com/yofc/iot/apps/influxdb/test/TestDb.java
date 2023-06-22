@@ -21,7 +21,7 @@ class TestDb {
         System.out.println("*** Write Points ***");
 
         // 2.创建写入api
-        try (WriteApi writeApi = client.getWriteApi()) {
+        try (WriteApi writeApi = client.makeWriteApi()) {
 
             Point point = Point.measurement("demo").addTag("sb_id", "00111").addField("sb_10_pv", 200);
             System.out.println(point.toLineProtocol());
