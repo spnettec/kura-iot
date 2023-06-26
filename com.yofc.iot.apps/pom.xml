@@ -14,7 +14,6 @@
         <module>com.yofc.iot.apps.opcuaserver</module>
         <module>com.yofc.iot.apps.ot3001</module>
         <module>com.yofc.iot.apps.visa</module>
-        <module>com.yofc.iot.apps.modbus</module>
         <module>com.yofc.iot.apps.influxdb</module>
         <module>com.yofc.iot.apps.influxdbv1</module>
   </modules>

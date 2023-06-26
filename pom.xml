@@ -14,8 +14,8 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.4.3</vertx.version>
-        <netty.version>4.1.93.Final</netty.version>
+        <vertx.version>4.4.4</vertx.version>
+        <netty.version>4.1.94.Final</netty.version>
         <shiro-core.version>1.11.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
@@ -42,10 +42,9 @@
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <junit.platform.version>1.9.3</junit.platform.version>
-        <bouncycastle.version>1.73</bouncycastle.version>
+        <bouncycastle.version>1.75</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
-        <kura.protocol.modbus.version>2.4.0-SNAPSHOT</kura.protocol.modbus.version>
     </properties>
     <pluginRepositories>
         <pluginRepository>
