@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,6 +22,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
+import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcSubscriptionEvent;
@@ -222,9 +222,14 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 Map<String, Object> channelConfig = entry.getValue();
                 final String channelName = Utils.tryExtract(channelConfig, config -> (String) config.get("+name"),
                         "Error while retrieving Channel Name");
-                final String tagAddr = Utils.tryExtract(channelConfig, config -> (String) config.get("data.tag.addr"),
+                final String tagAddr = Utils.tryExtract(channelConfig,
+                        config -> (String) config.get(Plc4xChannelDescriptor.DATA_TAG_ADDR_ID),
                         "Error while retrieving Tag Addr");
-                sbuilder.addChangeOfStateTagAddress(channelName, tagAddr);
+                final Long samplingInterval = Utils.tryExtract(channelConfig,
+                        config -> Long.parseLong(
+                                (String) config.get(Plc4xChannelDescriptor.LISTEN_SAMPLING_INTERVAL_PROP_NAME)),
+                        "Error while retrieving samplingInterval");
+                sbuilder.addChangeOfStateTagAddress(channelName, tagAddr, Duration.ofMillis(samplingInterval));
             }
             PlcSubscriptionRequest subscriptionRequest = sbuilder.build();
 
@@ -232,17 +237,19 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ConnectionException(e);
+        } catch (PlcConnectionException e) {
+            throw new ConnectionException(e);
         } catch (Exception e) {
             throw new ConnectionException(e);
         }
-        Iterator<String> tagIterator = subscriptionResponse.getTagNames().iterator();
-        if (tagIterator.hasNext()) {
-            String tagName = tagIterator.next();
+        for (String tagName : subscriptionResponse.getTagNames()) {
             final PlcSubscriptionHandle subscriptionHandle = subscriptionResponse.getSubscriptionHandle(tagName);
-
-            subscriptionHandle.register(new ValueChangeHandler(listenerChannelConfigs));
-            registeredListeners.add(subscriptionHandle);
-
+            if (!registeredListeners.contains(subscriptionHandle)) {
+                subscriptionHandle.register(new ValueChangeHandler(listenerChannelConfigs));
+                registeredListeners.add(subscriptionHandle);
+            } else {
+                logger.debug("tagName:{} already register", tagName);
+            }
         }
     }
 
