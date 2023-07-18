@@ -296,7 +296,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                             channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.toString(), null));
                         }
                         channelListener.onChannelEvent(new ChannelEvent(channelRecord));
-                        logger.info("Field {} value: {}", fieldName, plcValue.getString());
+                        // logger.info("Field {} value: {}", fieldName, plcValue.getString());
 
                     }
 
