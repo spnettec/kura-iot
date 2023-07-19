@@ -263,7 +263,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
         @Override
         public void accept(PlcSubscriptionEvent plcSubscriptionEvent) {
-            logger.info("Incoming event:");
+            logger.debug("Incoming event:");
             for (String fieldName : plcSubscriptionEvent.getTagNames()) {
                 Optional<Map.Entry<ChannelListener, Map<String, Object>>> entryOption = listenerChannelConfigs
                         .entrySet().stream().filter(en -> {
