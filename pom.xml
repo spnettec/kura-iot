@@ -15,8 +15,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <vertx.version>4.4.4</vertx.version>
-        <netty.version>4.1.94.Final</netty.version>
-        <shiro-core.version>1.11.0</shiro-core.version>
+        <netty.version>4.1.95.Final</netty.version>
+        <shiro-core.version>1.12.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
