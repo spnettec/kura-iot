@@ -407,6 +407,7 @@
                         </Include-Resource>
                         <Import-Package>
                            com.fazecast.jSerialComm;version="[2.0,3)",
+                           com.google.common.collect;version="[31.0,33)",
                            org.apache.tools.ant;resolution:=optional,
                            org.apache.tools.ant.types;resolution:=optional,
                            org.brotli.dec;resolution:=optional,
