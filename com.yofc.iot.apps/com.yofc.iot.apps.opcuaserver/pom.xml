@@ -429,6 +429,10 @@
 						   org.bouncycastle.operator.jcajce;version="[1.70,2)",
 						   org.bouncycastle.asn1;version="[1.70,2)",
  						   org.bouncycastle.asn1.x500;version="[1.70,2)",
+ 						   org.h2;version="[1.4.197,3.0)",
+                           org.h2.api;version="[1.4.197,3.0)",
+                           org.h2.jdbcx;version="[1.4.197,3.0)",
+                           org.h2.tools;version="[1.4.197,3.0)",
                            *                        
                         </Import-Package>
                     </instructions>

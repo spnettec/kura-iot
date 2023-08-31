@@ -14,21 +14,21 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.4.4</vertx.version>
-        <netty.version>4.1.96.Final</netty.version>
+        <vertx.version>4.4.5</vertx.version>
+        <netty.version>4.1.97.Final</netty.version>
         <shiro-core.version>1.12.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.0.1</HikariCP.version>
         <rxjava.version>2.2.21</rxjava.version>
-        <groovy.version>3.0.18</groovy.version>
-        <h2.version>2.1.214</h2.version>
+        <groovy.version>3.0.19</groovy.version>
+        <h2.version>2.2.220</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
         <jackson.version>2.15.2</jackson.version>
-        <fastjson2.version>2.0.33</fastjson2.version>
+        <fastjson2.version>2.0.39</fastjson2.version>
         <log4j-api.version>2.19.0</log4j-api.version>
         <junit-platform-engine.version>1.9.0</junit-platform-engine.version>
         <slf4j.version>1.7.36</slf4j.version>
@@ -39,10 +39,10 @@
         <commons-codec.version>1.15</commons-codec.version>
         <commons-io.version>2.11.0</commons-io.version>
         <vavr.version>0.10.4</vavr.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-lang3.version>3.13.0</commons-lang3.version>
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <junit.platform.version>1.9.3</junit.platform.version>
-        <bouncycastle.version>1.75</bouncycastle.version>
+        <bouncycastle.version>1.76</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
     </properties>

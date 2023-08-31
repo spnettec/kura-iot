@@ -244,10 +244,10 @@
                         <Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <Import-Package>
-                            org.h2;version="[1.4.197,2.2)",
-                            org.h2.api;version="[1.4.197,2.2)",
-                            org.h2.jdbcx;version="[1.4.197,2.2)",
-                            org.h2.tools;version="[1.4.197,2.2)",
+                            org.h2;version="[1.4.197,3.0)",
+                            org.h2.api;version="[1.4.197,3.0)",
+                            org.h2.jdbcx;version="[1.4.197,3.0)",
+                            org.h2.tools;version="[1.4.197,3.0)",
                             groovy.lang;version="[2.5,4)",
                             *
                         </Import-Package>
