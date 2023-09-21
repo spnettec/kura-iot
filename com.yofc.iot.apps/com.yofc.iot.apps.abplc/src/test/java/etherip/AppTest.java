@@ -48,8 +48,8 @@ public class AppTest {
         context.completeNow();
     }
 
-    @Test
-    @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
+    // @Test
+    // @Timeout(value = 10000000, timeUnit = TimeUnit.SECONDS)
     public void testLogixRead(Vertx vertx, VertxTestContext context) {
         vertx.setPeriodic(100, l -> {
             final String[] tags = new String[] { "B1", "B2", "DI1", "DI2", "I1", "I2", "R1", "R2" };
@@ -63,6 +63,29 @@ public class AppTest {
                 for (CIPData cipData : results)
                     logger.info(cipData.toString());
         });
+    }
+
+    @Test
+    @Timeout(value = 2, timeUnit = TimeUnit.SECONDS)
+    public void testLogixWrite(Vertx vertx, VertxTestContext context) {
+        // vertx.setPeriodic(100, l -> {
+        try {
+            final String[] tags = new String[] { "B2", "I2", };
+            CIPData b2Data = new CIPData(CIPData.Type.BOOL);
+            b2Data.set(0, 1);
+            CIPData i2Data;
+
+            i2Data = new CIPData(CIPData.Type.INT);
+
+            i2Data.set(0, 3);
+            CIPData[] results = new CIPData[] { b2Data, i2Data };
+            client.writeTags(tags, results);
+            context.completeNow();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // });
     }
 
     // @Test
