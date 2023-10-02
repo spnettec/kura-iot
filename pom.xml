@@ -23,7 +23,7 @@
         <HikariCP.version>5.0.1</HikariCP.version>
         <rxjava.version>2.2.21</rxjava.version>
         <groovy.version>3.0.19</groovy.version>
-        <h2.version>2.2.220</h2.version>
+        <h2.version>2.2.224</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
