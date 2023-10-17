@@ -38,6 +38,7 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -148,9 +149,11 @@ public class ProxyRouteImpl implements ProxyRoute {
             // clientRequest.write(requestData);
             serverRequest.handler(requestBuffer::appendBuffer);
             serverRequest.endHandler(v -> {
-                if (preListener != null)
-                    preListener.apply(routingContext, clientRequest, requestBuffer);
-                clientRequest.end(requestBuffer);
+                Buffer reqBuffer = requestBuffer.copy();
+                if (preListener != null) {
+                    reqBuffer = preListener.apply(routingContext, clientRequest, requestBuffer);
+                }
+                clientRequest.end(reqBuffer);
 
             });
             final String hostString = serverRequest.getHeader("Host");
@@ -174,19 +177,20 @@ public class ProxyRouteImpl implements ProxyRoute {
                 } else
                     clientRequest.putHeader(entry.getKey(), entry.getValue());
             });
-            clientRequest.setHost(targetHost);
-            clientRequest.setPort(portToUse);
+            clientRequest.authority(HostAndPort.create(hostString, portToUse));
             clientRequest.setTimeout(timeoutToUse);
             clientRequest.setMethod(serverRequest.method());
             clientRequest.setURI(targetUrl);
             clientRequest.response().onComplete(res -> {
+                Buffer resBuffer = Buffer.buffer();
+                resBuffer = responseBuffer.copy();
                 if (res.failed()) {
-                    responseBuffer.appendString(res.cause().getMessage());
+                    resBuffer.appendString(res.cause().getMessage());
                     if (postListener != null) {
-                        postListener.apply(routingContext, serverResponse, responseBuffer);
+                        resBuffer = postListener.apply(routingContext, serverResponse, responseBuffer);
                     }
                     if (!serverResponse.closed() && !serverResponse.ended()) {
-                        serverResponse.end(responseBuffer);
+                        serverResponse.end(resBuffer);
                     }
                     return;
                 }
@@ -225,10 +229,13 @@ public class ProxyRouteImpl implements ProxyRoute {
                 // serverResponse.write(responseData);
                 clientResponse.handler(responseBuffer::appendBuffer);
                 clientResponse.endHandler(v -> {
-                    if (postListener != null)
-                        postListener.apply(routingContext, serverResponse, responseBuffer);
+                    Buffer resBufferEnd = Buffer.buffer();
+                    resBufferEnd = responseBuffer.copy();
+                    if (postListener != null) {
+                        resBufferEnd = postListener.apply(routingContext, serverResponse, responseBuffer);
+                    }
                     if (!serverResponse.closed() && !serverResponse.ended()) {
-                        serverResponse.end(responseBuffer);
+                        serverResponse.end(resBufferEnd);
                     }
                 });
             });

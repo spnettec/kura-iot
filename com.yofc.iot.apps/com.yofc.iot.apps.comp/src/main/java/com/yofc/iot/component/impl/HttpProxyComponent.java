@@ -97,16 +97,13 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
         if (prePort != null && prePort.listConnectedWires() != null && !prePort.listConnectedWires().isEmpty()) {
             proxyRoute.addPreListener((context, proxyReq, buffer) -> {
                 prePort.emit(buffer.toString());
-                return null;
+                return buffer;
             });
         }
         if (postPort != null && postPort.listConnectedWires() != null && !postPort.listConnectedWires().isEmpty()) {
             proxyRoute.addPostListener((context, serverResponse, buffer) -> {
-                if (postPort.listConnectedWires().isEmpty()) {
-                    return null;
-                }
                 postPort.emit(buffer.toString());
-                return null;
+                return buffer;
             });
         }
     }

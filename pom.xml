@@ -14,8 +14,8 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.4.5</vertx.version>
-        <netty.version>4.1.97.Final</netty.version>
+        <vertx.version>4.4.6</vertx.version>
+        <netty.version>4.1.100.Final</netty.version>
         <shiro-core.version>1.12.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
@@ -32,7 +32,7 @@
         <log4j-api.version>2.19.0</log4j-api.version>
         <junit-platform-engine.version>1.9.0</junit-platform-engine.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <logback.version>1.2.11</logback.version>
+        <logback.version>1.4.11</logback.version>
         <lombok.version>1.18.28</lombok.version>
         <milo.version>0.6.11</milo.version>
         <commons-cli.version>1.5.0</commons-cli.version>
