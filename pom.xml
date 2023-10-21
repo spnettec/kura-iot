@@ -29,7 +29,7 @@
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
         <jackson.version>2.15.2</jackson.version>
         <fastjson2.version>2.0.39</fastjson2.version>
-        <log4j-api.version>2.19.0</log4j-api.version>
+        <log4j-api.version>2.21.0</log4j-api.version>
         <junit-platform-engine.version>1.9.0</junit-platform-engine.version>
         <slf4j.version>1.7.36</slf4j.version>
         <logback.version>1.4.11</logback.version>
