@@ -11,6 +11,7 @@ package com.yofc.iot.component.impl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
@@ -45,6 +46,8 @@ import com.yofc.vertx.osgi.api.Utils;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 
@@ -168,18 +171,53 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
                 script.setProperty("output", outputEnvelopeWrapper);
                 script.run();
                 output = script.getProperty("output");
-                if (output == null) {
+                if (output != null && !(output instanceof CompletableFuture || output instanceof Promise
+                        || output instanceof Future)) {
+                    wireSupport.emit(output);
                     return;
                 }
+                if (output != null) {
+                    if (output instanceof CompletableFuture) {
+                        CompletableFuture<Object> future = (CompletableFuture<Object>) output;
+                        future.whenComplete((obj, e) -> {
+                            if (e != null) {
+                                wireSupport.emit(e.toString());
+                            } else {
+                                if (obj == null) {
+                                    wireSupport.emit("");
+                                } else {
+                                    wireSupport.emit(obj.toString());
+                                }
+                            }
+                        });
+                    } else if (output instanceof Promise) {
+                        Promise<Object> promise = (Promise<Object>) output;
+                        promise.future().onComplete(v -> {
+                            if (v.failed()) {
+                                wireSupport.emit(v.cause() == null ? "unknow reson" : v.cause().getMessage());
+                            } else {
+                                wireSupport.emit(v.result().toString());
+                            }
+                        });
+
+                    } else if (output instanceof Future) {
+                        Future<Object> future = (Future<Object>) output;
+                        future.onComplete(v -> {
+                            if (v.failed()) {
+                                wireSupport.emit(v.cause().getMessage());
+                            } else {
+                                wireSupport.emit(v.result().toString());
+                            }
+                        });
+
+                    } else {
+                        wireSupport.emit(output);
+                    }
+                }
             } catch (Exception e) {
-                logger.warn("Failed to execute script", e);
+                wireSupport.emit(e.toString());
             }
         }
-        if (output == null) {
-            output = wireEnvelope;
-        }
-        this.wireSupport.emit(output);
-
     }
 
     @Override
