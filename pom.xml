@@ -33,7 +33,7 @@
         <junit-platform-engine.version>1.9.0</junit-platform-engine.version>
         <slf4j.version>1.7.36</slf4j.version>
         <logback.version>1.4.11</logback.version>
-        <lombok.version>1.18.28</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <milo.version>0.6.11</milo.version>
         <commons-cli.version>1.5.0</commons-cli.version>
         <commons-codec.version>1.15</commons-codec.version>
@@ -347,7 +347,6 @@
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
                         <Automatic-Module-Name>${project.groupId}.${project.artifactId}</Automatic-Module-Name>
                         <Bundle-ActivationPolicy>lazy</Bundle-ActivationPolicy>
-                        <Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
                         <!-- Enable processing of OSGI metatype annotations -->
                         <_dsannotations>*</_dsannotations>
                         <!-- support inheritance on components -->
@@ -367,11 +366,14 @@
                         <supportedProjectType>war</supportedProjectType>
                     </supportedProjectTypes>
                 </configuration>
+                <goals>
+					<goal>manifest</goal>
+				</goals>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.2.1</version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
@@ -380,17 +382,16 @@
 
         <pluginManagement>
             <plugins>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-antrun-plugin</artifactId>
-                    <version>1.8</version>
+                    <version>3.1.0</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>11</source>
                         <target>11</target>
@@ -400,7 +401,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.8</version>
+                    <version>5.1.9</version>
                 </plugin>
 
                 <plugin>
@@ -413,7 +414,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>3.6.1</version>
                     <dependencies>
                         <dependency>
                             <groupId>com.github.heyoulin</groupId>
