@@ -91,8 +91,13 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         logger.info("Activating Script Filter...");
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
-
-        updated(config);
+        try {
+            updated(config);
+        } catch (Exception e) {
+            logger.error("active influxdb failed", e);
+            deactivate();
+            return;
+        }
 
         logger.info("ActivatingScript Filter... Done");
     }
