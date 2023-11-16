@@ -84,7 +84,7 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
     @SuppressWarnings("unchecked")
     @Activate
     public void activate(final ComponentContext componentContext, Config config) {
-        logger.info("Activating Script Filter...");
+        logger.info("Activating influxdbv1...");
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
         try {
@@ -95,12 +95,12 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             return;
         }
 
-        logger.info("ActivatingScript Filter... Done");
+        logger.info("Activating influxdbv1... Done");
     }
 
     @Deactivate
     public void deactivate() {
-        logger.info("Deactivating Script Filter...");
+        logger.info("Deactivating influxdbv1...");
         if (webClient != null) {
             webClient.close();
             webClient = null;
@@ -109,12 +109,12 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             this.client.close();
             this.client = null;
         }
-        logger.info("Deactivating Script Filter... Done");
+        logger.info("Deactivating influxdbv1... Done");
     }
 
     @Modified
     public synchronized void updated(final Config config) {
-        logger.info("Updating Script Filter...");
+        logger.info("Updating influxdbv1...");
         scriptSource = config.script();
         this.config = config;
         if (this.client != null) {
@@ -174,13 +174,21 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
                     logger.error("Script init method error", e);
                 }
             }
-            logger.info("Updating Script Filter... Done");
+            logger.info("Updating influxdbv1... Done");
         }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public synchronized void onWireReceive(Object wireEnvelope) {
+        if (client == null) {
+            logger.error("influxdb initial error!");
+            return;
+        }
+        if (!this.client.ping().isGood()) {
+            logger.error("influxdb server not response");
+            return;
+        }
         if (scriptSource == null) {
             logger.error("Script parse error.Please input correct groovy script");
             return;
