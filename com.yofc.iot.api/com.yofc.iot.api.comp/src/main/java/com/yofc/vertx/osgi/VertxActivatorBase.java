@@ -19,6 +19,7 @@ import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -47,7 +48,7 @@ public class VertxActivatorBase {
     @Activate
     public void start(BundleContext context) {
 
-        this.vertx = Vertx.vertx();
+        this.vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
 
         vertxRegistration = context.registerService(Vertx.class, this.vertx, null);
         logger.info("Vert.x service registered");

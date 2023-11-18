@@ -45,6 +45,12 @@
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
+            <artifactId>vertx-io_uring-incubator</artifactId>
+            <version>${vertx.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
             <version>${vertx.version}</version>
             <scope>provided</scope>
@@ -201,6 +207,7 @@
                             !org.hibernate.*,
                             !io.vertx.codegen.annotations,
                             io.vertx.core.streams,
+                            io.vertx.uring;resolution:=optional,
                             *
                         </Import-Package>
                         <Require-Capability/>
