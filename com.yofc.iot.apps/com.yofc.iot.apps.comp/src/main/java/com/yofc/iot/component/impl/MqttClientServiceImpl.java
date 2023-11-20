@@ -14,7 +14,6 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.eclipse.kura.KuraConnectException;
 import org.eclipse.kura.KuraException;
-import org.eclipse.kura.KuraNotConnectedException;
 import org.eclipse.kura.KuraTooManyInflightMessagesException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -326,32 +325,31 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         }
     }
 
-    private void checkConnected() throws KuraNotConnectedException {
+    private boolean checkConnected() {
         if (!isConnected()) {
             if (this.connectionMonitorFuture == null || this.connectionMonitorFuture.isDone()) {
                 startConnectionMonitorTask();
-                throw new KuraNotConnectedException("client not connected, can't publish");
+                logger.warn("client not connected, can't publish");
             } else {
-                throw new IllegalStateException("ConnectionMonitorTask is running, can't publish");
+                logger.warn("ConnectionMonitorTask is running, can't publish");
             }
+            return false;
         }
+        return true;
     }
 
     @Override
-    public Integer publish(String topic, int qos, boolean retain, Object wireRecords) throws KuraException {
-        checkConnected();
+    public void publish(String topic, int qos, boolean retain, Object wireRecords) throws KuraException {
+        if (!checkConnected()) {
+            return;
+        }
         byte[] payload = JSON.toJSONBytes(wireRecords);
         MqttMessage message = new MqttMessage();
         message.setPayload(payload);
         message.setQos(qos);
         message.setRetained(retain);
-        Integer messageId = null;
         try {
-            IMqttDeliveryToken token = this.mqttClient.publish(topic, message);
-            logger.debug("Published message with ID: {}", token.getMessageId());
-            if (qos > 0) {
-                messageId = Integer.valueOf(token.getMessageId());
-            }
+            this.mqttClient.publish(topic, message);
         } catch (MqttPersistenceException e) {
             // This is probably an unrecoverable internal error
             logger.error("Cannot publish on topic: {}", topic, e);
@@ -365,12 +363,13 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
                 throw KuraException.internalError(e, "Cannot publish on topic: " + topic);
             }
         }
-        return messageId;
     }
 
     @Override
     public void subscribe(String topicFilter, int qos, BiConsumer<String, Object> consumer) throws KuraException {
-        checkConnected();
+        if (!checkConnected()) {
+            return;
+        }
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilter, qos);
         if (registerTopcs.contains(topicFilter)) {
             return;
