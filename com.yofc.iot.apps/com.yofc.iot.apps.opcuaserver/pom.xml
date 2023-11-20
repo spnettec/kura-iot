@@ -415,7 +415,7 @@
                            org.objectweb.asm.attrs;resolution:=optional,
                            org.tukaani.xz;resolution:=optional,
                            tel.schich.javacan.platform.linux;resolution:=optional,
-                           org.objectweb.asm; version="[7.1.0,9.6.0)",
+                           org.objectweb.asm; version="[7.1.0,9.8.0)",
 						   org.bouncycastle.asn1.x500.style;version="[1.70,2)",
 						   org.bouncycastle.asn1.x509;version="[1.70,2)",
 						   org.bouncycastle.cert;version="[1.70,2)",
