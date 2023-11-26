@@ -22,8 +22,8 @@ import com.yofc.vertx.osgi.api.MessageHandler;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.bridge.PermittedOptions;
@@ -78,8 +78,8 @@ public class EventBusBridgeSSLTest {
         vertx.close();
     }
 
-    private static HttpClientOptions localSSLOptions() {
-        return new HttpClientOptions().setSsl(true).setTrustAll(true).setVerifyHost(false);
+    private static WebSocketClientOptions localSSLOptions() {
+        return new WebSocketClientOptions().setSsl(true).setTrustAll(true).setVerifyHost(false);
     }
 
     @AfterEach
