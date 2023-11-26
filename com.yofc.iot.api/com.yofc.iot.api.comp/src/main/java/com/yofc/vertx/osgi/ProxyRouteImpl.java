@@ -127,20 +127,19 @@ public class ProxyRouteImpl implements ProxyRoute {
         HttpClientOptions options = new HttpClientOptions();
         if (isSsl)
             options.setSsl(true).setTrustAll(true).setVerifyHost(false);
-        HttpClient client = vertx.createHttpClient(options);
-
-        client.connectionHandler(connection -> connection.exceptionHandler(ex -> {
-            String errMsg = ex.getMessage();
-            if (errMsg == null) {
-                Throwable cause = ex.getCause();
-                if (cause == null)
-                    errMsg = ex.toString();
-                else
-                    errMsg = ex.getCause().toString();
-            }
-            if (!serverResponse.closed() && !serverResponse.ended())
-                serverResponse.end("request error:" + errMsg);
-        }));
+        HttpClient client = vertx.httpClientBuilder().with(options)
+                .withConnectHandler(connection -> connection.exceptionHandler(ex -> {
+                    String errMsg = ex.getMessage();
+                    if (errMsg == null) {
+                        Throwable cause = ex.getCause();
+                        if (cause == null)
+                            errMsg = ex.toString();
+                        else
+                            errMsg = ex.getCause().toString();
+                    }
+                    if (!serverResponse.closed() && !serverResponse.ended())
+                        serverResponse.end("request error:" + errMsg);
+                })).build();
 
         serverRequest.exceptionHandler(routingContext::fail);
 
@@ -178,7 +177,7 @@ public class ProxyRouteImpl implements ProxyRoute {
                     clientRequest.putHeader(entry.getKey(), entry.getValue());
             });
             clientRequest.authority(HostAndPort.create(hostString, portToUse));
-            clientRequest.setTimeout(timeoutToUse);
+            clientRequest.idleTimeout(timeoutToUse);
             clientRequest.setMethod(serverRequest.method());
             clientRequest.setURI(targetUrl);
             clientRequest.response().onComplete(res -> {
