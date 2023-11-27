@@ -50,6 +50,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 @Designate(factory = true, ocd = GroovyScriptFilterCfg.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
@@ -106,13 +107,15 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
         scriptSource = properties.script();
 
         if (!"".equals(scriptSource) || !"".equals(properties.initScript())) {
+            Utils.executeWithTCCLSwitch(() -> {
+                if (webClient != null) {
+                    webClient.close();
+                    webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
+                } else {
+                    webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
+                }
+            });
 
-            if (webClient != null) {
-                webClient.close();
-                webClient = WebClient.create(vertx);
-            } else {
-                webClient = WebClient.create(vertx);
-            }
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);

@@ -27,6 +27,7 @@ import com.yofc.iot.component.api.ServieTool;
 import com.yofc.iot.component.api.TextSocketClientService;
 import com.yofc.iot.component.impl.TextSocketClientServiceImpl.Config;
 import com.yofc.vertx.osgi.api.AssetHelp;
+import com.yofc.vertx.osgi.api.Utils;
 
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
@@ -41,6 +42,7 @@ import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.NetSocket;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
@@ -123,12 +125,14 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         writeScriptSource = properties.preWriteProcessCode();
         readScriptSource = properties.preReadProcessCode();
         if (!"".equals(writeScriptSource) || !"".equals(readScriptSource)) {
-            if (webClient != null) {
-                webClient.close();
-                webClient = WebClient.create(vertx);
-            } else {
-                webClient = WebClient.create(vertx);
-            }
+            Utils.executeWithTCCLSwitch(() -> {
+                if (webClient != null) {
+                    webClient.close();
+                    webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
+                } else {
+                    webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
+                }
+            });
         }
         if (!"".equals(writeScriptSource)) {
             Binding binding = new Binding();

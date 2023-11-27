@@ -48,6 +48,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -122,7 +123,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
             webClient.close();
         }
         Utils.executeWithTCCLSwitch(() -> {
-            webClient = WebClient.create(vertx);
+            webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
         });
         update(properties);
     }

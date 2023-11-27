@@ -63,6 +63,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mqtt.MqttClient;
 import io.vertx.mqtt.MqttClientOptions;
 import io.vertx.mqtt.MqttConnectionException;
@@ -148,12 +149,14 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
         scriptSource = properties.script();
 
         if (!"".equals(scriptSource)) {
-            if (webClient != null) {
-                webClient.close();
-                webClient = WebClient.create(vertx);
-            } else {
-                webClient = WebClient.create(vertx);
-            }
+            Utils.executeWithTCCLSwitch(() -> {
+                if (webClient != null) {
+                    webClient.close();
+                    webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
+                } else {
+                    webClient = WebClient.create(vertx, new WebClientOptions().setIdleTimeout(60000));
+                }
+            });
             Binding binding = new Binding();
             GroovyShell shell = new GroovyShell(binding);
             binding.setVariable("logger", logger);
