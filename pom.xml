@@ -45,6 +45,8 @@
         <bouncycastle.version>1.77</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
+        <kura.api.version>2.7.0-SNAPSHOT</kura.api.version>
+        <kura.core.configration.version>2.5.0-SNAPSHOT</kura.core.configration.version>
     </properties>
     <pluginRepositories>
         <pluginRepository>
@@ -63,14 +65,14 @@
             <dependency>
                 <groupId>org.eclipse.kura</groupId>
                 <artifactId>org.eclipse.kura.api</artifactId>
-                <version>2.6.0-SNAPSHOT</version>
+                <version>${kura.api.version}</version>
                 <scope>provided</scope>
             </dependency>
 
             <dependency>
                 <groupId>org.eclipse.kura</groupId>
                 <artifactId>org.eclipse.kura.core.configuration</artifactId>
-                <version>2.4.0-SNAPSHOT</version>
+                <version>${kura.core.configration.version}</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -140,12 +142,6 @@
                 <groupId>org.eclipse.paho</groupId>
                 <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
                 <version>${paho.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.kura</groupId>
-                <artifactId>org.eclipse.kura.protocol.modbus</artifactId>
-                <version>${kura.protocol.modbus.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
