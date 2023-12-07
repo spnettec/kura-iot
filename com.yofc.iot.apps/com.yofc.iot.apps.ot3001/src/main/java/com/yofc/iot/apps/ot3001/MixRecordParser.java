@@ -1,16 +1,15 @@
 package com.yofc.iot.apps.ot3001;
 
-import io.netty.buffer.Unpooled;
+import java.util.Objects;
+
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.impl.Arguments;
 
-import java.util.Objects;
-
 public class MixRecordParser implements Handler<Buffer> {
 
     // Empty and unmodifiable
-    private static final Buffer EMPTY_BUFFER = Buffer.buffer(Unpooled.EMPTY_BUFFER);
+    private static final Buffer EMPTY_BUFFER = Buffer.buffer();
 
     private Buffer buff = EMPTY_BUFFER;
     private int pos;            // Current position in buffer
