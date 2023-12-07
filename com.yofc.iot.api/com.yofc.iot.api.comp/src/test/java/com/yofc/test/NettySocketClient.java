@@ -1,30 +1,36 @@
 package com.yofc.test;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.ReplayingDecoder;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-import io.netty.util.*;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.Promise;
-import lombok.extern.log4j.Log4j2;
-
 import java.net.InetSocketAddress;
 import java.nio.BufferOverflowException;
-import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoop;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.ReplayingDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.ReferenceCountUtil;
+import io.netty.util.Timeout;
+import io.netty.util.Timer;
+import io.netty.util.TimerTask;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.Promise;
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 public class NettySocketClient {
@@ -68,10 +74,12 @@ public class NettySocketClient {
         bootstrap.group(workerGroup);
         bootstrap.channel(NioSocketChannel.class);
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+
             @Override
             public void initChannel(SocketChannel ch) {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addFirst(new ChannelInboundHandlerAdapter() {
+
                     @Override
                     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
                         super.channelInactive(ctx);
@@ -122,6 +130,7 @@ public class NettySocketClient {
     }
 
     static class NettyClientHandler extends ReplayingDecoder<Void> {
+
         int size = -1;
         private final NettySocketClient client;
         private static final Timer timer = new HashedWheelTimer();
@@ -141,10 +150,8 @@ public class NettySocketClient {
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             try {
                 TimePromise tp = messageList.peek();
-                if(tp==null)
-                {
-                    if(client.consumer!=null)
-                    {
+                if (tp == null) {
+                    if (client.consumer != null) {
                         ByteBuf bb = (ByteBuf) msg;
                         byte[] message = new byte[bb.readableBytes()];
                         bb.readBytes(message);
@@ -153,12 +160,10 @@ public class NettySocketClient {
                     return;
                 }
                 ByteBuf bb = (ByteBuf) msg;
-                if(tp.msg.toLowerCase().startsWith("dat"))
-                {
-                    if(size == -1) {
+                if (tp.msg.toLowerCase().startsWith("dat")) {
+                    if (size == -1) {
                         size = bb.getInt(0);
-                        if(size<=0)
-                        {
+                        if (size <= 0) {
                             return;
                         }
                         if (size > 1024 * 100) {
@@ -167,7 +172,7 @@ public class NettySocketClient {
                         if (size > 100) {
                             size = size * 2;
                         }
-                    } else{
+                    } else {
                         ByteBuf bb1 = bb.readBytes(size);
                         byte[] message = new byte[bb1.readableBytes()];
                         bb1.readBytes(message);
@@ -218,17 +223,16 @@ public class NettySocketClient {
 
         public Future<byte[]> sendMessage(String message, Promise<byte[]> promise, long timeOut) {
             synchronized (this) {
-                    TimePromise tp = new TimePromise(promise, message,null);
-                    tp.setTimerOut(timer.newTimeout(new TimeOutTask(tp, messageList), timeOut,
-                            TimeUnit.MILLISECONDS));
+                TimePromise tp = new TimePromise(promise, message, null);
+                tp.setTimerOut(timer.newTimeout(new TimeOutTask(tp, messageList), timeOut, TimeUnit.MILLISECONDS));
 
-                    if (messageList.offer(tp)) {
-                        ctx.writeAndFlush(message);
-                    } else {
-                        tp.timerOut.cancel();
-                        promise.setFailure(new BufferOverflowException());
-                        return promise;
-                    }
+                if (messageList.offer(tp)) {
+                    ctx.writeAndFlush(message);
+                } else {
+                    tp.timerOut.cancel();
+                    promise.setFailure(new BufferOverflowException());
+                    return promise;
+                }
                 return promise;
             }
         }
