@@ -14,14 +14,13 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.5.0</vertx.version>
-        <netty.version>4.1.101.Final</netty.version>
+        <vertx.version>4.5.1</vertx.version>
+        <netty.version>4.1.104.Final</netty.version>
         <shiro-core.version>1.13.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.1.0</HikariCP.version>
-        <rxjava.version>2.2.21</rxjava.version>
         <groovy.version>3.0.19</groovy.version>
         <h2.version>2.2.224</h2.version>
         <paho.version>1.2.5</paho.version>
@@ -389,8 +388,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.11.0</version>
                     <configuration>
-                        <source>11</source>
-                        <target>11</target>
+                        <source>17</source>
+                        <target>17</target>
                     </configuration>
                 </plugin>
 
