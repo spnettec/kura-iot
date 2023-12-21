@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson2.JSONObject;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
+import com.influxdb.client.InfluxDBClientOptions;
 import com.influxdb.client.WriteApi;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
@@ -46,6 +48,7 @@ import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
+import okhttp3.OkHttpClient;
 
 @Designate(factory = true, ocd = Config.class)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, service = {
@@ -135,15 +138,26 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         } catch (Exception e) {
             logger.info("Password is not encrypted");
         }
+        OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS)
+                .readTimeout(3, TimeUnit.SECONDS).writeTimeout(3, TimeUnit.SECONDS).dns(new OkHttpDns(3L))
+                .retryOnConnectionFailure(false);
+        InfluxDBClientOptions.Builder influxDbBuilder = InfluxDBClientOptions.builder().url(config.url())
+                .okHttpClient(okHttpClientBuilder);
         if (config.token() != null) {
-            this.client = InfluxDBClientFactory.create(config.url(), config.token().toCharArray(),
-                    config.organization(), config.bucket());
+            influxDbBuilder.authenticateToken(config.token().toCharArray()).org(config.organization())
+                    .bucket(config.bucket());
         } else if (config.database() != null) {
-            this.client = InfluxDBClientFactory.createV1(config.url(), config.username(), password.toCharArray(),
-                    config.database(), config.retentionPolicy());
+            influxDbBuilder.org("-")
+                    .authenticateToken(String.format("%s:%s", config.username() == null ? "" : config.username(),
+                            password == null ? "" : password).toCharArray())
+                    .bucket(String.format("%s/%s", config.database(),
+                            config.retentionPolicy() == null ? "" : config.retentionPolicy()))
+                    .consistency(null);
         } else {
-            this.client = InfluxDBClientFactory.create(config.url(), config.username(), password.toCharArray());
+            influxDbBuilder.authenticate(config.username(), password.toCharArray());
         }
+
+        this.client = InfluxDBClientFactory.create(influxDbBuilder.build());
         if (!"".equals(scriptSource)) {
 
             if (webClient != null) {
@@ -208,8 +222,8 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             try {
                 script.setProperty("input", wireEnvelope);
                 Object outputEnvelopeWrapper = wireEnvelope;
-                if (wireEnvelope instanceof WireEnvelope) {
-                    outputEnvelopeWrapper = Utils.toMap(((WireEnvelope) wireEnvelope).getRecords());
+                if (wireEnvelope instanceof WireEnvelope wireenvelope) {
+                    outputEnvelopeWrapper = Utils.toMap(wireenvelope.getRecords());
                 } else if (List.class.isAssignableFrom(wireEnvelope.getClass()) && !((List<?>) wireEnvelope).isEmpty()
                         && ((List<?>) wireEnvelope).get(0) instanceof WireRecord) {
                     outputEnvelopeWrapper = Utils.toMap((List<WireRecord>) wireEnvelope);
@@ -242,8 +256,8 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             }
             point.addTags(parseTags(this.config.tags()));
             Map<String, Object> result;
-            if (wires instanceof WireEnvelope) {
-                result = Utils.toMap(((WireEnvelope) wires).getRecords());
+            if (wires instanceof WireEnvelope wireenvelope) {
+                result = Utils.toMap(wireenvelope.getRecords());
             } else if (List.class.isAssignableFrom(wires.getClass()) && !((List<?>) wires).isEmpty()
                     && ((List<?>) wires).get(0) instanceof WireRecord) {
                 result = Utils.toMap((List<WireRecord>) wires);
