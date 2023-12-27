@@ -145,7 +145,6 @@ public class ProxyRouteImpl implements ProxyRoute {
 
         client.request(requestOptions).onSuccess(clientRequest -> {
             serverRequest.resume();
-            // clientRequest.write(requestData);
             serverRequest.handler(requestBuffer::appendBuffer);
             serverRequest.endHandler(v -> {
                 Buffer reqBuffer = requestBuffer.copy();
@@ -176,8 +175,9 @@ public class ProxyRouteImpl implements ProxyRoute {
                 } else
                     clientRequest.putHeader(entry.getKey(), entry.getValue());
             });
-            clientRequest.authority(HostAndPort.create(hostString, portToUse));
+            clientRequest.authority(HostAndPort.create(targetHost, portToUse));
             clientRequest.idleTimeout(timeoutToUse);
+            clientRequest.setFollowRedirects(true);
             clientRequest.setMethod(serverRequest.method());
             clientRequest.setURI(targetUrl);
             clientRequest.response().onComplete(res -> {
