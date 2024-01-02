@@ -1,8 +1,14 @@
 package com.yofc.capture;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
+import org.eclipse.kura.executor.Command;
 import org.eclipse.kura.executor.CommandExecutorService;
+import org.eclipse.kura.executor.CommandStatus;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -10,6 +16,8 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -17,19 +25,35 @@ import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.IpV4Packet;
+import org.pcap4j.packet.TcpPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Designate(ocd = com.yofc.capture.IotProtocolPrevent.Config.class, factory = true)
+import com.yofc.capture.IotProtocolPrevent.Config;
+import com.yofc.capture.PacketCaptureListener.Callback;
+import com.yofc.iot.component.api.MqttClientService;
+
+import groovy.lang.Binding;
+import groovy.lang.GroovyShell;
+import groovy.lang.Script;
+import io.vertx.core.json.JsonObject;
+
+@Designate(ocd = Config.class, factory = true)
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
 public class IotProtocolPrevent implements ConfigurableComponent {
 
     private final Logger logger = LoggerFactory.getLogger(IotProtocolPrevent.class);
-    @Reference
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL)
     private CommandExecutorService executorService;
+
+    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, unbind = "unbindMqttClientService")
+    private volatile MqttClientService mqttClientService;
 
     private PacketCaptureThread pThead;
     private Config preConfig = null;
+    private Config config = null;
+
+    private Script script = null;
 
     @Activate
     public void start(final BundleContext context, Config properties) throws KuraException {
@@ -44,6 +68,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         }
         this.preConfig = properties;
         updateConfig(properties);
+        this.config = properties;
     }
 
     @Deactivate
@@ -55,9 +80,22 @@ public class IotProtocolPrevent implements ConfigurableComponent {
     }
 
     private void updateConfig(Config properties) throws KuraException {
+        String scriptSource = "";
         if (!properties.activate()) {
             stop();
             return;
+        }
+        scriptSource = properties.script();
+        Binding binding = new Binding();
+        GroovyShell shell = new GroovyShell(binding);
+        binding.setVariable("logger", logger);
+        if (!"".equals(scriptSource)) {
+            try {
+                script = shell.parse(scriptSource);
+            } catch (Exception e) {
+                logger.error("Script parse error", e);
+                script = null;
+            }
         }
         PacketCaptureThread.Builder builder = new PacketCaptureThread.Builder();
         PcapNetworkInterface device = null;
@@ -71,25 +109,53 @@ public class IotProtocolPrevent implements ConfigurableComponent {
             throw new IllegalArgumentException("Could not open output device eth0");
         }
         PacketCaptureListener listener = new PacketCaptureListener();
-        listener.setCallback((packet, rawPacket) -> {
-
-            if (packet == null) {
-                return;
-            }
-            if (isS7Packet(packet.getRawData())) {
-                IpV4Packet p = rawPacket.get(IpV4Packet.class);
-                if (p != null) {
-                    logger.info("src ip:{}", p.getHeader().getSrcAddr());
-                    logger.info("desc ip:{}", p.getHeader().getDstAddr());
-                }
-                logger.info("S7 packet:{}", packet);
-            }
-        });
-        pThead = builder.withDevice(device).withTimeout(properties.timeout())
-                .withFilterExpression(properties.filterExpression()).withListener(listener).build();
+        listener.setCallback(callback);
+        if (properties.filterExpression() != null && !properties.filterExpression().equals("")) {
+            builder.withFilterExpression(properties.filterExpression());
+        }
+        pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener).build();
         pThead.setDaemon(true);
         pThead.start();
     }
+
+    private Callback callback = (packet, rawPacket) -> {
+        if (packet == null) {
+            return;
+        }
+        if (IotProtocolPrevent.this.script != null) {
+            IotProtocolPrevent.this.script.setProperty("packet", packet.getRawData());
+            IotProtocolPrevent.this.script.setProperty("rawPacket", rawPacket.getRawData());
+            IotProtocolPrevent.this.script.setProperty("output", true);
+            IotProtocolPrevent.this.script.run();
+            Object output = IotProtocolPrevent.this.script.getProperty("output");
+            if (output instanceof Boolean && output == Boolean.TRUE) {
+                IpV4Packet ipv4 = rawPacket.get(IpV4Packet.class);
+                TcpPacket tcp = rawPacket.get(TcpPacket.class);
+                IotProtocolPrevent.this.preventTarget(ipv4.getHeader().getSrcAddr().getHostName(),
+                        tcp.getHeader().getSrcPort().valueAsString());
+                if (IotProtocolPrevent.this.mqttClientService != null) {
+                    try {
+                        JsonObject obj = new JsonObject();
+                        obj.put("host", ipv4.getHeader().getSrcAddr().getHostName());
+                        obj.put("port", tcp.getHeader().getSrcPort().valueAsString());
+                        IotProtocolPrevent.this.mqttClientService.publish(IotProtocolPrevent.this.config.mqttTopic(), 0,
+                                false, obj.toString());
+                    } catch (KuraException e) {
+                        logger.error("error send mqtt message", e);
+                    }
+                }
+            }
+
+        }
+        if (isS7Packet(packet.getRawData())) {
+            IpV4Packet p = rawPacket.get(IpV4Packet.class);
+            if (p != null) {
+                logger.info("src ip:{}", p.getHeader().getSrcAddr());
+                logger.info("desc ip:{}", p.getHeader().getDstAddr());
+            }
+            logger.info("S7 packet:{}", packet);
+        }
+    };
 
     private static boolean isS7Packet(byte[] bytes) {
 
@@ -98,6 +164,42 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         }
         int len = (4 << bytes[2]) | (bytes[3] & 0xff);
         return bytes.length == len;
+    }
+
+    private void preventTarget(String ip, String port) {
+        CommandStatus status;
+        if (this.executorService != null && Objects.nonNull(ip)) {
+            String command = "iptables -I input-kura -s %s %s -j DROP";
+            String portStr = "";
+            if (port == null) {
+                portStr = "";
+            } else {
+                portStr = "-ptcp --dport " + port;
+            }
+            command = command.formatted(ip, portStr);
+            status = execute(command);
+            if (!status.getExitStatus().isSuccessful()) {
+                logger.error("Failed to prevent ip {} and port {}", ip, port);
+            } else {
+                logger.info("prevent ip {} port {} attack!!!", ip, port);
+            }
+        }
+    }
+
+    private CommandStatus execute(String commandLine) {
+        Command command = new Command(commandLine.split(" "));
+        command.setExecuteInAShell(true);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        command.setErrorStream(err);
+        command.setOutputStream(out);
+        CommandStatus status = this.executorService.execute(command);
+        if (logger.isDebugEnabled()) {
+            logger.debug("execute command {} :: exited with code - {}", command, status.getExitStatus().getExitCode());
+            logger.debug("execute stderr {}", new String(err.toByteArray(), StandardCharsets.UTF_8));
+            logger.debug("execute stdout {}", new String(out.toByteArray(), StandardCharsets.UTF_8));
+        }
+        return status;
     }
 
     @ObjectClassDefinition(id = "com.yofc.capture.IotProtocolPrevent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.capture.IotProtocolPreventCfg")
@@ -109,10 +211,20 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         @AttributeDefinition(name = "%intefaceName", description = "%intefaceNameDesc")
         String intefaceName() default "";
 
-        @AttributeDefinition(name = "%filterExpression", description = "%filterExpressionDesc")
+        @AttributeDefinition(name = "%filterExpression", description = "%filterExpressionDesc", required = false)
         String filterExpression() default "dst port 102";
 
         @AttributeDefinition(name = "%timeout", description = "%timeoutDesc")
         int timeout() default 20;
+
+        @AttributeDefinition(name = "%serviceTarget", cardinality = 0, description = "%serviceTargetDesc", required = false)
+        String MqttClientService_target() default "(kura.service.pid=changeme)";
+
+        @AttributeDefinition(name = "%mqttTopic", cardinality = 0, description = "%mqttTopicDesc", required = false)
+        String mqttTopic() default "yofc/protect";
+
+        @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)
+        String script() default "";
+
     }
 }

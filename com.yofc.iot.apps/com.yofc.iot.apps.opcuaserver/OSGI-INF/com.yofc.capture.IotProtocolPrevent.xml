@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.capture.IotProtocolPrevent" configuration-policy="require" immediate="true" activate="start" deactivate="stop" modified="update">
+  <property name="activate" type="Boolean" value="false"/>
+  <property name="intefaceName" type="String" value=""/>
+  <property name="filterExpression" type="String" value="dst port 102"/>
+  <property name="timeout" type="Integer" value="20"/>
+  <property name="MqttClientService.target" type="String" value="(kura.service.pid=changeme)"/>
+  <property name="mqttTopic" type="String" value="yofc/protect"/>
+  <property name="script" type="String" value=""/>
+  <service>
+    <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
+  </service>
+  <reference name="MqttClientService" cardinality="0..1" policy="dynamic" interface="com.yofc.iot.component.api.MqttClientService" unbind="unbindMqttClientService" field="mqttClientService"/>
+  <reference name="executorService" cardinality="0..1" interface="org.eclipse.kura.executor.CommandExecutorService" field="executorService"/>
+  <implementation class="com.yofc.capture.IotProtocolPrevent"/>
+</scr:component>

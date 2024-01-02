@@ -27,6 +27,33 @@
         </dependency>
         <dependency>
             <groupId>com.yofc.iot</groupId>
+            <artifactId>yofc-iot-apps-comp</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.yofc.iot</groupId>
             <artifactId>yofc-iot-repack-vertx-db</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>test</scope>
@@ -186,7 +213,22 @@
 	      <artifactId>commons-codec</artifactId>
           <scope>provided</scope>
 	    </dependency>
-	    <!-- PLC4X Dependencies -->
+	    <dependency>
+	        <groupId>net.java.dev.jna</groupId>
+	        <artifactId>jna</artifactId>
+	        <version>5.13.0</version>
+	        <scope>provided</scope>
+	      </dependency>
+	      <dependency>
+	        <groupId>org.pcap4j</groupId>
+	        <artifactId>pcap4j-core</artifactId>
+	        <version>1.8.2</version>
+	      </dependency>
+	      <dependency>
+	        <groupId>org.pcap4j</groupId>
+	        <artifactId>pcap4j-packetfactory-static</artifactId>
+	        <version>1.8.2</version>
+	      </dependency>
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
 	      <artifactId>plc4j-api</artifactId>
