@@ -56,7 +56,6 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
         this.preConfig = properties;
         closeServer();
         updateConfig(properties);
-        this.preConfig = properties;
 
     }
 
