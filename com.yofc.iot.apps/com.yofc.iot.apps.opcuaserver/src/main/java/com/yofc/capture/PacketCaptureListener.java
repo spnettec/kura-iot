@@ -20,6 +20,7 @@ public class PacketCaptureListener implements PacketListener {
         }
     }
 
+    @FunctionalInterface
     public interface Callback {
 
         void call(Packet packet, Packet rawPacket);

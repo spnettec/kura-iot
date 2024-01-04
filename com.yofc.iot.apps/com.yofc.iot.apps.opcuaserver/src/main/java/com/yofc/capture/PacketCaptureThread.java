@@ -23,34 +23,47 @@ public class PacketCaptureThread extends Thread {
         this.listener = listener;
         this.timeout = timeout;
         this.filterExpression = filterExpression;
+        init();
     }
 
-    @Override
-    public void run() {
+    private synchronized void init() {
         try {
             handle = device.openLive(65536, PromiscuousMode.PROMISCUOUS, timeout);
             if (!"".equals(filterExpression)) {
                 handle.setFilter(filterExpression, BpfCompileMode.OPTIMIZE);
             }
-            handle.loop(-1, listener);
-
-        } catch (InterruptedException e) {
-            logger.error("error", e);
-            Thread.currentThread().interrupt();
         } catch (Exception e) {
-            logger.error("error", e);
-
-        } finally {
+            logger.error("init error", e);
             breakLoop();
         }
     }
 
-    public void breakLoop() {
+    @Override
+    public void run() {
         if (handle != null) {
             try {
-                handle.breakLoop();
+                handle.loop(-1, listener);
+            } catch (InterruptedException e) {
+                breakLoop();
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                logger.error("error", e);
+                breakLoop();
+            } finally {
+                handle = null;
+            }
+        }
+    }
+
+    public synchronized void breakLoop() {
+        if (handle != null) {
+            try {
+                try {
+                    handle.breakLoop();
+                } catch (NotOpenException e) {
+
+                }
                 handle.close();
-            } catch (NotOpenException ex) {
 
             } finally {
                 handle = null;

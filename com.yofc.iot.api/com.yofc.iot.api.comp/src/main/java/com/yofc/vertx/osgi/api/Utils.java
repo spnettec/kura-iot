@@ -45,6 +45,10 @@ import io.vertx.core.json.JsonObject;
 
 public class Utils {
 
+    private Utils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
     private static final BundleContext bundleContext = FrameworkUtil.getBundle(Utils.class).getBundleContext();

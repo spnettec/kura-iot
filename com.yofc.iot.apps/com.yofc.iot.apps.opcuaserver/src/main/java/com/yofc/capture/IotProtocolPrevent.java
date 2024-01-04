@@ -42,49 +42,45 @@ import io.vertx.core.json.JsonObject;
 @Component(configurationPolicy = ConfigurationPolicy.REQUIRE, immediate = true)
 public class IotProtocolPrevent implements ConfigurableComponent {
 
-    private final Logger logger = LoggerFactory.getLogger(IotProtocolPrevent.class);
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL)
+    private static final Logger logger = LoggerFactory.getLogger(IotProtocolPrevent.class);
+    @Reference(name = "CommandExecutorService", service = org.eclipse.kura.executor.PrivilegedExecutorService.class, policy = ReferencePolicy.STATIC, cardinality = ReferenceCardinality.OPTIONAL)
     private CommandExecutorService executorService;
 
-    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, unbind = "unbindMqttClientService")
+    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL)
     private volatile MqttClientService mqttClientService;
 
     private PacketCaptureThread pThead;
-    private Config preConfig = null;
     private Config config = null;
 
     private Script script = null;
 
     @Activate
     public void start(final BundleContext context, Config properties) throws KuraException {
-        this.preConfig = properties;
         updateConfig(properties);
     }
 
     @Modified
     public void update(Config properties) throws KuraException {
-        if (this.preConfig != null && properties.toString().equals(this.preConfig.toString())) {
-            return;
-        }
-        this.preConfig = properties;
         updateConfig(properties);
-        this.config = properties;
     }
 
     @Deactivate
     public void stop() {
         if (pThead != null) {
             pThead.breakLoop();
+            pThead.interrupt();
             pThead = null;
         }
+        this.config = null;
     }
 
     private void updateConfig(Config properties) throws KuraException {
         String scriptSource = "";
+        stop();
         if (!properties.activate()) {
-            stop();
             return;
         }
+        this.config = properties;
         scriptSource = properties.script();
         Binding binding = new Binding();
         GroovyShell shell = new GroovyShell(binding);
@@ -114,30 +110,46 @@ public class IotProtocolPrevent implements ConfigurableComponent {
             builder.withFilterExpression(properties.filterExpression());
         }
         pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener).build();
-        pThead.setDaemon(true);
         pThead.start();
     }
 
     private Callback callback = (packet, rawPacket) -> {
-        if (packet == null) {
+        if (packet == null || packet.getRawData() == null || packet.getRawData().length == 0) {
             return;
         }
         if (IotProtocolPrevent.this.script != null) {
             IotProtocolPrevent.this.script.setProperty("packet", packet.getRawData());
             IotProtocolPrevent.this.script.setProperty("rawPacket", rawPacket.getRawData());
-            IotProtocolPrevent.this.script.setProperty("output", true);
+            IotProtocolPrevent.this.script.setProperty("result", false);
             IotProtocolPrevent.this.script.run();
-            Object output = IotProtocolPrevent.this.script.getProperty("output");
-            if (output instanceof Boolean && output == Boolean.TRUE) {
+            Object output = IotProtocolPrevent.this.script.getProperty("result");
+            if (output instanceof Boolean && output == Boolean.TRUE
+                    && (rawPacket.contains(IpV4Packet.class) && rawPacket.contains(TcpPacket.class))) {
+
                 IpV4Packet ipv4 = rawPacket.get(IpV4Packet.class);
                 TcpPacket tcp = rawPacket.get(TcpPacket.class);
-                IotProtocolPrevent.this.preventTarget(ipv4.getHeader().getSrcAddr().getHostName(),
-                        tcp.getHeader().getSrcPort().valueAsString());
+                String srcIp = ipv4.getHeader().getSrcAddr().getHostName();
+                String distPort = tcp.getHeader().getDstPort().valueAsString();
+                boolean blocked = false;
+                if (!IotProtocolPrevent.this.isExit(srcIp, distPort, "forward-kura-ipf")) {
+                    IotProtocolPrevent.this.preventTarget(srcIp, distPort, "forward-kura-ipf");
+                    blocked = true;
+                }
+                if (!IotProtocolPrevent.this.isExit(srcIp, distPort, "INPUT")) {
+                    IotProtocolPrevent.this.preventTarget(srcIp, distPort, "INPUT");
+                    blocked = true;
+                }
+                if (blocked) {
+                    logger.warn("Detected Risk!!! ip {} port {}", srcIp, distPort);
+                }
                 if (IotProtocolPrevent.this.mqttClientService != null) {
                     try {
                         JsonObject obj = new JsonObject();
-                        obj.put("host", ipv4.getHeader().getSrcAddr().getHostName());
-                        obj.put("port", tcp.getHeader().getSrcPort().valueAsString());
+                        obj.put("srcHost", ipv4.getHeader().getSrcAddr().getHostName());
+                        obj.put("srcPort", tcp.getHeader().getSrcPort().valueAsString());
+                        obj.put("dstHost", ipv4.getHeader().getDstAddr().getHostName());
+                        obj.put("dstPort", tcp.getHeader().getDstPort().valueAsString());
+                        obj.put("data", packet.getRawData());
                         IotProtocolPrevent.this.mqttClientService.publish(IotProtocolPrevent.this.config.mqttTopic(), 0,
                                 false, obj.toString());
                     } catch (KuraException e) {
@@ -145,45 +157,37 @@ public class IotProtocolPrevent implements ConfigurableComponent {
                     }
                 }
             }
-
-        }
-        if (isS7Packet(packet.getRawData())) {
-            IpV4Packet p = rawPacket.get(IpV4Packet.class);
-            if (p != null) {
-                logger.info("src ip:{}", p.getHeader().getSrcAddr());
-                logger.info("desc ip:{}", p.getHeader().getDstAddr());
-            }
-            logger.info("S7 packet:{}", packet);
         }
     };
 
-    private static boolean isS7Packet(byte[] bytes) {
-
-        if (bytes.length < 4 && bytes[0] != 0x03) {
-            return false;
-        }
-        int len = (4 << bytes[2]) | (bytes[3] & 0xff);
-        return bytes.length == len;
-    }
-
-    private void preventTarget(String ip, String port) {
+    private void preventTarget(String ip, String port, String table) {
         CommandStatus status;
         if (this.executorService != null && Objects.nonNull(ip)) {
-            String command = "iptables -I input-kura -s %s %s -j DROP";
+            String command = "iptables -%s %s -s %s %s -j DROP";
             String portStr = "";
             if (port == null) {
                 portStr = "";
             } else {
                 portStr = "-ptcp --dport " + port;
             }
-            command = command.formatted(ip, portStr);
-            status = execute(command);
+            String forwardCommand = command.formatted("I", table, ip, portStr);
+            status = execute(forwardCommand);
             if (!status.getExitStatus().isSuccessful()) {
-                logger.error("Failed to prevent ip {} and port {}", ip, port);
-            } else {
-                logger.info("prevent ip {} port {} attack!!!", ip, port);
+                logger.error("Failed to prevent ip {} and port {} {}", ip, port, table);
             }
         }
+    }
+
+    private boolean isExit(String ip, String port, String table) {
+        String command = "iptables -%s %s -s %s %s -j DROP";
+        String portStr = "";
+        if (port == null) {
+            portStr = "";
+        } else {
+            portStr = "-ptcp --dport " + port;
+        }
+        CommandStatus status = execute(command.formatted("C", table, ip, portStr));
+        return status.getExitStatus().isSuccessful();
     }
 
     private CommandStatus execute(String commandLine) {
@@ -209,7 +213,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         boolean activate() default false;
 
         @AttributeDefinition(name = "%intefaceName", description = "%intefaceNameDesc")
-        String intefaceName() default "";
+        String intefaceName() default "eth0";
 
         @AttributeDefinition(name = "%filterExpression", description = "%filterExpressionDesc", required = false)
         String filterExpression() default "dst port 102";
