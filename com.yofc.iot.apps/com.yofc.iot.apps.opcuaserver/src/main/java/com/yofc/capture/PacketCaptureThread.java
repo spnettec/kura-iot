@@ -1,10 +1,14 @@
 package com.yofc.capture;
 
+import java.io.EOFException;
+import java.util.concurrent.TimeoutException;
+
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
+import org.pcap4j.packet.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,31 +44,29 @@ public class PacketCaptureThread extends Thread {
 
     @Override
     public void run() {
-        if (handle != null) {
+        while (true) {
+            if (handle == null) {
+                break;
+            }
             try {
-                handle.loop(-1, listener);
-            } catch (InterruptedException e) {
-                breakLoop();
-                Thread.currentThread().interrupt();
+                Packet packet = null;
+                packet = handle.getNextPacketEx();
+                if (packet != null) {
+                    listener.gotPacket(packet);
+                }
+            } catch (TimeoutException | EOFException | NotOpenException e) {
+
             } catch (Exception e) {
                 logger.error("error", e);
                 breakLoop();
-            } finally {
-                handle = null;
             }
         }
     }
 
-    public synchronized void breakLoop() {
+    public void breakLoop() {
         if (handle != null) {
             try {
-                try {
-                    handle.breakLoop();
-                } catch (NotOpenException e) {
-
-                }
                 handle.close();
-
             } finally {
                 handle = null;
             }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.capture.IotProtocolPrevent" configuration-policy="require" immediate="true" activate="start" deactivate="stop" modified="update">
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.capture.IotProtocolPrevent" configuration-policy="require" immediate="true" activate="start" deactivate="deactive" modified="update">
   <property name="activate" type="Boolean" value="false"/>
   <property name="intefaceName" type="String" value="eth0"/>
   <property name="filterExpression" type="String" value="dst port 102"/>

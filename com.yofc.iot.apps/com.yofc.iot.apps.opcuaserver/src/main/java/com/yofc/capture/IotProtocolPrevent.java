@@ -56,20 +56,36 @@ public class IotProtocolPrevent implements ConfigurableComponent {
 
     @Activate
     public void start(final BundleContext context, Config properties) throws KuraException {
+        logger.info("start active IotProtocolPrevent");
         updateConfig(properties);
+        logger.info("done active IotProtocolPrevent");
     }
 
     @Modified
     public void update(Config properties) throws KuraException {
+        logger.info("start update IotProtocolPrevent");
         updateConfig(properties);
+        logger.info("done update IotProtocolPrevent");
     }
 
     @Deactivate
+    public void deactive() {
+        logger.info("start deactive IotProtocolPrevent");
+        stop();
+        logger.info("done deactive IotProtocolPrevent");
+    }
+
     public void stop() {
         if (pThead != null) {
+            logger.info("stopping loop thead");
             pThead.breakLoop();
-            pThead.interrupt();
-            pThead = null;
+            try {
+                pThead.join();
+            } catch (InterruptedException e) {
+                pThead.interrupt();
+            } finally {
+                pThead = null;
+            }
         }
         this.config = null;
     }
@@ -117,14 +133,16 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         if (packet == null || packet.getRawData() == null || packet.getRawData().length == 0) {
             return;
         }
+        if (!(rawPacket.contains(IpV4Packet.class) && rawPacket.contains(TcpPacket.class))) {
+            return;
+        }
         if (IotProtocolPrevent.this.script != null) {
             IotProtocolPrevent.this.script.setProperty("packet", packet.getRawData());
             IotProtocolPrevent.this.script.setProperty("rawPacket", rawPacket.getRawData());
             IotProtocolPrevent.this.script.setProperty("result", false);
             IotProtocolPrevent.this.script.run();
             Object output = IotProtocolPrevent.this.script.getProperty("result");
-            if (output instanceof Boolean && output == Boolean.TRUE
-                    && (rawPacket.contains(IpV4Packet.class) && rawPacket.contains(TcpPacket.class))) {
+            if (output instanceof Boolean && output == Boolean.TRUE) {
 
                 IpV4Packet ipv4 = rawPacket.get(IpV4Packet.class);
                 TcpPacket tcp = rawPacket.get(TcpPacket.class);
