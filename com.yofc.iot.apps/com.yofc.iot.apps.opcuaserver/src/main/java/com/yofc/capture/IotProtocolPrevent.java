@@ -3,6 +3,7 @@ package com.yofc.capture;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Random;
 
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
@@ -51,6 +52,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
 
     private PacketCaptureThread pThead;
     private Config config = null;
+    private Random random = new Random();
 
     private Script script = null;
 
@@ -94,8 +96,10 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         String scriptSource = "";
         stop();
         if (!properties.activate()) {
+            logger.info("disenable IotProtocolPrevent");
             return;
         }
+        logger.info("enable IotProtocolPrevent");
         this.config = properties;
         scriptSource = properties.script();
         Binding binding = new Binding();
@@ -126,6 +130,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
             builder.withFilterExpression(properties.filterExpression());
         }
         pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener).build();
+        pThead.setName("IotProtocolPrevent-" + random.nextInt());
         pThead.start();
     }
 
