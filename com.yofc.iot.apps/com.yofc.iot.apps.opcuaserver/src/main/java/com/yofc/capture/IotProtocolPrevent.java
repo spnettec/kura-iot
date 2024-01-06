@@ -1,8 +1,8 @@
 package com.yofc.capture;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.Random;
 
 import org.eclipse.kura.KuraException;
@@ -185,7 +185,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
 
     private void preventTarget(String ip, String port, String table) {
         CommandStatus status;
-        if (this.executorService != null && Objects.nonNull(ip)) {
+        if (this.executorService != null) {
             String command = "iptables -%s %s -s %s %s -j DROP";
             String portStr = "";
             if (port == null) {
@@ -196,9 +196,21 @@ public class IotProtocolPrevent implements ConfigurableComponent {
             String forwardCommand = command.formatted("I", table, ip, portStr);
             status = execute(forwardCommand);
             if (!status.getExitStatus().isSuccessful()) {
-                logger.error("Failed to prevent ip {} and port {} {}", ip, port, table);
+                String errorMes = getErrorMsg(status);
+                logger.error("Failed to prevent ip {} and port {} {}. {}", ip, port, table, errorMes);
             }
+        } else {
+            logger.error("Failed to prevent ip {} and port {} {}. the executorService is invalid", ip, port, table);
         }
+    }
+
+    private static String getErrorMsg(CommandStatus status) {
+        OutputStream errorStream = status.getErrorStream();
+        String errorMsg = "";
+        if (errorStream instanceof ByteArrayOutputStream stream) {
+            errorMsg = new String(stream.toByteArray(), StandardCharsets.UTF_8);
+        }
+        return errorMsg;
     }
 
     private boolean isExit(String ip, String port, String table) {

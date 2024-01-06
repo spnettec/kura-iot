@@ -28,8 +28,8 @@ import java.security.SecureRandom;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.commons.lang3.RandomUtils;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -46,10 +46,14 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CertificateGenerator<PKCS10CertificateRequest> {
+public class CertificateGenerator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CertificateGenerator.class);
     private static final String APPURI = "urn:com:yofc:iot:server";
+
+    private CertificateGenerator() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static CertificateKeyPair generateCertificate() {
         KeyPairGenerator kpg = null;
@@ -57,6 +61,9 @@ public class CertificateGenerator<PKCS10CertificateRequest> {
             kpg = KeyPairGenerator.getInstance("RSA");
         } catch (NoSuchAlgorithmException e) {
             LOGGER.error("Security Algorithim is unsupported for certificate");
+        }
+        if (kpg == null) {
+            return null;
         }
         kpg.initialize(2048);
         kpg.generateKeyPair();
@@ -68,8 +75,9 @@ public class CertificateGenerator<PKCS10CertificateRequest> {
         nameBuilder.addRDN(BCStyle.L, "武汉");
         nameBuilder.addRDN(BCStyle.ST, "湖北");
         nameBuilder.addRDN(BCStyle.C, "中国");
-
-        BigInteger serial = new BigInteger(RandomUtils.nextBytes(40));
+        byte[] bytes = new byte[40];
+        ThreadLocalRandom.current().nextBytes(bytes);
+        BigInteger serial = new BigInteger(bytes);
 
         final Calendar calender = Calendar.getInstance();
         calender.add(Calendar.DATE, -1);
@@ -104,10 +112,7 @@ public class CertificateGenerator<PKCS10CertificateRequest> {
             JcaX509CertificateConverter certificateConvertor = new JcaX509CertificateConverter();
             certificateConvertor.setProvider(new BouncyCastleProvider());
 
-            CertificateKeyPair ckp = new CertificateKeyPair(keyPair,
-                    certificateConvertor.getCertificate(certificateHolder));
-
-            return ckp;
+            return new CertificateKeyPair(keyPair, certificateConvertor.getCertificate(certificateHolder));
 
         } catch (Exception e) {
             LOGGER.error("Security Algorithim is unsupported for certificate");
