@@ -82,7 +82,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
             logger.info("stopping loop thead");
             pThead.breakLoop();
             try {
-                pThead.join();
+                pThead.join(config.timeout());
             } catch (InterruptedException e) {
                 pThead.interrupt();
             } finally {
@@ -129,7 +129,8 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         if (properties.filterExpression() != null && !properties.filterExpression().equals("")) {
             builder.withFilterExpression(properties.filterExpression());
         }
-        pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener).build();
+        pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener)
+                .withClassLoader(this.getClass().getClassLoader()).build();
         pThead.setName("IotProtocolPrevent-" + random.nextInt());
         pThead.start();
     }
