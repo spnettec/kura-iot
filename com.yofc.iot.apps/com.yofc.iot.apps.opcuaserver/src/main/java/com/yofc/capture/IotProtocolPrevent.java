@@ -129,8 +129,8 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         if (properties.filterExpression() != null && !properties.filterExpression().equals("")) {
             builder.withFilterExpression(properties.filterExpression());
         }
-        pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener)
-                .withClassLoader(this.getClass().getClassLoader()).build();
+        pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener).build();
+        pThead.setContextClassLoader(this.getClass().getClassLoader());
         pThead.setName("IotProtocolPrevent-" + random.nextInt());
         pThead.start();
     }

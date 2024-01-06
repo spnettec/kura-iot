@@ -21,15 +21,13 @@ public class PacketCaptureThread extends Thread {
     private int timeout;
     private String filterExpression;
     private PcapHandle handle;
-    private ClassLoader classLoader = null;
 
     public PacketCaptureThread(PcapNetworkInterface device, int timeout, PacketCaptureListener listener,
-            String filterExpression, ClassLoader classLoader) {
+            String filterExpression) {
         this.device = device;
         this.listener = listener;
         this.timeout = timeout;
         this.filterExpression = filterExpression;
-        this.classLoader = classLoader;
         init();
     }
 
@@ -45,39 +43,24 @@ public class PacketCaptureThread extends Thread {
         }
     }
 
-    public static void executeWithTCCLSwitch(final ClassLoader classLoader, final Runnable action) {
-        if (classLoader == null) {
-            action.run();
-        }
-        final ClassLoader ccl = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(classLoader);
-        try {
-            action.run();
-        } finally {
-            Thread.currentThread().setContextClassLoader(ccl);
-        }
-    }
-
     @Override
     public void run() {
         while (true) {
             if (handle == null) {
                 break;
             }
-            executeWithTCCLSwitch(this.classLoader, () -> {
-                try {
-                    Packet packet = null;
-                    packet = handle.getNextPacketEx();
-                    if (packet != null && listener != null) {
-                        listener.gotPacket(packet);
-                    }
-                } catch (TimeoutException | EOFException | NotOpenException e) {
-
-                } catch (Exception e) {
-                    logger.error("error", e);
-                    breakLoop();
+            try {
+                Packet packet = null;
+                packet = handle.getNextPacketEx();
+                if (packet != null && listener != null) {
+                    listener.gotPacket(packet);
                 }
-            });
+            } catch (TimeoutException | EOFException | NotOpenException e) {
+
+            } catch (Exception e) {
+                logger.error("error", e);
+                breakLoop();
+            }
 
         }
     }
@@ -111,7 +94,6 @@ public class PacketCaptureThread extends Thread {
         private PacketCaptureListener listener;
         private int timeout = 10;
         private String filterExpression = "";
-        private ClassLoader classLoader = null;
 
         Builder() {
         }
@@ -122,11 +104,6 @@ public class PacketCaptureThread extends Thread {
 
         public Builder withDevice(PcapNetworkInterface device) {
             this.device = device;
-            return this;
-        }
-
-        public Builder withClassLoader(ClassLoader classLoader) {
-            this.classLoader = classLoader;
             return this;
         }
 
@@ -146,8 +123,7 @@ public class PacketCaptureThread extends Thread {
         }
 
         public PacketCaptureThread build() {
-            return new PacketCaptureThread(this.device, this.timeout, this.listener, this.filterExpression,
-                    this.classLoader);
+            return new PacketCaptureThread(this.device, this.timeout, this.listener, this.filterExpression);
         }
     }
 }
