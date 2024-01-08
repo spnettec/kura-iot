@@ -3,6 +3,7 @@ package com.yofc.capture;
 import java.io.EOFException;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.NotOpenException;
@@ -21,6 +22,7 @@ public class PacketCaptureThread extends Thread {
     private int timeout;
     private String filterExpression;
     private PcapHandle handle;
+    private AtomicBoolean isInited = new AtomicBoolean(false);
 
     public PacketCaptureThread(PcapNetworkInterface device, int timeout, PacketCaptureListener listener,
             String filterExpression) {
@@ -40,28 +42,31 @@ public class PacketCaptureThread extends Thread {
         } catch (Exception e) {
             logger.error("init error", e);
             breakLoop();
+        } finally {
+            this.isInited.set(true);
         }
     }
 
     @Override
     public void run() {
         while (true) {
-            if (handle == null) {
+            if (handle == null && this.isInited.get()) {
                 break;
             }
             try {
                 Packet packet = null;
-                packet = handle.getNextPacketEx();
-                if (packet != null && listener != null) {
-                    listener.gotPacket(packet);
+                if (handle != null) {
+                    packet = handle.getNextPacketEx();
+                    if (packet != null && listener != null) {
+                        listener.gotPacket(packet);
+                    }
                 }
-            } catch (TimeoutException | EOFException | NotOpenException e) {
+            } catch (TimeoutException | EOFException | NotOpenException ignore) {
 
             } catch (Exception e) {
                 logger.error("error", e);
                 breakLoop();
             }
-
         }
     }
 
@@ -80,7 +85,7 @@ public class PacketCaptureThread extends Thread {
 
     private Random random = new Random();
 
-    public void breakLoop() {
+    public synchronized void breakLoop() {
         if (handle != null) {
             new Thread(new CloseRunnable(handle), "IotProtocolPreventClose-" + random.nextInt()).start();
             this.handle = null;
