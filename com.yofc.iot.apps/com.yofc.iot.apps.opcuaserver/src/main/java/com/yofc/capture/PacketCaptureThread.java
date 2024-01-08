@@ -1,16 +1,14 @@
 package com.yofc.capture;
 
-import java.io.EOFException;
 import java.util.Random;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
-import org.pcap4j.packet.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +20,7 @@ public class PacketCaptureThread extends Thread {
     private int timeout;
     private String filterExpression;
     private PcapHandle handle;
-    private AtomicBoolean isInited = new AtomicBoolean(false);
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public PacketCaptureThread(PcapNetworkInterface device, int timeout, PacketCaptureListener listener,
             String filterExpression) {
@@ -42,31 +40,21 @@ public class PacketCaptureThread extends Thread {
         } catch (Exception e) {
             logger.error("init error", e);
             breakLoop();
-        } finally {
-            this.isInited.set(true);
         }
     }
 
     @Override
     public void run() {
-        while (true) {
-            if (handle == null && this.isInited.get()) {
-                break;
+        try {
+            if (handle != null) {
+                handle.loop(timeout, listener, executor);
             }
-            try {
-                Packet packet = null;
-                if (this.isInited.get() && handle != null) {
-                    packet = handle.getNextPacketEx();
-                    if (packet != null && listener != null) {
-                        listener.gotPacket(packet);
-                    }
-                }
-            } catch (TimeoutException | EOFException | NotOpenException ignore) {
-
-            } catch (Exception e) {
-                logger.error("error", e);
-                breakLoop();
-            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            breakLoop();
+        } catch (Exception e) {
+            logger.error("error", e);
+            breakLoop();
         }
     }
 
@@ -79,7 +67,14 @@ public class PacketCaptureThread extends Thread {
         }
 
         public void run() {
-            handle.close();
+            if (handle != null) {
+                try {
+                    handle.breakLoop();
+                } catch (NotOpenException ignored) {
+
+                }
+                handle.close();
+            }
         }
     }
 
@@ -90,6 +85,8 @@ public class PacketCaptureThread extends Thread {
             new Thread(new CloseRunnable(handle), "IotProtocolPreventClose-" + random.nextInt()).start();
             this.handle = null;
             this.listener = null;
+            this.executor.shutdown();
+            this.executor = null;
         }
     }
 
