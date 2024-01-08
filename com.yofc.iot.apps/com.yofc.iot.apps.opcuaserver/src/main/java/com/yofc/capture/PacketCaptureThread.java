@@ -55,7 +55,7 @@ public class PacketCaptureThread extends Thread {
             }
             try {
                 Packet packet = null;
-                if (handle != null) {
+                if (this.isInited.get() && handle != null) {
                     packet = handle.getNextPacketEx();
                     if (packet != null && listener != null) {
                         listener.gotPacket(packet);
