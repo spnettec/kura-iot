@@ -5,7 +5,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
-import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
@@ -47,7 +46,7 @@ public class PacketCaptureThread extends Thread {
     public void run() {
         try {
             if (handle != null) {
-                handle.loop(timeout, listener, executor);
+                handle.loop(-1, listener, executor);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -70,7 +69,7 @@ public class PacketCaptureThread extends Thread {
             if (handle != null) {
                 try {
                     handle.breakLoop();
-                } catch (NotOpenException ignored) {
+                } catch (Exception ignored) {
 
                 }
                 handle.close();
@@ -82,11 +81,11 @@ public class PacketCaptureThread extends Thread {
 
     public synchronized void breakLoop() {
         if (handle != null) {
+            this.executor.shutdown();
+            this.executor = null;
             new Thread(new CloseRunnable(handle), "IotProtocolPreventClose-" + random.nextInt()).start();
             this.handle = null;
             this.listener = null;
-            this.executor.shutdown();
-            this.executor = null;
         }
     }
 
