@@ -210,7 +210,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
                 }
             }
 
-            if (!connection.getMetadata().canRead()) {
+            if (!connection.getMetadata().isReadSupported()) {
                 logger.error("This connection doesn't support reading.");
 
                 return BAD_RESPONSE;
@@ -328,7 +328,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
     public void setValue(String tag, Object value, String connectionString) {
         try (PlcConnection connection = plcConnectionManager.getConnection(connectionString)) {
 
-            if (!connection.getMetadata().canWrite()) {
+            if (!connection.getMetadata().isWriteSupported()) {
                 logger.error("This connection doesn't support writing.");
 
                 return;
