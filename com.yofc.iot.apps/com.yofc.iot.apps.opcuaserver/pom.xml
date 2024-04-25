@@ -216,7 +216,7 @@
 	    <dependency>
 	        <groupId>net.java.dev.jna</groupId>
 	        <artifactId>jna</artifactId>
-	        <version>5.13.0</version>
+	        <version>5.14.0</version>
 	        <scope>provided</scope>
 	    </dependency>
 	    <dependency>
@@ -375,7 +375,7 @@
 	   <dependency>
 	        <groupId>org.json</groupId>
 	        <artifactId>json</artifactId>
-	        <version>20230618</version>
+	        <version>20240303</version>
       </dependency>
       <dependency>
         <groupId>com.github.jinahya</groupId>
@@ -436,6 +436,10 @@
                         </Include-Resource>
                         <Import-Package>
                            com.fazecast.jSerialComm;version="[2.0,3)",
+                           com.fasterxml.jackson.annotation;version="[2.0,3)",
+                           com.fasterxml.jackson.core;version="[2.0,3)",
+						   com.fasterxml.jackson.databind;version="[2.0,3)",
+						   com.fasterxml.jackson.dataformat.yaml;version="[2.0,3)",
                            com.google.common.collect;version="[31.0,33)",
                            org.apache.tools.ant;resolution:=optional,
                            org.apache.tools.ant.types;resolution:=optional,
