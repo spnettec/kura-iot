@@ -26,8 +26,8 @@
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
-        <jackson.version>2.17.0</jackson.version>
-        <fastjson2.version>2.0.49</fastjson2.version>
+        <jackson.version>2.17.1</jackson.version>
+        <fastjson2.version>2.0.50</fastjson2.version>
         <log4j-api.version>2.23.1</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
         <slf4j.version>2.0.12</slf4j.version>
@@ -41,7 +41,7 @@
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
         <junit.platform.version>1.10.1</junit.platform.version>
-        <bouncycastle.version>1.77</bouncycastle.version>
+        <bouncycastle.version>1.78.1</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
         <kura.api.version>2.7.0-SNAPSHOT</kura.api.version>
