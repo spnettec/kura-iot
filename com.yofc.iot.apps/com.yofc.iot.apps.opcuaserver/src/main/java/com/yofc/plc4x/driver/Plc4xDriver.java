@@ -67,8 +67,7 @@ import com.yofc.plc4x.driver.Plc4xDriver.Config;
 import com.yofc.vertx.osgi.api.Utils;
 
 @Designate(ocd = Config.class, factory = true)
-@Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE, property = {
-        "service.pid=com.yofc.plc4x.driver.Plc4xDriver" })
+@Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE)
 public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(Plc4xDriver.class);
