@@ -382,6 +382,11 @@
         <artifactId>bit-io</artifactId>
         <version>1.4.3</version>
       </dependency>
+      <dependency>
+	    <groupId>commons-net</groupId>
+	    <artifactId>commons-net</artifactId>
+	    <version>3.11.0</version>
+	 </dependency>
 	    <dependency>
 	      <groupId>org.bouncycastle</groupId>
 	      <artifactId>bcpkix-jdk18on</artifactId>
