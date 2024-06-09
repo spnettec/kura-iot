@@ -19,7 +19,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
@@ -34,7 +33,6 @@ import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
-import org.apache.plc4x.java.utils.cache.CachedPlcConnectionManager;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -50,7 +48,6 @@ import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -82,11 +79,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @Activate
     protected synchronized void activate(final BundleContext context, final Config properties) {
         logger.info("Activating Plc4xDriver...");
-        if (plcConnectionManager == null) {
-            ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-            plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader))
-                    .build();
-        }
+
         extractProperties(properties);
         logger.info("Activating Plc4xDriver... Done");
     }
@@ -137,7 +130,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 }
             }));
             PlcReadRequest readRequest = builder.build();
-            PlcReadResponse response = readRequest.execute().get(10000L, TimeUnit.MILLISECONDS);
+            PlcReadResponse response = readRequest.execute().get();
             response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
