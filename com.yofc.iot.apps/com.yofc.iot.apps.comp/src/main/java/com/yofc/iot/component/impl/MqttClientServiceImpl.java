@@ -376,7 +376,7 @@ public class MqttClientServiceImpl implements MqttCallback, MqttClientService, C
         }
         try {
             IMqttToken token = this.mqttClient.subscribe(topicFilter, qos,
-                    (topic, msg) -> consumer.accept(topicFilter, consumer));
+                    (topic, msg) -> consumer.accept(topicFilter, msg));
             token.waitForCompletion(getTimeToWaitMillis());
             registerTopcs.add(topicFilter);
         } catch (Exception e) {

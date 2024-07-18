@@ -360,7 +360,7 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
         }
         try {
             IMqttToken token = this.mqttClient.subscribe(new MqttSubscription(topicFilter, qos),
-                    (topic, msg) -> consumer.accept(topicFilter, consumer));
+                    (topic, msg) -> consumer.accept(topicFilter, msg));
             token.waitForCompletion(getTimeToWaitMillis());
             registerTopcs.add(topicFilter);
         } catch (Exception e) {
