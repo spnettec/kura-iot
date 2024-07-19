@@ -14,14 +14,14 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.5.8</vertx.version>
+        <vertx.version>4.5.9</vertx.version>
         <netty.version>4.1.111.Final</netty.version>
         <shiro-core.version>2.0.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.1.0</HikariCP.version>
-        <groovy.version>3.0.21</groovy.version>
+        <groovy.version>3.0.22</groovy.version>
         <h2.version>2.2.224</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
@@ -44,8 +44,8 @@
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
-        <kura.api.version>2.7.0-SNAPSHOT</kura.api.version>
-        <kura.core.configration.version>2.5.0-SNAPSHOT</kura.core.configration.version>
+        <kura.api.version>3.0.0-SNAPSHOT</kura.api.version>
+        <kura.core.configration.version>3.0.0-SNAPSHOT</kura.core.configration.version>
     </properties>
     <pluginRepositories>
         <pluginRepository>
