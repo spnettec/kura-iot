@@ -2,13 +2,17 @@ package com.yofc.iot.component.impl;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -62,7 +66,7 @@ import groovy.lang.Script;
 public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(MqttV5ClientServiceImpl.class);
-    private final List<String> registerTopcs = new ArrayList<>();
+    private final Map<String, List<BiConsumer<String, Object>>> registerTopcs = new HashMap<>();
     protected ScheduledExecutorService connectionMonitorExecutor;
     private MqttAsyncClient mqttClient;
     private MqttV5ClientConfiguration clientConf;
@@ -76,6 +80,8 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
     private MqttClientPersistence persistence;
     private Config preConfig = null;
     private ScheduledFuture<?> connectionMonitorFuture;
+    private List<Consumer<Void>> connectedListers = new ArrayList<>();
+    private List<Consumer<Void>> disConnectedListers = new ArrayList<>();
 
     public void unbindSslManagerService(SslManagerService sslManagerService) {
         if (this.sslManagerService == sslManagerService) {
@@ -150,7 +156,7 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
         try {
             IMqttToken connectToken = this.mqttClient.connect(this.clientConf.getConnectOptions());
             connectToken.waitForCompletion(getTimeToWaitMillis() * 3);
-            registerTopcs.clear();
+            connectedListers.forEach(c -> c.accept(null));
             logger.info("#  Connected!");
             logger.info("# ------------------------------------------------------------");
         } catch (MqttException e) {
@@ -176,8 +182,8 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
         }
         if (this.mqttClient == null) {
             logger.info("Creating a new client instance");
-            PersistenceType persistenceType = this.clientConf.getPersistenceType();
-            if (persistenceType == PersistenceType.MEMORY) {
+            PersistenceType pType = this.clientConf.getPersistenceType();
+            if (pType == PersistenceType.MEMORY) {
                 logger.info("Using memory persistence for in-flight messages");
                 this.persistence = new MemoryPersistence();
             } else {
@@ -203,7 +209,7 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
                 logger.error("Client instantiation failed", e);
                 throw new IllegalStateException("Client instantiation failed");
             }
-            this.persistenceType = persistenceType;
+            this.persistenceType = pType;
         }
     }
 
@@ -211,8 +217,17 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
         if (this.mqttClient != null) {
             try {
                 logger.info("Closing client...");
+                this.disConnectedListers.forEach(c -> c.accept(null));
                 if (!this.registerTopcs.isEmpty()) {
-                    this.mqttClient.unsubscribe(this.registerTopcs.toArray(new String[0]));
+                    registerTopcs.keySet().forEach(key -> {
+                        try {
+                            if (this.mqttClient.isConnected()) {
+                                this.mqttClient.unsubscribe(key);
+                            }
+                        } catch (MqttException e) {
+                            logger.error("unsubscribe:{} failer", key);
+                        }
+                    });
                 }
                 this.mqttClient.setCallback(null);
                 if (this.mqttClient.isConnected()) {
@@ -355,19 +370,23 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
             return;
         }
         logger.info("Subscribing to topic: {} with QoS: {}", topicFilter, qos);
-        if (registerTopcs.contains(topicFilter)) {
-            return;
-        }
-        try {
-            IMqttToken token = this.mqttClient.subscribe(new MqttSubscription(topicFilter, qos),
-                    (topic, msg) -> consumer.accept(topicFilter, msg));
-            token.waitForCompletion(getTimeToWaitMillis());
-            registerTopcs.add(topicFilter);
-        } catch (Exception e) {
-
-            logger.error("Cannot subscribe to topic: {}", topicFilter, e);
-            throw KuraException.internalError(e, "Cannot subscribe to topic: " + topicFilter);
-
+        if (registerTopcs.containsKey(topicFilter)) {
+            if (!registerTopcs.get(topicFilter).contains(consumer)) {
+                registerTopcs.get(topicFilter).add(consumer);
+            }
+        } else {
+            try {
+                registerTopcs.put(topicFilter, new ArrayList<>(Arrays.asList(consumer)));
+                IMqttToken token = this.mqttClient.subscribe(new MqttSubscription(topicFilter, qos), (topic, msg) -> {
+                    List<BiConsumer<String, Object>> consumers = registerTopcs.get(topicFilter);
+                    if (consumers != null) {
+                        consumers.forEach(action -> action.accept(topic, msg));
+                    }
+                });
+                token.waitForCompletion(getTimeToWaitMillis());
+            } catch (Exception e) {
+                throw KuraException.internalError(e, "Cannot subscribe to topic: " + topicFilter);
+            }
         }
     }
 
@@ -405,6 +424,48 @@ public class MqttV5ClientServiceImpl implements MqttCallback, MqttClientService,
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
 
+    }
+
+    @Override
+    public void unsubscribe(String topic, BiConsumer<String, Object> consumer) throws KuraException {
+        List<BiConsumer<String, Object>> consumers = registerTopcs.get(topic);
+        if (consumers != null) {
+            consumers.remove(consumer);
+            if (consumers.isEmpty()) {
+                try {
+                    this.mqttClient.unsubscribe(topic);
+                } catch (MqttException e) {
+                    logger.error("unsubscribe topic:{} error", topic);
+                }
+                registerTopcs.remove(topic);
+            }
+        }
+
+    }
+
+    @Override
+    public void connectedLister(Consumer<Void> connectedLister) {
+        if (!this.connectedListers.contains(connectedLister)) {
+            this.connectedListers.add(connectedLister);
+        }
+
+    }
+
+    @Override
+    public void disConnectedLister(Consumer<Void> disConnectedLister) {
+        if (!this.disConnectedListers.contains(disConnectedLister)) {
+            this.disConnectedListers.add(disConnectedLister);
+        }
+    }
+
+    @Override
+    public void removeConnectedLister(Consumer<Void> connectedLister) {
+        this.connectedListers.remove(connectedLister);
+    }
+
+    @Override
+    public void removeDisConnectedLister(Consumer<Void> disConnectedLister) {
+        this.disConnectedListers.remove(disConnectedLister);
     }
 
     private boolean startConnectionMonitorTask() {

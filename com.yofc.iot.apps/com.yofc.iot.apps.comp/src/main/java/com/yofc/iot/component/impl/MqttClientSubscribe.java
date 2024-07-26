@@ -1,5 +1,8 @@
 package com.yofc.iot.component.impl;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 import org.eclipse.kura.asset.AssetService;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.wire.WireComponent;
@@ -67,10 +70,34 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
     private Script script;
     @Reference
     private AssetHelp assetHelp;
-    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, unbind = "unbindMqttClientService")
     private volatile MqttClientService mqttClientService;
-
     private MqttClientSubscribeCfg properties;
+
+    private BiConsumer<String, Object> consumer = (topic, msgObj) -> {
+        if (msgObj instanceof org.eclipse.paho.client.mqttv3.MqttMessage msgObjv3) {
+            handleMqttMessage(topic, msgObjv3.getPayload());
+        } else if (msgObj instanceof org.eclipse.paho.mqttv5.common.MqttMessage msgObjv5) {
+            handleMqttMessage(topic, msgObjv5.getPayload());
+        }
+    };
+
+    private Consumer<Void> connectedConsumer = v -> {
+        try {
+            this.mqttClientService.subscribe(MqttClientSubscribe.this.properties.mqttTopic(), this.properties.qos(),
+                    MqttClientSubscribe.this.consumer);
+        } catch (Exception e) {
+            logger.error("Subscripe topic: {} error", this.properties.mqttTopic(), e);
+        }
+    };
+
+    private Consumer<Void> disConnectedConsumer = v -> {
+        try {
+            this.mqttClientService.unsubscribe(MqttClientSubscribe.this.properties.mqttTopic(),
+                    MqttClientSubscribe.this.consumer);
+        } catch (Exception e) {
+            logger.error("unsubscribe topic: {} error", this.properties.mqttTopic(), e);
+        }
+    };
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
         if (this.wireHelperService == wireHelperService) {
@@ -79,34 +106,27 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
     }
 
     public void unbindMqttClientService(MqttClientService mqttClientService) {
-        if (this.mqttClientService == mqttClientService) {
+        if (this.mqttClientService == mqttClientService && mqttClientService != null) {
+            this.mqttClientService.removeConnectedLister(connectedConsumer);
+            this.mqttClientService.removeDisConnectedLister(disConnectedConsumer);
             this.mqttClientService = null;
         }
     }
 
-    private void subscribe() {
-        if (this.mqttClientService == null) {
-            logger.error("mqttClientService is not ready");
-            return;
-        }
-        if (this.mqttClientService.isConnected()) {
-            try {
-
-                this.mqttClientService.subscribe(this.properties.mqttTopic(), this.properties.qos(),
-                        (topic, msgObj) -> {
-                            if (msgObj instanceof org.eclipse.paho.client.mqttv3.MqttMessage) {
-                                handleMqttMessage(topic,
-                                        ((org.eclipse.paho.client.mqttv3.MqttMessage) msgObj).getPayload());
-                            } else if (msgObj instanceof org.eclipse.paho.mqttv5.common.MqttMessage) {
-                                handleMqttMessage(topic,
-                                        ((org.eclipse.paho.mqttv5.common.MqttMessage) msgObj).getPayload());
-                            }
-                        });
-            } catch (Exception e) {
-                logger.error("Subscripe topic: {} error", this.properties.mqttTopic(), e);
+    @Reference(name = "MqttClientService", policy = ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.OPTIONAL, bind = "bindMqttClientService", unbind = "unbindMqttClientService")
+    public void bindMqttClientService(MqttClientService mqttClientService) {
+        if (this.mqttClientService != mqttClientService && mqttClientService != null) {
+            this.mqttClientService = mqttClientService;
+            this.mqttClientService.connectedLister(connectedConsumer);
+            this.mqttClientService.disConnectedLister(disConnectedConsumer);
+            if (this.mqttClientService.isConnected()) {
+                try {
+                    this.mqttClientService.subscribe(MqttClientSubscribe.this.properties.mqttTopic(),
+                            this.properties.qos(), MqttClientSubscribe.this.consumer);
+                } catch (Exception e) {
+                    logger.error("Subscripe topic: {} error", this.properties.mqttTopic(), e);
+                }
             }
-        } else {
-            logger.error("mqttClientService is not connected!");
         }
     }
 
@@ -156,12 +176,17 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
             webClient.close();
             webClient = null;
         }
+        if (this.mqttClientService != null) {
+            this.mqttClientService.removeConnectedLister(connectedConsumer);
+            this.mqttClientService.removeDisConnectedLister(disConnectedConsumer);
+        }
         logger.info("Deactivating Script Filter... Done");
     }
 
     @Modified
     public synchronized void updated(final MqttClientSubscribeCfg properties) {
         logger.info("Updating Script Filter...");
+
         serviceTool.ungetServices();
         this.properties = properties;
 
@@ -192,7 +217,10 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
             }
             logger.info("Updating Script Filter... Done");
         }
-        subscribe();
+        if (this.mqttClientService != null) {
+            this.mqttClientService.connectedLister(connectedConsumer);
+            this.mqttClientService.disConnectedLister(disConnectedConsumer);
+        }
     }
 
     @Override
@@ -209,16 +237,24 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
     @interface MqttClientSubscribeCfg {
 
         @AttributeDefinition(name = "%serviceTarget", cardinality = 0, description = "%serviceTargetDesc", required = false)
-        String MqttClientService_target() default "(kura.service.pid=changeme)";
+        String MqttClientService_target()
+
+        default "(kura.service.pid=changeme)";
 
         @AttributeDefinition(name = "%script", cardinality = 0, description = "%scriptDesc", required = false)
-        String script() default "";
+        String script()
+
+        default "";
 
         @AttributeDefinition(name = "%mqttTopic", cardinality = 0, description = "%mqttTopicDesc", required = true)
-        String mqttTopic() default "yofc/iot";
+        String mqttTopic()
+
+        default "yofc/iot";
 
         @AttributeDefinition(name = "%qos", cardinality = 0, description = "%qosDesc", required = true)
-        int qos() default 0;
+        int qos()
+
+        default 0;
 
         @AttributeDefinition(name = "%retain", description = "%retainDesc")
         boolean retain() default false;
