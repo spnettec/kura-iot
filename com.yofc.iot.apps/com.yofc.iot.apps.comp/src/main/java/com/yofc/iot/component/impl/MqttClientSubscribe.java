@@ -82,21 +82,11 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
     };
 
     private Consumer<Void> connectedConsumer = v -> {
-        try {
-            this.mqttClientService.subscribe(MqttClientSubscribe.this.properties.mqttTopic(), this.properties.qos(),
-                    MqttClientSubscribe.this.consumer);
-        } catch (Exception e) {
-            logger.error("Subscripe topic: {} error", this.properties.mqttTopic(), e);
-        }
+        MqttClientSubscribe.this.subscribe();
     };
 
     private Consumer<Void> disConnectedConsumer = v -> {
-        try {
-            this.mqttClientService.unsubscribe(MqttClientSubscribe.this.properties.mqttTopic(),
-                    MqttClientSubscribe.this.consumer);
-        } catch (Exception e) {
-            logger.error("unsubscribe topic: {} error", this.properties.mqttTopic(), e);
-        }
+        MqttClientSubscribe.this.unSubscribe();
     };
 
     public void unbindWireHelperService(final WireHelperService wireHelperService) {
@@ -110,6 +100,28 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
             this.mqttClientService.removeConnectedLister(connectedConsumer);
             this.mqttClientService.removeDisConnectedLister(disConnectedConsumer);
             this.mqttClientService = null;
+        }
+    }
+
+    private void subscribe() {
+        try {
+            if (MqttClientSubscribe.this.mqttClientService != null && MqttClientSubscribe.this.properties != null) {
+                MqttClientSubscribe.this.mqttClientService.subscribe(MqttClientSubscribe.this.properties.mqttTopic(),
+                        this.properties.qos(), MqttClientSubscribe.this.consumer);
+            }
+        } catch (Exception e) {
+            logger.error("Subscripe topic: {} error", this.properties.mqttTopic(), e);
+        }
+    }
+
+    private void unSubscribe() {
+        try {
+            if (MqttClientSubscribe.this.mqttClientService != null && MqttClientSubscribe.this.properties != null) {
+                MqttClientSubscribe.this.mqttClientService.unsubscribe(MqttClientSubscribe.this.properties.mqttTopic(),
+                        MqttClientSubscribe.this.consumer);
+            }
+        } catch (Exception e) {
+            logger.error("unsubscribe topic: {} error", this.properties.mqttTopic(), e);
         }
     }
 
@@ -160,7 +172,6 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
     @Activate
     public void activate(final ComponentContext componentContext, MqttClientSubscribeCfg properties) {
         logger.info("Activating Script Filter...");
-        this.properties = properties;
         this.wireSupport = this.wireHelperService.newWireSupport(this,
                 (ServiceReference<WireComponent>) componentContext.getServiceReference());
         updated(properties);
@@ -188,7 +199,11 @@ public class MqttClientSubscribe implements WireEmitter, ConfigurableComponent {
         logger.info("Updating Script Filter...");
 
         serviceTool.ungetServices();
-        this.properties = properties;
+        if (this.properties != properties) {
+            unSubscribe();
+            this.properties = properties;
+            subscribe();
+        }
 
         scriptSource = properties.script();
 
