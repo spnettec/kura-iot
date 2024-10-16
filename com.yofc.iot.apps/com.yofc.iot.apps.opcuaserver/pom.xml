@@ -216,7 +216,7 @@
 	    <dependency>
 	        <groupId>net.java.dev.jna</groupId>
 	        <artifactId>jna</artifactId>
-	        <version>5.14.0</version>
+	        <version>5.15.0</version>
 	        <scope>provided</scope>
 	    </dependency>
 	    <dependency>
@@ -445,7 +445,7 @@
                            com.fasterxml.jackson.core;version="[2.0,3)",
 						   com.fasterxml.jackson.databind;version="[2.0,3)",
 						   com.fasterxml.jackson.dataformat.yaml;version="[2.0,3)",
-                           com.google.common.collect;version="[31.0,33)",
+                           com.google.common.collect;version="[31.0,34)",
                            org.apache.tools.ant;resolution:=optional,
                            org.apache.tools.ant.types;resolution:=optional,
                            org.brotli.dec;resolution:=optional,
@@ -471,6 +471,8 @@
                            org.h2.api;version="[1.4.197,3.0)",
                            org.h2.jdbcx;version="[1.4.197,3.0)",
                            org.h2.tools;version="[1.4.197,3.0)",
+                           com.sun.jna;version="[5.13,6)",
+ 						   com.sun.jna.ptr;version="[5.13,6)",
                            *                        
                         </Import-Package>
                     </instructions>
