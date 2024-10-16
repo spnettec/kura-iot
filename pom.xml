@@ -14,9 +14,9 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.5.9</vertx.version>
-        <netty.version>4.1.111.Final</netty.version>
-        <shiro-core.version>2.0.0</shiro-core.version>
+        <vertx.version>4.5.10</vertx.version>
+        <netty.version>4.1.114.Final</netty.version>
+        <shiro-core.version>2.0.1</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
@@ -26,8 +26,8 @@
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
-        <jackson.version>2.17.1</jackson.version>
-        <fastjson2.version>2.0.51</fastjson2.version>
+        <jackson.version>2.18.0</jackson.version>
+        <fastjson2.version>2.0.53</fastjson2.version>
         <log4j-api.version>2.23.1</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
         <slf4j.version>2.0.12</slf4j.version>
