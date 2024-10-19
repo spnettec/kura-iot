@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="com.yofc.plc4x.driver.Plc4xDriver" configuration-policy="require" enabled="true" immediate="true" activate="activate" deactivate="deactivate" modified="updated">
-  <property name="connectString" type="String" value="s7://127.0.0.1?remote-group=1&amp;remote-rack=0&amp;remote-slot=0"/>
+  <property name="connectString" type="String" value="s7://127.0.0.1?remote-device-group=PG_OR_PC&amp;remote-rack=0&amp;remote-slot=0"/>
   <service>
     <provide interface="org.eclipse.kura.driver.Driver"/>
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="OSGI-INF/l10n/com.yofc.plc4x.driver.Plc4xDriverCfg">
   <OCD id="com.yofc.plc4x.driver.Plc4xDriver" name="%name" description="%description">
-    <AD id="connectString" type="String" name="%connectString" description="%connectStringDesc" default="s7://127.0.0.1?remote-group=1&amp;remote-rack=0&amp;remote-slot=0"/>
+    <AD id="connectString" type="String" name="%connectString" description="%connectStringDesc" default="s7://127.0.0.1?remote-device-group=PG_OR_PC&amp;remote-rack=0&amp;remote-slot=0"/>
   </OCD>
   <Designate factoryPid="com.yofc.plc4x.driver.Plc4xDriver">
     <Object ocdref="com.yofc.plc4x.driver.Plc4xDriver"/>
