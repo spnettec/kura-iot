@@ -16,8 +16,8 @@ import com.yofc.opcuaserver.configuration.Configuration;
 import com.yofc.opcuaserver.configuration.DeviceConfiguration;
 import com.yofc.opcuaserver.configuration.Tag;
 
+import io.vertx.mysqlclient.MySQLBuilder;
 import io.vertx.mysqlclient.MySQLConnectOptions;
-import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
@@ -49,7 +49,7 @@ public class TestConfigFile {
         PoolOptions poolOptions = new PoolOptions().setMaxSize(1);
 
         // Create the client pool
-        SqlClient client = MySQLPool.client(connectOptions, poolOptions);
+        SqlClient client = MySQLBuilder.client().with(poolOptions).connectingTo(connectOptions).build();
         final CompletableFuture<RowSet<Row>> completableFuture = new CompletableFuture<>();
         // A simple query
         client.query(

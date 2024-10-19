@@ -478,6 +478,6 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @interface Config {
 
         @AttributeDefinition(name = "%connectString", description = "%connectStringDesc")
-        String connectString() default "s7://127.0.0.1?remote-group=1&remote-rack=0&remote-slot=0";
+        String connectString() default "s7://127.0.0.1?remote-device-group=PG_OR_PC&remote-rack=0&remote-slot=0";
     }
 }
