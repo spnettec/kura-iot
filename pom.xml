@@ -14,34 +14,34 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.5.10</vertx.version>
-        <netty.version>4.1.114.Final</netty.version>
+        <vertx.version>4.5.11</vertx.version>
+        <netty.version>4.1.115.Final</netty.version>
         <shiro-core.version>2.0.1</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.2.20</mchange-commons-java.version>
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.1.0</HikariCP.version>
-        <groovy.version>3.0.22</groovy.version>
+        <groovy.version>3.0.23</groovy.version>
         <h2.version>2.2.224</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
-        <jackson.version>2.18.0</jackson.version>
+        <jackson.version>2.18.2</jackson.version>
         <fastjson2.version>2.0.53</fastjson2.version>
         <log4j-api.version>2.23.1</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
         <slf4j.version>2.0.12</slf4j.version>
         <logback.version>1.5.3</logback.version>
-        <lombok.version>1.18.34</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
         <milo.version>0.6.13</milo.version>
         <commons-cli.version>1.6.0</commons-cli.version>
         <commons-codec.version>1.16.1</commons-codec.version>
-        <commons-io.version>2.15.1</commons-io.version>
+        <commons-io.version>2.18.0</commons-io.version>
         <vavr.version>0.10.4</vavr.version>
-        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
         <junit.platform.version>1.10.1</junit.platform.version>
-        <bouncycastle.version>1.78.1</bouncycastle.version>
+        <bouncycastle.version>1.79</bouncycastle.version>
         <felix.framework.version>6.0.1</felix.framework.version>
         <osgi-core.version>6.0.0</osgi-core.version>
         <kura.api.version>3.0.0-SNAPSHOT</kura.api.version>
