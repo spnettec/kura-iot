@@ -185,7 +185,7 @@ public class Utils {
     public static List<String> getTagNames(List<WireRecord> records) {
 
         return records.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(functionWrapper(Map::keySet))
-                .flatMap(functionWrapper(Set::stream)).collect(Collectors.toList());
+                .flatMap(functionWrapper(Set::stream)).toList();
     }
 
     public static Map<String, Object> toMap(List<WireRecord> list) {
@@ -258,7 +258,7 @@ public class Utils {
                 } catch (Exception e) {
                     logger.error("sql error", e);
                 }
-                return (Void) null;
+                return null;
             });
         } finally {
             bundleContext.ungetService(ref);
