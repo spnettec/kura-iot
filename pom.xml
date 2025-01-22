@@ -37,6 +37,7 @@
         <commons-cli.version>1.6.0</commons-cli.version>
         <commons-codec.version>1.16.1</commons-codec.version>
         <commons-io.version>2.18.0</commons-io.version>
+        <commons-net.version>3.11.1</commons-net.version>
         <vavr.version>0.10.4</vavr.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
@@ -250,6 +251,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-net</groupId>
+			    <artifactId>commons-net</artifactId>
+			    <version>${commons-net.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
