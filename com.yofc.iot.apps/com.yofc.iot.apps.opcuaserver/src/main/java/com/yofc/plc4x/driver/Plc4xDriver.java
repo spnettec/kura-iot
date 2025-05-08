@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
@@ -33,6 +34,7 @@ import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
+import org.apache.plc4x.java.spi.values.PlcBYTE;
 import org.eclipse.kura.KuraErrorCode;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
@@ -348,62 +350,67 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
+        Object newValue = value;
+        if (value instanceof byte[]) {
+            byte[] bytes = (byte[]) value;
+            newValue = IntStream.range(0, bytes.length).mapToObj(i -> bytes[i]).map(PlcBYTE::of).toList();
+        }
         switch (targetType) {
         case LONGS:
-            return TypedValues.newLongValues(getLongs(value));
+            return TypedValues.newLongValues(getLongs(newValue));
         case LONG: {
-            if (value instanceof LocalDate) {
-                return TypedValues.newLongValue(((LocalDate) value).toEpochDay());
+            if (newValue instanceof LocalDate) {
+                return TypedValues.newLongValue(((LocalDate) newValue).toEpochDay());
             }
-            if (value instanceof Duration) {
-                return TypedValues.newLongValue(((Duration) value).toNanos());
+            if (newValue instanceof Duration) {
+                return TypedValues.newLongValue(((Duration) newValue).toNanos());
             }
-            if (value instanceof Date) {
-                return TypedValues.newLongValue(((Date) value).getTime());
+            if (newValue instanceof Date) {
+                return TypedValues.newLongValue(((Date) newValue).getTime());
             }
-            return TypedValues.newLongValue(((Number) (value == null ? 0 : value)).longValue());
+            return TypedValues.newLongValue(((Number) (newValue == null ? 0 : newValue)).longValue());
         }
         case FLOATS:
-            return TypedValues.newFloatValues(getFloats(value));
+            return TypedValues.newFloatValues(getFloats(newValue));
         case FLOAT:
-            return TypedValues.newFloatValue(((Number) (value == null ? 0 : value)).floatValue());
+            return TypedValues.newFloatValue(((Number) (newValue == null ? 0 : newValue)).floatValue());
         case DOUBLES:
-            return TypedValues.newDoubleValues(getDoubles(value));
+            return TypedValues.newDoubleValues(getDoubles(newValue));
         case DOUBLE:
-            return TypedValues.newDoubleValue(((Number) (value == null ? 0 : value)).doubleValue());
+            return TypedValues.newDoubleValue(((Number) (newValue == null ? 0 : newValue)).doubleValue());
         case INTEGERS:
-            return TypedValues.newIntegerValues(getIntegers(value));
+            return TypedValues.newIntegerValues(getIntegers(newValue));
         case BIGINTEGERS:
-            return TypedValues.newBigIntegerValues(getBigIntegers(value));
+            return TypedValues.newBigIntegerValues(getBigIntegers(newValue));
         case BOOLEANS:
-            return TypedValues.newBooleanValues(getBooleans(value));
+            return TypedValues.newBooleanValues(getBooleans(newValue));
         case INTEGER:
-            if (value instanceof Boolean) {
-                return TypedValues.newIntegerValue(((Boolean) value) == Boolean.TRUE ? 1 : 0);
+            if (newValue instanceof Boolean) {
+                return TypedValues.newIntegerValue(((Boolean) newValue) == Boolean.TRUE ? 1 : 0);
             }
-            return TypedValues.newIntegerValue(((Number) (value == null ? 0 : value)).intValue());
+            return TypedValues.newIntegerValue(((Number) (newValue == null ? 0 : newValue)).intValue());
         case BOOLEAN: {
-            if (value instanceof Number) {
-                return TypedValues.newBooleanValue(((Number) value).intValue() > 0);
-            } else if (value instanceof Boolean) {
-                return TypedValues.newBooleanValue((Boolean) value);
+            if (newValue instanceof Number) {
+                return TypedValues.newBooleanValue(((Number) newValue).intValue() > 0);
+            } else if (newValue instanceof Boolean) {
+                return TypedValues.newBooleanValue((Boolean) newValue);
             } else {
-                return TypedValues.newBooleanValue(Boolean.parseBoolean(value == null ? "" : (String) value));
+                return TypedValues.newBooleanValue(Boolean.parseBoolean(newValue == null ? "" : (String) newValue));
             }
         }
         case STRINGS:
-            return TypedValues.newStringValues(getStrings(value));
+            return TypedValues.newStringValues(getStrings(newValue));
         case STRING:
-            if (value instanceof List) {
-                return TypedValues.newStringValue(ArrayUtils.toString(value));
+            if (newValue instanceof List) {
+                return TypedValues.newStringValue(ArrayUtils.toString(newValue));
             }
-            return TypedValues.newStringValue(value == null ? "" : value.toString());
+            return TypedValues.newStringValue(newValue == null ? "" : newValue.toString());
         case BYTE_ARRAY:
-            if (value == null) {
+            if (newValue == null) {
                 return TypedValues.newByteArrayValue(new byte[] {});
             }
             @SuppressWarnings("unchecked")
-            List<PlcValue> list = (List<PlcValue>) value;
+            List<PlcValue> list = (List<PlcValue>) newValue;
             Byte[] bytes = list.stream().map(b -> {
                 byte recivedID = 0;
                 if (b.isList()) {
