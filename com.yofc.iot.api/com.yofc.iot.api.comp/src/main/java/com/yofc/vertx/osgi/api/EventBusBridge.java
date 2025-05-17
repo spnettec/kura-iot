@@ -45,7 +45,7 @@ public class EventBusBridge {
             WebSocketClientOptions options, Optional<Vertx> aVertx) {
 
         vertx = aVertx.orElse(Vertx.vertx());
-        vertx.createWebSocketClient(options).connect(port, host, endPoint.toString() + "/websocket", ar -> {
+        vertx.createWebSocketClient(options).connect(port, host, endPoint.toString() + "/websocket").onComplete(ar -> {
             if (ar.succeeded()) {
                 webSocket = ar.result();
                 webSocket.handler(this::bufferReceived);

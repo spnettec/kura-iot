@@ -206,41 +206,44 @@ public class VertxMqttSubscribe implements WireEmitter, ConfigurableComponent {
             mqttClient = MqttClient.create(vertx, options);
         }
 
-        mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost(), ackMes -> {
-            if (ackMes.succeeded()) {
-                if (timerId != 0) {
-                    vertx.cancelTimer(timerId);
-                    timerId = 0;
-                }
-                logger.info("Connect to Server");
-                mqttClient.subscribe(this.properties.mqttTopic(), this.properties.qos());
-                mqttClient.subscribeCompletionHandler(mqttSubAckMessage -> {
-                    logger.debug("Id of just received SUBACK packet is {}", mqttSubAckMessage.messageId());
-                    for (int s : mqttSubAckMessage.grantedQoSLevels()) {
-                        if (s == 0x80) {
-                            logger.error("Failure");
+        mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost())
+                .andThen(ackMes -> {
+                    if (ackMes.succeeded()) {
+                        if (timerId != 0) {
+                            vertx.cancelTimer(timerId);
+                            timerId = 0;
+                        }
+                        logger.info("Connect to Server");
+                        mqttClient.subscribe(this.properties.mqttTopic(), this.properties.qos());
+                        mqttClient.subscribeCompletionHandler(mqttSubAckMessage -> {
+                            logger.debug("Id of just received SUBACK packet is {}", mqttSubAckMessage.messageId());
+                            for (int s : mqttSubAckMessage.grantedQoSLevels()) {
+                                if (s == 0x80) {
+                                    logger.error("Failure");
+                                } else {
+                                    mqttClient.publishHandler(this::handleMqttMessage);
+                                }
+                            }
+                        });
+                    } else {
+                        if (ackMes.cause() instanceof MqttConnectionException) {
+                            MqttConnectionException exception = (MqttConnectionException) ackMes.cause();
+                            if (MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD == exception.code()
+                                    || MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED == exception.code()) {
+                                logger.error("username or password error");
+                            }
                         } else {
-                            mqttClient.publishHandler(this::handleMqttMessage);
+                            try {
+                                reConnect();
+                            } catch (Exception e1) {
+                                logger.error("Failured to reConnect on ackMessage", e1);
+                            }
+                            logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
                         }
                     }
                 });
-            } else {
-                if (ackMes.cause() instanceof MqttConnectionException) {
-                    MqttConnectionException exception = (MqttConnectionException) ackMes.cause();
-                    if (MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD == exception.code()
-                            || MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED == exception.code()) {
-                        logger.error("username or password error");
-                    }
-                } else {
-                    try {
-                        reConnect();
-                    } catch (Exception e1) {
-                        logger.error("Failured to reConnect on ackMessage", e1);
-                    }
-                    logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
-                }
-            }
-        }).closeHandler(h -> {
+
+        mqttClient.closeHandler(h -> {
             try {
                 reConnect();
             } catch (Exception e1) {

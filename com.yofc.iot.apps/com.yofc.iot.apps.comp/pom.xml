@@ -248,7 +248,8 @@
                             org.h2.api;version="[1.4.197,3.0)",
                             org.h2.jdbcx;version="[1.4.197,3.0)",
                             org.h2.tools;version="[1.4.197,3.0)",
-                            groovy.lang;version="[2.5,4)",
+                            groovy.lang;version="[2.5,5)",
+                            io.netty.handler.codec.mqtt;version="[4.0,5)",
                             *
                         </Import-Package>
                         <Include-Resource>

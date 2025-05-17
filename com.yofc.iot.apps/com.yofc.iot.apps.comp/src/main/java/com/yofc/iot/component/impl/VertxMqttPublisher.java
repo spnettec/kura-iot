@@ -327,30 +327,32 @@ public class VertxMqttPublisher implements WireEmitter, WireReceiver, Configurab
             mqttClient = MqttClient.create(vertx, options);
         }
 
-        mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost(), ackMes -> {
-            if (ackMes.succeeded()) {
-                if (timerId != 0) {
-                    vertx.cancelTimer(timerId);
-                    timerId = 0;
-                }
-                logger.info("Connect to Server");
-            } else {
-                if (ackMes.cause() instanceof MqttConnectionException) {
-                    MqttConnectionException exception = (MqttConnectionException) ackMes.cause();
-                    if (MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD == exception.code()
-                            || MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED == exception.code()) {
-                        logger.error("username or password error");
+        mqttClient.connect(properties.brokerPort(), properties.brokerHost(), properties.brokerHost())
+                .andThen(ackMes -> {
+                    if (ackMes.succeeded()) {
+                        if (timerId != 0) {
+                            vertx.cancelTimer(timerId);
+                            timerId = 0;
+                        }
+                        logger.info("Connect to Server");
+                    } else {
+                        if (ackMes.cause() instanceof MqttConnectionException) {
+                            MqttConnectionException exception = (MqttConnectionException) ackMes.cause();
+                            if (MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD == exception.code()
+                                    || MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED == exception.code()) {
+                                logger.error("username or password error");
+                            }
+                        } else {
+                            try {
+                                reConnect();
+                            } catch (Exception e1) {
+                                logger.error("Failured to reConnect on ackMessage", e1);
+                            }
+                            logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
+                        }
                     }
-                } else {
-                    try {
-                        reConnect();
-                    } catch (Exception e1) {
-                        logger.error("Failured to reConnect on ackMessage", e1);
-                    }
-                    logger.error("Failed to connect to a server AckMessage error", ackMes.cause());
-                }
-            }
-        }).closeHandler(h -> {
+                });
+        mqttClient.closeHandler(h -> {
             try {
                 reConnect();
             } catch (Exception e1) {

@@ -54,20 +54,19 @@ public class EventBusBridgeSSLTest {
                 .addInboundPermitted(new PermittedOptions().setAddress("reply"))
                 .addOutboundPermitted(new PermittedOptions().setAddress("replyTest"));
 
-        sockJSHandler.bridge(options);
-
-        router.route("/bridge/*").handler(sockJSHandler);
+        router.route("/bridge/*").subRouter(sockJSHandler.bridge(options));
         // for reply test
-        vertx.eventBus().consumer("reply", msg -> vertx.eventBus().request("replyTest", "replyToMe", reply -> {
-            assertEquals("bubu", reply.result().body().toString());
-            reply.result().replyAndRequest("ok",
-                    replyOfreply -> assertEquals("roger", replyOfreply.result().body().toString()));
-            msg.reply("ok");
-            vertx.eventBus().send("test", "ok");
-        }));
+        vertx.eventBus().consumer("reply",
+                msg -> vertx.eventBus().request("replyTest", "replyToMe").onComplete(reply -> {
+                    assertEquals("bubu", reply.result().body().toString());
+                    reply.result().replyAndRequest("ok")
+                            .onComplete(replyOfreply -> assertEquals("roger", replyOfreply.result().body().toString()));
+                    msg.reply("ok");
+                    vertx.eventBus().send("test", "ok");
+                }));
         vertx.createHttpServer(new HttpServerOptions().setSsl(true)
-                .setKeyStoreOptions(new JksOptions().setPath("keystore.jks").setPassword("TEMPORARY_TEST_PASSWORD")))
-                .requestHandler(router).listen(8765, (res) -> latch.countDown());
+                .setKeyCertOptions(new JksOptions().setPath("keystore.jks").setPassword("TEMPORARY_TEST_PASSWORD")))
+                .requestHandler(router).listen(8765).onComplete(res -> latch.countDown());
 
         latch.await();
         System.out.println("SSL Server listening on port 8765");
@@ -165,7 +164,7 @@ public class EventBusBridgeSSLTest {
 
         bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("replyTest", msg -> {
-                msg.replyAndRequest("bubu", reply -> {
+                msg.replyAndRequest("bubu").onComplete(reply -> {
                     reply.result().reply("roger");
                     adder.increment();
                 });

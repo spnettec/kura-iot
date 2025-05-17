@@ -202,7 +202,7 @@ public class TextSocketClientServiceImpl implements TextSocketClientService, Con
         options.setLogActivity(true);
         options.setReuseAddress(true);
         netClient = vertx.createNetClient(options);
-        netClient.connect(properties.port(), properties.host(), handleConnection(properties, connectPromise));
+        netClient.connect(properties.port(), properties.host()).andThen(handleConnection(properties, connectPromise));
         connectTask = connectPromise.future();
         return connectTask;
     }

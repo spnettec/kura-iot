@@ -91,7 +91,7 @@ public class VerxSocketClient {
             this.vertx = Vertx.vertx();
         }
         netClient = vertx.createNetClient(options);
-        netClient.connect(this.port, this.host, handleConnection(connectPromise));
+        netClient.connect(this.port, this.host).andThen(handleConnection(connectPromise));
         this.connectTask = connectPromise.future();
         return this.connectTask;
     }

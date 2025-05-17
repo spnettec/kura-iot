@@ -14,26 +14,26 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>4.5.14</vertx.version>
-        <netty.version>4.1.119.Final</netty.version>
-        <shiro-core.version>2.0.2</shiro-core.version>
+        <vertx.version>5.0.0</vertx.version>
+        <netty.version>4.2.1.Final</netty.version>
+        <shiro-core.version>2.0.4</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.3.1</mchange-commons-java.version>
         <c3p0.version>0.10.1</c3p0.version>
         <HikariCP.version>5.1.0</HikariCP.version>
         <groovy.version>3.0.24</groovy.version>
-        <h2.version>2.2.224</h2.version>
+        <h2.version>2.3.232</h2.version>
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
-        <jackson.version>2.18.2</jackson.version>
+        <jackson.version>2.19.0</jackson.version>
         <fastjson2.version>2.0.57</fastjson2.version>
         <log4j-api.version>2.24.3</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.18</logback.version>
         <lombok.version>1.18.38</lombok.version>
-        <milo.version>0.6.15</milo.version>
+        <milo.version>0.6.16</milo.version>
         <commons-cli.version>1.9.0</commons-cli.version>
         <commons-codec.version>1.18.0</commons-codec.version>
         <commons-io.version>2.18.0</commons-io.version>

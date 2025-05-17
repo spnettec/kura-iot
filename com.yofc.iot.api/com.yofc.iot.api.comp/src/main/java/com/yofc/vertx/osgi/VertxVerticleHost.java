@@ -26,8 +26,8 @@ public class VertxVerticleHost {
     @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "unbindVerticle")
     public void bindVerticle(Verticle verticle) {
         logger.info("Deploying verticle {}", verticle);
-        this.vertx.deployVerticle(verticle, new DeploymentOptions().setThreadingModel(ThreadingModel.VIRTUAL_THREAD),
-                ar -> {
+        this.vertx.deployVerticle(verticle, new DeploymentOptions().setThreadingModel(ThreadingModel.VIRTUAL_THREAD))
+                .andThen(ar -> {
                     if (ar.succeeded()) {
                         deploymentIds.put(verticle, ar.result());
                     } else {
