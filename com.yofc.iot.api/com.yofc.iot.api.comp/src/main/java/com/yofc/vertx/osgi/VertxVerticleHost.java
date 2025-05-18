@@ -1,7 +1,9 @@
 package com.yofc.vertx.osgi;
 
-import java.util.concurrent.ConcurrentHashMap;
-
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.ThreadingModel;
+import io.vertx.core.Verticle;
+import io.vertx.core.Vertx;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -9,10 +11,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.ThreadingModel;
-import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** A component consuming all verticles exposed in the service registry and deploying them. */
 @Component(immediate = true)
@@ -31,7 +30,7 @@ public class VertxVerticleHost {
                     if (ar.succeeded()) {
                         deploymentIds.put(verticle, ar.result());
                     } else {
-                        logger.error("Cannot deploy {}" + verticle, ar.cause());
+                        logger.error("Cannot deploy {}" , verticle, ar.cause());
                     }
                 });
     }

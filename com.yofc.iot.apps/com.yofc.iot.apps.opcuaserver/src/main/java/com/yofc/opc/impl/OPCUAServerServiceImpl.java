@@ -100,7 +100,7 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     }
 
     @ObjectClassDefinition(id = "com.yofc.opc.impl.OPCUAServerServiceImpl", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.opc.impl.OPCUAServerServiceCfg")
-    @interface Config {
+    public @interface Config {
 
         @AttributeDefinition(name = "%activate", description = "%activateDesc")
         boolean activate()

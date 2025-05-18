@@ -1,23 +1,7 @@
 package com.yofc.vertx.osgi;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.eclipse.kura.KuraException;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.yofc.vertx.osgi.api.AssetHelp;
 import com.yofc.vertx.osgi.api.Utils;
-
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
@@ -32,6 +16,20 @@ import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSBridgeOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import org.eclipse.kura.KuraException;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component(immediate = true)
 public class VertxActivatorBase {
@@ -68,8 +66,9 @@ public class VertxActivatorBase {
         allowedMethods.add(HttpMethod.GET);
         allowedMethods.add(HttpMethod.POST);
         allowedMethods.add(HttpMethod.OPTIONS);
-        routes.add(router.route().handler(CorsHandler.create().addOriginWithRegex(".*").allowCredentials(true)
-                .allowedHeaders(allowedHeaders).allowedMethods(allowedMethods)));
+        routes.add(router.route().handler(
+                CorsHandler.create().addOriginWithRegex(".*").allowCredentials(true).allowedHeaders(allowedHeaders)
+                        .allowedMethods(allowedMethods)));
         routes.add(router.route("/static/*").order(100).handler(StaticHandler.create()));
         routes.add(router.post("/api/:method").order(100).handler(BodyHandler.create()).handler(ctx -> {
             String method = ctx.request().getParam("method");
@@ -104,10 +103,9 @@ public class VertxActivatorBase {
             case "writeTags":
                 try {
                     Object tags = body.getValue("tagNames");
-                    if (tags instanceof JsonArray) {
+                    if (tags instanceof JsonArray array) {
                         final JsonObject tagsObj = new JsonObject();
-                        JsonArray jarray = (JsonArray) tags;
-                        jarray.stream().forEach(obj -> {
+                        array.stream().forEach(obj -> {
                             JsonObject jo = (JsonObject) obj;
                             tagsObj.getMap().putAll(jo.getMap());
                         });
@@ -133,8 +131,8 @@ public class VertxActivatorBase {
             }
         }));
 
-        SockJSBridgeOptions opts = new SockJSBridgeOptions()
-                .addInboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"))
+        SockJSBridgeOptions opts = new SockJSBridgeOptions().addInboundPermitted(
+                        new PermittedOptions().setAddressRegex("tagData-.*"))
                 .addOutboundPermitted(new PermittedOptions().setAddressRegex("tagData-.*"));
         routes.add(router.route("/bridge/*").subRouter(SockJSHandler.create(vertx).bridge(opts)));
         rtRegistration = context.registerService(Router.class, router, null);

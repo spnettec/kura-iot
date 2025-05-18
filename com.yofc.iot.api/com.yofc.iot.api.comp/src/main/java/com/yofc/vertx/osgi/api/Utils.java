@@ -1,29 +1,10 @@
 package com.yofc.vertx.osgi.api;
 
-import static java.lang.String.format;
-import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
-
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import io.netty.util.CharsetUtil;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import org.eclipse.kura.db.H2DbService;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
@@ -36,12 +17,17 @@ import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
+import java.sql.*;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import io.netty.util.CharsetUtil;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
+import static java.lang.String.format;
+import static org.eclipse.kura.configuration.ConfigurationService.KURA_SERVICE_PID;
 
 public class Utils {
 
@@ -168,18 +154,20 @@ public class Utils {
 
     public static boolean isOrChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords) {
         return preWireRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::entrySet)
-                .flatMap(Set::stream)
-                .anyMatch(preV -> currentRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of)
-                        .map(Map::entrySet).flatMap(Set::stream).anyMatch(curV -> curV.getKey().equals(preV.getKey())
-                                && !curV.getValue().equals(preV.getValue())));
+                .flatMap(Set::stream).anyMatch(
+                        preV -> currentRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of)
+                                .map(Map::entrySet).flatMap(Set::stream).anyMatch(
+                                        curV -> curV.getKey().equals(preV.getKey()) && !curV.getValue()
+                                                .equals(preV.getValue())));
     }
 
     public static boolean isAndChanged(List<WireRecord> preWireRecords, List<WireRecord> currentRecords) {
         return preWireRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of).map(Map::entrySet)
-                .flatMap(Set::stream)
-                .allMatch(preV -> currentRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of)
-                        .map(Map::entrySet).flatMap(Set::stream).anyMatch(curV -> curV.getKey().equals(preV.getKey())
-                                && !curV.getValue().equals(preV.getValue())));
+                .flatMap(Set::stream).allMatch(
+                        preV -> currentRecords.stream().map(WireRecord::getProperties).flatMap(Stream::of)
+                                .map(Map::entrySet).flatMap(Set::stream).anyMatch(
+                                        curV -> curV.getKey().equals(preV.getKey()) && !curV.getValue()
+                                                .equals(preV.getValue())));
     }
 
     public static List<String> getTagNames(List<WireRecord> records) {
@@ -190,8 +178,9 @@ public class Utils {
 
     public static Map<String, Object> toMap(List<WireRecord> list) {
         Stream<Map<String, Object>> properties = list.stream()
-                .map(wireRecord -> wireRecord.getProperties().entrySet().stream().collect(Collectors.toMap(
-                        functionWrapper(Map.Entry::getKey), functionWrapper(entry -> entry.getValue().getValue()))));
+                .map(wireRecord -> wireRecord.getProperties().entrySet().stream().collect(
+                        Collectors.toMap(functionWrapper(Map.Entry::getKey),
+                                functionWrapper(entry -> entry.getValue().getValue()))));
         return properties.map(Map::entrySet).flatMap(Set::stream)
                 .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey), functionWrapper(Map.Entry::getValue)));
     }
@@ -205,8 +194,8 @@ public class Utils {
     }
 
     public static WireRecord toWireRecord(Map<String, Object> map) {
-        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream()
-                .collect(Collectors.toMap(functionWrapper(Map.Entry::getKey),
+        Map<String, TypedValue<?>> mapWireRecord = map.entrySet().stream().collect(
+                Collectors.toMap(functionWrapper(Map.Entry::getKey),
                         functionWrapper(entry -> TypedValues.newTypedValue(entry.getValue()))));
         return new WireRecord(mapWireRecord);
     }

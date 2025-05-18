@@ -77,7 +77,7 @@ public class PacketCaptureThread extends Thread {
         }
     }
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public synchronized void breakLoop() {
         if (handle != null) {

@@ -52,7 +52,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
 
     private PacketCaptureThread pThead;
     private Config config = null;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     private Script script = null;
 
@@ -126,7 +126,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         }
         PacketCaptureListener listener = new PacketCaptureListener();
         listener.setCallback(callback);
-        if (properties.filterExpression() != null && !properties.filterExpression().equals("")) {
+        if (properties.filterExpression() != null && !properties.filterExpression().isEmpty()) {
             builder.withFilterExpression(properties.filterExpression());
         }
         pThead = builder.withDevice(device).withTimeout(properties.timeout()).withListener(listener).build();
@@ -135,7 +135,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         pThead.start();
     }
 
-    private Callback callback = (packet, rawPacket) -> {
+    private final Callback callback = (packet, rawPacket) -> {
         if (packet == null || packet.getRawData() == null || packet.getRawData().length == 0) {
             return;
         }
@@ -148,18 +148,18 @@ public class IotProtocolPrevent implements ConfigurableComponent {
             IotProtocolPrevent.this.script.setProperty("result", false);
             IotProtocolPrevent.this.script.run();
             Object output = IotProtocolPrevent.this.script.getProperty("result");
-            if (output instanceof Boolean && output == Boolean.TRUE) {
+            if (output == Boolean.TRUE) {
 
                 IpV4Packet ipv4 = rawPacket.get(IpV4Packet.class);
                 TcpPacket tcp = rawPacket.get(TcpPacket.class);
                 String srcIp = ipv4.getHeader().getSrcAddr().getHostName();
                 String distPort = tcp.getHeader().getDstPort().valueAsString();
                 boolean blocked = false;
-                if (!IotProtocolPrevent.this.isExit(srcIp, distPort, "forward-kura-ipf")) {
+                if (IotProtocolPrevent.this.isExit(srcIp, distPort, "forward-kura-ipf")) {
                     IotProtocolPrevent.this.preventTarget(srcIp, distPort, "forward-kura-ipf");
                     blocked = true;
                 }
-                if (!IotProtocolPrevent.this.isExit(srcIp, distPort, "INPUT")) {
+                if (IotProtocolPrevent.this.isExit(srcIp, distPort, "INPUT")) {
                     IotProtocolPrevent.this.preventTarget(srcIp, distPort, "INPUT");
                     blocked = true;
                 }
@@ -209,7 +209,7 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         OutputStream errorStream = status.getErrorStream();
         String errorMsg = "";
         if (errorStream instanceof ByteArrayOutputStream stream) {
-            errorMsg = new String(stream.toByteArray(), StandardCharsets.UTF_8);
+            errorMsg = stream.toString(StandardCharsets.UTF_8);
         }
         return errorMsg;
     }
@@ -236,14 +236,14 @@ public class IotProtocolPrevent implements ConfigurableComponent {
         CommandStatus status = this.executorService.execute(command);
         if (logger.isDebugEnabled()) {
             logger.debug("execute command {} :: exited with code - {}", command, status.getExitStatus().getExitCode());
-            logger.debug("execute stderr {}", new String(err.toByteArray(), StandardCharsets.UTF_8));
-            logger.debug("execute stdout {}", new String(out.toByteArray(), StandardCharsets.UTF_8));
+            logger.debug("execute stderr {}", err.toString(StandardCharsets.UTF_8));
+            logger.debug("execute stdout {}", out.toString(StandardCharsets.UTF_8));
         }
         return status;
     }
 
     @ObjectClassDefinition(id = "com.yofc.capture.IotProtocolPrevent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.capture.IotProtocolPreventCfg")
-    @interface Config {
+    public @interface Config {
 
         @AttributeDefinition(name = "%activate", description = "%activateDesc")
         boolean activate() default false;

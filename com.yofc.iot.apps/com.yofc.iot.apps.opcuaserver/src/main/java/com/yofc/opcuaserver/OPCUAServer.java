@@ -242,7 +242,7 @@ public class OPCUAServer {
         Set<String> hostnames = new LinkedHashSet<>(HostnameUtil.getHostnames("0.0.0.0"));
         hostnames.add(HostnameUtil.getHostname());
         String path = config.getPath();
-        if (path == null || "".equals(path)) {
+        if (path == null || path.isEmpty()) {
             path = "";
         }
 

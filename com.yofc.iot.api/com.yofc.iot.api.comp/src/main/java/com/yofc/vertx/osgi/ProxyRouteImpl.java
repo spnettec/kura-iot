@@ -18,6 +18,8 @@ package com.yofc.vertx.osgi;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -51,10 +53,17 @@ import io.vertx.ext.web.RoutingContext;
 public class ProxyRouteImpl implements ProxyRoute {
 
     private String context = "";
+    @Setter
+    @Getter
     private String targetHost;
+    @Setter
+    @Getter
     private Long timeout;
     private boolean isSsl;
+    @Setter
+    @Getter
     private Integer targetPort;
+    @Getter
     private Route route;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> preListener;
@@ -76,11 +85,11 @@ public class ProxyRouteImpl implements ProxyRoute {
 
     public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl) {
         this.context = (context == null || context.equals("/")) ? "" : context;
-        if (!this.context.equals("") && !this.context.startsWith("/")) {
+        if (!this.context.isEmpty() && !this.context.startsWith("/")) {
             this.context = "/" + this.context;
         }
         this.isSsl = isSsl;
-        routeUrl = (routeUrl == null || routeUrl.equals("") || routeUrl.equals("/")) ? "/*" : routeUrl;
+        routeUrl = (routeUrl == null || routeUrl.isEmpty() || routeUrl.equals("/")) ? "/*" : routeUrl;
         if (this.route != null)
             this.route.remove();
         this.route = this.router.route(this.context + routeUrl);
@@ -116,7 +125,7 @@ public class ProxyRouteImpl implements ProxyRoute {
         int defaultPort = this.isSsl ? 443 : 80;
         int portToUse = (this.targetPort == null) ? defaultPort : this.targetPort;
         String url = serverRequest.uri();
-        if (!context.equals("") && url.startsWith(context))
+        if (!context.isEmpty() && url.startsWith(context))
             url = url.substring(context.length());
         logger.debug("request:{}", url);
         final String targetUrl = url;
@@ -168,7 +177,7 @@ public class ProxyRouteImpl implements ProxyRoute {
                     try {
                         referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
                                 entry.getValue(), this.isSsl, true);
-                    } catch (MalformedURLException e) {
+                    } catch (MalformedURLException ignored) {
 
                     }
                     clientRequest.putHeader(entry.getKey(), referer);
@@ -217,7 +226,7 @@ public class ProxyRouteImpl implements ProxyRoute {
                                     rawPort = "443";
                                 value = replaceDomainAndPort(rawHost, rawPort, entry.getValue() + context, this.isSsl,
                                         false);
-                            } catch (MalformedURLException e) {
+                            } catch (MalformedURLException ignored) {
 
                             }
                             serverResponse.putHeader(entry.getKey(), value);
@@ -257,9 +266,9 @@ public class ProxyRouteImpl implements ProxyRoute {
         else
             urBak.append("http://");
         urBak.append(domain);
-        if (port != null && !port.equals(""))
-            urBak.append(":" + port);
-        if (path != null && !path.equals(""))
+        if (port != null && !port.isEmpty())
+            urBak.append(":").append(port);
+        if (path != null && !path.isEmpty())
             urBak.append(path);
 
         return urBak.toString();
@@ -269,34 +278,6 @@ public class ProxyRouteImpl implements ProxyRoute {
         logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
         failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
                 : failureroutingContext.failure().getMessage());
-    }
-
-    public String getTargetHost() {
-        return targetHost;
-    }
-
-    public void setTargetHost(String targetHost) {
-        this.targetHost = targetHost;
-    }
-
-    public Long getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Long timeout) {
-        this.timeout = timeout;
-    }
-
-    public Integer getTargetPort() {
-        return targetPort;
-    }
-
-    public void setTargetPort(Integer targetPort) {
-        this.targetPort = targetPort;
-    }
-
-    public Route getRoute() {
-        return this.route;
     }
 
     @Override

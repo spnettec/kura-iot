@@ -1,42 +1,15 @@
 package com.yofc.plc4x.driver;
 
-import static java.util.Objects.requireNonNull;
-
-import java.math.BigInteger;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
+import com.yofc.plc4x.driver.Plc4xDriver.Config;
+import com.yofc.vertx.osgi.api.Utils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
-import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
-import org.apache.plc4x.java.api.messages.PlcReadRequest;
-import org.apache.plc4x.java.api.messages.PlcReadResponse;
-import org.apache.plc4x.java.api.messages.PlcSubscriptionEvent;
-import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
-import org.apache.plc4x.java.api.messages.PlcSubscriptionResponse;
-import org.apache.plc4x.java.api.messages.PlcUnsubscriptionRequest;
-import org.apache.plc4x.java.api.messages.PlcWriteRequest;
-import org.apache.plc4x.java.api.messages.PlcWriteResponse;
+import org.apache.plc4x.java.api.messages.*;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.PlcBYTE;
-import org.eclipse.kura.KuraErrorCode;
-import org.eclipse.kura.KuraException;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.ChannelStatus;
@@ -50,28 +23,32 @@ import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.*;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yofc.plc4x.driver.Plc4xDriver.Config;
-import com.yofc.vertx.osgi.api.Utils;
+import java.math.BigInteger;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static java.util.Objects.requireNonNull;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE)
 public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(Plc4xDriver.class);
-    private final List<PlcSubscriptionHandle> registeredListeners = Collections
-            .synchronizedList(new ArrayList<PlcSubscriptionHandle>());
+    private final List<PlcSubscriptionHandle> registeredListeners = Collections.synchronizedList(new ArrayList<>());
 
     private final AtomicReference<Config> options = new AtomicReference<>();
 
@@ -106,12 +83,12 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void connect() throws ConnectionException {
+    public void connect() {
 
     }
 
     @Override
-    public void disconnect() throws ConnectionException {
+    public void disconnect() {
 
     }
 
@@ -121,11 +98,11 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void read(List<ChannelRecord> records) throws ConnectionException {
+    public void read(List<ChannelRecord> records) {
         try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
             Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
             PlcReadRequest.Builder builder = plcConnection.readRequestBuilder();
-            map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
+            map.entrySet().forEach(Utils.consumerWrapper(entry -> {
                 if (entry.getKey().getChannelStatus() == null
                         || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
                     builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr);
@@ -136,9 +113,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
-                ChannelRecord channelRecord = result.get().getKey();
                 if (result.isPresent()) {
-
+                    ChannelRecord channelRecord = result.get().getKey();
                     channelRecord.setTimestamp(System.currentTimeMillis());
                     try {
                         channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
@@ -146,13 +122,10 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                     } catch (Exception e) {
                         channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                     }
-                } else {
-                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "no value found",
-                            new RuntimeException("no value found")));
                 }
             }));
         } catch (Exception e) {
-            records.stream().forEach(channelRecord -> {
+            records.forEach(channelRecord -> {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
             });
@@ -164,12 +137,12 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void write(List<ChannelRecord> records) throws ConnectionException {
+    public void write(List<ChannelRecord> records) {
         try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
 
             Map<ChannelRecord, TagNameAddr> map = getTagMap(records);
             PlcWriteRequest.Builder builder = plcConnection.writeRequestBuilder();
-            map.entrySet().stream().forEach(Utils.consumerWrapper(entry -> {
+            map.entrySet().forEach(Utils.consumerWrapper(entry -> {
                 if (entry.getKey().getChannelStatus() == null
                         || entry.getKey().getChannelStatus().getChannelFlag() != ChannelFlag.FAILURE) {
                     builder.addTagAddress(entry.getValue().tagName, entry.getValue().tagAddr,
@@ -182,7 +155,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             response.getTagNames().forEach(Utils.consumerWrapper(field -> {
                 Optional<Entry<ChannelRecord, TagNameAddr>> result = map.entrySet().stream()
                         .filter(entry -> field.equals(entry.getValue().tagName)).findFirst();
-                if (!result.isPresent()) {
+                if (result.isEmpty()) {
                     throw new ConnectionException("PLC Write error");
                 }
 
@@ -196,7 +169,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 }
             }));
         } catch (Exception e) {
-            records.stream().forEach(channelRecord -> {
+            records.forEach(channelRecord -> {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
             });
@@ -212,15 +185,14 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         PlcSubscriptionResponse subscriptionResponse = null;
         try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
             final PlcSubscriptionRequest.Builder sbuilder = plcConnection.subscriptionRequestBuilder();
-            for (Map.Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
+            for (Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
                 Map<String, Object> channelConfig = entry.getValue();
                 final String channelName = Utils.tryExtract(channelConfig, config -> (String) config.get("+name"),
                         "Error while retrieving Channel Name");
                 final String tagAddr = Utils.tryExtract(channelConfig,
                         config -> (String) config.get(Plc4xChannelDescriptor.DATA_TAG_ADDR_ID),
                         "Error while retrieving Tag Addr");
-                final Long samplingInterval = Utils.tryExtract(channelConfig,
-                        config -> Long.parseLong(
+                final Long samplingInterval = Utils.tryExtract(channelConfig, config -> Long.parseLong(
                                 (String) config.get(Plc4xChannelDescriptor.LISTEN_SAMPLING_INTERVAL_PROP_NAME)),
                         "Error while retrieving samplingInterval");
                 sbuilder.addChangeOfStateTagAddress(channelName, tagAddr, Duration.ofMillis(samplingInterval));
@@ -230,8 +202,6 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             subscriptionResponse = subscriptionRequest.execute().get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ConnectionException(e);
-        } catch (PlcConnectionException e) {
             throw new ConnectionException(e);
         } catch (Exception e) {
             throw new ConnectionException(e);
@@ -259,8 +229,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         public void accept(PlcSubscriptionEvent plcSubscriptionEvent) {
             logger.debug("Incoming event:");
             for (String fieldName : plcSubscriptionEvent.getTagNames()) {
-                Optional<Map.Entry<ChannelListener, Map<String, Object>>> entryOption = listenerChannelConfigs
-                        .entrySet().stream().filter(en -> {
+                Optional<Entry<ChannelListener, Map<String, Object>>> entryOption = listenerChannelConfigs.entrySet()
+                        .stream().filter(en -> {
                             Map<String, Object> channelConfig = en.getValue();
                             final String channelName = Utils.tryExtract(channelConfig,
                                     config -> (String) config.get("+name"), "Error while retrieving Channel Name");
@@ -268,7 +238,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                         }).findFirst();
                 final PlcValue plcValue = plcSubscriptionEvent.getPlcValue(fieldName);
                 if (entryOption.isPresent()) {
-                    Map.Entry<ChannelListener, Map<String, Object>> entry = entryOption.get();
+                    Entry<ChannelListener, Map<String, Object>> entry = entryOption.get();
                     ChannelListener channelListener = entry.getKey();
 
                     Map<String, Object> config = entry.getValue();
@@ -324,21 +294,14 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private Map<ChannelRecord, TagNameAddr> getTagMap(List<ChannelRecord> records) {
         return records.stream().collect(Collectors.toMap(channelRecord -> channelRecord, channelRecord -> {
-            String tagName = null;
-            String tagAddr = null;
+            String tagName = "";
+            String tagAddr = "";
             try {
                 tagName = channelRecord.getChannelConfig().get("+name").toString();
                 tagAddr = channelRecord.getChannelConfig().get(Plc4xChannelDescriptor.DATA_TAG_ADDR_ID).toString();
             } catch (Exception e) {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
-                return null;
-            }
-            if (tagName == null || tagAddr == null) {
-                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, "tagName or tagAddr is null",
-                        new KuraException(KuraErrorCode.CONFIGURATION_ERROR)));
-                channelRecord.setTimestamp(System.currentTimeMillis());
-                return null;
             }
             return new TagNameAddr(tagName, tagAddr);
         }));
@@ -351,8 +314,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
         Object newValue = value;
-        if (value instanceof byte[]) {
-            byte[] bytes = (byte[]) value;
+        if (value instanceof byte[] bytes) {
             newValue = IntStream.range(0, bytes.length).mapToObj(i -> bytes[i]).map(PlcBYTE::of).toList();
         }
         switch (targetType) {
@@ -386,7 +348,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             return TypedValues.newBooleanValues(getBooleans(newValue));
         case INTEGER:
             if (newValue instanceof Boolean) {
-                return TypedValues.newIntegerValue(((Boolean) newValue) == Boolean.TRUE ? 1 : 0);
+                return TypedValues.newIntegerValue(((Boolean) newValue) ? 1 : 0);
             }
             return TypedValues.newIntegerValue(((Number) (newValue == null ? 0 : newValue)).intValue());
         case BOOLEAN: {
@@ -415,13 +377,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 byte recivedID = 0;
                 if (b.isList()) {
                     for (int i = 0; i < 8; i++) {
-                        recivedID |= b.getIndex(i).getInt() << i;
+                        recivedID |= (byte) (b.getIndex(i).getInt() << i);
                     }
                 } else {
                     recivedID = b.getByte();
                 }
                 return recivedID;
-            }).toArray(size -> new Byte[size]);
+            }).toArray(Byte[]::new);
             return TypedValues.newByteArrayValue(ArrayUtils.toPrimitive(bytes));
         default:
             throw new IllegalArgumentException();
@@ -431,43 +393,43 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     private static Float[] getFloats(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getFloat).toArray(size -> new Float[size]);
+        return list.stream().map(PlcValue::getFloat).toArray(Float[]::new);
     }
 
     private static Boolean[] getBooleans(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getBoolean).toArray(size -> new Boolean[size]);
+        return list.stream().map(PlcValue::getBoolean).toArray(Boolean[]::new);
     }
 
     private static Double[] getDoubles(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getDouble).toArray(size -> new Double[size]);
+        return list.stream().map(PlcValue::getDouble).toArray(Double[]::new);
     }
 
     private static Integer[] getIntegers(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getInteger).toArray(size -> new Integer[size]);
+        return list.stream().map(PlcValue::getInteger).toArray(Integer[]::new);
     }
 
     private static Long[] getLongs(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getLong).toArray(size -> new Long[size]);
+        return list.stream().map(PlcValue::getLong).toArray(Long[]::new);
     }
 
     private static BigInteger[] getBigIntegers(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getBigInteger).toArray(size -> new BigInteger[size]);
+        return list.stream().map(PlcValue::getBigInteger).toArray(BigInteger[]::new);
     }
 
     private static String[] getStrings(Object value) {
         @SuppressWarnings("unchecked")
         List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getString).toArray(size -> new String[size]);
+        return list.stream().map(PlcValue::getString).toArray(String[]::new);
     }
 
     static final class TagNameAddr {
@@ -482,9 +444,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     @ObjectClassDefinition(id = "com.yofc.plc4x.driver.Plc4xDriver", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.plc4x.driver.Plc4xDriverCfg")
-    @interface Config {
+    public @interface Config {
 
-        @AttributeDefinition(name = "%connectString", description = "%connectStringDesc")
-        String connectString() default "s7://127.0.0.1?remote-device-group=PG_OR_PC&remote-rack=0&remote-slot=0";
+        @AttributeDefinition(name = "%connectString", description = "%connectStringDesc") String connectString() default "s7://127.0.0.1?remote-device-group=PG_OR_PC&remote-rack=0&remote-slot=0";
     }
 }

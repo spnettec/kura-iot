@@ -152,7 +152,7 @@ public class AssetHelpImpl implements AssetHelp {
         StringBuilder errorMsg = new StringBuilder();
         for (ChannelRecord channelRecord : channelRecords) {
             if (channelRecord.getChannelStatus().getChannelFlag() == ChannelFlag.FAILURE) {
-                if (!"".equals(errorMsg.toString())) {
+                if (!errorMsg.toString().isEmpty()) {
                     errorMsg.append(";");
                 }
                 errorMsg.append("tag:");
@@ -161,7 +161,7 @@ public class AssetHelpImpl implements AssetHelp {
                 errorMsg.append(channelRecord.getChannelStatus().getExceptionMessage());
             }
         }
-        if (!"".equals(errorMsg.toString())) {
+        if (!errorMsg.toString().isEmpty()) {
             throw KuraException.internalError(errorMsg.toString());
         }
     }
