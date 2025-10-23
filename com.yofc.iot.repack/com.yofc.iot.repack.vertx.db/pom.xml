@@ -45,6 +45,39 @@
 		    <artifactId>ojdbc11</artifactId>
 		    <version>21.5.0.0</version>
 		</dependency>
+		 <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-junit5</artifactId>
+            <version>${vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <version>${netty.version}</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<build>
@@ -67,6 +100,10 @@
 
                         <Import-Package>
                             io.vertx.core,
+                            io.vertx.core.internal,
+                            io.vertx.core.internal.tls,
+                            io.vertx.core.internal.pool,
+                            io.vertx.core.internal.buffer,
                             io.vertx.core.net,
                             io.vertx.core.buffer,
                             io.vertx.core.json,
@@ -74,6 +111,18 @@
                             io.vertx.core.impl,
                             io.vertx.core.net.impl,
                             io.vertx.core.impl.future,
+                            io.vertx.mssqlclient,
+                            io.vertx.mssqlclient.impl,
+                            io.vertx.mssqlclient.impl.codec,
+                            io.vertx.mssqlclient.impl.command,
+                            io.vertx.mssqlclient.impl.protocol.client.login,
+                            io.vertx.mssqlclient.impl.utils,
+                            io.vertx.mssqlclient.spi,
+                            io.vertx.mysqlclient.impl,
+                            io.vertx.oracleclient.impl,
+                            io.vertx.pgclient.impl,
+                            io.vertx.core.internal.logging,
+                            io.vertx.core.internal.net,
                             org.slf4j;resolution:=optional;version="[1.7,3)",
                             org.slf4j.helpers;resolution:=optional;version="[1.7,3)",
                             org.slf4j.spi;resolution:=optional;version="[1.7,3)",
