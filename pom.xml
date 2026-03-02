@@ -14,9 +14,9 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <vertx.version>5.0.6</vertx.version>
-        <netty.version>4.2.9.Final</netty.version>
-        <shiro-core.version>2.0.4</shiro-core.version>
+        <vertx.version>5.0.8</vertx.version>
+        <netty.version>4.2.10.Final</netty.version>
+        <shiro-core.version>2.1.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.3.1</mchange-commons-java.version>
         <c3p0.version>0.10.1</c3p0.version>
@@ -27,19 +27,19 @@
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
         <jackson.version>2.19.4</jackson.version>
-        <fastjson2.version>2.0.57</fastjson2.version>
-        <log4j-api.version>2.24.3</log4j-api.version>
+        <fastjson2.version>2.0.61</fastjson2.version>
+        <log4j-api.version>2.25.3</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
         <slf4j.version>2.0.17</slf4j.version>
-        <logback.version>1.5.18</logback.version>
+        <logback.version>1.5.32</logback.version>
         <lombok.version>1.18.42</lombok.version>
         <milo.version>0.6.16</milo.version>
-        <commons-cli.version>1.9.0</commons-cli.version>
-        <commons-codec.version>1.18.0</commons-codec.version>
-        <commons-io.version>2.18.0</commons-io.version>
-        <commons-net.version>3.11.1</commons-net.version>
-        <vavr.version>0.10.4</vavr.version>
-        <commons-lang3.version>3.17.0</commons-lang3.version>
+        <commons-cli.version>1.11.0</commons-cli.version>
+        <commons-codec.version>1.21.0</commons-codec.version>
+        <commons-io.version>2.21.0</commons-io.version>
+        <commons-net.version>3.12.0</commons-net.version>
+        <vavr.version>1.0.0</vavr.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
         <junit.jupiter.version>5.10.1</junit.jupiter.version>
         <junit.platform.version>1.10.1</junit.platform.version>
         <bouncycastle.version>1.80</bouncycastle.version>
