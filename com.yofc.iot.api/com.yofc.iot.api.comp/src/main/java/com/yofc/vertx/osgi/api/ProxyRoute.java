@@ -8,32 +8,26 @@ import io.vertx.ext.web.RoutingContext;
 
 public interface ProxyRoute {
 
-  ProxyRoute configure(
-      String routeUrl,
-      String context,
-      int order,
-      boolean isSsl,
-      String targetHost,
-      Integer targetPort,
-      Long timeout);
+    ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl, String targetHost,
+            Integer targetPort, Long timeout, boolean enableModifyBody);
 
-  ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl);
+    ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl);
 
-  void addPostListener(TriFunction<RoutingContext, HttpServerResponse, Buffer, Buffer> listener);
+    void addPostListener(TriFunction<RoutingContext, HttpServerResponse, Buffer, Buffer> listener);
 
-  void addPreListener(TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> lister);
+    void addPreListener(TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> lister);
 
-  String getTargetHost();
+    String getTargetHost();
 
-  void setTargetHost(String targetHost);
+    void setTargetHost(String targetHost);
 
-  Long getTimeout();
+    Long getTimeout();
 
-  void setTimeout(Long timeout);
+    void setTimeout(Long timeout);
 
-  Integer getTargetPort();
+    Integer getTargetPort();
 
-  void setTargetPort(Integer targetPort);
+    void setTargetPort(Integer targetPort);
 
-  Route getRoute();
+    Route getRoute();
 }

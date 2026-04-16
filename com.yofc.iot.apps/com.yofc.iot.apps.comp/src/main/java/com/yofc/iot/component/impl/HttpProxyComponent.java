@@ -92,8 +92,9 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
         int order = properties.order();
         String routeContext = properties.routeUrl();
         String proxyContext = properties.context();
+        boolean enableModifyBody = properties.enableModifyBody();
 
-        proxyRoute.configure(routeContext, proxyContext, order, isSSL, ip, port, timeout);
+        proxyRoute.configure(routeContext, proxyContext, order, isSSL, ip, port, timeout, enableModifyBody);
         if (prePort != null && prePort.listConnectedWires() != null && !prePort.listConnectedWires().isEmpty()) {
             proxyRoute.addPreListener((context, proxyReq, buffer) -> {
                 prePort.emit(buffer.toString());
@@ -147,5 +148,8 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
 
         @AttributeDefinition(name = "%timeout", description = "%timeoutDesc")
         long timeout() default 2000L;
+
+        @AttributeDefinition(name = "%enableModifyBody", description = "%enableModifyBodyDesc")
+        boolean enableModifyBody() default false;
     }
 }

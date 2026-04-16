@@ -1,25 +1,5 @@
-/*
- * Copyright 2020 heyoulin.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.yofc.vertx.osgi;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import lombok.Getter;
-import lombok.Setter;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -31,265 +11,270 @@ import org.slf4j.LoggerFactory;
 import com.yofc.vertx.osgi.api.ProxyRoute;
 import com.yofc.vertx.osgi.api.TriFunction;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.net.HostAndPort;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.httpproxy.HttpProxy;
+import io.vertx.httpproxy.ProxyContext;
+import io.vertx.httpproxy.ProxyInterceptor;
+import io.vertx.httpproxy.ProxyResponse;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- *
- * @author heyoulin
- */
 @Component(scope = ServiceScope.PROTOTYPE, service = { ProxyRoute.class })
 public class ProxyRouteImpl implements ProxyRoute {
 
-    private String context = "";
-    @Setter
-    @Getter
-    private String targetHost;
-    @Setter
-    @Getter
-    private Long timeout;
-    private boolean isSsl;
-    @Setter
-    @Getter
-    private Integer targetPort;
-    @Getter
-    private Route route;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> preListener;
-    private TriFunction<RoutingContext, HttpServerResponse, Buffer, Buffer> postListener;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Reference
     private Vertx vertx;
+
     @Reference
     private Router router;
 
-    public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl, String targetHost,
-            Integer targetPort, Long timeout) {
-        this.targetHost = targetHost;
-        this.targetPort = targetPort;
-        this.timeout = timeout;
-        this.context = context;
-        return configure(routeUrl, context, order, isSsl);
-    }
+    private HttpClient client;
+    private HttpProxy proxy;
+    private Route route;
 
-    public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl) {
-        this.context = (context == null || context.equals("/")) ? "" : context;
-        if (!this.context.isEmpty() && !this.context.startsWith("/")) {
-            this.context = "/" + this.context;
+    @Getter
+    @Setter
+    private String targetHost;
+
+    @Getter
+    @Setter
+    private Integer targetPort;
+
+    @Getter
+    @Setter
+    private Long timeout = 2000L;
+
+    private boolean isSsl;
+    private String context = "";
+    private boolean enableModifyBody = false;
+
+    private TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> preListener;
+    private TriFunction<RoutingContext, HttpServerResponse, Buffer, Buffer> postListener;
+
+    // =========================
+    // 生命周期
+    // =========================
+    @Activate
+    public void activate() {
+
+        HttpClientOptions options = new HttpClientOptions().setKeepAlive(true).setConnectTimeout(timeout.intValue());
+
+        if (isSsl) {
+            options.setSsl(true).setTrustAll(true).setVerifyHost(false);
         }
-        this.isSsl = isSsl;
-        routeUrl = (routeUrl == null || routeUrl.isEmpty() || routeUrl.equals("/")) ? "/*" : routeUrl;
-        if (this.route != null)
-            this.route.remove();
-        this.route = this.router.route(this.context + routeUrl);
-        if (order >= 0)
-            this.route.order(order);
-        this.route.handler(this::doProxyRequest).failureHandler(this::doProxyRequestFailure);
-        return this;
+
+        client = vertx.createHttpClient(options);
+
+        proxy = HttpProxy.reverseProxy(client);
+
+        // ✅ 只注册一次
+        proxy.addInterceptor(new ProxyInterceptor() {
+
+            @Override
+            public Future<ProxyResponse> handleProxyRequest(ProxyContext context) {
+                // 可选：这里只能做轻量逻辑
+                return context.sendRequest();
+            }
+        });
     }
 
     @Deactivate
     public void deactivate() {
-        if (this.route != null) {
-            this.route.remove();
-            this.route = null;
+        if (route != null) {
+            route.remove();
+            route = null;
         }
     }
 
-    @Activate
-    public void activate() {
-        logger.info("ProxyRouteImpl active");
+    // =========================
+    // 配置
+    // =========================
+    @Override
+    public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl, String targetHost,
+            Integer targetPort, Long timeout, boolean enableModifyBody) {
+
+        this.targetHost = targetHost;
+        this.targetPort = targetPort;
+        this.timeout = timeout;
+        this.isSsl = isSsl;
+        this.enableModifyBody = enableModifyBody;
+
+        return configure(routeUrl, context, order, isSsl);
     }
 
-    private void doProxyRequest(RoutingContext routingContext) {
-        HttpServerRequest serverRequest = routingContext.request();
-        HttpServerResponse serverResponse = routingContext.response();
-        String expect = serverRequest.getHeader("Expect");
-        if (expect != null && expect.equalsIgnoreCase("100-Continue")) {
-            serverRequest.response().writeContinue();
+    @Override
+    public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl) {
+
+        this.context = (context == null || "/".equals(context)) ? "" : context;
+
+        if (!this.context.isEmpty() && !this.context.startsWith("/")) {
+            this.context = "/" + this.context;
         }
-        Buffer responseBuffer = Buffer.buffer();
-        Buffer requestBuffer = Buffer.buffer();
-        long timeoutToUse = this.timeout == null ? 2000L : this.timeout;
-        int defaultPort = this.isSsl ? 443 : 80;
-        int portToUse = (this.targetPort == null) ? defaultPort : this.targetPort;
-        String url = serverRequest.uri();
-        if (!context.isEmpty() && url.startsWith(context))
-            url = url.substring(context.length());
-        logger.debug("request:{}", url);
-        final String targetUrl = url;
-        RequestOptions requestOptions = new RequestOptions();
-        requestOptions.setHost(targetHost);
-        requestOptions.setPort(portToUse);
-        requestOptions.setTimeout(timeoutToUse);
-        HttpClientOptions options = new HttpClientOptions();
-        if (isSsl)
-            options.setSsl(true).setTrustAll(true).setVerifyHost(false);
-        HttpClient client = vertx.httpClientBuilder().with(options)
-                .withConnectHandler(connection -> connection.exceptionHandler(ex -> {
-                    String errMsg = ex.getMessage();
-                    if (errMsg == null) {
-                        Throwable cause = ex.getCause();
-                        if (cause == null)
-                            errMsg = ex.toString();
-                        else
-                            errMsg = ex.getCause().toString();
-                    }
-                    if (!serverResponse.closed() && !serverResponse.ended())
-                        serverResponse.end("request error:" + errMsg);
-                })).build();
 
-        serverRequest.exceptionHandler(routingContext::fail);
+        routeUrl = (routeUrl == null || routeUrl.isEmpty() || "/".equals(routeUrl)) ? "/*" : routeUrl;
 
-        client.request(requestOptions).onSuccess(clientRequest -> {
-            serverRequest.resume();
-            serverRequest.handler(requestBuffer::appendBuffer);
-            serverRequest.endHandler(v -> {
-                Buffer reqBuffer = requestBuffer.copy();
+        if (route != null) {
+            route.remove();
+        }
+
+        route = router.route(this.context + routeUrl);
+
+        if (order >= 0) {
+            route.order(order);
+        }
+
+        route.handler(this::handle);
+
+        return this;
+    }
+
+    // =========================
+    // 核心入口
+    // =========================
+    private void handle(RoutingContext ctx) {
+
+        boolean needModify = needModify(ctx);
+
+        // 🚨 禁止但触发
+        if (needModify && !enableModifyBody) {
+            logger.warn("Body modify required but disabled, uri={}", ctx.request().uri());
+            ctx.response().setStatusCode(500).end("Body modify disabled");
+            return;
+        }
+
+        // ✅ 走 custom（可改body）
+        if (enableModifyBody && needModify) {
+            handleCustom(ctx);
+            return;
+        }
+
+        // ✅ 走 HttpProxy（高性能）
+        proxy.origin(targetPort, targetHost);
+
+        proxy.handle(ctx.request());
+    }
+
+    // =========================
+    // 判断是否需要改body
+    // =========================
+    private boolean needModify(RoutingContext ctx) {
+
+        HttpMethod method = ctx.request().method();
+
+        if (method != HttpMethod.POST && method != HttpMethod.PUT && method != HttpMethod.PATCH) {
+            return false;
+        }
+
+        String ct = ctx.request().getHeader("Content-Type");
+
+        if (ct == null) {
+            return false;
+        }
+
+        return ct.contains("application/json");
+    }
+
+    // =========================
+    // custom代理（支持body修改）
+    // =========================
+    private void handleCustom(RoutingContext ctx) {
+
+        HttpServerRequest req = ctx.request();
+        HttpServerResponse resp = ctx.response();
+
+        RequestOptions options = new RequestOptions().setHost(targetHost).setPort(targetPort).setURI(getUri(req.uri()))
+                .setTimeout(timeout);
+
+        client.request(options).onSuccess(clientReq -> {
+
+            clientReq.setMethod(req.method());
+
+            req.headers().forEach(h -> clientReq.putHeader(h.getKey(), h.getValue()));
+
+            Buffer body = Buffer.buffer();
+
+            req.handler(body::appendBuffer);
+
+            req.endHandler(v -> {
+
+                Buffer sendBuf = body;
+
+                // ===== preListener =====
                 if (preListener != null) {
-                    reqBuffer = preListener.apply(routingContext, clientRequest, requestBuffer);
+                    sendBuf = preListener.apply(ctx, clientReq, body);
                 }
-                clientRequest.end(reqBuffer);
 
-            });
-            final String hostString = serverRequest.getHeader("Host");
+                clientReq.send(sendBuf).onSuccess(clientResp -> {
 
-            serverRequest.headers().entries().forEach(entry -> {
-                if (entry.getKey().equalsIgnoreCase("host")) {
-                    requestOptions.putHeader(entry.getKey(), targetHost + (targetPort == 80 ? "" : ":" + targetPort));
-                } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
-                    if (entry.getValue() != null && entry.getValue().equals("chunked"))
-                        clientRequest.setChunked(true);
-                    clientRequest.putHeader(entry.getKey(), entry.getValue());
-                } else if (entry.getKey().equalsIgnoreCase("referer")) {
-                    String referer = entry.getValue();
-                    try {
-                        referer = replaceDomainAndPort(this.targetHost, targetPort == 80 ? "" : "" + targetPort,
-                                entry.getValue(), this.isSsl, true);
-                    } catch (MalformedURLException ignored) {
+                    resp.setStatusCode(clientResp.statusCode());
+                    resp.headers().setAll(clientResp.headers());
 
-                    }
-                    clientRequest.putHeader(entry.getKey(), referer);
-                } else
-                    clientRequest.putHeader(entry.getKey(), entry.getValue());
-            });
-            clientRequest.authority(HostAndPort.create(targetHost, portToUse));
-            clientRequest.idleTimeout(timeoutToUse);
-            clientRequest.setFollowRedirects(true);
-            clientRequest.setMethod(serverRequest.method());
-            clientRequest.setURI(targetUrl);
-            clientRequest.response().onComplete(res -> {
-                Buffer resBuffer = Buffer.buffer();
-                resBuffer = responseBuffer.copy();
-                if (res.failed()) {
-                    resBuffer.appendString(res.cause().getMessage());
-                    if (postListener != null) {
-                        resBuffer = postListener.apply(routingContext, serverResponse, responseBuffer);
-                    }
-                    if (!serverResponse.closed() && !serverResponse.ended()) {
-                        serverResponse.end(resBuffer);
-                    }
-                    return;
-                }
-                HttpClientResponse clientResponse = res.result();
-                if (!serverResponse.headWritten()) {
-                    serverResponse.setStatusCode(clientResponse.statusCode());
-                    serverResponse.setStatusMessage(clientResponse.statusMessage());
+                    Buffer respBuf = Buffer.buffer();
 
-                    clientResponse.headers().entries().forEach(entry -> {
-                        if (entry.getKey().equalsIgnoreCase("host")) {
-                            serverResponse.putHeader(entry.getKey(), hostString);
-                        } else if (entry.getKey().equalsIgnoreCase("transfer-encoding")) {
-                            if (entry.getValue() != null && entry.getValue().equals("chunked"))
-                                serverResponse.setChunked(true);
-                            serverResponse.putHeader(entry.getKey(), entry.getValue());
-                        } else if (entry.getKey().equalsIgnoreCase("location")) {
-                            String value = entry.getValue();
-                            try {
-                                String[] hostStrings = hostString.split(":");
-                                String rawHost = hostStrings[0];
-                                String rawPort = "80";
-                                if (hostString.length() > 1) {
-                                    rawPort = hostStrings[1];
-                                } else if (this.isSsl)
-                                    rawPort = "443";
-                                value = replaceDomainAndPort(rawHost, rawPort, entry.getValue() + context, this.isSsl,
-                                        false);
-                            } catch (MalformedURLException ignored) {
+                    clientResp.handler(respBuf::appendBuffer);
 
-                            }
-                            serverResponse.putHeader(entry.getKey(), value);
-                        } else
-                            serverResponse.putHeader(entry.getKey(), entry.getValue());
+                    clientResp.endHandler(v2 -> {
+
+                        Buffer finalBuf = respBuf;
+
+                        // ===== postListener =====
+                        if (postListener != null) {
+                            finalBuf = postListener.apply(ctx, resp, respBuf);
+                        }
+
+                        resp.end(finalBuf);
                     });
-                }
-                // serverResponse.write(responseData);
-                clientResponse.handler(responseBuffer::appendBuffer);
-                clientResponse.endHandler(v -> {
-                    Buffer resBufferEnd = Buffer.buffer();
-                    resBufferEnd = responseBuffer.copy();
-                    if (postListener != null) {
-                        resBufferEnd = postListener.apply(routingContext, serverResponse, responseBuffer);
-                    }
-                    if (!serverResponse.closed() && !serverResponse.ended()) {
-                        serverResponse.end(resBufferEnd);
-                    }
-                });
+
+                }).onFailure(err -> fail(resp, err));
+
             });
-        }).onFailure(error -> {
-            serverRequest.resume();
-            if (!serverResponse.closed() && !serverResponse.ended()) {
-                serverResponse.end("request error:" + error.getMessage());
-            }
-        });
-        serverRequest.pause();
+
+        }).onFailure(err -> fail(resp, err));
     }
 
-    public static String replaceDomainAndPort(String domain, String port, String url, boolean isSSL, boolean isRequest)
-            throws MalformedURLException {
-        StringBuilder urBak = new StringBuilder();
-        URL tempUurl = new URL(url);
-        String path = tempUurl.getPath();
-        if (isRequest && isSSL)
-            urBak.append("https://");
-        else
-            urBak.append("http://");
-        urBak.append(domain);
-        if (port != null && !port.isEmpty())
-            urBak.append(":").append(port);
-        if (path != null && !path.isEmpty())
-            urBak.append(path);
-
-        return urBak.toString();
+    private String getUri(String uri) {
+        if (!context.isEmpty() && uri.startsWith(context)) {
+            return uri.substring(context.length());
+        }
+        return uri;
     }
 
-    private void doProxyRequestFailure(RoutingContext failureroutingContext) {
-        logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
-        failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
-                : failureroutingContext.failure().getMessage());
+    private void fail(HttpServerResponse resp, Throwable err) {
+        logger.error("proxy error", err);
+        if (!resp.ended()) {
+            resp.setStatusCode(502).end("Bad Gateway: " + err.getMessage());
+        }
+    }
+
+    // =========================
+    // listener → interceptor
+    // =========================
+    @Override
+    public void addPreListener(TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> listener) {
+        this.preListener = listener;
     }
 
     @Override
     public void addPostListener(TriFunction<RoutingContext, HttpServerResponse, Buffer, Buffer> listener) {
         this.postListener = listener;
-
     }
 
     @Override
-    public void addPreListener(TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> listener) {
-        this.preListener = listener;
-
+    public Route getRoute() {
+        return route;
     }
-
 }
