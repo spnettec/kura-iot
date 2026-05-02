@@ -157,12 +157,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
+            <groupId>org.apache.groovy</groupId>
             <artifactId>groovy</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
+            <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-xml</artifactId>
             <scope>provided</scope>
         </dependency>
@@ -248,7 +248,7 @@
                             org.h2.api;version="[1.4.197,3.0)",
                             org.h2.jdbcx;version="[1.4.197,3.0)",
                             org.h2.tools;version="[1.4.197,3.0)",
-                            groovy.lang;version="[2.5,5)",
+                            groovy.lang;version="[2.5,6)",
                             io.netty.handler.codec.mqtt;version="[4.0,5)",
                             *
                         </Import-Package>
