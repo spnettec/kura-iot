@@ -188,7 +188,17 @@
 		    </dependency>
 		    <dependency>
 		      <groupId>org.eclipse.milo</groupId>
+		      <artifactId>milo-sdk-core</artifactId>
+		      <version>${milo.version}</version>
+		    </dependency>
+		    <dependency>
+		      <groupId>org.eclipse.milo</groupId>
 		      <artifactId>milo-dtd-manager</artifactId>
+		      <version>${milo.version}</version>
+		    </dependency>
+		    <dependency>
+		      <groupId>org.eclipse.milo</groupId>
+		      <artifactId>milo-dtd-core</artifactId>
 		      <version>${milo.version}</version>
 		    </dependency>
             <dependency>

@@ -139,23 +139,34 @@
 	    </dependency>
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
+	      <artifactId>milo-sdk-core</artifactId>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.eclipse.milo</groupId>
 	      <artifactId>milo-stack-core</artifactId>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
 	      <artifactId>milo-transport</artifactId>
-	      <scope>provided</scope>
 	    </dependency>
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
 	      <artifactId>milo-dtd-manager</artifactId>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.eclipse.milo</groupId>
+	      <artifactId>milo-dtd-core</artifactId>
 	    </dependency>
 
 	    <!-- Parsing Libraries -->
 	    <dependency>
 	      <groupId>tools.jackson.dataformat</groupId>
 	      <artifactId>jackson-dataformat-yaml</artifactId>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.snakeyaml</groupId>
+	      <artifactId>snakeyaml-engine</artifactId>
+	      <version>3.0.1</version>
 	    </dependency>
 
 	    <dependency>
