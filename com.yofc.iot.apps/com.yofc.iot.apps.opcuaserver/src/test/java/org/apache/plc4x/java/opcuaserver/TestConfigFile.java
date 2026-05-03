@@ -1,7 +1,6 @@
 package org.apache.plc4x.java.opcuaserver;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +9,6 @@ import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.yofc.opcuaserver.configuration.Configuration;
 import com.yofc.opcuaserver.configuration.DeviceConfiguration;
 import com.yofc.opcuaserver.configuration.Tag;
@@ -22,6 +19,8 @@ import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlClient;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
 
 public class TestConfigFile {
 
@@ -31,11 +30,10 @@ public class TestConfigFile {
     void saveConfigFile() {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         Configuration config;
-        mapper.findAndRegisterModules();
         try {
             config = mapper.readValue(new File(configFile), Configuration.class);
             config.setConfigFile(configFile);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error parsing config file ", e);
         }
         DeviceConfiguration device = config.getDevices().get(0);
@@ -232,7 +230,7 @@ public class TestConfigFile {
         });
         try {
             mapper.writeValue(new File(configFile), config);
-        } catch (IOException e) {
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

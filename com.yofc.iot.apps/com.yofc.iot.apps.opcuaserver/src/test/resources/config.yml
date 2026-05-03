@@ -2,7 +2,8 @@
 version: "0.9"
 dir: "/tmp/"
 name: "yofc"
-path: null
+tcpPort: 12673
+path: "iot"
 alias: "测试OPC"
 resetPassword: true
 securityPassword: "password"
@@ -2859,5 +2860,4 @@ devices:
     alias: "S7_Connection_13.db2.0,b,14"
     address: "FILE/S7_Connection_13.db2.0_b_14:BYTE[14]"
     iden: "S7_Connection_13.db2.0,b,14"
-tcpPort: 12673
 "n": 3

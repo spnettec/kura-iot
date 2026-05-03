@@ -52,7 +52,7 @@ import org.apache.plc4x.java.spi.values.PlcLTIME;
 import org.apache.plc4x.java.spi.values.PlcTIME;
 import org.apache.plc4x.java.spi.values.PlcULINT;
 import org.eclipse.milo.opcua.sdk.server.AbstractLifecycle;
-import org.eclipse.milo.opcua.sdk.server.api.DataItem;
+import org.eclipse.milo.opcua.sdk.server.items.DataItem;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.types.builtin.ByteString;
@@ -193,7 +193,7 @@ public class Plc4xCommunication extends AbstractLifecycle {
         }
     }
 
-    public DataValue getValue(AttributeFilterContext.GetAttributeContext ctx, String tag, String connectionString) {
+    public DataValue getValue(AttributeFilterContext ctx, String tag, String connectionString) {
         try (PlcConnection connection = plcConnectionManager.getConnection(connectionString)) {
 
             // Check if we just polled the connection and it failed. Wait for the backoff counter to expire before we

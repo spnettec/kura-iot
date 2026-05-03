@@ -14,6 +14,7 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipTests>true</skipTests>
         <vertx.version>5.0.10</vertx.version>
         <netty.version>4.2.12.Final</netty.version>
         <shiro-core.version>2.1.0</shiro-core.version>
@@ -26,14 +27,15 @@
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
-        <jackson.version>2.19.4</jackson.version>
+        <jackson.version>3.1.2</jackson.version>
+        <jackson.broken.version>2.21</jackson.broken.version>
         <fastjson2.version>2.0.61</fastjson2.version>
         <log4j-api.version>2.25.4</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.32</logback.version>
         <lombok.version>1.18.42</lombok.version>
-        <milo.version>0.6.16</milo.version>
+        <milo.version>1.1.2</milo.version>
         <commons-cli.version>1.11.0</commons-cli.version>
         <commons-codec.version>1.21.0</commons-codec.version>
         <commons-io.version>2.21.0</commons-io.version>
@@ -170,72 +172,52 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.eclipse.milo</groupId>
-                <artifactId>sdk-server</artifactId>
-                <version>${milo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.milo</groupId>
-                <artifactId>sdk-core</artifactId>
-                <version>${milo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.milo</groupId>
-                <artifactId>stack-core</artifactId>
-                <version>${milo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.milo</groupId>
-                <artifactId>stack-server</artifactId>
-                <version>${milo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.milo</groupId>
-                <artifactId>stack-client</artifactId>
-                <version>${milo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.milo</groupId>
-                <artifactId>dictionary-manager</artifactId>
-                <version>${milo.version}</version>
-            </dependency>
+		      <groupId>org.eclipse.milo</groupId>
+		      <artifactId>milo-sdk-server</artifactId>
+		      <version>${milo.version}</version>
+		    </dependency>
+		    <dependency>
+		      <groupId>org.eclipse.milo</groupId>
+		      <artifactId>milo-stack-core</artifactId>
+		      <version>${milo.version}</version>
+		    </dependency>
+		    <dependency>
+		      <groupId>org.eclipse.milo</groupId>
+		      <artifactId>milo-transport</artifactId>
+		      <version>${milo.version}</version>
+		    </dependency>
+		    <dependency>
+		      <groupId>org.eclipse.milo</groupId>
+		      <artifactId>milo-dtd-manager</artifactId>
+		      <version>${milo.version}</version>
+		    </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson.broken.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
+                <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
+                <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <groupId>tools.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-xml</artifactId>
                 <version>${jackson.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>jakarta.activation</groupId>
-                        <artifactId>jakarta.activation-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>jakarta.xml.bind</groupId>
-                        <artifactId>jakarta.xml.bind-api</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <groupId>tools.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-csv</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <groupId>tools.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
@@ -406,7 +388,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.3</version>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
         </plugins>

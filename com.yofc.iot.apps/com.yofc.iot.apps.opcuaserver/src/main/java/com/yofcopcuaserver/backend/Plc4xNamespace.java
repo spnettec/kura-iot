@@ -34,11 +34,11 @@ import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.eclipse.milo.opcua.sdk.core.AccessLevel;
 import org.eclipse.milo.opcua.sdk.core.Reference;
 import org.eclipse.milo.opcua.sdk.core.ValueRank;
+import org.eclipse.milo.opcua.sdk.server.ManagedNamespaceWithLifecycle;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
-import org.eclipse.milo.opcua.sdk.server.api.DataItem;
-import org.eclipse.milo.opcua.sdk.server.api.ManagedNamespaceWithLifecycle;
-import org.eclipse.milo.opcua.sdk.server.api.MonitoredItem;
-import org.eclipse.milo.opcua.sdk.server.dtd.DataTypeDictionaryManager;
+import org.eclipse.milo.opcua.sdk.server.dtd.BinaryDataTypeDictionaryManager;
+import org.eclipse.milo.opcua.sdk.server.items.DataItem;
+import org.eclipse.milo.opcua.sdk.server.items.MonitoredItem;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaFolderNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilters;
@@ -64,7 +64,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
 
     private Configuration config;
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final DataTypeDictionaryManager dictionaryManager;
+    private final BinaryDataTypeDictionaryManager dictionaryManager;
     private final SubscriptionModel subscriptionModel;
     private Plc4xCommunication plc4xServer;
 
@@ -72,7 +72,7 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
         super(server, APPLICATIONID);
         this.config = c;
         subscriptionModel = new SubscriptionModel(server, this);
-        dictionaryManager = new DataTypeDictionaryManager(getNodeContext(), APPLICATIONID);
+        dictionaryManager = new BinaryDataTypeDictionaryManager(getNodeContext(), APPLICATIONID);
         plc4xServer = new Plc4xCommunication(plcConnectionManager);
 
         getLifecycleManager().addLifecycle(dictionaryManager);

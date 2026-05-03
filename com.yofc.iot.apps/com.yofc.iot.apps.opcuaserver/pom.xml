@@ -135,59 +135,39 @@
         </dependency>
         <dependency>
 	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>dictionary-manager</artifactId>
-          <scope>provided</scope>
+	      <artifactId>milo-sdk-server</artifactId>
+	      <scope>provided</scope>
 	    </dependency>
-
-	    <!-- Milo OPC UA Dependencies -->
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>sdk-server</artifactId>
-          <scope>provided</scope>
+	      <artifactId>milo-stack-core</artifactId>
+	      <scope>provided</scope>
 	    </dependency>
-
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>stack-server</artifactId>
-          <scope>provided</scope>
+	      <artifactId>milo-transport</artifactId>
+	      <scope>provided</scope>
 	    </dependency>
-
 	    <dependency>
 	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>stack-core</artifactId>
-	      <exclusions>
-	        <exclusion>
-	          <groupId>org.bouncycastle</groupId>
-	          <artifactId>bcprov-jdk15on</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.bouncycastle</groupId>
-	          <artifactId>bcpkix-jdk15on</artifactId>
-	        </exclusion>
-	      </exclusions>
-          <scope>provided</scope>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>sdk-core</artifactId>
-          <scope>provided</scope>
+	      <artifactId>milo-dtd-manager</artifactId>
+	      <scope>provided</scope>
 	    </dependency>
 
 	    <!-- Parsing Libraries -->
 	    <dependency>
-	      <groupId>com.fasterxml.jackson.dataformat</groupId>
+	      <groupId>tools.jackson.dataformat</groupId>
 	      <artifactId>jackson-dataformat-yaml</artifactId>
           <scope>provided</scope>
 	    </dependency>
 
 	    <dependency>
-	      <groupId>com.fasterxml.jackson.core</groupId>
+	      <groupId>tools.jackson.core</groupId>
 	      <artifactId>jackson-databind</artifactId>
           <scope>provided</scope>
 	    </dependency>
         <dependency>
-          <groupId>com.fasterxml.jackson.core</groupId>
+          <groupId>tools.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
           <scope>provided</scope>
         </dependency>
@@ -441,10 +421,6 @@
                         </Include-Resource>
                         <Import-Package>
                            com.fazecast.jSerialComm;version="[2.0,3)",
-                           com.fasterxml.jackson.annotation;version="[2.0,3)",
-                           com.fasterxml.jackson.core;version="[2.0,3)",
-						   com.fasterxml.jackson.databind;version="[2.0,3)",
-						   com.fasterxml.jackson.dataformat.yaml;version="[2.0,3)",
                            com.google.common.collect;version="[31.0,34)",
                            org.apache.tools.ant;resolution:=optional,
                            org.apache.tools.ant.types;resolution:=optional,
