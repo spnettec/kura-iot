@@ -291,3 +291,4 @@ buildNumber.properties
 .mvn/timing.properties
 .DS_Store
 /com.yofc.iot.apps/.settings/
+.gitnexus

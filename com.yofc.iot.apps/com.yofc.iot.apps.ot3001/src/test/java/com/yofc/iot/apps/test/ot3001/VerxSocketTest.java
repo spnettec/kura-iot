@@ -9,6 +9,7 @@ import io.vertx.junit5.VertxTestContext;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @ExtendWith(VertxExtension.class)
+@Disabled("Requires a physical OT3001 device at 192.168.0.220:8000; replace with a mock/Docker-backed test later.")
 public class VerxSocketTest {
 
     private VerxSocketClient client;

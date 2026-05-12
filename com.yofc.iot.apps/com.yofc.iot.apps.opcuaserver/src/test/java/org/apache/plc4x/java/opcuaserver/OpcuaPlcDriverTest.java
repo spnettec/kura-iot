@@ -18,6 +18,9 @@
 */
 package org.apache.plc4x.java.opcuaserver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -34,10 +37,10 @@ import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.yofc.opcuaserver.OPCUAServer;
+import com.yofcopcuaserver.backend.Plc4xNamespace;
 
 import io.vavr.collection.List;
 
@@ -45,21 +48,23 @@ import io.vavr.collection.List;
  */
 class OpcuaPlcDriverTest {
 
+    private static final String SIMULATED_CONNECTION_STRING = "simulated:127.0.0.1?file=~/Data/aaa";
+
     // Read only variables of milo example server of version 3.6
-    private static final String BOOL_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_BOOL";
-    private static final String BYTE_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_BYTE";
-    private static final String DOUBLE_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_LREAL";
-    private static final String FLOAT_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_REAL";
-    private static final String INT16_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_INT";
-    private static final String INT32_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_DINT";
-    private static final String INT64_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_LINT";
-    private static final String INTEGER_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_DINT";
-    private static final String SBYTE_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_USINT";
-    private static final String STRING_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_STRING";
-    private static final String UINT16_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_UINT";
-    private static final String UINT32_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_UDINT";
-    private static final String UINT64_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_ULINT";
-    private static final String UINTEGER_IDENTIFIER_READ_WRITE = "ns=1;s=yofc/sd/Simulated_UDINT";
+    private static String BOOL_IDENTIFIER_READ_WRITE;
+    private static String BYTE_IDENTIFIER_READ_WRITE;
+    private static String DOUBLE_IDENTIFIER_READ_WRITE;
+    private static String FLOAT_IDENTIFIER_READ_WRITE;
+    private static String INT16_IDENTIFIER_READ_WRITE;
+    private static String INT32_IDENTIFIER_READ_WRITE;
+    private static String INT64_IDENTIFIER_READ_WRITE;
+    private static String INTEGER_IDENTIFIER_READ_WRITE;
+    private static String SBYTE_IDENTIFIER_READ_WRITE;
+    private static String STRING_IDENTIFIER_READ_WRITE;
+    private static String UINT16_IDENTIFIER_READ_WRITE;
+    private static String UINT32_IDENTIFIER_READ_WRITE;
+    private static String UINT64_IDENTIFIER_READ_WRITE;
+    private static String UINTEGER_IDENTIFIER_READ_WRITE;
     private static final String DOES_NOT_EXIST_IDENTIFIER_READ_WRITE = "ns=1;i=12512623";
     // Address of local milo server
     private String miloLocalAddress = "127.0.0.1:12673/iot";
@@ -84,8 +89,48 @@ class OpcuaPlcDriverTest {
     @BeforeAll
     public static void setup() throws Exception {
         FileUtils.deleteDirectory(new File("target/test-tmp"));
+        seedSimulatedFileValues();
         exampleServer = new OPCUAServer("src/test/resources/config.yml", true, new DefaultPlcDriverManager());
         exampleServer.startup().get();
+        int namespaceIndex = exampleServer.getServer().getNamespaceTable().getIndex(Plc4xNamespace.APPLICATIONID)
+                .intValue();
+        BOOL_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_BOOL");
+        BYTE_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_BYTE");
+        DOUBLE_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_LREAL");
+        FLOAT_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_REAL");
+        INT16_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_INT");
+        INT32_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_DINT");
+        INT64_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_LINT");
+        INTEGER_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_DINT");
+        SBYTE_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_USINT");
+        STRING_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_STRING");
+        UINT16_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_UINT");
+        UINT32_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_UDINT");
+        UINT64_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_ULINT");
+        UINTEGER_IDENTIFIER_READ_WRITE = node(namespaceIndex, "Simulated_UDINT");
+    }
+
+    private static String node(int namespaceIndex, String tagName) {
+        return "ns=" + namespaceIndex + ";s=yofc/sd/" + tagName;
+    }
+
+    private static void seedSimulatedFileValues() throws Exception {
+        try (PlcConnection connection = new DefaultPlcDriverManager().getConnection(SIMULATED_CONNECTION_STRING)) {
+            PlcWriteRequest.Builder builder = connection.writeRequestBuilder();
+            builder.addTagAddress("Bool", "FILE/Simulated:BOOL", true);
+            builder.addTagAddress("Byte", "FILE/Simulated:BYTE", 1);
+            builder.addTagAddress("Double", "FILE/Simulated:LREAL", 0.5d);
+            builder.addTagAddress("Float", "FILE/Simulated:REAL", 0.5f);
+            builder.addTagAddress("Int16", "FILE/Simulated:INT", 32000);
+            builder.addTagAddress("Int32", "FILE/Simulated:DINT", 42);
+            builder.addTagAddress("Int64", "FILE/Simulated:LINT", 42L);
+            builder.addTagAddress("SByte", "FILE/Simulated:USINT", 100);
+            builder.addTagAddress("String", "FILE/Simulated:STRING", "Hello OPC UA");
+            builder.addTagAddress("UInt16", "FILE/Simulated:UINT", 65535);
+            builder.addTagAddress("UInt32", "FILE/Simulated:UDINT", 100);
+            builder.addTagAddress("UInt64", "FILE/Simulated:ULINT", new BigInteger("1337"));
+            builder.build().execute().get();
+        }
     }
 
     @AfterAll
@@ -103,9 +148,9 @@ class OpcuaPlcDriverTest {
             String connectionString = connectionAddress;
             try {
                 PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(connectionString);
-                assert opcuaConnection.isConnected();
+                assertTrue(opcuaConnection.isConnected());
                 opcuaConnection.close();
-                assert !opcuaConnection.isConnected();
+                assertFalse(opcuaConnection.isConnected());
             } catch (PlcConnectionException e) {
                 fail("Exception during connectionNoParams while connecting Test EXCEPTION: " + e.getMessage());
             } catch (Exception e) {
@@ -123,9 +168,9 @@ class OpcuaPlcDriverTest {
                 String connectionString = connectionAddress + paramSectionDivider + discoveryParam;
                 try {
                     PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(connectionString);
-                    assert opcuaConnection.isConnected();
+                    assertTrue(opcuaConnection.isConnected());
                     opcuaConnection.close();
-                    assert !opcuaConnection.isConnected();
+                    assertFalse(opcuaConnection.isConnected());
                 } catch (PlcConnectionException e) {
                     fail("Exception during connectionWithDiscoveryParam while connecting Test EXCEPTION: "
                             + e.getMessage());
@@ -139,11 +184,10 @@ class OpcuaPlcDriverTest {
     }
 
     @Test
-    @Disabled("Requires a real S7 PLC + Simulated_* tags pre-configured in the namespace; original config.yml lost")
     void readVariables() throws Exception {
 
         PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(tcpConnectionAddress);
-        assert opcuaConnection.isConnected();
+        assertTrue(opcuaConnection.isConnected());
 
         PlcReadRequest.Builder builder = opcuaConnection.readRequestBuilder();
         builder.addTagAddress("Bool", BOOL_IDENTIFIER_READ_WRITE);
@@ -166,34 +210,33 @@ class OpcuaPlcDriverTest {
         PlcReadRequest request = builder.build();
         PlcReadResponse response = request.execute().get();
 
-        assert response.getResponseCode("Bool").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Byte").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Double").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Float").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Int16").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Int32").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Int64").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Integer").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("SByte").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("String").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInt16").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInt32").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInt64").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInteger").equals(PlcResponseCode.OK);
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Bool"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Byte"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Double"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Float"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Int16"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Int32"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Int64"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Integer"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("SByte"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("String"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInt16"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInt32"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInt64"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInteger"));
 
-        assert response.getResponseCode("DoesNotExists").equals(PlcResponseCode.NOT_FOUND);
+        assertEquals(PlcResponseCode.NOT_FOUND, response.getResponseCode("DoesNotExists"));
 
         opcuaConnection.close();
-        assert !opcuaConnection.isConnected();
+        assertFalse(opcuaConnection.isConnected());
 
     }
 
     @Test
-    @Disabled("Requires a real S7 PLC + Simulated_* tags pre-configured in the namespace; original config.yml lost")
     void writeVariables() throws Exception {
 
         PlcConnection opcuaConnection = new DefaultPlcDriverManager().getConnection(tcpConnectionAddress);
-        assert opcuaConnection.isConnected();
+        assertTrue(opcuaConnection.isConnected());
 
         PlcWriteRequest.Builder builder = opcuaConnection.writeRequestBuilder();
         builder.addTagAddress("Bool", BOOL_IDENTIFIER_READ_WRITE, true);
@@ -215,25 +258,25 @@ class OpcuaPlcDriverTest {
 
         PlcWriteRequest request = builder.build();
         PlcWriteResponse response = request.execute().get();
-        assert response.getResponseCode("Bool").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Byte").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Double").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Float").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Int16").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Int32").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Int64").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("Integer").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("SByte").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("String").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInt16").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInt32").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInt64").equals(PlcResponseCode.OK);
-        assert response.getResponseCode("UInteger").equals(PlcResponseCode.OK);
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Bool"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Byte"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Double"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Float"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Int16"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Int32"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Int64"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("Integer"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("SByte"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("String"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInt16"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInt32"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInt64"));
+        assertEquals(PlcResponseCode.OK, response.getResponseCode("UInteger"));
 
-        assert response.getResponseCode("DoesNotExists").equals(PlcResponseCode.NOT_FOUND);
+        assertEquals(PlcResponseCode.NOT_FOUND, response.getResponseCode("DoesNotExists"));
 
         opcuaConnection.close();
-        assert !opcuaConnection.isConnected();
+        assertFalse(opcuaConnection.isConnected());
     }
 
 }

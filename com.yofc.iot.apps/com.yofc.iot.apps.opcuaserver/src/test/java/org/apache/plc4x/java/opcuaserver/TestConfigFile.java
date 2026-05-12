@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.yofc.opcuaserver.configuration.Configuration;
@@ -27,6 +28,7 @@ public class TestConfigFile {
     String configFile = "src/test/resources/config.yml";
 
     @Test
+    @Disabled("Requires an external MySQL database at 127.0.0.1:3307 and rewrites config.yml; replace with a fixture-backed test later.")
     void saveConfigFile() {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         Configuration config;

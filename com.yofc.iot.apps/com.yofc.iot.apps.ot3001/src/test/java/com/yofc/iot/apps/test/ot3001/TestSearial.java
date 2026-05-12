@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import com.yofc.iot.apps.ot3001.SerialClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,7 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)
+@Disabled("Requires a physical serial device at /dev/cu.usbserial-EHACb11A920; replace with a mock/Docker-backed test later.")
 public class TestSearial {
 
     private static final Logger logger = LoggerFactory.getLogger(TestSearial.class);

@@ -1,5 +1,6 @@
 package com.yofc.iot.apps.influxdb.test;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.influxdb.client.InfluxDBClient;
@@ -10,6 +11,7 @@ import com.influxdb.client.write.Point;
 class TestDb {
 
     @Test
+    @Disabled("Requires an external InfluxDB at 10.100.60.200:8086; replace with a Docker-backed test later.")
     public void test() {
         String database = "yofc_vfdb";
         String retentionPolicy = "";

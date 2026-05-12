@@ -6,8 +6,10 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -20,11 +22,24 @@ import java.util.concurrent.TimeUnit;
 class NettySocketTest {
 
   private static NettySocketClient client;
+  private static DockerTcpMockServer mockServer;
+
+  @BeforeAll
+  static void startMockServer() throws Exception {
+    mockServer = DockerTcpMockServer.start();
+  }
+
+  @AfterAll
+  static void stopMockServer() throws Exception {
+    if (mockServer != null) {
+      mockServer.close();
+    }
+  }
 
   @BeforeEach
   @DisplayName("开始")
   public void setUp(Vertx vertx, VertxTestContext context) {
-    client = new NettySocketClient("192.168.0.220", 8000);
+    client = new NettySocketClient("127.0.0.1", mockServer.getMappedPort());
     client.init();
     context.completeNow();
   }
@@ -37,7 +52,7 @@ class NettySocketTest {
   }
 
   @Test
-  @Timeout(value = 10000, timeUnit = TimeUnit.SECONDS)
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
   @DisplayName("Netty测试")
   public void testMyApplication(Vertx vertx, VertxTestContext context) {
 

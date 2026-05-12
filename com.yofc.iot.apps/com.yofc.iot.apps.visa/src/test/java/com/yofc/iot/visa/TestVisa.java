@@ -2,6 +2,7 @@ package com.yofc.iot.visa;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import JISA.VISA.VISADevice;
 import io.vertx.junit5.VertxExtension;
 
 @ExtendWith(VertxExtension.class)
+@Disabled("Requires a VISA TCP device; replace with a mock/Docker-backed test later.")
 public class TestVisa {
 
     private static final Logger logger = LoggerFactory.getLogger(TestVisa.class);
