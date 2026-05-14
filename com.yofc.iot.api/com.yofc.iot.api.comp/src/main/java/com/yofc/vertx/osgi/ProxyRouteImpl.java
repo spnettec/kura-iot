@@ -17,10 +17,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -45,6 +42,8 @@ public class ProxyRouteImpl implements ProxyRoute {
     private HttpClient client;
     private HttpProxy proxy;
     private Route route;
+    private Boolean clientSsl;
+    private Long clientTimeout;
 
     @Getter
     @Setter
@@ -60,7 +59,7 @@ public class ProxyRouteImpl implements ProxyRoute {
 
     private boolean isSsl;
     private String context = "";
-    private boolean enableModifyBody = false;
+    private boolean enableAccessLog = false;
 
     private TriFunction<RoutingContext, HttpClientRequest, Buffer, Buffer> preListener;
     private TriFunction<RoutingContext, HttpServerResponse, Buffer, Buffer> postListener;
@@ -70,26 +69,8 @@ public class ProxyRouteImpl implements ProxyRoute {
     // =========================
     @Activate
     public void activate() {
-
-        HttpClientOptions options = new HttpClientOptions().setKeepAlive(true).setConnectTimeout(timeout.intValue());
-
-        if (isSsl) {
-            options.setSsl(true).setTrustAll(true).setVerifyHost(false);
-        }
-
-        client = vertx.createHttpClient(options);
-
-        proxy = HttpProxy.reverseProxy(client);
-
-        // ✅ 只注册一次
-        proxy.addInterceptor(new ProxyInterceptor() {
-
-            @Override
-            public Future<ProxyResponse> handleProxyRequest(ProxyContext context) {
-                // 可选：这里只能做轻量逻辑
-                return context.sendRequest();
-            }
-        });
+        // The proxy client is created lazily after configure() has applied SSL
+        // and timeout settings.
     }
 
     @Deactivate
@@ -98,6 +79,7 @@ public class ProxyRouteImpl implements ProxyRoute {
             route.remove();
             route = null;
         }
+        closeClient();
     }
 
     // =========================
@@ -105,13 +87,17 @@ public class ProxyRouteImpl implements ProxyRoute {
     // =========================
     @Override
     public ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl, String targetHost,
-            Integer targetPort, Long timeout, boolean enableModifyBody) {
+            Integer targetPort, Long timeout, boolean enableLog) {
 
         this.targetHost = targetHost;
         this.targetPort = targetPort;
-        this.timeout = timeout;
+        this.timeout = timeout == null ? 2000L : timeout;
         this.isSsl = isSsl;
-        this.enableModifyBody = enableModifyBody;
+        this.enableAccessLog = enableLog;
+
+        if (client != null && (!Boolean.valueOf(isSsl).equals(clientSsl) || !this.timeout.equals(clientTimeout))) {
+            closeClient();
+        }
 
         return configure(routeUrl, context, order, isSsl);
     }
@@ -146,117 +132,52 @@ public class ProxyRouteImpl implements ProxyRoute {
     // 核心入口
     // =========================
     private void handle(RoutingContext ctx) {
-
-        boolean needModify = needModify(ctx);
-
-        // 🚨 禁止但触发
-        if (needModify && !enableModifyBody) {
-            logger.warn("Body modify required but disabled, uri={}", ctx.request().uri());
-            ctx.response().setStatusCode(500).end("Body modify disabled");
-            return;
-        }
-
-        // ✅ 走 custom（可改body）
-        if (enableModifyBody && needModify) {
-            handleCustom(ctx);
-            return;
-        }
-
-        // ✅ 走 HttpProxy（高性能）
+        ensureProxy();
         proxy.origin(targetPort, targetHost);
-
         proxy.handle(ctx.request());
     }
 
-    // =========================
-    // 判断是否需要改body
-    // =========================
-    private boolean needModify(RoutingContext ctx) {
-
-        HttpMethod method = ctx.request().method();
-
-        if (method != HttpMethod.POST && method != HttpMethod.PUT && method != HttpMethod.PATCH) {
-            return false;
+    private synchronized void ensureProxy() {
+        if (client != null && proxy != null) {
+            return;
         }
 
-        String ct = ctx.request().getHeader("Content-Type");
+        HttpClientOptions options = new HttpClientOptions().setKeepAlive(true).setConnectTimeout(timeout.intValue());
 
-        if (ct == null) {
-            return false;
+        if (isSsl) {
+            options.setSsl(true).setTrustAll(true).setVerifyHost(false);
         }
 
-        return ct.contains("application/json");
+        client = vertx.createHttpClient(options);
+        clientSsl = isSsl;
+        clientTimeout = timeout;
+        proxy = HttpProxy.reverseProxy(client);
+        proxy.addInterceptor(new ProxyInterceptor() {
+
+            @Override
+            public Future<ProxyResponse> handleProxyRequest(ProxyContext context) {
+                context.set("proxyStartTime", System.nanoTime());
+                emitRequestLog(context);
+                return context.sendRequest();
+            }
+
+            @Override
+            public Future<Void> handleProxyResponse(ProxyContext context) {
+                emitResponseLog(context);
+                return context.sendResponse();
+            }
+        });
     }
 
-    // =========================
-    // custom代理（支持body修改）
-    // =========================
-    private void handleCustom(RoutingContext ctx) {
+    private synchronized void closeClient() {
+        HttpClient oldClient = client;
+        client = null;
+        proxy = null;
+        clientSsl = null;
+        clientTimeout = null;
 
-        HttpServerRequest req = ctx.request();
-        HttpServerResponse resp = ctx.response();
-
-        RequestOptions options = new RequestOptions().setHost(targetHost).setPort(targetPort).setURI(getUri(req.uri()))
-                .setTimeout(timeout);
-
-        client.request(options).onSuccess(clientReq -> {
-
-            clientReq.setMethod(req.method());
-
-            req.headers().forEach(h -> clientReq.putHeader(h.getKey(), h.getValue()));
-
-            Buffer body = Buffer.buffer();
-
-            req.handler(body::appendBuffer);
-
-            req.endHandler(v -> {
-
-                Buffer sendBuf = body;
-
-                // ===== preListener =====
-                if (preListener != null) {
-                    sendBuf = preListener.apply(ctx, clientReq, body);
-                }
-
-                clientReq.send(sendBuf).onSuccess(clientResp -> {
-
-                    resp.setStatusCode(clientResp.statusCode());
-                    resp.headers().setAll(clientResp.headers());
-
-                    Buffer respBuf = Buffer.buffer();
-
-                    clientResp.handler(respBuf::appendBuffer);
-
-                    clientResp.endHandler(v2 -> {
-
-                        Buffer finalBuf = respBuf;
-
-                        // ===== postListener =====
-                        if (postListener != null) {
-                            finalBuf = postListener.apply(ctx, resp, respBuf);
-                        }
-
-                        resp.end(finalBuf);
-                    });
-
-                }).onFailure(err -> fail(resp, err));
-
-            });
-
-        }).onFailure(err -> fail(resp, err));
-    }
-
-    private String getUri(String uri) {
-        if (!context.isEmpty() && uri.startsWith(context)) {
-            return uri.substring(context.length());
-        }
-        return uri;
-    }
-
-    private void fail(HttpServerResponse resp, Throwable err) {
-        logger.error("proxy error", err);
-        if (!resp.ended()) {
-            resp.setStatusCode(502).end("Bad Gateway: " + err.getMessage());
+        if (oldClient != null) {
+            oldClient.close().onFailure(err -> logger.warn("Failed to close proxy http client", err));
         }
     }
 
@@ -276,5 +197,98 @@ public class ProxyRouteImpl implements ProxyRoute {
     @Override
     public Route getRoute() {
         return route;
+    }
+
+    private void emitRequestLog(ProxyContext context) {
+        if (!enableAccessLog) {
+            return;
+        }
+
+        try {
+            String log = proxyLog("request", context.request().getMethod().name(), context.request().getURI(), null,
+                    null);
+            if (preListener != null) {
+                preListener.apply(null, null, Buffer.buffer(log));
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to emit proxy request log", e);
+        }
+    }
+
+    private void emitResponseLog(ProxyContext context) {
+        if (!enableAccessLog || context.response() == null) {
+            return;
+        }
+
+        Long startTime = context.get("proxyStartTime", Long.class);
+        Long elapsedMillis = startTime == null ? null : (System.nanoTime() - startTime) / 1_000_000L;
+        try {
+            String log = proxyLog("response", context.request().getMethod().name(), context.request().getURI(),
+                    context.response().getStatusCode(), elapsedMillis);
+            if (postListener != null) {
+                postListener.apply(null, null, Buffer.buffer(log));
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to emit proxy response log", e);
+        }
+    }
+
+    private String proxyLog(String phase, String method, String uri, Integer status, Long elapsedMillis) {
+        StringBuilder result = new StringBuilder(160);
+        result.append('{');
+        appendJsonField(result, "phase", phase);
+        result.append(',');
+        appendJsonField(result, "method", method);
+        result.append(',');
+        appendJsonField(result, "uri", uri);
+        result.append(',');
+        appendJsonField(result, "targetHost", targetHost);
+        result.append(",\"targetPort\":").append(targetPort);
+        if (status != null) {
+            result.append(",\"status\":").append(status);
+        }
+        if (elapsedMillis != null) {
+            result.append(",\"elapsedMillis\":").append(elapsedMillis);
+        }
+        result.append('}');
+        return result.toString();
+    }
+
+    private void appendJsonField(StringBuilder result, String key, String value) {
+        result.append('"').append(key).append("\":");
+        appendJsonString(result, value);
+    }
+
+    private void appendJsonString(StringBuilder result, String value) {
+        if (value == null) {
+            result.append("null");
+            return;
+        }
+
+        result.append('"');
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            switch (c) {
+            case '\\':
+                result.append("\\\\");
+                break;
+            case '"':
+                result.append("\\\"");
+                break;
+            case '\n':
+                result.append("\\n");
+                break;
+            case '\r':
+                result.append("\\r");
+                break;
+            case '\t':
+                result.append("\\t");
+                break;
+            default:
+                result.append(c);
+                break;
+            }
+        }
+        result.append('"');
     }
 }

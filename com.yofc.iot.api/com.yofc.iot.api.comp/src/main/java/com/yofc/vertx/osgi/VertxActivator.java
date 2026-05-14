@@ -2,6 +2,10 @@ package com.yofc.vertx.osgi;
 
 import com.yofc.vertx.osgi.VertxActivator.Config;
 import com.yofc.vertx.osgi.api.Utils;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Promise;
+import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
@@ -24,7 +28,7 @@ public class VertxActivator implements ConfigurableComponent {
     private Vertx vertx;
     @Reference
     private Router router;
-    private HttpServer server;
+    private String deploymentId;
 
     @Activate
     public void start(BundleContext context, Config properties) {
@@ -32,12 +36,7 @@ public class VertxActivator implements ConfigurableComponent {
             stop(context);
             return;
         }
-        Utils.executeWithTCCLSwitch(() -> {
-            server = vertx.createHttpServer();
-            int port = properties.port();
-
-            server.requestHandler(router).listen(port);
-        });
+        deployServer(properties.port());
     }
 
     @Modified
@@ -48,10 +47,46 @@ public class VertxActivator implements ConfigurableComponent {
 
     @Deactivate
     public void stop(BundleContext context) {
-        if (server != null) {
-            server.close();
-            server = null;
+        if (deploymentId != null) {
+            vertx.undeploy(deploymentId);
+            deploymentId = null;
         }
+    }
+
+    private void deployServer(int port) {
+        if (deploymentId != null) {
+            String oldDeploymentId = deploymentId;
+            deploymentId = null;
+            vertx.undeploy(oldDeploymentId).onComplete(ar -> deployServer(port));
+            return;
+        }
+
+        Utils.executeWithTCCLSwitch(() -> {
+            vertx.deployVerticle(() -> new AbstractVerticle() {
+                    private HttpServer server;
+
+                    @Override
+                    public void start(Promise<Void> startPromise) {
+                        server = vertx.createHttpServer();
+                        server.requestHandler(router).listen(port).<Void>mapEmpty().onComplete(startPromise);
+                    }
+
+                    @Override
+                    public void stop(Promise<Void> stopPromise) {
+                        if (server != null) {
+                            server.close().<Void>mapEmpty().onComplete(stopPromise);
+                        } else {
+                            stopPromise.complete();
+                        }
+                    }
+                }, new DeploymentOptions().setThreadingModel(ThreadingModel.VIRTUAL_THREAD)).onComplete(ar -> {
+                if (ar.succeeded()) {
+                    deploymentId = ar.result();
+                } else {
+                    logger.error("Cannot deploy Vert.x HTTP server", ar.cause());
+                }
+            });
+        });
     }
 
     @ObjectClassDefinition(id = "com.yofc.vertx.osgi.VertxActivator", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.vertx.osgi.Config")

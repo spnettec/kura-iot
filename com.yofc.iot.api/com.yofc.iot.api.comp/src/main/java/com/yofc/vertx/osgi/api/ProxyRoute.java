@@ -9,7 +9,7 @@ import io.vertx.ext.web.RoutingContext;
 public interface ProxyRoute {
 
     ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl, String targetHost,
-            Integer targetPort, Long timeout, boolean enableModifyBody);
+            Integer targetPort, Long timeout, boolean enableLog);
 
     ProxyRoute configure(String routeUrl, String context, int order, boolean isSsl);
 

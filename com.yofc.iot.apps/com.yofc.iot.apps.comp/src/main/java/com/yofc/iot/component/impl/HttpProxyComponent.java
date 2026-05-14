@@ -92,21 +92,10 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
         int order = properties.order();
         String routeContext = properties.routeUrl();
         String proxyContext = properties.context();
-        boolean enableModifyBody = properties.enableModifyBody();
+        boolean enableLog = properties.enableLog();
 
-        proxyRoute.configure(routeContext, proxyContext, order, isSSL, ip, port, timeout, enableModifyBody);
-        if (prePort != null && prePort.listConnectedWires() != null && !prePort.listConnectedWires().isEmpty()) {
-            proxyRoute.addPreListener((context, proxyReq, buffer) -> {
-                prePort.emit(buffer.toString());
-                return buffer;
-            });
-        }
-        if (postPort != null && postPort.listConnectedWires() != null && !postPort.listConnectedWires().isEmpty()) {
-            proxyRoute.addPostListener((context, serverResponse, buffer) -> {
-                postPort.emit(buffer.toString());
-                return buffer;
-            });
-        }
+        proxyRoute.configure(routeContext, proxyContext, order, isSSL, ip, port, timeout, enableLog);
+        registerListeners();
     }
 
     @Deactivate
@@ -123,6 +112,29 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
     @Override
     public void consumersConnected(Wire[] wires) {
         this.wireSupport.consumersConnected(wires);
+        registerListeners();
+    }
+
+    private void registerListeners() {
+        if (proxyRoute == null) {
+            return;
+        }
+        if (prePort != null && prePort.listConnectedWires() != null && !prePort.listConnectedWires().isEmpty()) {
+            proxyRoute.addPreListener((context, proxyReq, buffer) -> {
+                prePort.emit(buffer.toString());
+                return buffer;
+            });
+        } else {
+            proxyRoute.addPreListener(null);
+        }
+        if (postPort != null && postPort.listConnectedWires() != null && !postPort.listConnectedWires().isEmpty()) {
+            proxyRoute.addPostListener((context, serverResponse, buffer) -> {
+                postPort.emit(buffer.toString());
+                return buffer;
+            });
+        } else {
+            proxyRoute.addPostListener(null);
+        }
     }
 
     @ObjectClassDefinition(id = "com.yofc.iot.component.impl.HttpProxyComponent", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.iot.component.impl.HttpProxyComponentCfg")
@@ -149,7 +161,7 @@ public class HttpProxyComponent implements WireEmitter, ConfigurableComponent {
         @AttributeDefinition(name = "%timeout", description = "%timeoutDesc")
         long timeout() default 2000L;
 
-        @AttributeDefinition(name = "%enableModifyBody", description = "%enableModifyBodyDesc")
-        boolean enableModifyBody() default false;
+        @AttributeDefinition(name = "%enableLog", description = "%enableLogDesc")
+        boolean enableLog() default false;
     }
 }
