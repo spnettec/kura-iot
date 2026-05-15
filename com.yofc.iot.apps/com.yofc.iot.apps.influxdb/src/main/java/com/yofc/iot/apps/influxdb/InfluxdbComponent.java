@@ -143,9 +143,15 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
                 .retryOnConnectionFailure(false);
         InfluxDBClientOptions.Builder influxDbBuilder = InfluxDBClientOptions.builder().url(config.url())
                 .okHttpClient(okHttpClientBuilder);
-        if (config.token() != null) {
-            influxDbBuilder.authenticateToken(config.token().toCharArray()).org(config.organization())
-                    .bucket(config.bucket());
+        if (config.token() != null && !config.token().isEmpty()) {
+            char[] token;
+            try {
+                token = this.cryptoService.decryptAes(config.token().toCharArray());
+            } catch (Exception e) {
+                logger.info("Token is not encrypted");
+                token = config.token().toCharArray();
+            }
+            influxDbBuilder.authenticateToken(token).org(config.organization()).bucket(config.bucket());
         } else if (config.database() != null) {
             influxDbBuilder.org("-")
                     .authenticateToken(String.format("%s:%s", config.username() == null ? "" : config.username(),
@@ -305,7 +311,7 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         @AttributeDefinition(name = "%url", description = "%urlDesc")
         String url();
 
-        @AttributeDefinition(name = "%measurement", description = "%measurementDesc", required = false)
+        @AttributeDefinition(name = "%measurement", description = "%measurementDesc", required = true)
         String measurement();
 
         @AttributeDefinition(name = "%tags", cardinality = 0, description = "%tagsDesc", required = false)

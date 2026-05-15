@@ -277,7 +277,7 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         @AttributeDefinition(name = "%url", description = "%urlDesc")
         String url();
 
-        @AttributeDefinition(name = "%measurement", description = "%measurementDesc", required = false)
+        @AttributeDefinition(name = "%measurement", description = "%measurementDesc", required = true)
         String measurement();
 
         @AttributeDefinition(name = "%tags", cardinality = 0, description = "%tagsDesc", required = false)

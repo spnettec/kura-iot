@@ -2,7 +2,7 @@
 <metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="OSGI-INF/l10n/com.yofc.iot.apps.influxdbv1.InfluxdbComponentCfg">
   <OCD id="com.yofc.iot.apps.influxdbv1.InfluxdbComponent" name="%name" description="%description">
     <AD id="url" type="String" name="%url" description="%urlDesc"/>
-    <AD id="measurement" type="String" required="false" name="%measurement" description="%measurementDesc"/>
+    <AD id="measurement" type="String" name="%measurement" description="%measurementDesc"/>
     <AD id="tags" type="String" required="false" name="%tags" description="%tagsDesc" default="tag1=111\,tag2=222"/>
     <AD id="username" type="String" name="%username" description="%usernameDesc" default="admin"/>
     <AD id="password" type="Password" required="false" name="%password" description="%passwordDesc"/>
