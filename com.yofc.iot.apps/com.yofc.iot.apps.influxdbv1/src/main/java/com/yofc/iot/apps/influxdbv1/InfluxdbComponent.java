@@ -185,10 +185,10 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             logger.error("influxdb initial error!");
             return;
         }
-        if (!this.client.ping().isGood()) {
-            logger.error("influxdb server not response");
-            return;
-        }
+        // Note: client.ping() removed — it blocks for OkHttp timeout when the
+        // server is unreachable, jamming the wire pool at 100ms ticks. Async write
+        // failures surface via InfluxDB's own logger (com.influxdb level=error in
+        // log4j) instead.
         if (scriptSource == null) {
             logger.error("Script parse error.Please input correct groovy script");
             return;
