@@ -100,6 +100,37 @@ Components are defined in `OSGI-INF/*.xml` files. Key services:
 - **`.dp` output:** Each module produces a Deployment Package in `target/*.dp` for OSGi deployment.
 - **No Docker/K8s:** Deployment target is an OSGi runtime (Apache Felix / Eclipse Kura), not containers.
 
+## Kura Snapshot Behavior (shared host runtime)
+
+yofc-iot bundles are `ConfigurableComponent`s that persist into the same `/opt/eclipse/kura/user/snapshots/snapshot_N.xml` as monorepo + sibling components. Two host-runtime traits to keep in mind when shipping or uninstalling `.dp` packages:
+
+### Orphan entries linger after uninstall
+
+If a `.dp` is uninstalled while its components have configurations in the snapshot, those entries stay in `snapshot_0.xml`. On the next Kura start, monorepo `ConfigurationServiceImpl.loadLatestSnapshotInConfigAdmin()` tries to recreate them, fails to find the `factoryPid`, and logs:
+
+```
+WARN  Error creating configuration with pid: <pid> and factory pid: <factoryPid>
+```
+
+Kura keeps booting — but the orphans are merged back into every subsequent snapshot, so `snapshot_N.xml` grows unbounded. Cleanup is manual (reinstall the `.dp` → delete via Web UI, or hand-edit `snapshot_0.xml`). This applies to **every** yofc-iot module that registers configurable components (Vertx verticles, MQTT clients, Plc4xDriver, OPC UA server, AB-PLC driver, InfluxDB connectors, …).
+
+When designing a custom wire/orchestration service that references peers by PID, **follow the `WireGraphServiceImpl` pattern** — `getServicePidByKuraServicePid()` returns `null` for missing peers and the calling code silently skips, never throws. Don't NPE the activator.
+
+### Snapshot encryption is config-driven (YOFC fork divergence)
+
+Upstream Eclipse Kura always encrypts `snapshot_N.xml` via `CryptoService`. The YOFC fork (this Kura runtime) reads `kura.snapshots.encrypt` from `/opt/eclipse/kura/framework/kura_custom.properties`:
+
+| Setting | Behavior |
+| --- | --- |
+| `kura.snapshots.encrypt=true` (default) | Encrypted snapshot, matches upstream |
+| `kura.snapshots.encrypt=false` | Plaintext XML on disk |
+
+Practical impact on yofc-iot work:
+
+- **Debugging persisted config**: with encrypt=false you can `cat snapshot_0.xml` to inspect what your component wrote — no master key needed.
+- **Sibling reinstall flows**: `kura-networking` / `kura-firewall-only` preinst rejects install once `snapshot_0.xml` is encrypted (first line ≠ `<?xml ...?>`). If yofc-iot starts Kura before networking sibling install, set encrypt=false first, or install networking before first `systemctl start kura`.
+- Authoritative reference and reasoning live in monorepo `kura/CLAUDE.md` § *Snapshot 行为* (same project).
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
