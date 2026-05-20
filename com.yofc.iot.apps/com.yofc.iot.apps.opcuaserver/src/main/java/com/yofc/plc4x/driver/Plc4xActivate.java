@@ -11,16 +11,21 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component(immediate = true)
 public class Plc4xActivate {
 
+    private static final Logger logger = LoggerFactory.getLogger(Plc4xActivate.class);
+
     private ServiceRegistration<PlcConnectionManager> vertxRegistration;
+    private CachedPlcConnectionManager plcConnectionManager;
 
     @Activate
     public void start(BundleContext context) {
         ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-        PlcConnectionManager plcConnectionManager = CachedPlcConnectionManager
+        plcConnectionManager = CachedPlcConnectionManager
                 .getBuilder(new DefaultPlcDriverManager(classloader)).build();
         final Hashtable<String, String> props = new Hashtable<>();
         props.put("kura.service.pid", "com.yofc.plc4x.driver.plcConnectionManager");
@@ -32,6 +37,18 @@ public class Plc4xActivate {
         if (vertxRegistration != null) {
             vertxRegistration.unregister();
             vertxRegistration = null;
+        }
+        // Close the cache so every cached PlcConnection releases its underlying fd / socket.
+        // Without this an OSGi bundle redeploy leaves orphaned SerialPort instances pinning
+        // serial fds (TIOCEXCL exclusive lock); the next bundle generation then fails to reopen
+        // /dev/ttyUSB* until the JVM itself restarts.
+        if (plcConnectionManager != null) {
+            try {
+                plcConnectionManager.close();
+            } catch (Exception e) {
+                logger.warn("Failed to close CachedPlcConnectionManager", e);
+            }
+            plcConnectionManager = null;
         }
     }
 }
