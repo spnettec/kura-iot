@@ -9,6 +9,7 @@ import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.PlcBYTE;
+import org.apache.plc4x.java.utils.cache.CachedPlcConnectionManager;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.ChannelStatus;
@@ -72,14 +73,42 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     public synchronized void updated(final Config properties) {
         logger.info("Updating Plc4xDriver ...");
 
+        // If the connection string changed, release the cached connection bound to the old URL —
+        // otherwise its serial fd / TCP socket leaks until the bundle restarts. Same-URL updates
+        // (only baud rate / unit identifier changed in query? no — query is part of connectString)
+        // safely call this too: invalidate is a no-op when the URL isn't cached, and changing any
+        // query parameter is also a semantic change that warrants dropping the old container.
+        final Config previous = this.options.get();
+        final String previousUrl = (previous == null) ? null : previous.connectString();
         extractProperties(properties);
+        final String currentUrl = properties.connectString();
+        if (previousUrl != null && !previousUrl.equals(currentUrl)) {
+            invalidateCachedConnection(previousUrl);
+        }
 
         logger.info("Updating Plc4xDriver Driver... Done");
     }
 
     @Deactivate
     public synchronized void deactivate() {
+        // Release the cached connection so the underlying fd is closed when this driver instance
+        // goes away. Without this the container would linger until com.yofc.iot.apps.opcuaserver
+        // itself stops.
+        final Config current = this.options.get();
+        if (current != null) {
+            invalidateCachedConnection(current.connectString());
+        }
+    }
 
+    private void invalidateCachedConnection(String url) {
+        if (url == null || !(plcConnectionManager instanceof CachedPlcConnectionManager)) {
+            return;
+        }
+        try {
+            ((CachedPlcConnectionManager) plcConnectionManager).invalidate(url);
+        } catch (Exception e) {
+            logger.warn("Failed to invalidate cached connection for {}", url, e);
+        }
     }
 
     @Override
