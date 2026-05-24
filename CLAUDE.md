@@ -53,9 +53,10 @@ yofc-iot (root, packaging: pom)
 │   ├── com.yofc.iot.apps.influxdb  # InfluxDB v2 connector
 │   └── com.yofc.iot.apps.influxdbv1 # InfluxDB v1 connector
 └── com.yofc.iot.repack/
-    ├── com.yofc.iot.repack.vertx.db # Repackaged Vert.x SQL clients + JDBC drivers
     └── yofc-repo                    # P2 update site for Jersey JAX-RS bundles
 ```
+
+> `com.yofc.iot.repack.vertx.db` (the repackaged Vert.x SQL clients + JDBC driver bundle) was migrated to the `kura-yofc-runtime` sibling repo and now ships via `kura-yofc-runtime.deb` to `/opt/eclipse/kura/siblings/yofc-runtime/6/`. yofc-iot apps still Import-Package its exported `io.vertx.*` SQL client packages at runtime — no change needed in the apps' MANIFESTs.
 
 ## Key Architecture Patterns
 
@@ -74,7 +75,7 @@ Heavy use of Kura APIs: `Driver`, `WireComponent`/`WireEmitter`/`WireReceiver`, 
 - **Custom:** Allen-Bradley EtherNet/IP driver (port 44818)
 
 ### Repackaged Dependencies
-The `repack` module bundles Vert.x SQL clients with JDBC drivers (PostgreSQL, MySQL, MSSQL, Oracle) into a single OSGi bundle to resolve OSGi dependency issues.
+Historically the `com.yofc.iot.repack.vertx.db` bundle in this module repackaged Vert.x SQL clients with JDBC drivers (PostgreSQL, MySQL, MSSQL, Oracle) into a single OSGi bundle to resolve OSGi dependency issues. As of 2026-05-24 that bundle lives in the `kura-yofc-runtime` sibling (see workspace CLAUDE.md). What's left in `com.yofc.iot.repack/` is only `yofc-repo` (the P2 update site).
 
 ## OSGi Component Registry
 
