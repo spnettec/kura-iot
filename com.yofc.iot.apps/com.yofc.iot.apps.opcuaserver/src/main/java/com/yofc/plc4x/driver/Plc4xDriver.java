@@ -9,7 +9,6 @@ import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.spi.values.PlcBYTE;
-import org.apache.plc4x.java.utils.cache.CachedPlcConnectionManager;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.ChannelStatus;
@@ -91,6 +90,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Deactivate
     public synchronized void deactivate() {
+        logger.info("Deactivating Plc4xDriver: active listeners={} ...", registeredListeners.size());
+
+        // Release all subscription handles first — each underlying OPC UA subscription
+        // holds a scheduled publishTask that must be cancelled, otherwise it keeps the
+        // static EXECUTOR thread alive and accumulates stale tasks.
+        unregisterAll();
+
         // Release the cached connection so the underlying fd is closed when this driver instance
         // goes away. Without this the container would linger until com.yofc.iot.apps.opcuaserver
         // itself stops.
@@ -98,14 +104,56 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         if (current != null) {
             invalidateCachedConnection(current.connectString());
         }
+
+        logger.info("Deactivating Plc4xDriver... Done");
+    }
+
+    /**
+     * Cancel all active subscriptions and clear the listener registry without requiring
+     * a live PLC connection. Called by {@link #deactivate()} and also safe to invoke
+     * when the PLC is already unreachable (best-effort).
+     */
+    private void unregisterAll() {
+        if (registeredListeners.isEmpty()) {
+            return;
+        }
+        logger.info("Unregistering all {} channel listener(s)...", registeredListeners.size());
+
+        // Collect all handles across every listener.
+        final List<PlcSubscriptionHandle> allHandles = new ArrayList<>();
+        synchronized (registeredListeners) {
+            for (List<PlcSubscriptionHandle> handles : registeredListeners.values()) {
+                allHandles.addAll(handles);
+            }
+        }
+
+        // Best-effort: tell the PLC we're done. If the connection is gone this will fail,
+        // but we still clear our local state below — no leak on deactivate.
+        if (!allHandles.isEmpty()) {
+            try (PlcConnection plcConnection = plcConnectionManager.getConnection(
+                    this.options.get().connectString())) {
+                plcConnection.unsubscriptionRequestBuilder()
+                        .addHandles(allHandles)
+                        .build()
+                        .execute()
+                        .get(5, TimeUnit.SECONDS);
+                logger.info("Successfully unsubscribed {} handle(s)", allHandles.size());
+            } catch (Exception e) {
+                logger.warn("Could not send unsubscribe to PLC (connection likely gone): {}", e.getMessage());
+                // Continue — we still clear registeredListeners below.
+            }
+        }
+
+        registeredListeners.clear();
+        logger.info("All listener registrations cleared.");
     }
 
     private void invalidateCachedConnection(String url) {
-        if (url == null || !(plcConnectionManager instanceof CachedPlcConnectionManager)) {
+        if (url == null) {
             return;
         }
         try {
-            ((CachedPlcConnectionManager) plcConnectionManager).invalidate(url);
+            plcConnectionManager.invalidate(url);
         } catch (Exception e) {
             logger.warn("Failed to invalidate cached connection for {}", url, e);
         }
@@ -232,99 +280,123 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @Override
     public void registerChannelListeners(final Map<ChannelListener, Map<String, Object>> listenerChannelConfigs)
             throws ConnectionException {
-        PlcSubscriptionResponse subscriptionResponse = null;
+
+        if (listenerChannelConfigs.isEmpty()) {
+            return;
+        }
+
+        // ---- Idempotency: clean up handles that already exist for these listeners ----
+        final List<ChannelListener> existingListeners = listenerChannelConfigs.keySet().stream()
+                .filter(registeredListeners::containsKey)
+                .toList();
+        if (!existingListeners.isEmpty()) {
+            logger.info("Re-registering {} existing listener(s): unsubscribing old handles first", existingListeners.size());
+            unregisterSilently(existingListeners);
+        }
+
+        // ---- Build a tag-name → (listener, config) lookup for the handler ----
+        final Map<String, ListenerConfig> tagToConfig = new LinkedHashMap<>();
+        for (Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
+            final ChannelListener listener = entry.getKey();
+            final Map<String, Object> channelConfig = entry.getValue();
+            final String channelName = getRequiredConfigProperty(channelConfig, "+name");
+            final String tagAddr = getRequiredConfigProperty(channelConfig, Plc4xChannelDescriptor.DATA_TAG_ADDR_ID);
+            final long samplingInterval = Long
+                    .parseLong(getRequiredConfigProperty(channelConfig, Plc4xChannelDescriptor.LISTEN_SAMPLING_INTERVAL_PROP_NAME));
+            tagToConfig.put(channelName, new ListenerConfig(listener, channelConfig, tagAddr, samplingInterval));
+        }
+
+        // ---- Create PLC subscription ----
+        final PlcSubscriptionResponse subscriptionResponse;
         try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
             final PlcSubscriptionRequest.Builder sbuilder = plcConnection.subscriptionRequestBuilder();
-            for (Entry<ChannelListener, Map<String, Object>> entry : listenerChannelConfigs.entrySet()) {
-                Map<String, Object> channelConfig = entry.getValue();
-                final String channelName = getRequiredConfigProperty(channelConfig, "+name");
-                final String tagAddr = getRequiredConfigProperty(channelConfig,
-                        Plc4xChannelDescriptor.DATA_TAG_ADDR_ID);
-                final long samplingInterval = Long.parseLong(getRequiredConfigProperty(channelConfig,
-                        Plc4xChannelDescriptor.LISTEN_SAMPLING_INTERVAL_PROP_NAME));
-                sbuilder.addChangeOfStateTagAddress(channelName, tagAddr, Duration.ofMillis(samplingInterval));
+            for (Entry<String, ListenerConfig> tagEntry : tagToConfig.entrySet()) {
+                final ListenerConfig lc = tagEntry.getValue();
+                sbuilder.addChangeOfStateTagAddress(tagEntry.getKey(), lc.tagAddr,
+                        Duration.ofMillis(lc.samplingInterval));
             }
-            PlcSubscriptionRequest subscriptionRequest = sbuilder.build();
-
-            subscriptionResponse = subscriptionRequest.execute().get();
+            subscriptionResponse = sbuilder.build().execute().get();
+            logger.info("Subscription created: {} tag(s)", subscriptionResponse.getTagNames().size());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new ConnectionException(e);
         } catch (Exception e) {
             throw new ConnectionException(e);
         }
+
+        // ---- Bind each returned handle to its listener via a lightweight handler ----
+        int registeredCount = 0;
         for (String tagName : subscriptionResponse.getTagNames()) {
-            final PlcSubscriptionHandle subscriptionHandle = subscriptionResponse.getSubscriptionHandle(tagName);
-            ChannelListener listener = findListener(listenerChannelConfigs, tagName);
-            if (listener == null) {
-                logger.warn("PLC subscription returned unexpected tag {}", tagName);
+            final ListenerConfig lc = tagToConfig.get(tagName);
+            if (lc == null) {
+                logger.warn("PLC subscription returned unexpected tag '{}'", tagName);
                 continue;
             }
-            List<PlcSubscriptionHandle> handles = registeredListeners.computeIfAbsent(listener,
-                    ignored -> new ArrayList<>());
-            if (!handles.contains(subscriptionHandle)) {
-                subscriptionHandle.register(new ValueChangeHandler(listenerChannelConfigs));
-                handles.add(subscriptionHandle);
-            } else {
-                logger.debug("tagName:{} already register", tagName);
-            }
+            final PlcSubscriptionHandle handle = subscriptionResponse.getSubscriptionHandle(tagName);
+            handle.register(new ValueChangeHandler(lc.listener, lc.channelConfig));
+            registeredListeners.computeIfAbsent(lc.listener, k -> new ArrayList<>()).add(handle);
+            registeredCount++;
+        }
+        logger.info("Registered {} subscription handle(s) across {} listener(s)", registeredCount,
+                listenerChannelConfigs.size());
+    }
+
+    /**
+     * Per-listener config snapshot, built during registration so that the
+     * {@link ValueChangeHandler} only holds the exact listener + config it needs.
+     */
+    private static final class ListenerConfig {
+        final ChannelListener listener;
+        final Map<String, Object> channelConfig;
+        final String tagAddr;
+        final long samplingInterval;
+
+        ListenerConfig(ChannelListener listener, Map<String, Object> channelConfig, String tagAddr,
+                long samplingInterval) {
+            this.listener = listener;
+            this.channelConfig = channelConfig;
+            this.tagAddr = tagAddr;
+            this.samplingInterval = samplingInterval;
         }
     }
 
-    private static ChannelListener findListener(Map<ChannelListener, Map<String, Object>> listenerChannelConfigs,
-            String tagName) {
-        return listenerChannelConfigs.entrySet().stream().filter(entry -> {
-            Object channelName = entry.getValue().get("+name");
-            return tagName.equals(channelName);
-        }).map(Entry::getKey).findFirst().orElse(null);
-    }
-
+    /**
+     * Event handler that receives PLC subscription events and forwards them to a
+     * single {@link ChannelListener}. It only holds the specific config for the
+     * listener it serves — not the full register-time {@code listenerChannelConfigs} map.
+     */
     private static class ValueChangeHandler implements Consumer<PlcSubscriptionEvent> {
 
-        final Map<ChannelListener, Map<String, Object>> listenerChannelConfigs;
+        private final ChannelListener channelListener;
+        private final Map<String, Object> channelConfig;
 
-        public ValueChangeHandler(Map<ChannelListener, Map<String, Object>> listenerChannelConfigs) {
-            this.listenerChannelConfigs = listenerChannelConfigs;
+        ValueChangeHandler(ChannelListener channelListener, Map<String, Object> channelConfig) {
+            this.channelListener = channelListener;
+            this.channelConfig = channelConfig;
         }
 
         @Override
         public void accept(PlcSubscriptionEvent plcSubscriptionEvent) {
-            logger.debug("Incoming event:");
             for (String fieldName : plcSubscriptionEvent.getTagNames()) {
-                Optional<Entry<ChannelListener, Map<String, Object>>> entryOption = listenerChannelConfigs.entrySet()
-                        .stream().filter(en -> {
-                            Map<String, Object> channelConfig = en.getValue();
-                            final String channelName = getRequiredConfigProperty(channelConfig, "+name");
-                            return channelName.equals(fieldName);
-                        }).findFirst();
                 final PlcValue plcValue = plcSubscriptionEvent.getPlcValue(fieldName);
-                if (entryOption.isPresent()) {
-                    Entry<ChannelListener, Map<String, Object>> entry = entryOption.get();
-                    ChannelListener channelListener = entry.getKey();
-
-                    Map<String, Object> config = entry.getValue();
-                    final DataType valueType = DataType.valueOf(getRequiredConfigProperty(config, "+value.type"));
-
-                    if (plcValue.isStruct()) {
-                        logger.warn("Not support struct value: {}", plcValue);
-                    } else {
-                        ChannelRecord channelRecord = ChannelRecord.createReadRecord(fieldName, valueType);
-                        channelRecord.setTimestamp(System.currentTimeMillis());
-                        TypedValue<?> value = null;
-                        try {
-                            value = map(plcValue.getObject(), valueType);
-                            channelRecord.setValue(value);
-                            channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
-                        } catch (Exception e) {
-                            channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.toString(), null));
-                        }
-                        channelListener.onChannelEvent(new ChannelEvent(channelRecord));
-                        // logger.info("Field {} value: {}", fieldName, plcValue.getString());
-
-                    }
-
-                } else {
-                    logger.warn("Unknow field {} value: {}", fieldName, plcValue.getString());
+                if (plcValue == null) {
+                    logger.warn("Null value for tag '{}' in subscription event", fieldName);
+                    continue;
+                }
+                if (plcValue.isStruct()) {
+                    logger.warn("Struct value not supported for tag '{}': {}", fieldName, plcValue);
+                    continue;
+                }
+                try {
+                    final DataType valueType = DataType
+                            .valueOf(getRequiredConfigProperty(channelConfig, "+value.type"));
+                    final ChannelRecord channelRecord = ChannelRecord.createReadRecord(fieldName, valueType);
+                    channelRecord.setTimestamp(System.currentTimeMillis());
+                    channelRecord.setValue(map(plcValue.getObject(), valueType));
+                    channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+                    channelListener.onChannelEvent(new ChannelEvent(channelRecord));
+                } catch (Exception e) {
+                    logger.warn("Failed to handle subscription event for tag '{}': {}", fieldName, e.getMessage());
                 }
             }
         }
@@ -332,29 +404,42 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     @Override
     public void unregisterChannelListeners(final Collection<ChannelListener> listeners) throws ConnectionException {
-        if (registeredListeners.isEmpty()) {
+        if (registeredListeners.isEmpty() || listeners.isEmpty()) {
             return;
         }
-        List<PlcSubscriptionHandle> handles = listeners.stream().map(registeredListeners::get).filter(Objects::nonNull)
-                .flatMap(Collection::stream).toList();
-        if (handles.isEmpty()) {
-            return;
+        unregisterSilently(listeners);
+    }
+
+    /**
+     * Unsubscribe the given listeners' handles from the PLC (best-effort) and
+     * unconditionally remove them from the local registry afterwards.
+     * <p>
+     * This is safe to call even when the PLC is unreachable — the local cleanup
+     * always happens so no stale handle references survive on the Java side.
+     */
+    private synchronized void unregisterSilently(final Collection<ChannelListener> listeners) {
+        final List<PlcSubscriptionHandle> handles = listeners.stream()
+                .map(registeredListeners::get)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .toList();
+
+        if (!handles.isEmpty()) {
+            try (PlcConnection plcConnection = plcConnectionManager.getConnection(
+                    this.options.get().connectString())) {
+                plcConnection.unsubscriptionRequestBuilder()
+                        .addHandles(handles)
+                        .build()
+                        .execute()
+                        .get(5, TimeUnit.SECONDS);
+                logger.info("Unsubscribed {} handle(s)", handles.size());
+            } catch (Exception e) {
+                logger.warn("Could not send unsubscribe to PLC (connection may be gone): {}", e.getMessage());
+                // Continue — still remove from local map below.
+            }
         }
-        try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
-            PlcUnsubscriptionRequest.Builder builder = plcConnection.unsubscriptionRequestBuilder();
 
-            builder.addHandles(handles);
-
-            builder.build().execute().get();
-            listeners.forEach(registeredListeners::remove);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new ConnectionException(e);
-        } catch (Exception e) {
-            throw new ConnectionException(e);
-        }
-
+        listeners.forEach(registeredListeners::remove);
     }
 
     private Map<String, TagRecord> getTagRecords(List<ChannelRecord> records) {
