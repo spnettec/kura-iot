@@ -190,7 +190,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     @Override
-    public void read(List<ChannelRecord> records) {
+    public void read(List<ChannelRecord> records) throws ConnectionException {
         Map<String, TagRecord> tagRecords = getTagRecords(records);
         if (tagRecords.isEmpty()) {
             return;
@@ -198,7 +198,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         executeRead(records, tagRecords);
     }
 
-    private void executeRead(List<ChannelRecord> records, Map<String, TagRecord> tagRecords) {
+    private void executeRead(List<ChannelRecord> records, Map<String, TagRecord> tagRecords) throws ConnectionException {
         final long startNanos = System.nanoTime();
         int failureCount = 0;
         String firstFailure = null;
@@ -241,7 +241,6 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 if (responseCode != PlcResponseCode.OK) {
                     channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, responseCode.name(), null));
                     failureCount++;
-                    connectionFailure = true;
                     if (firstFailure == null) {
                         firstFailure = field + "=" + responseCode.name();
                     }
@@ -261,16 +260,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 }
             }
         } catch (Exception e) {
-            records.forEach(channelRecord -> {
-                channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
-                channelRecord.setTimestamp(System.currentTimeMillis());
-            });
-            failureCount = records.size();
-            firstFailure = e.getMessage();
-            connectionFailure = true;
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
+            failureCount = records.size();
+            firstFailure = e.getMessage();
+            connectionFailure = true;
+            throw new ConnectionException(e);
         } finally {
             if (connectionFailure) {
                 invalidateCachedConnection(this.options.get().connectString());

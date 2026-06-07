@@ -23,6 +23,9 @@ import java.util.Map;
 import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
+import org.apache.plc4x.java.api.PlcDriverManager;
+import org.apache.plc4x.java.api.authentication.PlcAuthentication;
+import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.spi.values.PlcCHAR;
 import org.apache.plc4x.java.spi.values.PlcDINT;
@@ -30,6 +33,7 @@ import org.apache.plc4x.java.spi.values.PlcList;
 import org.apache.plc4x.java.spi.values.PlcSTRING;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
+import org.eclipse.kura.driver.Driver.ConnectionException;
 import org.eclipse.kura.driver.PreparedRead;
 import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
@@ -136,6 +140,15 @@ class Plc4xDriverTest {
 
         assertEquals(ChannelFlag.SUCCESS, first.getChannelStatus().getChannelFlag());
         assertEquals(ChannelFlag.FAILURE, second.getChannelStatus().getChannelFlag());
+    }
+
+    @Test
+    void readPropagatesConnectionFailure() throws Exception {
+        Plc4xDriver driver = driver("s7://192.0.2.1");
+        injectConnectionManager(driver, new FailingConnectionManager());
+        ChannelRecord record = readRecord("read-value", DataType.INTEGER, "readTag", "%DB1:0:DINT");
+
+        assertThrows(ConnectionException.class, () -> driver.read(List.of(record)));
     }
 
     @Test
@@ -248,6 +261,24 @@ class Plc4xDriverTest {
             assertNotNull(response.getPlcValue("direct"));
             assertFalse(response.getPlcValue("direct").isNull());
             return response.getPlcValue("direct");
+        }
+    }
+
+    private static final class FailingConnectionManager implements PlcConnectionManager {
+
+        @Override
+        public PlcConnection getConnection(String url) throws PlcConnectionException {
+            throw new PlcConnectionException("connection failed");
+        }
+
+        @Override
+        public PlcConnection getConnection(String url, PlcAuthentication authentication) throws PlcConnectionException {
+            throw new PlcConnectionException("connection failed");
+        }
+
+        @Override
+        public PlcDriverManager getDriverManager() {
+            return null;
         }
     }
 }
