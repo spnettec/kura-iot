@@ -4,6 +4,7 @@
   <property name="precison" type="String" value="none"/>
   <property name="script" type="String" value=""/>
   <property name="initScript" type="String" value=""/>
+  <property name="writeQueueSize" type="Integer" value="1024"/>
   <property name="kura.ui.service.hide" type="Boolean" value="true"/>
   <service>
     <provide interface="org.eclipse.kura.configuration.ConfigurableComponent"/>
