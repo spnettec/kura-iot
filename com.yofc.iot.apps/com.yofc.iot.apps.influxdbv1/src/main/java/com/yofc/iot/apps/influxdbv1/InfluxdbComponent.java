@@ -3,6 +3,11 @@ package com.yofc.iot.apps.influxdbv1;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.eclipse.kura.crypto.CryptoService;
@@ -72,6 +77,9 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
     private WireSupport wireSupport;
     private Script script;
     private Config config;
+    private final Object clientLock = new Object();
+    private ExecutorService writeExecutor;
+    private final AtomicLong droppedWrites = new AtomicLong();
     @Reference
     private AssetHelp assetHelp;
 
@@ -105,9 +113,15 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             webClient.close();
             webClient = null;
         }
-        if (this.client != null) {
-            this.client.close();
-            this.client = null;
+        if (this.writeExecutor != null) {
+            this.writeExecutor.shutdownNow();
+            this.writeExecutor = null;
+        }
+        synchronized (this.clientLock) {
+            if (this.client != null) {
+                this.client.close();
+                this.client = null;
+            }
         }
         logger.info("Deactivating influxdbv1... Done");
     }
@@ -117,9 +131,15 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         logger.info("Updating influxdbv1...");
         scriptSource = config.script();
         this.config = config;
-        if (this.client != null) {
-            this.client.close();
-            this.client = null;
+        if (this.writeExecutor != null) {
+            this.writeExecutor.shutdownNow();
+        }
+        this.writeExecutor = createWriteExecutor(config.writeQueueSize());
+        synchronized (this.clientLock) {
+            if (this.client != null) {
+                this.client.close();
+                this.client = null;
+            }
         }
         String password = config.password();
         if (password == null) {
@@ -131,9 +151,11 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
         } catch (Exception e) {
             logger.info("Password is not encrypted");
         }
-        this.client = InfluxDBFactory.connect(config.url(), config.username(), password);
-        this.client.setDatabase(config.database());
-        this.client.setRetentionPolicy(config.retentionPolicy());
+        synchronized (this.clientLock) {
+            this.client = InfluxDBFactory.connect(config.url(), config.username(), password);
+            this.client.setDatabase(config.database());
+            this.client.setRetentionPolicy(config.retentionPolicy());
+        }
 
         if (!"".equals(scriptSource)) {
 
@@ -220,28 +242,67 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
             output = wireEnvelope;
         }
         this.wireSupport.emit(output);
-        saveToInfluxdb(output);
+        submitInfluxWrite(output);
     }
 
     @SuppressWarnings("unchecked")
     private void saveToInfluxdb(Object wires) {
-        Point.Builder pointBuilder = Point.measurement(this.config.measurement());
-        pointBuilder.tag(parseTags(this.config.tags()));
-        Map<String, Object> result;
-        if (wires instanceof WireEnvelope) {
-            result = Utils.toMap(((WireEnvelope) wires).getRecords());
-        } else if (List.class.isAssignableFrom(wires.getClass()) && !((List<?>) wires).isEmpty()
-                && ((List<?>) wires).get(0) instanceof WireRecord) {
-            result = Utils.toMap((List<WireRecord>) wires);
-        } else {
-            result = JSONObject.from(wires);
+        synchronized (this.clientLock) {
+            if (this.client == null || this.config == null) {
+                logger.warn("InfluxDB v1 write skipped: component is not initialized");
+                return;
+            }
+            Point.Builder pointBuilder = Point.measurement(this.config.measurement());
+            pointBuilder.tag(parseTags(this.config.tags()));
+            Map<String, Object> result;
+            if (wires instanceof WireEnvelope) {
+                result = Utils.toMap(((WireEnvelope) wires).getRecords());
+            } else if (List.class.isAssignableFrom(wires.getClass()) && !((List<?>) wires).isEmpty()
+                    && ((List<?>) wires).get(0) instanceof WireRecord) {
+                result = Utils.toMap((List<WireRecord>) wires);
+            } else {
+                result = JSONObject.from(wires);
+            }
+
+            result.remove("assetName");
+            pointBuilder.fields(result);
+
+            this.client.write(pointBuilder.build());
         }
 
-        result.remove("assetName");
-        pointBuilder.fields(result);
+    }
 
-        this.client.write(pointBuilder.build());
+    private ExecutorService createWriteExecutor(int queueSize) {
+        final int boundedQueueSize = Math.max(1, queueSize);
+        final ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(boundedQueueSize), r -> {
+                    Thread thread = new Thread(r, "InfluxdbV1Component-Writer");
+                    thread.setDaemon(true);
+                    return thread;
+                });
+        executor.setRejectedExecutionHandler((r, rejectedExecutor) -> {
+            long dropped = this.droppedWrites.incrementAndGet();
+            if (dropped == 1 || dropped % 1000 == 0) {
+                logger.warn("InfluxDB v1 write queue full; droppedWrites={}, queued={}/{}", dropped,
+                        rejectedExecutor.getQueue().size(), boundedQueueSize);
+            }
+        });
+        return executor;
+    }
 
+    private void submitInfluxWrite(Object output) {
+        ExecutorService executor = this.writeExecutor;
+        if (executor == null || executor.isShutdown()) {
+            logger.warn("InfluxDB v1 write skipped: write executor is not running");
+            return;
+        }
+        executor.execute(() -> {
+            try {
+                saveToInfluxdb(output);
+            } catch (Exception e) {
+                logger.warn("Failed to write to InfluxDB v1", e);
+            }
+        });
     }
 
     private static Map<String, String> parseTags(final String string) {
@@ -300,6 +361,9 @@ public class InfluxdbComponent implements WireReceiver, ConfigurableComponent {
 
         @AttributeDefinition(name = "%initScript", cardinality = 0, description = "%initScriptDesc", required = false)
         String initScript() default "";
+
+        @AttributeDefinition(name = "%writeQueueSize", description = "%writeQueueSizeDesc", required = false)
+        int writeQueueSize() default 1024;
 
     }
 

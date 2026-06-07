@@ -20,6 +20,7 @@
     <AD id="retentionPolicy" type="String" required="false" name="%retentionPolicy" description="%retentionPolicyDesc"/>
     <AD id="script" type="String" required="false" name="%script" description="%scriptDesc" default=""/>
     <AD id="initScript" type="String" required="false" name="%initScript" description="%initScriptDesc" default=""/>
+    <AD id="writeQueueSize" type="Integer" required="false" name="%writeQueueSize" description="%writeQueueSizeDesc" default="1024"/>
   </OCD>
   <Designate factoryPid="com.yofc.iot.apps.influxdb.InfluxdbComponent">
     <Object ocdref="com.yofc.iot.apps.influxdb.InfluxdbComponent"/>

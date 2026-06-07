@@ -8,7 +8,6 @@ import org.apache.plc4x.java.api.messages.*;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
-import org.apache.plc4x.java.spi.values.PlcBYTE;
 import org.eclipse.kura.channel.ChannelFlag;
 import org.eclipse.kura.channel.ChannelRecord;
 import org.eclipse.kura.channel.ChannelStatus;
@@ -30,12 +29,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
+import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -46,11 +52,18 @@ import static java.util.Objects.requireNonNull;
 public class Plc4xDriver implements Driver, ConfigurableComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(Plc4xDriver.class);
-    private static final long REQUEST_TIMEOUT_MS = 10_000L;
+    private static final String REQUEST_TIMEOUT_PROPERTY = "request.timeout";
+    private static final long DEFAULT_REQUEST_TIMEOUT_SECONDS = 10L;
+    private static final long READ_STATS_LOG_INTERVAL_NANOS = TimeUnit.SECONDS.toNanos(10);
     private final Map<ChannelListener, List<PlcSubscriptionHandle>> registeredListeners = Collections
             .synchronizedMap(new HashMap<>());
 
     private final AtomicReference<Config> options = new AtomicReference<>();
+    private final AtomicLong readRequestCount = new AtomicLong();
+    private final AtomicLong readStatsLastLogNanos = new AtomicLong();
+    private final AtomicReference<Boolean> readFailing = new AtomicReference<>(Boolean.FALSE);
+    private final ReentrantLock readLock = new ReentrantLock();
+    private final Map<String, TypedValue<?>> lastSuccessfulReadValues = new ConcurrentHashMap<>();
 
     @Reference
     private PlcConnectionManager plcConnectionManager;
@@ -83,6 +96,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         final String currentUrl = properties.connectString();
         if (previousUrl != null && !previousUrl.equals(currentUrl)) {
             invalidateCachedConnection(previousUrl);
+            lastSuccessfulReadValues.clear();
         }
 
         logger.info("Updating Plc4xDriver Driver... Done");
@@ -104,6 +118,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         if (current != null) {
             invalidateCachedConnection(current.connectString());
         }
+        lastSuccessfulReadValues.clear();
 
         logger.info("Deactivating Plc4xDriver... Done");
     }
@@ -184,11 +199,35 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     private void executeRead(List<ChannelRecord> records, Map<String, TagRecord> tagRecords) {
+        final long startNanos = System.nanoTime();
+        int failureCount = 0;
+        String firstFailure = null;
+        boolean connectionFailure = false;
+        boolean locked = readLock.tryLock();
+
+        if (!locked && applyCachedReadValues(records)) {
+            logReadStats(tagRecords.size(), records.size(), 0,
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos), null);
+            return;
+        }
+
+        if (!locked) {
+            readLock.lock();
+            locked = true;
+            if (applyCachedReadValues(records)) {
+                readLock.unlock();
+                locked = false;
+                logReadStats(tagRecords.size(), records.size(), 0,
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos), null);
+                return;
+            }
+        }
+
         try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
             PlcReadRequest.Builder builder = plcConnection.readRequestBuilder();
             tagRecords.forEach((tagName, tagRecord) -> builder.addTagAddress(tagName, tagRecord.tagAddr));
             PlcReadRequest readRequest = builder.build();
-            PlcReadResponse response = readRequest.execute().get(REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            PlcReadResponse response = readRequest.execute().get(getRequestTimeoutSeconds(records), TimeUnit.SECONDS);
             for (String field : response.getTagNames()) {
                 TagRecord tagRecord = tagRecords.get(field);
                 if (tagRecord == null) {
@@ -201,13 +240,24 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 PlcResponseCode responseCode = response.getResponseCode(field);
                 if (responseCode != PlcResponseCode.OK) {
                     channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, responseCode.name(), null));
+                    failureCount++;
+                    connectionFailure = true;
+                    if (firstFailure == null) {
+                        firstFailure = field + "=" + responseCode.name();
+                    }
                     continue;
                 }
                 try {
-                    channelRecord.setValue(map(response.getObject(field), channelRecord.getValueType()));
+                    TypedValue<?> mappedValue = map(response.getObject(field), channelRecord.getValueType());
+                    channelRecord.setValue(mappedValue);
                     channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+                    lastSuccessfulReadValues.put(channelRecord.getChannelName(), mappedValue);
                 } catch (Exception e) {
                     channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
+                    failureCount++;
+                    if (firstFailure == null) {
+                        firstFailure = field + "=" + e.getMessage();
+                    }
                 }
             }
         } catch (Exception e) {
@@ -215,11 +265,58 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
                 channelRecord.setChannelStatus(new ChannelStatus(ChannelFlag.FAILURE, e.getMessage(), e));
                 channelRecord.setTimestamp(System.currentTimeMillis());
             });
+            failureCount = records.size();
+            firstFailure = e.getMessage();
+            connectionFailure = true;
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
+        } finally {
+            if (connectionFailure) {
+                invalidateCachedConnection(this.options.get().connectString());
+            }
+            if (locked) {
+                readLock.unlock();
+            }
+            logReadStats(tagRecords.size(), records.size(), failureCount,
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos), firstFailure);
         }
 
+    }
+
+    private boolean applyCachedReadValues(List<ChannelRecord> records) {
+        for (ChannelRecord record : records) {
+            if (!lastSuccessfulReadValues.containsKey(record.getChannelName())) {
+                return false;
+            }
+        }
+
+        long timestamp = System.currentTimeMillis();
+        for (ChannelRecord record : records) {
+            record.setValue(lastSuccessfulReadValues.get(record.getChannelName()));
+            record.setTimestamp(timestamp);
+            record.setChannelStatus(new ChannelStatus(ChannelFlag.SUCCESS));
+        }
+        return true;
+    }
+
+    private void logReadStats(int tagCount, int recordCount, int failureCount, long durationMs, String firstFailure) {
+        final long requestCount = readRequestCount.incrementAndGet();
+        final long now = System.nanoTime();
+        final long last = readStatsLastLogNanos.get();
+        final boolean failed = failureCount > 0;
+        final boolean transitioned = readFailing.getAndSet(failed) != failed;
+
+        if (requestCount == 1 || transitioned) {
+            readStatsLastLogNanos.set(now);
+            logger.info("PLC read completed: requestCount={}, tags={}, records={}, failures={}, durationMs={}, firstFailure={}",
+                    requestCount, tagCount, recordCount, failureCount, durationMs,
+                    firstFailure == null ? "" : firstFailure);
+        } else if (now - last >= READ_STATS_LOG_INTERVAL_NANOS && readStatsLastLogNanos.compareAndSet(last, now)) {
+            logger.info("PLC read completed: requestCount={}, tags={}, records={}, failures={}, durationMs={}, firstFailure={}",
+                    requestCount, tagCount, recordCount, failureCount, durationMs,
+                    firstFailure == null ? "" : firstFailure);
+        }
     }
 
     @Override
@@ -249,7 +346,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             }
             PlcWriteRequest writeRequest = builder.build();
 
-            PlcWriteResponse response = writeRequest.execute().get(REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            PlcWriteResponse response = writeRequest.execute().get(getRequestTimeoutSeconds(records), TimeUnit.SECONDS);
             for (String field : response.getTagNames()) {
                 TagRecord tagRecord = tagRecords.get(field);
                 if (tagRecord == null) {
@@ -477,6 +574,28 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         channelRecord.setTimestamp(System.currentTimeMillis());
     }
 
+    private static long getRequestTimeoutSeconds(List<ChannelRecord> records) {
+        return records.stream()
+                .map(ChannelRecord::getChannelConfig)
+                .filter(Objects::nonNull)
+                .map(config -> config.get(REQUEST_TIMEOUT_PROPERTY))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .map(Plc4xDriver::parseRequestTimeoutSeconds)
+                .orElse(DEFAULT_REQUEST_TIMEOUT_SECONDS);
+    }
+
+    private static long parseRequestTimeoutSeconds(Object value) {
+        try {
+            long timeout = value instanceof Number number ? number.longValue() : Long.parseLong(value.toString());
+            return timeout > 0 ? timeout : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+        } catch (Exception e) {
+            logger.warn("Invalid {} value '{}', using default {} seconds", REQUEST_TIMEOUT_PROPERTY, value,
+                    DEFAULT_REQUEST_TIMEOUT_SECONDS);
+            return DEFAULT_REQUEST_TIMEOUT_SECONDS;
+        }
+    }
+
     @Override
     public PreparedRead prepareRead(List<ChannelRecord> records) {
         requireNonNull(records, "records cannot be null");
@@ -518,77 +637,46 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     private static TypedValue<?> map(final Object value, final DataType targetType) throws Exception {
-        Object newValue = value;
-        if (value instanceof byte[] bytes) {
-            newValue = IntStream.range(0, bytes.length).mapToObj(i -> bytes[i]).map(PlcBYTE::of).toList();
-        }
         switch (targetType) {
         case LONGS:
-            return TypedValues.newLongValues(getLongs(newValue));
+            return TypedValues.newLongValues(getLongs(value));
         case LONG: {
-            if (newValue instanceof LocalDate) {
-                return TypedValues.newLongValue(((LocalDate) newValue).toEpochDay());
-            }
-            if (newValue instanceof Duration) {
-                return TypedValues.newLongValue(((Duration) newValue).toNanos());
-            }
-            if (newValue instanceof Date) {
-                return TypedValues.newLongValue(((Date) newValue).getTime());
-            }
-            return TypedValues.newLongValue(((Number) (newValue == null ? 0 : newValue)).longValue());
+            return TypedValues.newLongValue(toLong(value));
         }
         case FLOATS:
-            return TypedValues.newFloatValues(getFloats(newValue));
+            return TypedValues.newFloatValues(getFloats(value));
         case FLOAT:
-            return TypedValues.newFloatValue(((Number) (newValue == null ? 0 : newValue)).floatValue());
+            return TypedValues.newFloatValue(toFloat(value));
         case DOUBLES:
-            return TypedValues.newDoubleValues(getDoubles(newValue));
+            return TypedValues.newDoubleValues(getDoubles(value));
         case DOUBLE:
-            return TypedValues.newDoubleValue(((Number) (newValue == null ? 0 : newValue)).doubleValue());
+            return TypedValues.newDoubleValue(toDouble(value));
         case INTEGERS:
-            return TypedValues.newIntegerValues(getIntegers(newValue));
+            return TypedValues.newIntegerValues(getIntegers(value));
         case BIGINTEGERS:
-            return TypedValues.newBigIntegerValues(getBigIntegers(newValue));
+            return TypedValues.newBigIntegerValues(getBigIntegers(value));
         case BOOLEANS:
-            return TypedValues.newBooleanValues(getBooleans(newValue));
+            return TypedValues.newBooleanValues(getBooleans(value));
         case INTEGER:
-            if (newValue instanceof Boolean) {
-                return TypedValues.newIntegerValue(((Boolean) newValue) ? 1 : 0);
-            }
-            return TypedValues.newIntegerValue(((Number) (newValue == null ? 0 : newValue)).intValue());
+            return TypedValues.newIntegerValue(toInteger(value));
         case BOOLEAN: {
-            if (newValue instanceof Number) {
-                return TypedValues.newBooleanValue(((Number) newValue).intValue() > 0);
-            } else if (newValue instanceof Boolean) {
-                return TypedValues.newBooleanValue((Boolean) newValue);
-            } else {
-                return TypedValues.newBooleanValue(Boolean.parseBoolean(newValue == null ? "" : (String) newValue));
-            }
+            return TypedValues.newBooleanValue(toBoolean(value));
         }
         case STRINGS:
-            return TypedValues.newStringValues(getStrings(newValue));
+            return TypedValues.newStringValues(getStrings(value));
         case STRING:
-            if (newValue instanceof List) {
-                return TypedValues.newStringValue(ArrayUtils.toString(newValue));
+            if (isMultiValue(value)) {
+                return TypedValues.newStringValue(ArrayUtils.toString(getStrings(value)));
             }
-            return TypedValues.newStringValue(newValue == null ? "" : newValue.toString());
+            return TypedValues.newStringValue(toStringValue(value));
         case BYTE_ARRAY:
-            if (newValue == null) {
+            if (value == null) {
                 return TypedValues.newByteArrayValue(new byte[] {});
             }
-            @SuppressWarnings("unchecked")
-            List<PlcValue> list = (List<PlcValue>) newValue;
-            Byte[] bytes = list.stream().map(b -> {
-                byte recivedID = 0;
-                if (b.isList()) {
-                    for (int i = 0; i < 8; i++) {
-                        recivedID |= (byte) (b.getIndex(i).getInt() << i);
-                    }
-                } else {
-                    recivedID = b.getByte();
-                }
-                return recivedID;
-            }).toArray(Byte[]::new);
+            if (value instanceof byte[] bytes) {
+                return TypedValues.newByteArrayValue(bytes);
+            }
+            Byte[] bytes = asList(value).stream().map(Plc4xDriver::toByte).toArray(Byte[]::new);
             return TypedValues.newByteArrayValue(ArrayUtils.toPrimitive(bytes));
         default:
             throw new IllegalArgumentException();
@@ -596,45 +684,204 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     private static Float[] getFloats(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getFloat).toArray(Float[]::new);
+        return asList(value).stream().map(Plc4xDriver::toFloat).toArray(Float[]::new);
     }
 
     private static Boolean[] getBooleans(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getBoolean).toArray(Boolean[]::new);
+        return asList(value).stream().map(Plc4xDriver::toBoolean).toArray(Boolean[]::new);
     }
 
     private static Double[] getDoubles(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getDouble).toArray(Double[]::new);
+        return asList(value).stream().map(Plc4xDriver::toDouble).toArray(Double[]::new);
     }
 
     private static Integer[] getIntegers(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getInteger).toArray(Integer[]::new);
+        return asList(value).stream().map(Plc4xDriver::toInteger).toArray(Integer[]::new);
     }
 
     private static Long[] getLongs(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getLong).toArray(Long[]::new);
+        return asList(value).stream().map(Plc4xDriver::toLong).toArray(Long[]::new);
     }
 
     private static BigInteger[] getBigIntegers(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getBigInteger).toArray(BigInteger[]::new);
+        return asList(value).stream().map(Plc4xDriver::toBigInteger).toArray(BigInteger[]::new);
     }
 
     private static String[] getStrings(Object value) {
-        @SuppressWarnings("unchecked")
-        List<PlcValue> list = (List<PlcValue>) value;
-        return list.stream().map(PlcValue::getString).toArray(String[]::new);
+        return asList(value).stream().map(Plc4xDriver::toStringValue).toArray(String[]::new);
+    }
+
+    private static boolean isMultiValue(Object value) {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof PlcValue plcValue) {
+            return plcValue.isList();
+        }
+        return value instanceof List<?> || value.getClass().isArray();
+    }
+
+    private static List<?> asList(Object value) {
+        if (value == null) {
+            return List.of();
+        }
+        if (value instanceof PlcValue plcValue) {
+            if (plcValue.isNull()) {
+                return List.of();
+            }
+            if (plcValue.isList()) {
+                return plcValue.getList();
+            }
+            return List.of(plcValue);
+        }
+        if (value instanceof List<?> list) {
+            return list;
+        }
+        Class<?> valueClass = value.getClass();
+        if (valueClass.isArray()) {
+            return IntStream.range(0, Array.getLength(value)).mapToObj(i -> Array.get(value, i)).toList();
+        }
+        return List.of(value);
+    }
+
+    private static Object unwrap(Object value) {
+        if (value instanceof PlcValue plcValue) {
+            if (plcValue.isNull()) {
+                return null;
+            }
+            if (plcValue.isDate()) {
+                return plcValue.getDate();
+            }
+            if (plcValue.isTime()) {
+                return plcValue.getTime();
+            }
+            if (plcValue.isDateTime()) {
+                return plcValue.getDateTime();
+            }
+            if (plcValue.isDuration()) {
+                return plcValue.getDuration();
+            }
+            return plcValue.getObject();
+        }
+        return value;
+    }
+
+    private static float toFloat(Object value) {
+        Object unwrapped = unwrap(value);
+        if (unwrapped == null) {
+            return 0;
+        }
+        if (unwrapped instanceof Number number) {
+            return number.floatValue();
+        }
+        if (unwrapped instanceof Boolean bool) {
+            return bool ? 1 : 0;
+        }
+        return Float.parseFloat(unwrapped.toString());
+    }
+
+    private static double toDouble(Object value) {
+        Object unwrapped = unwrap(value);
+        if (unwrapped == null) {
+            return 0;
+        }
+        if (unwrapped instanceof Number number) {
+            return number.doubleValue();
+        }
+        if (unwrapped instanceof Boolean bool) {
+            return bool ? 1 : 0;
+        }
+        return Double.parseDouble(unwrapped.toString());
+    }
+
+    private static int toInteger(Object value) {
+        Object unwrapped = unwrap(value);
+        if (unwrapped == null) {
+            return 0;
+        }
+        if (unwrapped instanceof Number number) {
+            return number.intValue();
+        }
+        if (unwrapped instanceof Boolean bool) {
+            return bool ? 1 : 0;
+        }
+        return Integer.parseInt(unwrapped.toString());
+    }
+
+    private static long toLong(Object value) {
+        Object unwrapped = unwrap(value);
+        if (unwrapped == null) {
+            return 0;
+        }
+        if (unwrapped instanceof LocalDate localDate) {
+            return localDate.toEpochDay();
+        }
+        if (unwrapped instanceof LocalTime localTime) {
+            return localTime.toNanoOfDay();
+        }
+        if (unwrapped instanceof LocalDateTime localDateTime) {
+            return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+        }
+        if (unwrapped instanceof Duration duration) {
+            return duration.toNanos();
+        }
+        if (unwrapped instanceof Date date) {
+            return date.getTime();
+        }
+        if (unwrapped instanceof Number number) {
+            return number.longValue();
+        }
+        if (unwrapped instanceof Boolean bool) {
+            return bool ? 1 : 0;
+        }
+        return Long.parseLong(unwrapped.toString());
+    }
+
+    private static BigInteger toBigInteger(Object value) {
+        Object unwrapped = unwrap(value);
+        if (unwrapped == null) {
+            return BigInteger.ZERO;
+        }
+        if (unwrapped instanceof BigInteger bigInteger) {
+            return bigInteger;
+        }
+        if (unwrapped instanceof Number number) {
+            return BigInteger.valueOf(number.longValue());
+        }
+        if (unwrapped instanceof Boolean bool) {
+            return bool ? BigInteger.ONE : BigInteger.ZERO;
+        }
+        return new BigInteger(unwrapped.toString());
+    }
+
+    private static boolean toBoolean(Object value) {
+        Object unwrapped = unwrap(value);
+        if (unwrapped == null) {
+            return false;
+        }
+        if (unwrapped instanceof Boolean bool) {
+            return bool;
+        }
+        if (unwrapped instanceof Number number) {
+            return number.intValue() > 0;
+        }
+        return Boolean.parseBoolean(unwrapped.toString());
+    }
+
+    private static String toStringValue(Object value) {
+        Object unwrapped = unwrap(value);
+        return unwrapped == null ? "" : unwrapped.toString();
+    }
+
+    private static byte toByte(Object value) {
+        if (value instanceof PlcValue plcValue && plcValue.isList()) {
+            byte receivedId = 0;
+            for (int i = 0; i < Math.min(8, plcValue.getLength()); i++) {
+                receivedId |= (byte) (toInteger(plcValue.getIndex(i)) << i);
+            }
+            return receivedId;
+        }
+        return (byte) toInteger(value);
     }
 
     static final class TagRecord {
