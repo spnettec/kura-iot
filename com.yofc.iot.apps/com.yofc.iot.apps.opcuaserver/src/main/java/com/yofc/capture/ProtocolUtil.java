@@ -1,9 +1,9 @@
 package com.yofc.capture;
 
 import org.apache.plc4x.java.s7.readwrite.TPKTPacket;
-import org.apache.plc4x.java.spi.generation.ByteOrder;
-import org.apache.plc4x.java.spi.generation.ParseException;
-import org.apache.plc4x.java.spi.generation.ReadBufferByteBased;
+import org.apache.plc4x.java.spi.buffers.api.exceptions.BufferException;
+import org.apache.plc4x.java.spi.buffers.bytebased.ReadBufferByteBased;
+import org.apache.plc4x.java.spi.buffers.bytebased.WithByteBasedOption;
 
 public class ProtocolUtil {
 
@@ -20,11 +20,11 @@ public class ProtocolUtil {
     }
 
     public static boolean isS7Packet(byte[] packet) {
-        ReadBufferByteBased readBuffer = new ReadBufferByteBased(packet, ByteOrder.BIG_ENDIAN);
+        ReadBufferByteBased readBuffer = new ReadBufferByteBased(packet, WithByteBasedOption.WithByteOrder("BIG_ENDIAN"));
         TPKTPacket tPKTPacket = null;
         try {
             tPKTPacket = TPKTPacket.staticParse(readBuffer);
-        } catch (ParseException e) {
+        } catch (BufferException e) {
         }
         return tPKTPacket != null;
     }

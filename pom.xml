@@ -9,14 +9,13 @@
     <description>YOFC IOT</description>
     <modules>
         <module>com.yofc.iot.apps</module>
-        <module>com.yofc.iot.repack</module>
         <module>com.yofc.iot.api</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skipTests>true</skipTests>
-        <vertx.version>5.0.12</vertx.version>
-        <netty.version>4.2.13.Final</netty.version>
+        <vertx.version>5.1.2</vertx.version>
+        <netty.version>4.2.15.Final</netty.version>
         <shiro-core.version>2.1.0</shiro-core.version>
         <reactive-streams.version>1.0.4</reactive-streams.version>
         <mchange-commons-java.version>0.3.1</mchange-commons-java.version>
@@ -27,15 +26,15 @@
         <paho.version>1.2.5</paho.version>
         <osgi.service.version>1.5.0</osgi.service.version>
         <service.metatype.annotations.version>1.4.1</service.metatype.annotations.version>
-        <jackson.version>3.1.2</jackson.version>
-        <jackson.broken.version>2.21</jackson.broken.version>
-        <fastjson2.version>2.0.61</fastjson2.version>
+        <jackson.version>3.2.0</jackson.version>
+        <jackson.broken.version>2.22</jackson.broken.version>
+        <fastjson2.version>2.0.62</fastjson2.version>
         <log4j-api.version>2.25.4</log4j-api.version>
         <junit-platform-engine.version>1.10.1</junit-platform-engine.version>
-        <slf4j.version>2.0.17</slf4j.version>
-        <logback.version>1.5.32</logback.version>
+        <slf4j.version>2.0.18</slf4j.version>
+        <logback.version>1.5.34</logback.version>
         <lombok.version>1.18.42</lombok.version>
-        <milo.version>1.1.2</milo.version>
+        <milo.version>1.1.4</milo.version>
         <commons-cli.version>1.11.0</commons-cli.version>
         <commons-codec.version>1.21.0</commons-codec.version>
         <commons-io.version>2.21.0</commons-io.version>

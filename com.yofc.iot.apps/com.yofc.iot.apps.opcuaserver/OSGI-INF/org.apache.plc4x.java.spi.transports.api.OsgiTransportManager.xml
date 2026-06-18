@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.3.0" name="org.apache.plc4x.java.spi.transports.api.OsgiTransportManager" immediate="true">
+  <service>
+    <provide interface="org.apache.plc4x.java.spi.transports.api.TransportManager"/>
+  </service>
+  <reference name="Transport" cardinality="0..n" policy="dynamic" interface="org.apache.plc4x.java.spi.transports.api.Transport" bind="bindTransport" unbind="unbindTransport"/>
+  <implementation class="org.apache.plc4x.java.spi.transports.api.OsgiTransportManager"/>
+</scr:component>
