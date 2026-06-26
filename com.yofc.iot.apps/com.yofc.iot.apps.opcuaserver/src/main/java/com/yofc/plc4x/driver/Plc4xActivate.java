@@ -25,8 +25,8 @@ public class Plc4xActivate {
     @Activate
     public void start(BundleContext context) {
         ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-        plcConnectionManager = CachedPlcConnectionManager
-                .getBuilder(new DefaultPlcDriverManager(classloader)).build();
+        plcConnectionManager = CachedPlcConnectionManager.getBuilder()
+                .withConnectionManager(new DefaultPlcDriverManager(classloader)).build();
         final Hashtable<String, String> props = new Hashtable<>();
         props.put("kura.service.pid", "com.yofc.plc4x.driver.plcConnectionManager");
         this.vertxRegistration = context.registerService(PlcConnectionManager.class, plcConnectionManager, props);

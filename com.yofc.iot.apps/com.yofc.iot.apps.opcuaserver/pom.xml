@@ -53,12 +53,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.yofc.iot</groupId>
-            <artifactId>yofc-iot-repack-vertx-db</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-sql-client</artifactId>
 			<version>${vertx.version}</version>

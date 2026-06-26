@@ -41,8 +41,8 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     public void start(final BundleContext context, Config properties) throws KuraException {
         if (plcConnectionManager == null) {
             ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-            plcConnectionManager = CachedPlcConnectionManager.getBuilder(new DefaultPlcDriverManager(classloader))
-                    .build();
+            plcConnectionManager = CachedPlcConnectionManager.getBuilder()
+                    .withConnectionManager(new DefaultPlcDriverManager(classloader)).build();
         }
         this.preConfig = properties;
         updateConfig(properties);

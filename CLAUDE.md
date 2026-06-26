@@ -132,46 +132,24 @@ Practical impact on yofc-iot work:
 - **Sibling reinstall flows**: `kura-networking` / `kura-firewall-only` preinst rejects install once `snapshot_0.xml` is encrypted (first line ≠ `<?xml ...?>`). If yofc-iot starts Kura before networking sibling install, set encrypt=false first, or install networking before first `systemctl start kura`.
 - Authoritative reference and reasoning live in monorepo `kura/CLAUDE.md` § *Snapshot 行为* (same project).
 
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
+# Codebase Memory MCP — Code Intelligence
 
-This project is indexed by GitNexus as **yofc-iot** (6085 symbols, 14957 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by **codebase-memory-mcp**. Always use it BEFORE grep/find or reading files when you need to understand or locate code. The skill at `~/.claude/skills/codebase-memory/` contains the full decision matrix and workflow.
 
-> If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
+## Quick Reference
 
-## Always Do
+| Question | Tool |
+|----------|------|
+| Who calls X? | `trace_path(direction="inbound")` |
+| What does X call? | `trace_path(direction="outbound")` |
+| Find by name | `search_graph(name_pattern="...")` |
+| Dead code | `search_graph(max_degree=0)` |
+| Impact of changes | `detect_changes()` |
+| Architecture overview | `get_architecture(aspects=["all"])` |
+| Read source | `get_code_snippet(qualified_name="...")` |
 
-- **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `gitnexus_impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `gitnexus_detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows.
-- **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
-- When exploring unfamiliar code, use `gitnexus_query({query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
-- When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `gitnexus_context({name: "symbolName"})`.
+## Exploration Workflow
 
-## Never Do
+`list_projects` → `get_graph_schema` → `search_graph` → `get_code_snippet`
 
-- NEVER edit a function, class, or method without first running `gitnexus_impact` on it.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis.
-- NEVER rename symbols with find-and-replace — use `gitnexus_rename` which understands the call graph.
-- NEVER commit changes without running `gitnexus_detect_changes()` to check affected scope.
-
-## Resources
-
-| Resource | Use for |
-|----------|---------|
-| `gitnexus://repo/yofc-iot/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/yofc-iot/clusters` | All functional areas |
-| `gitnexus://repo/yofc-iot/processes` | All execution flows |
-| `gitnexus://repo/yofc-iot/process/{name}` | Step-by-step execution trace |
-
-## CLI
-
-| Task | Read this skill file |
-|------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
-
-<!-- gitnexus:end -->
+> If the repository hasn't been indexed yet, run: `codebase-memory-mcp cli index_repository '{"repo_path": "/path/to/repo"}'`
