@@ -69,6 +69,25 @@ Heavy use of Kura APIs: `Driver`, `WireComponent`/`WireEmitter`/`WireReceiver`, 
 ### Vert.x Event Bus
 `com.yofc.iot.api.comp` hosts a Vert.x runtime inside OSGi. `VertxVerticleHost` manages verticle lifecycle dynamically (binds/unbinds `Verticle` services at runtime). An event bus bridge enables external communication.
 
+### Vert.x 5.x Virtual Threads + OSGi PDE Caveat
+
+Vert.x 5.x is a **multi-release JAR**: `VirtualThreadSupport.class` has two versions:
+- **Base** (pre-Java 21): `VIRTUAL_THREAD_AVAILABLE = false`
+- **Java 21** (`META-INF/versions/21/`): `VIRTUAL_THREAD_AVAILABLE = true`, calls `Thread.ofVirtual()`
+
+**PDE 开发环境问题**：Eclipse PDE 以目录形式加载 bundle（不是 JAR），JVM 多版本 JAR 机制不生效，始终加载基线版 → `VIRTUAL_THREAD_AVAILABLE = false` → `deployVerticle(VIRTUAL_THREAD)` 报 `VertxException: This Java runtime does not support virtual threads`。
+
+**生产环境正常**：bundle 以 JAR 加载，Equinox 走 `JarFile` API 能路由到 `META-INF/versions/21/`。
+
+**正确检测方式**：直接读 `VirtualThreadSupport.VIRTUAL_THREAD_AVAILABLE`（和 `DefaultDeployment.deployment()` 内部检查的字段一致），不要用 try-catch `Thread.ofVirtual()`（JVM 本身支持虚拟线程，只是 Vert.x 内部类加载错了）。
+
+```java
+import io.vertx.core.impl.VirtualThreadSupport;
+
+ThreadingModel model = VirtualThreadSupport.VIRTUAL_THREAD_AVAILABLE
+    ? ThreadingModel.VIRTUAL_THREAD : ThreadingModel.WORKER;
+```
+
 ### Industrial Protocols
 - **OPC UA:** Eclipse Milo SDK (server + client)
 - **PLC4X:** Apache PLC4X (AB-ETH, S7, Modbus, ADS, CANopen, EIP, KNX, Firmata)
