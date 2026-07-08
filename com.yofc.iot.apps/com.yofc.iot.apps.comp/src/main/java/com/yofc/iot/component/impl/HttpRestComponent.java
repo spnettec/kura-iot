@@ -135,7 +135,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         usersString = usersString == null ? "" : usersString;
         destroyRoute();
         route = router.route(routeString);
-        route.handler(BodyHandler.create().setDeleteUploadedFilesOnEnd(true));
+        route.handler(BodyHandler.create().setHandleFileUploads(true).setDeleteUploadedFilesOnEnd(true));
         if (!"".equals(usersString)) {
             JsonArray users = parseUsers(usersString);
             AuthenticationHandler basicAuthHandler = BasicAuth.create(users);
@@ -183,6 +183,13 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
 
     private void handleRequestFailure(RoutingContext failureroutingContext) {
         logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
+        // Vert.x 5.1: BodyHandler may call fail() after writing the response,
+        // e.g. when the upload exceeds the configured limit. If the response
+        // has already been ended (or head written), don't write again.
+        if (failureroutingContext.response().ended()
+                || failureroutingContext.response().headWritten()) {
+            return;
+        }
         int code = failureroutingContext.statusCode();
         failureroutingContext.response().setStatusCode(code);
         failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
