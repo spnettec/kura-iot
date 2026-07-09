@@ -313,7 +313,7 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
                 response.end("No return information");
                 wireSupport.emit("No return information");
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.warn("Failed to execute script", e);
             if (!response.ended()) {
                 response.end(e.toString());

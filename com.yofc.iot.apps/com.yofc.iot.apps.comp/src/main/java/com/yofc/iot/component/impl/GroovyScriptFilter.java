@@ -215,7 +215,7 @@ public class GroovyScriptFilter implements WireEmitter, WireReceiver, Configurab
                         wireSupport.emit(output);
                     }
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 wireSupport.emit(e.toString());
             }
         }
