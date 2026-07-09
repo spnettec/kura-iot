@@ -182,7 +182,12 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
     }
 
     private void handleRequestFailure(RoutingContext failureroutingContext) {
-        logger.debug("Matched route {}", failureroutingContext.currentRoute().getPath());
+        Throwable failure = failureroutingContext.failure();
+        logger.error("Route {} failed: status={}, error={}",
+                failureroutingContext.currentRoute().getPath(),
+                failureroutingContext.statusCode(),
+                failure == null ? "null" : failure.toString(),
+                failure);
         // Vert.x 5.1: BodyHandler may call fail() after writing the response,
         // e.g. when the upload exceeds the configured limit. If the response
         // has already been ended (or head written), don't write again.
@@ -192,8 +197,8 @@ public class HttpRestComponent implements WireEmitter, ConfigurableComponent {
         }
         int code = failureroutingContext.statusCode();
         failureroutingContext.response().setStatusCode(code);
-        failureroutingContext.response().end(failureroutingContext.failure() == null ? "Unknow error"
-                : failureroutingContext.failure().getMessage());
+        failureroutingContext.response().end(failure == null ? "Unknow error"
+                : failure.getMessage());
     }
 
     @Deactivate
