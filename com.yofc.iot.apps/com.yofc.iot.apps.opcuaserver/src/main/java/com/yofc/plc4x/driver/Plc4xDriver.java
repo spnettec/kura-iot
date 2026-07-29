@@ -1,10 +1,43 @@
 package com.yofc.plc4x.driver;
 
-import com.yofc.plc4x.driver.Plc4xDriver.Config;
+import static java.util.Objects.requireNonNull;
+
+import java.lang.reflect.Array;
+import java.math.BigInteger;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcConnectionManager;
-import org.apache.plc4x.java.api.messages.*;
+import org.apache.plc4x.java.api.messages.PlcReadRequest;
+import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionEvent;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionRequest;
+import org.apache.plc4x.java.api.messages.PlcSubscriptionResponse;
+import org.apache.plc4x.java.api.messages.PlcWriteRequest;
+import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.model.PlcSubscriptionHandle;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.value.PlcValue;
@@ -21,31 +54,19 @@ import org.eclipse.kura.type.DataType;
 import org.eclipse.kura.type.TypedValue;
 import org.eclipse.kura.type.TypedValues;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.*;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
-import java.lang.reflect.Array;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-import java.util.stream.IntStream;
-
-import static java.util.Objects.requireNonNull;
+import com.yofc.plc4x.driver.Plc4xDriver.Config;
 
 @Designate(ocd = Config.class, factory = true)
 @Component(immediate = true, enabled = true, configurationPolicy = ConfigurationPolicy.REQUIRE)
@@ -145,13 +166,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         // Best-effort: tell the PLC we're done. If the connection is gone this will fail,
         // but we still clear our local state below — no leak on deactivate.
         if (!allHandles.isEmpty()) {
-            try (PlcConnection plcConnection = plcConnectionManager.getConnection(
-                    this.options.get().connectString())) {
-                plcConnection.unsubscriptionRequestBuilder()
-                        .addHandles(allHandles)
-                        .build()
-                        .execute()
-                        .get(5, TimeUnit.SECONDS);
+            try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
+                plcConnection.unsubscriptionRequestBuilder().addHandles(allHandles).build().execute().get(5,
+                        TimeUnit.SECONDS);
                 logger.info("Successfully unsubscribed {} handle(s)", allHandles.size());
             } catch (Exception e) {
                 logger.warn("Could not send unsubscribe to PLC (connection likely gone): {}", e.getMessage());
@@ -198,7 +215,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
         executeRead(records, tagRecords);
     }
 
-    private void executeRead(List<ChannelRecord> records, Map<String, TagRecord> tagRecords) throws ConnectionException {
+    private void executeRead(List<ChannelRecord> records, Map<String, TagRecord> tagRecords)
+            throws ConnectionException {
         final long startNanos = System.nanoTime();
         int failureCount = 0;
         String firstFailure = null;
@@ -305,11 +323,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
         if (requestCount == 1 || transitioned) {
             readStatsLastLogNanos.set(now);
-            logger.info("PLC read completed: requestCount={}, tags={}, records={}, failures={}, durationMs={}, firstFailure={}",
+            logger.debug(
+                    "PLC read completed: requestCount={}, tags={}, records={}, failures={}, durationMs={}, firstFailure={}",
                     requestCount, tagCount, recordCount, failureCount, durationMs,
                     firstFailure == null ? "" : firstFailure);
         } else if (now - last >= READ_STATS_LOG_INTERVAL_NANOS && readStatsLastLogNanos.compareAndSet(last, now)) {
-            logger.info("PLC read completed: requestCount={}, tags={}, records={}, failures={}, durationMs={}, firstFailure={}",
+            logger.debug(
+                    "PLC read completed: requestCount={}, tags={}, records={}, failures={}, durationMs={}, firstFailure={}",
                     requestCount, tagCount, recordCount, failureCount, durationMs,
                     firstFailure == null ? "" : firstFailure);
         }
@@ -380,10 +400,10 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
 
         // ---- Idempotency: clean up handles that already exist for these listeners ----
         final List<ChannelListener> existingListeners = listenerChannelConfigs.keySet().stream()
-                .filter(registeredListeners::containsKey)
-                .toList();
+                .filter(registeredListeners::containsKey).toList();
         if (!existingListeners.isEmpty()) {
-            logger.info("Re-registering {} existing listener(s): unsubscribing old handles first", existingListeners.size());
+            logger.info("Re-registering {} existing listener(s): unsubscribing old handles first",
+                    existingListeners.size());
             unregisterSilently(existingListeners);
         }
 
@@ -394,8 +414,8 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
             final Map<String, Object> channelConfig = entry.getValue();
             final String channelName = getRequiredConfigProperty(channelConfig, "+name");
             final String tagAddr = getRequiredConfigProperty(channelConfig, Plc4xChannelDescriptor.DATA_TAG_ADDR_ID);
-            final long samplingInterval = Long
-                    .parseLong(getRequiredConfigProperty(channelConfig, Plc4xChannelDescriptor.LISTEN_SAMPLING_INTERVAL_PROP_NAME));
+            final long samplingInterval = Long.parseLong(getRequiredConfigProperty(channelConfig,
+                    Plc4xChannelDescriptor.LISTEN_SAMPLING_INTERVAL_PROP_NAME));
             tagToConfig.put(channelName, new ListenerConfig(listener, channelConfig, tagAddr, samplingInterval));
         }
 
@@ -439,6 +459,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
      * {@link ValueChangeHandler} only holds the exact listener + config it needs.
      */
     private static final class ListenerConfig {
+
         final ChannelListener listener;
         final Map<String, Object> channelConfig;
         final String tagAddr;
@@ -511,20 +532,13 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
      * always happens so no stale handle references survive on the Java side.
      */
     private synchronized void unregisterSilently(final Collection<ChannelListener> listeners) {
-        final List<PlcSubscriptionHandle> handles = listeners.stream()
-                .map(registeredListeners::get)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .toList();
+        final List<PlcSubscriptionHandle> handles = listeners.stream().map(registeredListeners::get)
+                .filter(Objects::nonNull).flatMap(Collection::stream).toList();
 
         if (!handles.isEmpty()) {
-            try (PlcConnection plcConnection = plcConnectionManager.getConnection(
-                    this.options.get().connectString())) {
-                plcConnection.unsubscriptionRequestBuilder()
-                        .addHandles(handles)
-                        .build()
-                        .execute()
-                        .get(5, TimeUnit.SECONDS);
+            try (PlcConnection plcConnection = plcConnectionManager.getConnection(this.options.get().connectString())) {
+                plcConnection.unsubscriptionRequestBuilder().addHandles(handles).build().execute().get(5,
+                        TimeUnit.SECONDS);
                 logger.info("Unsubscribed {} handle(s)", handles.size());
             } catch (Exception e) {
                 logger.warn("Could not send unsubscribe to PLC (connection may be gone): {}", e.getMessage());
@@ -571,14 +585,9 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     }
 
     private static long getRequestTimeoutSeconds(List<ChannelRecord> records) {
-        return records.stream()
-                .map(ChannelRecord::getChannelConfig)
-                .filter(Objects::nonNull)
-                .map(config -> config.get(REQUEST_TIMEOUT_PROPERTY))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .map(Plc4xDriver::parseRequestTimeoutSeconds)
-                .orElse(DEFAULT_REQUEST_TIMEOUT_SECONDS);
+        return records.stream().map(ChannelRecord::getChannelConfig).filter(Objects::nonNull)
+                .map(config -> config.get(REQUEST_TIMEOUT_PROPERTY)).filter(Objects::nonNull).findFirst()
+                .map(Plc4xDriver::parseRequestTimeoutSeconds).orElse(DEFAULT_REQUEST_TIMEOUT_SECONDS);
     }
 
     private static long parseRequestTimeoutSeconds(Object value) {
@@ -894,6 +903,7 @@ public class Plc4xDriver implements Driver, ConfigurableComponent {
     @ObjectClassDefinition(id = "com.yofc.plc4x.driver.Plc4xDriver", name = "%name", description = "%description", localization = "OSGI-INF/l10n/com.yofc.plc4x.driver.Plc4xDriverCfg")
     public @interface Config {
 
-        @AttributeDefinition(name = "%connectString", description = "%connectStringDesc") String connectString() default "s7://127.0.0.1?remote-device-group=PG_OR_PC&remote-rack=0&remote-slot=0";
+        @AttributeDefinition(name = "%connectString", description = "%connectStringDesc")
+        String connectString() default "s7://127.0.0.1?remote-device-group=PG_OR_PC&remote-rack=0&remote-slot=0";
     }
 }
