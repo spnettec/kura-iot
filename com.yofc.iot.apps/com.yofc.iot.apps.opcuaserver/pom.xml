@@ -283,7 +283,19 @@
 
 	    <dependency>
 	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-connection-cache</artifactId>
+	      <artifactId>plc4j-tools-connection-cache</artifactId>
+	      <version>0.14.0.B-SNAPSHOT</version>
+	    </dependency>
+
+	    <dependency>
+	      <groupId>org.apache.plc4x</groupId>
+	      <artifactId>plc4j-tools-event-pump</artifactId>
+	      <version>0.14.0.B-SNAPSHOT</version>
+	    </dependency>
+
+	    <dependency>
+	      <groupId>org.apache.plc4x</groupId>
+	      <artifactId>plc4j-utils-subscription-emulation</artifactId>
 	      <version>0.14.0.B-SNAPSHOT</version>
 	    </dependency>
 
@@ -521,7 +533,8 @@
                            ch.qos.logback.core.encoder;resolution:=optional,
                            ch.qos.logback.core.rolling;resolution:=optional,
                            ch.qos.logback.core.util;resolution:=optional,
-                           *                        
+                           tools.jackson.dataformat.xml;resolution:=optional,
+                           *
                         </Import-Package>
                     </instructions>
                 </configuration>
