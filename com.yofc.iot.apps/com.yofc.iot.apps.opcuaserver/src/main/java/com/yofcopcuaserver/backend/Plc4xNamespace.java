@@ -44,6 +44,7 @@ import org.eclipse.milo.opcua.sdk.server.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilters;
 import org.eclipse.milo.opcua.sdk.server.util.SubscriptionModel;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.NodeIds;
 import org.eclipse.milo.opcua.stack.core.types.builtin.ByteString;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
@@ -96,8 +97,8 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
                 LocalizedText.english(rootAlias));
         getNodeManager().addNode(rootFolderNode);
 
-        rootFolderNode.addReference(new Reference(rootFolderNode.getNodeId(), Identifiers.Organizes,
-                Identifiers.ObjectsFolder.expanded(), false));
+        rootFolderNode.addReference(
+                new Reference(rootFolderNode.getNodeId(), NodeIds.Organizes, NodeIds.ObjectsFolder.expanded(), false));
         for (DeviceConfiguration c : config.getDevices()) {
             String folderName = c.getName();
             String folderAlias = c.getAlias();

@@ -254,6 +254,12 @@ public class OPCUAServer {
         bindAddresses.add("0.0.0.0");
         Set<String> hostnames = new LinkedHashSet<>(HostnameUtil.getHostnames("0.0.0.0"));
         hostnames.add(HostnameUtil.getHostname());
+        // Ensure localhost/loopback endpoints are always registered so
+        // self-connections (the PLC4X OPC UA driver talking to its own
+        // Milo server) and local testing work. Milo 1.1.x validates the
+        // endpoint URL in CreateSession against registered endpoints.
+        hostnames.add("localhost");
+        hostnames.add("127.0.0.1");
         String path = config.getPath();
         if (path == null || path.isEmpty()) {
             path = "";

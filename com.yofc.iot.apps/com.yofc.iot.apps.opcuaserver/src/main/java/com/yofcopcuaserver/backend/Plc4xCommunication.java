@@ -54,7 +54,7 @@ import org.apache.plc4x.java.spi.values.PlcULINT;
 import org.eclipse.milo.opcua.sdk.server.AbstractLifecycle;
 import org.eclipse.milo.opcua.sdk.server.items.DataItem;
 import org.eclipse.milo.opcua.sdk.server.nodes.filters.AttributeFilterContext;
-import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.NodeIds;
 import org.eclipse.milo.opcua.stack.core.types.builtin.ByteString;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
@@ -120,76 +120,76 @@ public class Plc4xCommunication extends AbstractLifecycle {
     public static NodeId getNodeId(PlcValueType plcValueType) {
         switch (plcValueType) {
         case BOOL:
-            return Identifiers.Boolean;
+            return NodeIds.Boolean;
         case BYTE:
         case USINT:
-            return Identifiers.Byte;
+            return NodeIds.Byte;
         case SINT:
-            return Identifiers.SByte;
+            return NodeIds.SByte;
         case INT:
-            return Identifiers.Int16;
+            return NodeIds.Int16;
         case WORD:
         case UINT:
-            return Identifiers.UInt16;
+            return NodeIds.UInt16;
         case DINT:
-            return Identifiers.Int32;
+            return NodeIds.Int32;
         case DWORD:
         case UDINT:
-            return Identifiers.UInt32;
+            return NodeIds.UInt32;
         case LINT:
-            return Identifiers.Int64;
+            return NodeIds.Int64;
         case ULINT:
         case LWORD:
-            return Identifiers.UInt64;
+            return NodeIds.UInt64;
         case REAL:
-            return Identifiers.Float;
+            return NodeIds.Float;
         case LREAL:
-            return Identifiers.Double;
+            return NodeIds.Double;
         case CHAR:
         case WCHAR:
         case STRING:
         case WSTRING:
-            return Identifiers.String;
+            return NodeIds.String;
         default:
-            return Identifiers.BaseDataType;
+            return NodeIds.BaseDataType;
         }
     }
 
     public static NodeId getArrayNodeId(PlcValueType plcValueType) {
         switch (plcValueType) {
         case BOOL:
-            return Identifiers.Boolean;
+            return NodeIds.Boolean;
         case BYTE:
         case USINT:
-            return Identifiers.ByteString;
+            return NodeIds.ByteString;
         case SINT:
-            return Identifiers.SByte;
+            return NodeIds.SByte;
         case INT:
-            return Identifiers.Int16;
+            return NodeIds.Int16;
         case WORD:
         case UINT:
-            return Identifiers.UInt16;
+            return NodeIds.UInt16;
         case DINT:
-            return Identifiers.Int32;
+            return NodeIds.Int32;
         case DWORD:
         case UDINT:
-            return Identifiers.UInt32;
+            return NodeIds.UInt32;
         case LINT:
-            return Identifiers.Int64;
+            return NodeIds.Int64;
         case ULINT:
         case LWORD:
-            return Identifiers.UInt64;
+            return NodeIds.UInt64;
         case REAL:
-            return Identifiers.Float;
+            return NodeIds.Float;
         case LREAL:
-            return Identifiers.Double;
+            return NodeIds.Double;
         case CHAR:
         case WCHAR:
         case STRING:
         case WSTRING:
-            return Identifiers.String;
+            return NodeIds.String;
         default:
-            return Identifiers.BaseDataType;
+            return NodeIds.BaseDataType;
         }
     }
 
