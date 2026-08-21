@@ -28,6 +28,7 @@ import org.apache.plc4x.java.api.authentication.PlcAuthentication;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.spi.values.PlcCHAR;
+import org.apache.plc4x.java.utils.cache.PlcConnectionCache;
 import org.apache.plc4x.java.spi.values.PlcDINT;
 import org.apache.plc4x.java.spi.values.PlcList;
 import org.apache.plc4x.java.spi.values.PlcSTRING;
@@ -208,7 +209,8 @@ class Plc4xDriverTest {
 
     private static Plc4xDriver driver(String connectionString) throws Exception {
         Plc4xDriver driver = new Plc4xDriver();
-        injectConnectionManager(driver, new DefaultPlcDriverManager());
+        injectConnectionManager(driver,
+                PlcConnectionCache.getBuilder().withConnectionFactory(new DefaultPlcDriverManager()).build());
         driver.activate(null, config(connectionString));
         return driver;
     }
@@ -279,6 +281,11 @@ class Plc4xDriverTest {
         @Override
         public PlcDriverManager getDriverManager() {
             return null;
+        }
+
+        @Override
+        public void close() throws PlcConnectionException {
+            // nothing to close
         }
     }
 }

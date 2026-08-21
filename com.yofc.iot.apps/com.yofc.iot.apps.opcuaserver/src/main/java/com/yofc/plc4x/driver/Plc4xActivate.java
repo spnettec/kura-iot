@@ -4,7 +4,7 @@ import java.util.Hashtable;
 
 import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnectionManager;
-import org.apache.plc4x.java.utils.cache.CachedPlcConnectionManager;
+import org.apache.plc4x.java.utils.cache.PlcConnectionCache;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.wiring.BundleWiring;
@@ -20,13 +20,13 @@ public class Plc4xActivate {
     private static final Logger logger = LoggerFactory.getLogger(Plc4xActivate.class);
 
     private ServiceRegistration<PlcConnectionManager> vertxRegistration;
-    private CachedPlcConnectionManager plcConnectionManager;
+    private PlcConnectionCache plcConnectionManager;
 
     @Activate
     public void start(BundleContext context) {
         ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-        plcConnectionManager = CachedPlcConnectionManager.getBuilder()
-                .withConnectionManager(new DefaultPlcDriverManager(classloader)).build();
+        plcConnectionManager = PlcConnectionCache.getBuilder()
+                .withConnectionFactory(new DefaultPlcDriverManager(classloader)).build();
         final Hashtable<String, String> props = new Hashtable<>();
         props.put("kura.service.pid", "com.yofc.plc4x.driver.plcConnectionManager");
         this.vertxRegistration = context.registerService(PlcConnectionManager.class, plcConnectionManager, props);
@@ -46,7 +46,7 @@ public class Plc4xActivate {
             try {
                 plcConnectionManager.close();
             } catch (Exception e) {
-                logger.warn("Failed to close CachedPlcConnectionManager", e);
+                logger.warn("Failed to close PlcConnectionCache", e);
             }
             plcConnectionManager = null;
         }

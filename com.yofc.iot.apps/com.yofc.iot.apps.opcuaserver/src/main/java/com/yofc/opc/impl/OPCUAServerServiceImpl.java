@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnectionManager;
-import org.apache.plc4x.java.utils.cache.CachedPlcConnectionManager;
+import org.apache.plc4x.java.utils.cache.PlcConnectionCache;
 import org.eclipse.kura.KuraException;
 import org.eclipse.kura.configuration.ConfigurableComponent;
 import org.osgi.framework.BundleContext;
@@ -41,8 +41,8 @@ public class OPCUAServerServiceImpl implements ConfigurableComponent {
     public void start(final BundleContext context, Config properties) throws KuraException {
         if (plcConnectionManager == null) {
             ClassLoader classloader = context.getBundle().adapt(BundleWiring.class).getClassLoader();
-            plcConnectionManager = CachedPlcConnectionManager.getBuilder()
-                    .withConnectionManager(new DefaultPlcDriverManager(classloader)).build();
+            plcConnectionManager = PlcConnectionCache.getBuilder()
+                    .withConnectionFactory(new DefaultPlcDriverManager(classloader)).build();
         }
         this.preConfig = properties;
         updateConfig(properties);

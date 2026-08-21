@@ -35,6 +35,7 @@ import org.apache.plc4x.java.api.messages.PlcReadResponse;
 import org.apache.plc4x.java.api.messages.PlcWriteRequest;
 import org.apache.plc4x.java.api.messages.PlcWriteResponse;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
+import org.apache.plc4x.java.utils.cache.PlcConnectionCache;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -90,7 +91,8 @@ class OpcuaPlcDriverTest {
     public static void setup() throws Exception {
         FileUtils.deleteDirectory(new File("target/test-tmp"));
         seedSimulatedFileValues();
-        exampleServer = new OPCUAServer("src/test/resources/config.yml", true, new DefaultPlcDriverManager());
+        exampleServer = new OPCUAServer("src/test/resources/config.yml", true,
+                PlcConnectionCache.getBuilder().withConnectionFactory(new DefaultPlcDriverManager()).build());
         exampleServer.startup().get();
         int namespaceIndex = exampleServer.getServer().getNamespaceTable().getIndex(Plc4xNamespace.APPLICATIONID)
                 .intValue();

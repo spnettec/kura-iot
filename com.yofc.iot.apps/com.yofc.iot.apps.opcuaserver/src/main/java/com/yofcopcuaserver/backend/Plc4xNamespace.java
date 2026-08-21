@@ -31,6 +31,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnectionManager;
 import org.apache.plc4x.java.api.exceptions.PlcConnectionException;
+import org.apache.plc4x.java.utils.cache.PlcConnectionCache;
 import org.eclipse.milo.opcua.sdk.core.AccessLevel;
 import org.eclipse.milo.opcua.sdk.core.Reference;
 import org.eclipse.milo.opcua.sdk.core.ValueRank;
@@ -253,7 +254,8 @@ public class Plc4xNamespace extends ManagedNamespaceWithLifecycle {
 
             if (plc4xServer.getConnectionManager() == null) {
                 plc4xServer.removeTag(item);
-                plc4xServer.setConnectionManager(new DefaultPlcDriverManager());
+                plc4xServer.setConnectionManager(PlcConnectionCache.getBuilder()
+                        .withConnectionFactory(new DefaultPlcDriverManager()).build());
             }
         }
 

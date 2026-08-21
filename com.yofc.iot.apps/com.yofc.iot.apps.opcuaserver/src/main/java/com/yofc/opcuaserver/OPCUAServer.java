@@ -47,6 +47,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnectionManager;
+import org.apache.plc4x.java.utils.cache.PlcConnectionCache;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.milo.opcua.sdk.server.EndpointConfig;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
@@ -174,7 +175,8 @@ public class OPCUAServer {
     }
 
     public static void main(String[] args) throws Exception {
-        OPCUAServer serverInit = new OPCUAServer(args[0], true, new DefaultPlcDriverManager());
+        OPCUAServer serverInit = new OPCUAServer(args[0], true,
+                PlcConnectionCache.getBuilder().withConnectionFactory(new DefaultPlcDriverManager()).build());
         serverInit.getServer().startup().get();
         CompletableFuture<Void> future = new CompletableFuture<>();
         future.get();
