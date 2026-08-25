@@ -72,8 +72,12 @@ class OpcuaPlcDriverTest {
     // Tcp pattern of OPC UA
     private String opcPattern = "opcua:tcp://";
 
-    private String paramSectionDivider = "?";
-    private String tcpConnectionAddress = opcPattern + miloLocalAddress;
+    private String paramSectionDivider = "&";
+    // Local Milo test server presents a self-signed certificate without a configured
+    // trust anchor; upstream now fails closed (RejectingCertificateVerifier) by default
+    // and refuses to silently fall back from Basic256Sha256 to an unprotected channel.
+    // Explicitly ask for the unprotected channel - local testing only.
+    private String tcpConnectionAddress = opcPattern + miloLocalAddress + "?insecure-certificate-verification=true&security-policy=NONE";
 
     private List<String> connectionStringValidSet = List.of(tcpConnectionAddress);
     private String discoveryValidParamTrue = "discovery=true";
