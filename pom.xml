@@ -354,7 +354,10 @@
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
-                    <manifestLocation>META-INF</manifestLocation>
+                    <!-- Manifest goes to target/classes so the m2e-pde connector
+                         (Update Maven Project) sets BUNDLE_ROOT_PATH=target/classes
+                         and PDE picks up bnd-staged lib/ jars automatically. -->
+                    <manifestLocation>${project.build.outputDirectory}/META-INF</manifestLocation>
                     <scrLocation>.</scrLocation>
                     <unpackBundle>true</unpackBundle>
                     <exportScr>true</exportScr> <!-- be sure to add this line as well -->
