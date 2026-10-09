@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.LongAdder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +37,12 @@ public class EventBusBridgeSSLTest {
     static Vertx vertx;
     LongAdder counter = new LongAdder();
     EventBusBridge bridge;
+    Vertx clientVertx;
+
+    @BeforeEach
+    public void createClient() {
+        clientVertx = Vertx.vertx();
+    }
 
     @BeforeAll
     @DisplayName("create server")
@@ -59,8 +66,11 @@ public class EventBusBridgeSSLTest {
         vertx.eventBus().consumer("reply",
                 msg -> vertx.eventBus().request("replyTest", "replyToMe").onComplete(reply -> {
                     assertEquals("bubu", reply.result().body().toString());
-                    reply.result().replyAndRequest("ok")
-                            .onComplete(replyOfreply -> assertEquals("roger", replyOfreply.result().body().toString()));
+                    // Only the nested-request test installs a handler for the second reply.
+                    if ("nested".equals(msg.body())) {
+                        reply.result().replyAndRequest("ok")
+                                .onComplete(replyOfreply -> assertEquals("roger", replyOfreply.result().body().toString()));
+                    }
                     msg.reply("ok");
                     vertx.eventBus().send("test", "ok");
                 }));
@@ -68,13 +78,13 @@ public class EventBusBridgeSSLTest {
                 .setKeyCertOptions(new JksOptions().setPath("keystore.jks").setPassword("TEMPORARY_TEST_PASSWORD")))
                 .requestHandler(router).listen(8765).onComplete(res -> latch.countDown());
 
-        latch.await();
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timed out waiting for local test server/client");
         System.out.println("SSL Server listening on port 8765");
     }
 
     @AfterAll
-    public static void stopServer() {
-        vertx.close();
+    public static void stopServer() throws Exception {
+        vertx.close().toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
     }
 
     private static WebSocketClientOptions localSSLOptions() {
@@ -83,34 +93,52 @@ public class EventBusBridgeSSLTest {
 
     @AfterEach
     @DisplayName("close")
-    public void cleanUp() {
+    public void cleanUp() throws Exception {
         if (bridge != null)
             bridge.close();
+        clientVertx.close().toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
     }
 
     @Test
     void testConnect() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.close();
             System.out.println("Closing");
             latch.countDown();
-        }, localSSLOptions());
-        latch.await();
+        }, localSSLOptions(), clientVertx);
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timed out waiting for local test server/client");
+    }
+
+    @Test
+    void testConnectionSurvivesGarbageCollection() throws Exception {
+        var opened = new java.util.concurrent.CompletableFuture<EventBusBridge>();
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"),
+                opened::complete, localSSLOptions(), clientVertx);
+        opened.get(10, TimeUnit.SECONDS);
+        for (int i = 0; i < 3; i++) {
+            System.gc();
+            Thread.sleep(100);
+        }
+        var received = new java.util.concurrent.CompletableFuture<String>();
+        bridge.registerHandler("test", msg -> received.complete(msg.body().toString()));
+        bridge.send("test", "after-gc");
+        assertEquals("after-gc", received.get(5, TimeUnit.SECONDS));
+        java.lang.ref.Reference.reachabilityFence(bridge);
     }
 
     @Test
     void testSend() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("test", msg -> {
                 assertNotNull(msg);
                 latch.countDown();
             });
             eb.send("test", "hello");
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
@@ -118,7 +146,7 @@ public class EventBusBridgeSSLTest {
     void testPublish() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
         LongAdder adder = new LongAdder();
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("test", msg -> {
                 assertNotNull(msg);
                 adder.increment();
@@ -129,20 +157,21 @@ public class EventBusBridgeSSLTest {
                 latch.countDown();
             });
             eb.publish("test", "hello");
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(adder.longValue(), 2);
     }
 
     @Test
     void testSendWithReply() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(3);
         LongAdder adder = new LongAdder();
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("replyTest", msg -> {
                 msg.reply("bubu");
                 adder.increment();
+                latch.countDown();
             });
             eb.registerHandler("test", msg -> {
                 assertEquals("ok", msg.body().toString());
@@ -151,34 +180,38 @@ public class EventBusBridgeSSLTest {
             eb.send("reply", "to me", reply -> {
                 assertEquals("ok", reply.body().toString());
                 adder.increment();
+                latch.countDown();
             });
-        }, localSSLOptions());
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        }, localSSLOptions(), clientVertx);
+        assertTrue(latch.await(5, TimeUnit.SECONDS), () -> "Missing replies: " + latch.getCount() + ", received=" + adder.longValue());
         assertEquals(2, adder.longValue());
     }
 
     @Test
     void testSendWithReply2() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(4);
         LongAdder adder = new LongAdder();
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("replyTest", msg -> {
                 msg.replyAndRequest("bubu").onComplete(reply -> {
                     reply.result().reply("roger");
                     adder.increment();
+                latch.countDown();
                 });
                 adder.increment();
+                latch.countDown();
             });
             eb.registerHandler("test", msg -> {
                 assertEquals("ok", msg.body().toString());
                 latch.countDown();
             });
-            eb.send("reply", "to me", reply -> {
+            eb.send("reply", "nested", reply -> {
                 assertEquals("ok", reply.body().toString());
                 adder.increment();
+                latch.countDown();
             });
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(3, adder.longValue());
     }
@@ -187,7 +220,7 @@ public class EventBusBridgeSSLTest {
     void testPublishJson() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
         LongAdder adder = new LongAdder();
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("test", msg -> {
                 assertNotNull(msg);
                 assertEquals("world", msg.asJson().body().getString("hello"));
@@ -200,7 +233,7 @@ public class EventBusBridgeSSLTest {
                 latch.countDown();
             });
             eb.publish("test", new JsonObject().put("hello", "world"));
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(adder.longValue(), 2);
     }
@@ -215,12 +248,12 @@ public class EventBusBridgeSSLTest {
             adder.increment();
             latch.countDown();
         };
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("test", mh);
             eb.registerHandler("test", mh);
             eb.registerHandler("test", mh);
             eb.publish("test", new JsonObject().put("hello", "world"));
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
 
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(adder.longValue(), 3);
@@ -230,7 +263,7 @@ public class EventBusBridgeSSLTest {
     void testUnregisterHandler() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             System.out.println("EventBusBridgeTest.testUnregisterHandler");
             EventHandler<?> handleHello = this::handleHello;
             eb.registerHandler("test", handleHello);
@@ -239,7 +272,7 @@ public class EventBusBridgeSSLTest {
                 latch.countDown();
             });
             eb.send("test", "hello");
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(1, counter.longValue());
     }
@@ -258,7 +291,7 @@ public class EventBusBridgeSSLTest {
     void testUnregisterSelf() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("test", msg -> {
                 System.out.println("EventBusBridgeTest.testUnregisterSelf");
                 assertEquals("hello", msg.body());
@@ -267,7 +300,7 @@ public class EventBusBridgeSSLTest {
             });
             eb.send("test", "hello");
             eb.send("test", "second hello"); // should not be called
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
@@ -275,7 +308,7 @@ public class EventBusBridgeSSLTest {
     void testHandlers() throws Exception {
         CountDownLatch latch = new CountDownLatch(2);
 
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.registerHandler("test", msg -> {
                 System.out.println(msg);
                 assertNotNull(msg);
@@ -286,15 +319,15 @@ public class EventBusBridgeSSLTest {
                 latch.countDown();
             });
             eb.publish("test", "hello");
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
     @Test
     void testClose() {
-        bridge = EventBusBridge.connect(URI.create("https://localhost:8765/bridge"), eb -> {
+        bridge = EventBusBridge.connect(-1, null, URI.create("https://localhost:8765/bridge"), eb -> {
             eb.close();
             assertFalse(eb.isOpen());
-        }, localSSLOptions());
+        }, localSSLOptions(), clientVertx);
     }
 }

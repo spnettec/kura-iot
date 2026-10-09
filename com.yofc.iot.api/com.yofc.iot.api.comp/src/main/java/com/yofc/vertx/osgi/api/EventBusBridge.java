@@ -21,6 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.WebSocket;
+import io.vertx.core.http.WebSocketClient;
 import io.vertx.core.http.WebSocketClientOptions;
 import io.vertx.core.json.JsonObject;
 
@@ -37,6 +38,7 @@ public class EventBusBridge {
     private static final Logger logger = LoggerFactory.getLogger(EventBusBridge.class);
     Vertx vertx;
     WebSocket webSocket;
+    private final WebSocketClient webSocketClient;
     long pingTimerID;
     ConcurrentHashMap<String, List<DefaultHandler<?>>> handlers = new ConcurrentHashMap<>();
     ConcurrentHashMap<String, DefaultHandler<?>> replyHandlers = new ConcurrentHashMap<>();
@@ -45,7 +47,10 @@ public class EventBusBridge {
             WebSocketClientOptions options, Optional<Vertx> aVertx) {
 
         vertx = aVertx.orElse(Vertx.vertx());
-        vertx.createWebSocketClient(options).connect(port, host, endPoint.toString() + "/websocket").onComplete(ar -> {
+        // Vert.x closes a client's sockets when the client is garbage collected.
+        // Retain the owner for the entire bridge lifetime, including the TLS handshake.
+        webSocketClient = vertx.createWebSocketClient(options);
+        webSocketClient.connect(port, host, endPoint.toString() + "/websocket").onComplete(ar -> {
             if (ar.succeeded()) {
                 webSocket = ar.result();
                 webSocket.handler(this::bufferReceived);
@@ -327,6 +332,7 @@ public class EventBusBridge {
             webSocket.close();
             webSocket = null;
         }
+        webSocketClient.close();
     }
 
     private void sendMessage(String sendOrPublish, String address, Object message, DefaultHandler<?> replyHandler) {
