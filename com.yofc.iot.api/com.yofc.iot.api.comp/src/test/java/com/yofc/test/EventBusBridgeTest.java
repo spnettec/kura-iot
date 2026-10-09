@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.LongAdder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,12 @@ public class EventBusBridgeTest {
     static Vertx vertx;
     LongAdder counter = new LongAdder();
     EventBusBridge bridge;
+    Vertx clientVertx;
+
+    @BeforeEach
+    public void createClient() {
+        clientVertx = Vertx.vertx();
+    }
 
     @BeforeAll
     @DisplayName("create server")
@@ -56,8 +63,11 @@ public class EventBusBridgeTest {
         vertx.eventBus().consumer("reply",
                 msg -> vertx.eventBus().request("replyTest", "replyToMe").onComplete(reply -> {
                     assertEquals("bubu", reply.result().body().toString());
-                    reply.result().replyAndRequest("ok")
-                            .onComplete(replyOfreply -> assertEquals("roger", replyOfreply.result().body().toString()));
+                    // Only the nested-request test installs a handler for the second reply.
+                    if ("nested".equals(msg.body())) {
+                        reply.result().replyAndRequest("ok")
+                                .onComplete(replyOfreply -> assertEquals("roger", replyOfreply.result().body().toString()));
+                    }
                     msg.reply("ok");
                     vertx.eventBus().send("test", "ok");
                 }));
@@ -65,20 +75,21 @@ public class EventBusBridgeTest {
             latch.countDown();
         });
 
-        latch.await();
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timed out waiting for local test server/client");
         System.out.println("Server listening on port 8765");
     }
 
     @AfterAll
-    public static void stopServer() {
-        vertx.close();
+    public static void stopServer() throws Exception {
+        vertx.close().toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
     }
 
     @AfterEach
     @DisplayName("close")
-    public void cleanUp() {
+    public void cleanUp() throws Exception {
         if (bridge != null)
             bridge.close();
+        clientVertx.close().toCompletionStage().toCompletableFuture().get(10, TimeUnit.SECONDS);
     }
 
     @Test
@@ -89,8 +100,8 @@ public class EventBusBridgeTest {
             eb.close();
             System.out.println("Closing");
             latch.countDown();
-        });
-        latch.await();
+        }, clientVertx);
+        assertTrue(latch.await(10, TimeUnit.SECONDS), "Timed out waiting for local test server/client");
     }
 
     @Test
@@ -103,7 +114,7 @@ public class EventBusBridgeTest {
                 latch.countDown();
             });
             eb.send("test", "hello");
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
@@ -122,20 +133,21 @@ public class EventBusBridgeTest {
                 latch.countDown();
             });
             eb.publish("test", "hello");
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(adder.longValue(), 2);
     }
 
     @Test
     void testSendWithReply() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(3);
         LongAdder adder = new LongAdder();
 
         bridge = EventBusBridge.connect(URI.create("http://localhost:8765/bridge"), eb -> {
             eb.registerHandler("replyTest", msg -> {
                 msg.reply("bubu");
                 adder.increment();
+                latch.countDown();
             });
             eb.registerHandler("test", msg -> {
                 assertEquals("ok", msg.body().toString());
@@ -144,15 +156,16 @@ public class EventBusBridgeTest {
             eb.send("reply", "to me", reply -> {
                 assertEquals("ok", reply.body().toString());
                 adder.increment();
+                latch.countDown();
             });
-        });
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        }, clientVertx);
+        assertTrue(latch.await(5, TimeUnit.SECONDS), () -> "Missing replies: " + latch.getCount() + ", received=" + adder.longValue());
         assertEquals(2, adder.longValue());
     }
 
     @Test
     void testSendWithReply2() throws Exception {
-        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(4);
         LongAdder adder = new LongAdder();
 
         bridge = EventBusBridge.connect(URI.create("http://localhost:8765/bridge"), eb -> {
@@ -160,18 +173,21 @@ public class EventBusBridgeTest {
                 msg.replyAndRequest("bubu").onComplete(reply -> {
                     reply.result().reply("roger");
                     adder.increment();
+                latch.countDown();
                 });
                 adder.increment();
+                latch.countDown();
             });
             eb.registerHandler("test", msg -> {
                 assertEquals("ok", msg.body().toString());
                 latch.countDown();
             });
-            eb.send("reply", "to me", reply -> {
+            eb.send("reply", "nested", reply -> {
                 assertEquals("ok", reply.body().toString());
                 adder.increment();
+                latch.countDown();
             });
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(3, adder.longValue());
     }
@@ -193,7 +209,7 @@ public class EventBusBridgeTest {
                 latch.countDown();
             });
             eb.publish("test", new JsonObject().put("hello", "world"));
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(adder.longValue(), 2);
     }
@@ -213,7 +229,7 @@ public class EventBusBridgeTest {
             eb.registerHandler("test", mh);
             eb.registerHandler("test", mh);
             eb.publish("test", new JsonObject().put("hello", "world"));
-        });
+        }, clientVertx);
 
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(adder.longValue(), 3);
@@ -232,7 +248,7 @@ public class EventBusBridgeTest {
                 latch.countDown();
             });
             eb.send("test", "hello");
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         assertEquals(1, counter.longValue());
     }
@@ -262,7 +278,7 @@ public class EventBusBridgeTest {
             });
             eb.send("test", "hello");
             eb.send("test", "second hello"); // should not be called
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
@@ -281,7 +297,7 @@ public class EventBusBridgeTest {
                 latch.countDown();
             });
             eb.publish("test", "hello");
-        });
+        }, clientVertx);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
@@ -290,6 +306,6 @@ public class EventBusBridgeTest {
         bridge = EventBusBridge.connect(URI.create("http://localhost:8765/bridge"), eb -> {
             eb.close();
             assertFalse(eb.isOpen());
-        });
+        }, clientVertx);
     }
 }

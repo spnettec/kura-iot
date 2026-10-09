@@ -30,7 +30,7 @@ disableInsecureEndpoint: false
 tcpPort: 12673
 devices:
 - name: "sd"
-  connectionString: "simulated:127.0.0.1?file=~/Data/aaa"
+  connectionString: "simulated:127.0.0.1?file=target/test-tmp/simulated"
   tags:
   - alias: "Simulated_BOOL"
     address: "FILE/Simulated:BOOL"

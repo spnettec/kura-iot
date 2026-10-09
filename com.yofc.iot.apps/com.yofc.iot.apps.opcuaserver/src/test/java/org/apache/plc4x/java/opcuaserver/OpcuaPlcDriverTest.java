@@ -49,7 +49,7 @@ import io.vavr.collection.List;
  */
 class OpcuaPlcDriverTest {
 
-    private static final String SIMULATED_CONNECTION_STRING = "simulated:127.0.0.1?file=~/Data/aaa";
+    private static final String SIMULATED_CONNECTION_STRING = "simulated:127.0.0.1?file=target/test-tmp/simulated";
 
     // Read only variables of milo example server of version 3.6
     private static String BOOL_IDENTIFIER_READ_WRITE;
@@ -94,6 +94,7 @@ class OpcuaPlcDriverTest {
     @BeforeAll
     public static void setup() throws Exception {
         FileUtils.deleteDirectory(new File("target/test-tmp"));
+        FileUtils.forceMkdir(new File("target/test-tmp"));
         seedSimulatedFileValues();
         exampleServer = new OPCUAServer("src/test/resources/config.yml", true,
                 PlcConnectionCache.getBuilder().withConnectionFactory(new DefaultPlcDriverManager()).build());

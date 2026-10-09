@@ -22,11 +22,11 @@ import java.util.concurrent.TimeUnit;
 class NettySocketTest {
 
   private static NettySocketClient client;
-  private static DockerTcpMockServer mockServer;
+  private static MockTcpServer mockServer;
 
   @BeforeAll
   static void startMockServer() throws Exception {
-    mockServer = DockerTcpMockServer.start();
+    mockServer = MockTcpServer.start();
   }
 
   @AfterAll
@@ -68,7 +68,7 @@ class NettySocketTest {
               .addListener(
                   handler -> {
                     if (!handler.isSuccess()) {
-                      log.error("SMPINF error", handler.cause());
+                      context.failNow(handler.cause());
                       return;
                     }
                     byte[] receive = (byte[]) handler.get();
@@ -82,10 +82,11 @@ class NettySocketTest {
               .addListener(
                       handler -> {
                           if (!handler.isSuccess()) {
-                              log.error("SMPINF error", handler.cause());
+                              context.failNow(handler.cause());
                               return;
                           }
                           byte[] receive = (byte[]) handler.get();
+                          org.junit.jupiter.api.Assertions.assertEquals("SMPINF:OK", new String(receive, StandardCharsets.UTF_8));
 
                           System.out.println("发送：" + "SMPINF" + "--返回: " + new String(receive, StandardCharsets.UTF_8));
                           client
@@ -93,12 +94,13 @@ class NettySocketTest {
                                   .addListener(
                                           handler1 -> {
                                               if (!handler1.isSuccess()) {
-                                                  log.error("error", handler1.cause());
+                                                  context.failNow(handler1.cause());
                                                   return;
                                               }
                                               byte[] receive1 = (byte[]) handler1.get();
 
                                               System.out.println("发送：" + "DAT?" + "--返回: " + Arrays.toString(receive1));
+                                              context.verify(() -> org.junit.jupiter.api.Assertions.assertEquals("0123456789", new String(receive1, StandardCharsets.UTF_8)));
                                               context.completeNow();
                                           });
                       });

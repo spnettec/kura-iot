@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.nio.BufferOverflowException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -21,7 +22,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.ReplayingDecoder;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.ReferenceCountUtil;
@@ -114,9 +115,12 @@ public class NettySocketClient {
                             f.channel().eventLoop().schedule(this::doConnect, 1, TimeUnit.SECONDS);
                         }
                     }).sync();
+            if (!nettyClientHandler.active.await(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Local mock channel did not become active");
+            }
         } catch (Exception e) {
             log.error(e);
-            doConnect();
+            throw new IllegalStateException("Cannot connect to local mock server", e);
         }
     }
 
@@ -126,16 +130,18 @@ public class NettySocketClient {
 
     public void shutdown() {
         closed = true;
-        workerGroup.shutdownGracefully();
+        if (nettyClientHandler != null) nettyClientHandler.timer.stop();
+        workerGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS).syncUninterruptibly();
     }
 
-    static class NettyClientHandler extends ReplayingDecoder<Void> {
+    static class NettyClientHandler extends ByteToMessageDecoder {
 
         int size = -1;
         private final NettySocketClient client;
-        private static final Timer timer = new HashedWheelTimer();
+        private final Timer timer = new HashedWheelTimer();
         private final ConcurrentLinkedQueue<TimePromise> messageList = new ConcurrentLinkedQueue<>();
-        private ChannelHandlerContext ctx;
+        private volatile ChannelHandlerContext ctx;
+        private final CountDownLatch active = new CountDownLatch(1);
 
         public NettyClientHandler(NettySocketClient client) {
             this.client = client;
@@ -145,54 +151,32 @@ public class NettySocketClient {
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             super.channelActive(ctx);
             this.ctx = ctx;
+            active.countDown();
         }
 
-        public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            try {
-                TimePromise tp = messageList.peek();
-                if (tp == null) {
-                    if (client.consumer != null) {
-                        ByteBuf bb = (ByteBuf) msg;
-                        byte[] message = new byte[bb.readableBytes()];
-                        bb.readBytes(message);
-                        client.consumer.accept(message);
-                    }
-                    return;
-                }
-                ByteBuf bb = (ByteBuf) msg;
-                if (tp.msg.toLowerCase().startsWith("dat")) {
-                    if (size == -1) {
-                        size = bb.getInt(0);
-                        if (size <= 0) {
-                            return;
-                        }
-                        if (size > 1024 * 100) {
-                            size = 1024 * 100;
-                        }
-                        if (size > 100) {
-                            size = size * 2;
-                        }
-                    } else {
-                        ByteBuf bb1 = bb.readBytes(size);
-                        byte[] message = new byte[bb1.readableBytes()];
-                        bb1.readBytes(message);
-                        tp.getPromise().setSuccess(message);
-                        tp.getTimerOut().cancel();
-                        size = -1;
-                        messageList.remove();
+        @Override
+        protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+            TimePromise pending = messageList.peek();
+            if (pending == null) return;
+            if (size < 0) {
+                if (pending.msg.toLowerCase().startsWith("dat")) {
+                    if (in.readableBytes() < Integer.BYTES) return;
+                    size = in.readInt();
+                    if (size <= 0 || size > 1024 * 100) {
+                        throw new IllegalStateException("Invalid mock frame length: " + size);
                     }
                 } else {
-                    byte[] message = new byte[bb.readableBytes()];
-                    bb.readBytes(message);
-                    tp.getPromise().setSuccess(message);
-                    tp.getTimerOut().cancel();
-                    messageList.remove();
+                    size = "SMPINF:OK".length();
                 }
-
-            } finally {
-                ReferenceCountUtil.release(msg);
             }
-
+            if (in.readableBytes() < size) return;
+            byte[] message = new byte[size];
+            in.readBytes(message);
+            size = -1;
+            messageList.remove();
+            pending.getTimerOut().cancel();
+            // Remove the request before completing: listeners may immediately send another.
+            pending.getPromise().setSuccess(message);
         }
 
         @Override
@@ -200,11 +184,6 @@ public class NettySocketClient {
             final EventLoop eventLoop = ctx.channel().eventLoop();
             eventLoop.schedule(client::doConnect, 1L, TimeUnit.SECONDS);
             super.channelInactive(ctx);
-        }
-
-        @Override
-        protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-
         }
 
         @Override

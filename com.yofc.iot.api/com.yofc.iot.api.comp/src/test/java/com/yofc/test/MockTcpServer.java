@@ -9,25 +9,52 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public final class MockTcpServer {
+public final class MockTcpServer implements AutoCloseable {
+
+    private final ServerSocket listener;
+    private final Thread acceptor;
 
     private static final byte[] SMPINF = "SMPINF?".getBytes(StandardCharsets.UTF_8);
     private static final byte[] DAT = "DAT?".getBytes(StandardCharsets.UTF_8);
     private static final byte[] SMPINF_RESPONSE = "SMPINF:OK".getBytes(StandardCharsets.UTF_8);
     private static final byte[] DAT_RESPONSE = "0123456789".getBytes(StandardCharsets.UTF_8);
 
-    private MockTcpServer() {
+    private MockTcpServer(int port) throws IOException {
+        listener = new ServerSocket(port, 10, port == 0 ? java.net.InetAddress.getLoopbackAddress() : null);
+        acceptor = new Thread(() -> {
+            while (!listener.isClosed()) {
+                try {
+                    Socket socket = listener.accept();
+                    socket.setSoTimeout(5000);
+                    Thread client = new Thread(() -> handle(socket), "mock-tcp-client");
+                    client.setDaemon(true);
+                    client.start();
+                } catch (IOException e) {
+                    if (!listener.isClosed()) throw new java.io.UncheckedIOException(e);
+                }
+            }
+        }, "mock-tcp-acceptor");
+        acceptor.setDaemon(true);
+        acceptor.start();
     }
 
-    public static void main(String[] args) throws IOException {
-        int port = args.length == 0 ? 8000 : Integer.parseInt(args[0]);
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            while (true) {
-                Socket socket = serverSocket.accept();
-                Thread clientThread = new Thread(() -> handle(socket), "mock-tcp-client");
-                clientThread.setDaemon(true);
-                clientThread.start();
-            }
+    static MockTcpServer start() throws IOException {
+        return new MockTcpServer(0);
+    }
+
+    int getMappedPort() {
+        return listener.getLocalPort();
+    }
+
+    @Override
+    public void close() throws IOException, InterruptedException {
+        listener.close();
+        acceptor.join(5000);
+    }
+
+    public static void main(String[] args) throws Exception {
+        try (MockTcpServer server = new MockTcpServer(args.length == 0 ? 8000 : Integer.parseInt(args[0]))) {
+            server.acceptor.join();
         }
     }
 
