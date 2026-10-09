@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -490,9 +490,9 @@
                            com.google.appengine.api;resolution:=optional,
                            com.google.appengine.api.utils;resolution:=optional,
                            com.google.apphosting.api;resolution:=optional,
-                           com.google.errorprone.annotations;resolution:=optional,
-                           com.google.errorprone.annotations.concurrent;resolution:=optional,
-                           com.google.gson;resolution:=optional,
+                           com.google.errorprone.annotations;version="[2.48,3)";resolution:=optional,
+                           com.google.errorprone.annotations.concurrent;version="[2.48,3)";resolution:=optional,
+                           com.google.gson;version="[2.14,3)";resolution:=optional,
                            org.objectweb.asm; version="[7.1.0,9.8.0)",
 						   org.bouncycastle.asn1.x500.style;version="[1.70,2)",
 						   org.bouncycastle.asn1.x509;version="[1.70,2)",

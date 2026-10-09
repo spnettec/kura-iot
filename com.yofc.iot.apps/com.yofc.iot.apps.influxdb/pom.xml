@@ -9,6 +9,21 @@
     <artifactId>yofc-iot-apps-influxdb</artifactId>
     <name>YOFC-Applications::influxdb</name>
     <packaging>bundle</packaging>
+    <!-- Keep the existing private library versions when importing the Kura BOM. -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.12.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.errorprone</groupId>
+                <artifactId>error_prone_annotations</artifactId>
+                <version>2.36.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.eclipse.kura</groupId>
@@ -110,7 +125,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
