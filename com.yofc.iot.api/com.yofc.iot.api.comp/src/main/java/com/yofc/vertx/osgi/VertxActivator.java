@@ -23,7 +23,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.ThreadingModel;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.impl.VirtualThreadSupport;
+import io.vertx.core.internal.VertxInternal;
 import io.vertx.ext.web.Router;
 
 /** A bundle activator registering the Vert.x instance and the event bus as OSGi service. */
@@ -69,7 +69,7 @@ public class VertxActivator implements ConfigurableComponent {
             return;
         }
 
-        ThreadingModel model = VirtualThreadSupport.VIRTUAL_THREAD_AVAILABLE ? ThreadingModel.VIRTUAL_THREAD
+        ThreadingModel model = ((VertxInternal) vertx).isVirtualThreadAvailable() ? ThreadingModel.VIRTUAL_THREAD
                 : ThreadingModel.WORKER;
         logger.info("Deploying Vert.x HTTP server on port {} with {} thread model", port, model);
 
