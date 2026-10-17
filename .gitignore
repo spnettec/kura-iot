@@ -292,3 +292,6 @@ buildNumber.properties
 .DS_Store
 /com.yofc.iot.apps/.settings/
 .gitnexus
+
+# TLS tests generate private key material at runtime.
+**/test-keystore.jks
