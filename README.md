@@ -1,39 +1,38 @@
-# yofc-iot
+# kura-iot
 
-#### 介绍
+基于 Eclipse Kura 和 Vert.x 的物联网边缘网关扩展项目，采用 Java、OSGi 和 Maven 多模块构建，提供公共组件及设备接入、数据处理相关应用模块。
 
-{**以下是码云平台说明，您可以替换此简介**
-码云是开源中国推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用码云实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+项目仓库：[spnettec/kura-iot](https://github.com/spnettec/kura-iot)。
 
-#### 软件架构
+## 构建准备
 
-软件架构说明
+- 使用 JDK 21，并将 `JAVA_HOME` 指向该 JDK。
+- 安装 Maven。
+- 将配套 Kura 构建支持、API、运行时库及匹配的 PLC4X 依赖安装到同一个 Maven 本地缓存。具体版本以各模块的 `pom.xml` 为准。
+- 根项目依赖 `org.eclipse.kura:kura-build-parent:6.0.0-SNAPSHOT`；构建前需准备好该父 POM 及其依赖。
 
-#### 安装教程
+## 获取与构建
 
-1. xxxx
-2. xxxx
-3. xxxx
+```bash
+git clone https://github.com/spnettec/kura-iot.git
+cd kura-iot
+mvn -Dmaven.repo.local="$HOME/.m2/repository" clean install -DskipTests --fail-at-end
+```
 
-#### 使用说明
+构建产物位于各模块的 `target/` 目录，包括 OSGi bundle；配置了部署包插件的模块还会生成 `.dp` 部署包。
 
-1. xxxx
-2. xxxx
-3. xxxx
+在依赖和对应测试环境准备好后，可运行：
 
-#### 参与贡献
+```bash
+mvn -Dmaven.repo.local="$HOME/.m2/repository" test -DskipTests=false --fail-at-end
+```
 
-1. Fork 本仓库
-2. 新建 Feat_xxx 分支
-3. 提交代码
-4. 新建 Pull Request
+现有源码包名、模块目录和 Maven 坐标保持不变；构建单个模块时，请使用该模块在源码中的实际路径。
 
-#### 码云特技
+## 参与贡献
 
-1. 使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2. 码云官方博客 [blog.gitee.com](https://blog.gitee.com)
-3. 你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解码云上的优秀开源项目
-4. [GVP](https://gitee.com/gvp) 全称是码云最有价值开源项目，是码云综合评定出的优秀开源项目
-5. 码云官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6. 码云封面人物是一档用来展示码云会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+1. Fork 本仓库并创建功能分支。
+2. 提交范围明确的修改，完成相关验证。
+3. 向 [本仓库](https://github.com/spnettec/kura-iot) 发起 Pull Request，说明修改目的和验证结果。
+
+请保留源码及第三方组件中已有的版权和许可证声明。
