@@ -33,13 +33,41 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 
 public class EventBusBridgeSSLTest {
 
+    @org.junit.jupiter.api.io.TempDir
+    static java.nio.file.Path tlsDirectory;
+
+    /** Generate test-only key material for this JVM; never load a committed private key. */
+    private static JksOptions temporaryKeyStore() throws Exception {
+        java.nio.file.Path store = tlsDirectory.resolve("test-keystore.jks");
+        String password = java.util.UUID.randomUUID().toString();
+        String keytool = java.nio.file.Paths.get(System.getProperty("java.home"), "bin", "keytool").toString();
+        ProcessBuilder builder = new ProcessBuilder(keytool, "-genkeypair", "-alias", "localhost",
+                "-keyalg", "RSA", "-keysize", "2048", "-validity", "1",
+                "-dname", "CN=localhost", "-ext", "SAN=dns:localhost,ip:127.0.0.1",
+                "-storetype", "JKS", "-keystore", store.toString(),
+                "-storepass:env", "YOFC_TEST_KEYSTORE_PASSWORD",
+                "-keypass:env", "YOFC_TEST_KEYSTORE_PASSWORD", "-noprompt");
+        builder.environment().put("YOFC_TEST_KEYSTORE_PASSWORD", password);
+        builder.redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD);
+        Process process = builder.start();
+        if (!process.waitFor(30, TimeUnit.SECONDS)) {
+            process.destroyForcibly();
+            throw new IllegalStateException("Timed out generating temporary TLS test certificate");
+        }
+        if (process.exitValue() != 0) {
+            throw new IllegalStateException("keytool could not generate the temporary TLS test certificate");
+        }
+        return new JksOptions().setPath(store.toString()).setPassword(password);
+    }
+
+
     static Vertx vertx;
     LongAdder counter = new LongAdder();
     EventBusBridge bridge;
 
     @BeforeAll
     @DisplayName("create server")
-    public static void createServer() throws InterruptedException {
+    public static void createServer() throws Exception {
         vertx = Vertx.vertx();
         CountDownLatch latch = new CountDownLatch(1);
         Router router = Router.router(vertx);
@@ -65,7 +93,7 @@ public class EventBusBridgeSSLTest {
                     vertx.eventBus().send("test", "ok");
                 }));
         vertx.createHttpServer(new HttpServerOptions().setSsl(true)
-                .setKeyCertOptions(new JksOptions().setPath("keystore.jks").setPassword("TEMPORARY_TEST_PASSWORD")))
+                .setKeyCertOptions(temporaryKeyStore()))
                 .requestHandler(router).listen(8765).onComplete(res -> latch.countDown());
 
         latch.await();
