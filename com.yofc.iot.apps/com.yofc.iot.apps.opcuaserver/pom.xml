@@ -1,5 +1,5 @@
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.yofc.iot</groupId>
@@ -19,7 +19,7 @@
             <artifactId>org.eclipse.kura.api</artifactId>
             <scope>provided</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>com.yofc.iot</groupId>
             <artifactId>yofc-iot-api-comp</artifactId>
             <version>0.0.1-SNAPSHOT</version>
@@ -53,11 +53,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-sql-client</artifactId>
-			<version>${vertx.version}</version>
-			<scope>test</scope>
-		</dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-sql-client</artifactId>
+            <version>${vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.eclipse.kura</groupId>
             <artifactId>org.eclipse.kura.core.configuration</artifactId>
@@ -78,7 +78,7 @@
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.framework</artifactId>
             <scope>provided</scope>
@@ -128,337 +128,327 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>milo-sdk-server</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>milo-sdk-core</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>milo-stack-core</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>milo-transport</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>milo-dtd-manager</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.eclipse.milo</groupId>
-	      <artifactId>milo-dtd-core</artifactId>
-	    </dependency>
-
-	    <!-- Parsing Libraries -->
-	    <dependency>
-	      <groupId>tools.jackson.dataformat</groupId>
-	      <artifactId>jackson-dataformat-yaml</artifactId>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.snakeyaml</groupId>
-	      <artifactId>snakeyaml-engine</artifactId>
-	      <version>3.0.1</version>
-	      <scope>provided</scope>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>tools.jackson.core</groupId>
-	      <artifactId>jackson-databind</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-        <dependency>
-          <groupId>tools.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-          <scope>provided</scope>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>milo-sdk-server</artifactId>
         </dependency>
-
-	    <dependency>
-	      <groupId>com.fasterxml.jackson.core</groupId>
-	      <artifactId>jackson-annotations</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>commons-cli</groupId>
-	      <artifactId>commons-cli</artifactId>
-          <scope>provided</scope>
-	    </dependency>
         <dependency>
-          <groupId>cglib</groupId>
-          <artifactId>cglib</artifactId>
-          <version>3.3.0</version>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>milo-sdk-core</artifactId>
         </dependency>
-	    <dependency>
-	      <groupId>commons-codec</groupId>
-	      <artifactId>commons-codec</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-	    <dependency>
-	        <groupId>net.java.dev.jna</groupId>
-	        <artifactId>jna</artifactId>
-	        <version>5.19.1</version>
-	        <scope>provided</scope>
-	    </dependency>
-	    <dependency>
-	        <groupId>org.pcap4j</groupId>
-	        <artifactId>pcap4j-core</artifactId>
-	        <version>1.8.2</version>
-	    </dependency>
-	    <dependency>
-	        <groupId>org.pcap4j</groupId>
-	        <artifactId>pcap4j-packetfactory-static</artifactId>
-	        <version>1.8.2</version>
-	      </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-api</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-         <!-- plc4j-spi was split into sub-modules after upstream merge.
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>milo-stack-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>milo-transport</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>milo-dtd-manager</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>milo-dtd-core</artifactId>
+        </dependency>
+        <!-- Parsing Libraries -->
+        <dependency>
+            <groupId>tools.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.snakeyaml</groupId>
+            <artifactId>snakeyaml-engine</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.19.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.pcap4j</groupId>
+            <artifactId>pcap4j-core</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pcap4j</groupId>
+            <artifactId>pcap4j-packetfactory-static</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-api</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <!-- plc4j-spi was split into sub-modules after upstream merge.
               Embed-Transitive=false means we must declare each sub-module
               directly so maven-bundle-plugin embeds them instead of emitting
               Import-Package for packages no other bundle provides. -->
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-values</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-values</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-buffers-api</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-buffers-api</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-buffers-byte</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-buffers-byte</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-config</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-config</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-drivers</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-drivers</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-fields</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-fields</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-spi-utils</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-spi-utils</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-api</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-api</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-cotp</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-cotp</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-tls</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-tls</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-utils-audit-log-api</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-utils-audit-log-api</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-utils-audit-log-impl</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
-        </dependency>
-
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-tools-connection-cache</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-tools-event-pump</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-utils-subscription-emulation</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-
-	    <!-- Include all drivers -->
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-ab-eth</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-ads</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-canopen</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-        <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-driver-can</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
-        </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-eip</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-firmata</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-knxnetip</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-modbus</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-opcua</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-s7</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-simulated</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-driver-plc4x</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.apache.plc4x</groupId>
-	      <artifactId>plc4j-plc4x-server</artifactId>
-	      <version>1.0.0.B-SNAPSHOT</version>
-	    </dependency>
-        <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-tcp</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-utils-audit-log-impl</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-can</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-tools-connection-cache</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-udp</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-tools-event-pump</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-serial</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-utils-subscription-emulation</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <!-- Include all drivers -->
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-ab-eth</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-can-socketcan</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-ads</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-raw-socket</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-canopen</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
         <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-transports-pcap-replay</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
-        </dependency>       
-        <dependency>
-          <groupId>org.apache.plc4x</groupId>
-          <artifactId>plc4j-utils-raw-sockets</artifactId>
-          <version>1.0.0.B-SNAPSHOT</version>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-can</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
         </dependency>
-		<dependency>
-	       <groupId>net.lingala.zip4j</groupId>
-	       <artifactId>zip4j</artifactId>
-	       <version>2.11.6</version>
-	    </dependency>
-	   <dependency>
-	        <groupId>org.json</groupId>
-	        <artifactId>json</artifactId>
-	        <version>20260522</version>
-      </dependency>
-      <dependency>
-        <groupId>com.github.jinahya</groupId>
-        <artifactId>bit-io</artifactId>
-        <version>1.4.3</version>
-      </dependency>
-      <dependency>
-	    <groupId>commons-net</groupId>
-	    <artifactId>commons-net</artifactId>
-	    <scope>provided</scope>
-	 </dependency>
-	    <dependency>
-	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bcpkix-jdk18on</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.bouncycastle</groupId>
-	      <artifactId>bcprov-jdk18on</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>commons-io</groupId>
-	      <artifactId>commons-io</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-
-	    <dependency>
-	      <groupId>io.vavr</groupId>
-	      <artifactId>vavr</artifactId>
-          <scope>provided</scope>
-	    </dependency>
-
-	    <!-- Testing Dependencies -->
-	    <dependency>
-	      <groupId>org.junit.jupiter</groupId>
-	      <artifactId>junit-jupiter</artifactId>
-	      <scope>test</scope>
-	    </dependency>
-	    <dependency>
-	      <groupId>org.junit.jupiter</groupId>
-	      <artifactId>junit-jupiter-api</artifactId>
-	      <scope>test</scope>
-	    </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-eip</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-firmata</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-knxnetip</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-modbus</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-opcua</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-s7</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-simulated</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-driver-plc4x</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-plc4x-server</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-tcp</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-can</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-udp</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-serial</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-can-socketcan</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-raw-socket</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-transports-pcap-replay</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.plc4x</groupId>
+            <artifactId>plc4j-utils-raw-sockets</artifactId>
+            <version>1.0.0.B-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>2.11.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20260522</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jinahya</groupId>
+            <artifactId>bit-io</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Testing Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -544,3 +534,4 @@
         </plugins>
     </build>
 </project>
+

@@ -1,11 +1,11 @@
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.eclipse.kura</groupId>
         <artifactId>kura-build-parent</artifactId>
         <version>6.0.0-SNAPSHOT</version>
-        <relativePath/>
+        <relativePath />
     </parent>
     <groupId>com.yofc.iot</groupId>
     <artifactId>yofc-iot</artifactId>
@@ -57,8 +57,8 @@
     </properties>
     <pluginRepositories>
         <pluginRepository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -68,11 +68,11 @@
         </pluginRepository>
     </pluginRepositories>
     <dependencies>
-	    <dependency>
-	        <groupId>org.projectlombok</groupId>
-	        <artifactId>lombok</artifactId>
-	        <scope>provided</scope>
-	    </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -82,14 +82,12 @@
                 <version>${kura.api.version}</version>
                 <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.eclipse.kura</groupId>
                 <artifactId>org.eclipse.kura.core.configuration</artifactId>
                 <version>${kura.core.configration.version}</version>
                 <scope>provided</scope>
             </dependency>
-
             <!-- we stick with the version Kura provides -->
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -115,7 +113,6 @@
                 <version>${commons-io.version}</version>
                 <scope>provided</scope>
             </dependency>
-
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
@@ -123,11 +120,11 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-	            <groupId>org.apache.felix</groupId>
-	            <artifactId>org.apache.felix.framework</artifactId>
-	            <version>${felix.framework.version}</version>
-	            <scope>provided</scope>
-	        </dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.framework</artifactId>
+                <version>${felix.framework.version}</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.service.component</artifactId>
@@ -177,35 +174,35 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-		      <groupId>org.eclipse.milo</groupId>
-		      <artifactId>milo-sdk-server</artifactId>
-		      <version>${milo.version}</version>
-		    </dependency>
-		    <dependency>
-		      <groupId>org.eclipse.milo</groupId>
-		      <artifactId>milo-stack-core</artifactId>
-		      <version>${milo.version}</version>
-		    </dependency>
-		    <dependency>
-		      <groupId>org.eclipse.milo</groupId>
-		      <artifactId>milo-transport</artifactId>
-		      <version>${milo.version}</version>
-		    </dependency>
-		    <dependency>
-		      <groupId>org.eclipse.milo</groupId>
-		      <artifactId>milo-sdk-core</artifactId>
-		      <version>${milo.version}</version>
-		    </dependency>
-		    <dependency>
-		      <groupId>org.eclipse.milo</groupId>
-		      <artifactId>milo-dtd-manager</artifactId>
-		      <version>${milo.version}</version>
-		    </dependency>
-		    <dependency>
-		      <groupId>org.eclipse.milo</groupId>
-		      <artifactId>milo-dtd-core</artifactId>
-		      <version>${milo.version}</version>
-		    </dependency>
+                <groupId>org.eclipse.milo</groupId>
+                <artifactId>milo-sdk-server</artifactId>
+                <version>${milo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.milo</groupId>
+                <artifactId>milo-stack-core</artifactId>
+                <version>${milo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.milo</groupId>
+                <artifactId>milo-transport</artifactId>
+                <version>${milo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.milo</groupId>
+                <artifactId>milo-sdk-core</artifactId>
+                <version>${milo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.milo</groupId>
+                <artifactId>milo-dtd-manager</artifactId>
+                <version>${milo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.milo</groupId>
+                <artifactId>milo-dtd-core</artifactId>
+                <version>${milo.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
@@ -258,8 +255,8 @@
             </dependency>
             <dependency>
                 <groupId>commons-net</groupId>
-			    <artifactId>commons-net</artifactId>
-			    <version>${commons-net.version}</version>
+                <artifactId>commons-net</artifactId>
+                <version>${commons-net.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -320,7 +317,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <build>
         <resources>
             <resource>
@@ -334,17 +330,17 @@
             </resource>
         </resources>
         <plugins>
-        	<plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-	              <annotationProcessorPaths>
-	                  <path>
-	                      <groupId>org.projectlombok</groupId>
-	                      <artifactId>lombok</artifactId>
-	                  </path>
-	              </annotationProcessorPaths>
-	          </configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -355,7 +351,6 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
-
                 <configuration>
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
@@ -364,7 +359,8 @@
                     <manifestLocation>${project.build.directory}/osgi/generated</manifestLocation>
                     <scrLocation>${project.build.directory}/generated-scr</scrLocation>
                     <unpackBundle>true</unpackBundle>
-                    <exportScr>true</exportScr> <!-- be sure to add this line as well -->
+                    <exportScr>true</exportScr>
+                    <!-- be sure to add this line as well -->
                     <niceManifest>true</niceManifest>
                     <instructions combine.self="override">
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
@@ -382,7 +378,6 @@
                         <_removeheaders>Require-Capability</_removeheaders>
                         <_noee>true</_noee>
                     </instructions>
-
                     <supportedProjectTypes>
                         <supportedProjectType>jar</supportedProjectType>
                         <supportedProjectType>bundle</supportedProjectType>
@@ -408,25 +403,23 @@
                 </configuration>
             </plugin>
         </plugins>
-
         <pluginManagement>
             <plugins>
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-install-plugin</artifactId>
-	                <version>3.1.3</version>
-	            </plugin>
-	            <plugin>
-	                <groupId>org.apache.maven.plugins</groupId>
-	                <artifactId>maven-deploy-plugin</artifactId>
-	                <version>3.1.3</version>
-	            </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.3</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-antrun-plugin</artifactId>
                     <version>3.1.0</version>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -435,19 +428,16 @@
                         <release>21</release>
                     </configuration>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>6.0.0</version>
                 </plugin>
-
                 <plugin>
                     <groupId>org.eclipse.kura</groupId>
                     <artifactId>kura-dp-maven-plugin</artifactId>
                     <version>6.0.0-SNAPSHOT</version>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -457,3 +447,4 @@
         </pluginManagement>
     </build>
 </project>
+
