@@ -5,7 +5,7 @@ Build/install Kura build support and its API first, then import this POM in IDEA
 Java 21, Maven Bundle Plugin 6.0.0 and the existing annotation-generated DS/metatype
 remain in use. Generated manifests and DS exports now stay under `target/`.
 
-PLC4X remains an independent project. Install the required `1.0.0.B-SNAPSHOT`
+PLC4X remains an independent project. Install the required `2.0.0.B-SNAPSHOT`
 artifacts from its source checkout into the same Maven repository before building
 YOFC. Kura's workspace reactor does not build or modify PLC4X.
 
